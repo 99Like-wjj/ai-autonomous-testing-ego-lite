@@ -15,21 +15,21 @@
 
 ## 根据需求自行生成
 
-1. 读取用户范围、可信需求及版本、环境限制和禁止事项。定位每个明确验收点，给出 source 和保持原意的 text。
+1. 读取用户范围、可信需求及版本、环境限制和禁止事项。定位每个明确验收点，给出 source 和保持原意的 text。整体 expected 保留可确认的目标；缺失验收细节用 clarificationQuestions 明确列出，不能捏造细节使其看似可执行。
 2. 先覆盖明确目标，再按风险选择正向、异常、边界、角色、状态迁移、持久化和受影响回归。并非每项功能都要机械套满清单，不加入无依据限制。
 3. 将每个可独立判断的目标写成一条稳定 ID 用例。criticalConditions 写角色、租户、初态、精确输入/对象及授权前提；未知值保留待确认，不能捏造可执行环境。
-4. 编写有序 steps，拆成能指导 AI 操作 Ego 的业务动作，每步都有可观察 expected。步骤粒度应能复核：例如“打开搜索界面”“输入已约定的合成类别”“执行查询”“核对当前可见列表”。不要使用坐标、易失效选择器、猜测的 Ego 命令或把多个无关目标塞进一句“测试功能”。
+4. 编写有序 steps，拆成能指导 AI 操作 Ego 的业务动作，包含必要业务输入即可，例如“进入配置中心的模板功能，按给定名称与字段新建模板”。具体 UI 路径、定位和操作由 AI 使用 Ego 自主探索，不要求需求给出按钮、弹窗或提示文案。有依据的独立检查点才写步骤 expected，其他步骤省略该字段。已知细节充分时允许细粒度步骤，真实流程约束不可删除；也不要把多个无关目标塞进一句“测试功能”。
 5. 根据业务依赖选 stepOrder。默认对状态迁移、提交后刷新、明确流程要求用 strict。仅对彼此独立且允许调整的检查用 adaptive；即使 adaptive，也不能先验证依赖的后果而未完成动作，不能跳过关键步骤。requiredPath 保留真正规定的路线，未规定则 null。
-6. 逐项复核需求 → 用例 → 步骤 → 预期映射，检查遗漏、矛盾、不可能前提、未经授权的副作用，以及是否将探索冒充明确需求。不要为凑数生成重复用例。
+6. 逐项复核需求 → 用例 → 业务步骤 → 整体预期/可选检查点映射，检查遗漏、矛盾、不可能前提、未经授权的副作用，以及是否将探索冒充明确需求。不要为凑数生成重复用例。
 7. 交付格式合规的 JSON，并在文件之外列出缺失前提、待确认解释、覆盖范围与执行限制。重要条件未确定可先生成草案，不得假称已经可执行。固定用例后再开展浏览器操作。
 
 basis.kind 三类严格区分：explicit 是原文明确规定；interpretation 是从明确来源推导但待确认的解释；hypothesis 是探索假设。模型信心高不构成 explicit。缺少业务判据时不从页面现状倒推预期。
 
 ## 完整最小格式
 
-使用 UTF-8 JSON。所有 JSON 资产使用 schemaVersion 2，不接受 v1，不提供自动迁移。用例根对象只允许 schemaVersion、project、cases；project 非空白，cases 非空。
+使用 UTF-8 JSON。0.1.2 保持 schemaVersion 2；已有完整步骤 expected 的 v2 用例仍有效，无迁移层。不接受 v1。用例根对象只允许 schemaVersion、project、cases；project 非空白，cases 非空。
 
-每个用例恰好包含：
+每个用例包含以下字段，不允许其他字段（除标明可选外均必需）：
 
 - id、title：非空白字符串；id 在 cases 中唯一。
 - basis：恰好包含 kind、source、text。kind 为 explicit / interpretation / hypothesis；source、text 为非空白字符串。
@@ -37,35 +37,55 @@ basis.kind 三类严格区分：explicit 是原文明确规定；interpretation 
 - expected：非空白的最终可观察预期。
 - requiredPath：未指定必经路线时为 null，否则非空白文本。
 - stepOrder：strict 或 adaptive。
-- steps：非空有序数组，每步恰好包含非空白 id、action、expected；id 在本用例内唯一，可在其他用例复用。
+- steps：非空有序数组，每步必需非空白 id、action；可选 expected 若提供须为非空白字符串，除此之外不允许步骤字段。id 在本用例内唯一，可跨用例复用。action 描述业务意图与必要输入；expected 只写有依据的独立检查点。
+- clarificationQuestions：可选非空白字符串数组，可为空；非空时表示整体验收标准待澄清，不能给该用例或其 attempts 标 pass/fail。不得用它代替整体 expected 或 basis。
 
-示例仅为合成数据，没有真实权限或执行结果：
+示例仅为合成数据，没有真实权限或执行结果。第一个业务步骤无步骤 expected，第二个有明确来源的持久化检查点；无需预先编造具体 UI。
 
 ```json
 {
   "schemaVersion": 2,
-  "project": "synthetic-catalog",
-  "cases": [{
-    "id": "SEARCH-01",
-    "title": "按合成类别查询当前可见列表",
-    "basis": {
-      "kind": "explicit",
-      "source": "合成需求 SEARCH-01",
-      "text": "查询已约定类别后，当前可见结果仅包含该类别。"
-    },
-    "criticalConditions": ["已授权只读测试环境", "实际测试身份已核验", "合成类别为演示类A，存在获准读取的匹配条目"],
-    "expected": "当前可见结果均属于演示类A；不推断不可见数据或后端实现正确。",
-    "requiredPath": "通过搜索界面输入类别并执行查询",
-    "stepOrder": "strict",
-    "steps": [
-      {"id": "open", "action": "打开搜索界面", "expected": "类别输入控件可用"},
-      {"id": "input", "action": "输入演示类A", "expected": "输入值为演示类A"},
-      {"id": "query", "action": "执行查询并等待可观察完成状态", "expected": "查询完成并显示结果或明确空态"},
-      {"id": "inspect", "action": "核对当前可见结果的类别", "expected": "当前可见结果非空且全部属于演示类A"}
-    ]
-  }]
+  "project": "synthetic-config",
+  "cases": [
+    {
+      "id": "CONFIG-01",
+      "title": "新建合成模板并核对已知保存要求",
+      "basis": {
+        "kind": "explicit",
+        "source": "合成需求 CONFIG-01",
+        "text": "可以在配置中心新建名称为演示模板A、字段为演示字段甲的模板，保存后重新读取仍保持这些信息。"
+      },
+      "criticalConditions": [
+        "实际身份已核验且允许创建模板",
+        "获授权独立合成数据环境",
+        "名称演示模板A尚未占用"
+      ],
+      "expected": "模板可创建，重新读取后名称为演示模板A，包含演示字段甲。",
+      "requiredPath": "通过配置中心的模板功能创建",
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "create",
+          "action": "进入配置中心的模板功能，新建名称为演示模板A、字段为演示字段甲的模板"
+        },
+        {
+          "id": "verify",
+          "action": "重新读取同一模板并核对名称与字段",
+          "expected": "名称为演示模板A，包含演示字段甲"
+        }
+      ]
+    }
+  ]
 }
 ```
+
+## 验收待澄清时
+
+例如需求仅说“支持在配置中心创建模板”，却未规定名称重复时如何处理：整体 expected 保留“支持创建模板”的已知目标，clarificationQuestions 可列“同名模板应允许创建还是应拒绝？”；对依赖此问题的用例，不填写猜测的成功提示或拒绝文案。将能够独立判断的明确目标另列用例，不让无关歧义覆盖全部范围。
+
+只列影响本用例验收的未决问题，不把非阻塞的 UI 路线探索问题放进 clarificationQuestions。非空问题列表意味着该用例整体验收尚未确定，结果与全部 attempts 都不得 pass/fail。未尝试为 not_run；已授权探索但无法确定判据时为 inconclusive；已知障碍为 blocked。可记录如何到达功能、实际发生了什么，但现状不是标准。澄清后准备修订用例并重新冻结，保留旧记录；不能直接清除旧基线的问题来放行结果。
+
+省略步骤 expected 不表示该步未执行，也不自动通过。整体 expected 和 basis 始终必需；空 clarificationQuestions 也不证明没有未知问题。完整细粒度步骤若确有需求依据仍然有效，不为“简化”删除业务约束。
 
 ## 校验、冻结与交付
 
@@ -75,4 +95,4 @@ basis.kind 三类严格区分：explicit 是原文明确规定；interpretation 
 
 若用户已提供工具包的绝对根目录，可使用该工具包的当前文档与校验器。可选 `validate-cases --cases ABS` 只读检查并输出摘要，`start` 再次校验并生成冻结基线与 not_run 记录。二者不生成用例、不调用模型、不操作 Ego；只生成用例时不必创建运行。不要从安装目录向上猜测工具包位置。
 
-执行严格遵守条件、步骤与必经路径；AI 自主决定实际 UI 定位、等价导航与观察方式。每步预期指导观察，不自动成为通过结论。按 [证据与报告](evidence-and-report.md) 保存步骤执行情况、实际观察与未覆盖原因；没有证据不要填模拟通过。
+执行严格遵守条件、步骤与必经路径；AI 自主决定实际 UI 定位、等价导航与观察方式。可选检查点指导观察，最终对照整体预期，不自动成为通过结论。计划 steps 不是执行证据；通过已有 observed、rationale、evidence、attempts 记录实际路径、行为和事实，不新增强制按步 trace 字段。按 [证据与报告](evidence-and-report.md) 保存步骤执行情况、实际观察与未覆盖原因；没有证据不要填模拟通过。

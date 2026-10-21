@@ -113,7 +113,7 @@ test('malformed JSON fails and no report is emitted', async t => {
 test('evidence alternate stream syntax rejected', async t => {
   const f = await fixture(t); await f.edit(r => { r.cases[0].evidence = ['evidence/name:stream']; }); await assert.rejects(check(f.outputDir), /Evidence must/);
 });
-for (const key of ['expected', 'title', 'criticalConditions', 'requiredPath', 'stepOrder', 'steps', 'unexpected']) {
+for (const key of ['expected', 'title', 'criticalConditions', 'requiredPath', 'stepOrder', 'steps', 'clarificationQuestions', 'unexpected']) {
   test(`result cannot override baseline field ${key}`, async t => {
     const f = await fixture(t); await f.edit(r => { r.cases[0][key] = 'Rewritten requirement'; });
     await assert.rejects(check(f.outputDir), /Unexpected result key/);
@@ -176,7 +176,6 @@ for (const [label, update] of [
   ['unexpected step field', c => { c.steps[0].script = 'do not execute'; }],
   ['missing step id', c => { delete c.steps[0].id; }],
   ['blank step action', c => { c.steps[0].action = '  '; }],
-  ['missing step expected', c => { delete c.steps[0].expected; }],
   ['null step', c => { c.steps[0] = null; }]
 ]) test(`v2 cases reject ${label}`, () => {
   const c = caseOf(); update(c);
@@ -250,7 +249,7 @@ test('schemas declare only v2 and closed step fields through local references', 
     assert.equal(schema.$id, `${name}.schema.json`);
   }
   const common = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'schemas', 'common.schema.json')));
-  assert.deepEqual(common.$defs.step.required, ['id', 'action', 'expected']);
+  assert.deepEqual(common.$defs.step.required, ['id', 'action']);
   assert.equal(common.$defs.step.additionalProperties, false);
   for (const name of ['case', 'reportCase']) {
     assert.ok(common.$defs[name].required.includes('stepOrder'));
@@ -269,4 +268,138 @@ test('v1 baseline rejected even with its matching manifest hash', async t => {
   manifest.baselineSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
   await fs.writeFile(manifestPath, JSON.stringify(manifest));
   await assert.rejects(check(f.outputDir), /schemaVersion 2/);
+});
+
+// v0.1.2: business intent is sufficient; checkpoints are optional, never inferred.
+for (const stepOrder of ['strict', 'adaptive']) test(`${stepOrder} accepts omitted and mixed checkpoints without fabrication`, () => {
+  for (const steps of [
+    [{ id: 'locate', action: 'Find the synthetic configuration feature.' }],
+    [{ id: 'locate', action: 'Find the synthetic configuration feature.' }, { id: 'create', action: 'Create a configuration named synthetic with value example.', expected: 'The source-specified configuration exists.' }]
+  ]) {
+    const input = { schemaVersion: 2, project: 'Synthetic intent', cases: [{ ...caseOf(), stepOrder, steps }] };
+    const normalized = normalizeCases(input);
+    assert.deepEqual(normalized, input);
+    assert.equal(Object.hasOwn(normalized.cases[0].steps[0], 'expected'), false);
+    assert.deepEqual(normalizeCases(JSON.parse(JSON.stringify(normalized))), input);
+  }
+});
+for (const [label, expected] of [['null', null], ['empty', ''], ['whitespace', ' \t\n '], ['number', 1], ['boolean', false], ['array', []], ['object', {}], ['undefined property', undefined]]) {
+  test(`supplied step expected rejects ${label}`, () => {
+    const c = caseOf(); c.steps[0].expected = expected;
+    assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [c] }), /Invalid step/);
+  });
+  test(`overall expected still rejects ${label}`, () => {
+    const c = caseOf(); c.expected = expected;
+    assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [c] }), /expected strings/);
+  });
+}
+test('overall expected and source remain required even when checkpoints are omitted', () => {
+  for (const change of [c => { delete c.expected; }, c => { delete c.basis.source; }, c => { c.basis.source = ' '; }]) {
+    const c = caseOf(); delete c.steps[0].expected; change(c);
+    assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [c] }));
+  }
+});
+for (const [label, clarificationQuestions] of [['null', null], ['string', 'Question?'], ['object', {}], ['number', 2], ['undefined property', undefined], ['blank question', [' ']], ['empty question', ['']], ['null question', [null]], ['nonstring question', [42]], ['mixed invalid', ['Question?', false]]]) test(`clarificationQuestions rejects ${label}`, () => {
+  assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [{ ...caseOf(), clarificationQuestions }] }), /Invalid clarificationQuestions/);
+});
+test('optional clarification questions preserve omission, empty arrays, order and exact text without aliasing', () => {
+  const cases = [caseOf('absent'), { ...caseOf('empty'), clarificationQuestions: [] }, { ...caseOf('pending'), clarificationQuestions: ['  Source question?  ', 'Another question?'] }];
+  const input = { schemaVersion: 2, project: 'Synthetic', cases };
+  const normalized = normalizeCases(input);
+  assert.deepEqual(normalized, input);
+  assert.equal(Object.hasOwn(normalized.cases[0], 'clarificationQuestions'), false);
+  assert.notEqual(normalized.cases[1].clarificationQuestions, cases[1].clarificationQuestions);
+  assert.notEqual(normalized.cases[2].clarificationQuestions, cases[2].clarificationQuestions);
+});
+async function clarificationFixture(t, questions = ['Which synthetic configuration scope is required?']) {
+  const f = await fixture(t);
+  const input = { schemaVersion: 2, project: 'Synthetic pending case', cases: [{ ...caseOf(), clarificationQuestions: questions, steps: [{ id: 'locate', action: 'Find the synthetic configuration feature.' }, { id: 'create', action: 'Create a configuration named synthetic with value example.', expected: 'Source-backed synthetic checkpoint' }] }] };
+  await fs.writeFile(f.casesFile, JSON.stringify(input));
+  const run = path.join(f.root, 'clarification-run');
+  await start({ ...f, outputDir: run });
+  const edit = async fn => { const file = path.join(run, 'results.json'); const value = JSON.parse(await fs.readFile(file)); fn(value); await fs.writeFile(file, JSON.stringify(value)); };
+  return { ...f, outputDir: run, edit, input };
+}
+for (const status of ['pass', 'fail']) {
+  for (const target of ['final', 'attempt']) test(`pending clarification rejects ${target} ${status} even with complete evidence`, async t => {
+    const f = await clarificationFixture(t); await registerEvidence(f.outputDir, 'synthetic.txt');
+    const record = { status, observed: 'Synthetic actual behavior', rationale: 'Synthetic interpretation', remainingQuestions: [], evidence: ['evidence/synthetic.txt'] };
+    await f.edit(r => { if (target === 'final') Object.assign(r.cases[0], record); else r.cases[0].attempts = [record]; });
+    await assert.rejects(check(f.outputDir), /Pending clarification prohibits pass\/fail/);
+    await assert.rejects(report(f.outputDir), /Pending clarification/);
+    await assert.rejects(fs.stat(path.join(f.outputDir, 'report.json')), /ENOENT/);
+    await assert.rejects(fs.stat(path.join(f.outputDir, 'report.md')), /ENOENT/);
+  });
+  test(`empty clarificationQuestions does not prohibit ${status}`, async t => {
+    const f = await clarificationFixture(t, []); await registerEvidence(f.outputDir, 'synthetic.txt');
+    const record = { status, observed: 'Synthetic actual behavior', rationale: 'Source-backed synthetic comparison', remainingQuestions: [], evidence: ['evidence/synthetic.txt'] };
+    await f.edit(r => { Object.assign(r.cases[0], record); r.cases[0].attempts = [{ ...record }]; });
+    const checked = await check(f.outputDir);
+    assert.equal(checked.cases[0].status, status);
+    assert.equal(checked.cases[0].attempts[0].status, status);
+    assert.deepEqual(checked.cases[0].clarificationQuestions, []);
+  });
+}
+for (const status of ['inconclusive', 'blocked', 'not_run']) test(`pending clarification accepts ${status} final and attempts`, async t => {
+  const f = await clarificationFixture(t);
+  const record = { status, observed: '', rationale: status === 'not_run' ? '' : 'Pending source clarification', remainingQuestions: ['Which synthetic scope?'], evidence: [] };
+  await f.edit(r => { Object.assign(r.cases[0], record); r.cases[0].attempts = [{ ...record }]; });
+  const checked = await check(f.outputDir);
+  assert.equal(checked.cases[0].status, status); assert.equal(checked.cases[0].attempts[0].status, status);
+  assert.deepEqual(checked.recordedExplicitOutcomes, { pass: 0, fail: 0 });
+});
+test('optional checkpoints and questions survive hashing and reports; absent checkpoints are not passed', async t => {
+  const f = await clarificationFixture(t, ['What is <scope> & [source](https://invalid.example)?']);
+  const bytes = await fs.readFile(path.join(f.outputDir, 'baseline.json'));
+  const baseline = JSON.parse(bytes);
+  const manifest = JSON.parse(await fs.readFile(path.join(f.outputDir, 'manifest.json')));
+  assert.deepEqual(baseline, f.input);
+  assert.equal(manifest.baselineSha256, crypto.createHash('sha256').update(bytes).digest('hex'));
+  // Editing the input does not modify the frozen run.
+  const revised = structuredClone(f.input); revised.cases[0].clarificationQuestions = []; revised.cases[0].steps[0].expected = 'New checkpoint';
+  await fs.writeFile(f.casesFile, JSON.stringify(revised));
+  const result = await check(f.outputDir); const out = await report(f.outputDir);
+  const reportText = await fs.readFile(out.reportJson, 'utf8'); const md = await fs.readFile(out.reportMarkdown, 'utf8');
+  assert.deepEqual(JSON.parse(reportText), result);
+  assert.deepEqual(result.cases[0].steps, baseline.cases[0].steps);
+  assert.deepEqual(result.cases[0].clarificationQuestions, baseline.cases[0].clarificationQuestions);
+  assert.equal(result.cases[0].expected, baseline.cases[0].expected);
+  assert.equal(Object.hasOwn(result.cases[0].steps[0], 'expected'), false);
+  assert.match(md, /Expected checkpoint: \(not specified; no checkpoint verdict\)/);
+  assert.match(md, /Expected: Synthetic outcome/); assert.match(md, /Expected checkpoint: Source/);
+  assert.match(md, /Baseline clarification questions:/); assert.match(md, /&lt;scope&gt; &amp;/);
+  assert.doesNotMatch(md, /undefined|<scope>|\[source\]\(/); assert.doesNotMatch(reportText, /undefined|"expected": null/);
+});
+for (const [label, change] of [
+  ['add omitted checkpoint', c => { c.steps[0].expected = 'Invented checkpoint'; }],
+  ['remove supplied checkpoint', c => { delete c.steps[1].expected; }],
+  ['clear pending questions', c => { c.clarificationQuestions = []; }],
+  ['remove pending questions', c => { delete c.clarificationQuestions; }],
+  ['rewrite pending question', c => { c.clarificationQuestions[0] = 'Different question?'; }]
+]) test(`baseline hash rejects ${label}`, async t => {
+  const f = await clarificationFixture(t); const file = path.join(f.outputDir, 'baseline.json');
+  const baseline = JSON.parse(await fs.readFile(file)); change(baseline.cases[0]); await fs.writeFile(file, JSON.stringify(baseline));
+  await assert.rejects(check(f.outputDir), /hash mismatch/);
+});
+test('init demonstrates business actions with an omitted checkpoint and retains overall expectation', async t => {
+  const f = await fixture(t); const sample = JSON.parse(await fs.readFile(path.join(f.projectDir, 'cases.example.json')));
+  assert.deepEqual(normalizeCases(sample), sample);
+  assert.ok(sample.cases[0].steps.some(s => !Object.hasOwn(s, 'expected')));
+  assert.ok(sample.cases[0].expected.trim()); assert.match(sample.cases[0].steps[1].action, /named synthetic-example with value example-value/);
+});
+test('schemas expose optional checkpoints/questions and report pending-verdict constraint', async () => {
+  const common = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'schemas/common.schema.json')));
+  const defs = common.$defs;
+  assert.ok(!defs.step.required.includes('expected'));
+  assert.equal(defs.step.properties.expected.$ref, 'common.schema.json#/$defs/nonempty');
+  for (const name of ['case', 'reportCase']) {
+    assert.ok(defs[name].required.includes('expected'));
+    assert.ok(!defs[name].required.includes('clarificationQuestions'));
+    assert.equal(defs[name].properties.clarificationQuestions.type, 'array');
+    assert.equal(defs[name].properties.clarificationQuestions.items.$ref, 'common.schema.json#/$defs/nonempty');
+  }
+  const rule = defs.reportCase.allOf.find(rule => rule.if.required.includes('clarificationQuestions'));
+  assert.equal(rule.if.properties.clarificationQuestions.minItems, 1);
+  assert.deepEqual(rule.then.properties.status.enum, ['inconclusive', 'blocked', 'not_run']);
+  assert.deepEqual(rule.then.properties.attempts.items.properties.status.enum, ['inconclusive', 'blocked', 'not_run']);
 });

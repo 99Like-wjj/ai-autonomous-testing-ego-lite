@@ -20,24 +20,18 @@
       "stepOrder": "strict",
       "steps": [
         {
-          "id": "open",
-          "action": "打开获准有效条目的详情",
-          "expected": "对象标识及有效状态匹配前提"
-        },
-        {
           "id": "archive",
-          "action": "通过详情的归档入口执行归档",
-          "expected": "显示已归档"
+          "action": "进入获准有效书签的详情，将该书签归档；保持原对象不变"
         },
         {
           "id": "refresh",
-          "action": "刷新同一条目详情",
+          "action": "刷新同一书签详情，核对归档状态",
           "expected": "仍显示已归档"
         },
         {
           "id": "list",
-          "action": "打开默认有效书签列表并核对目标条目",
-          "expected": "列表不再显示该条目；仅在实际观察范围内判断"
+          "action": "检查默认有效书签列表是否仍显示该书签",
+          "expected": "默认有效书签列表不显示目标书签"
         }
       ]
     },
@@ -58,14 +52,8 @@
       "stepOrder": "strict",
       "steps": [
         {
-          "id": "open",
-          "action": "打开获准已有条目的详情",
-          "expected": "目标详情可查看"
-        },
-        {
           "id": "inspect",
-          "action": "检查可用归档入口",
-          "expected": "没有可用归档入口"
+          "action": "以已核验读者身份查看获准条目详情并检查归档能力"
         }
       ]
     },
@@ -86,15 +74,37 @@
       "stepOrder": "strict",
       "steps": [
         {
-          "id": "open",
-          "action": "打开已归档条目详情",
-          "expected": "对应目标条目且显示已归档"
-        },
-        {
           "id": "inspect",
-          "action": "检查可用归档入口",
-          "expected": "不再提供可用归档入口"
+          "action": "查看获准的已归档条目详情，检查状态与可用归档入口",
+          "expected": "显示已归档，不提供可用归档入口"
         }
+      ]
+    },
+    {
+      "id": "G-04-clarification",
+      "title": "批量归档目标已知，部分无权限条目的规则待澄清",
+      "basis": {
+        "kind": "explicit",
+        "source": "project.example/feature-request.md#F-04",
+        "text": "支持批量归档选中的书签；部分条目无权限时如何处理尚未规定。"
+      },
+      "criticalConditions": [
+        "只有在批量功能已部署且获准探索时执行",
+        "使用已获准的独立合成条目集，包含可归档与无权限条目",
+        "任何可能发生的归档副作用均须事先授权"
+      ],
+      "expected": "支持对选中书签发起批量归档；部分条目无权限时的整体验收规则待澄清。",
+      "requiredPath": null,
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "explore",
+          "action": "在授权测试环境中找到批量归档功能，使用约定合成条目集探索操作路径；记录实际行为，不将其当作预期"
+        }
+      ],
+      "clarificationQuestions": [
+        "部分所选书签无权限时，应全部拒绝，还是只归档有权限的条目？",
+        "操作后应如何向用户呈现各条目的处理结果？"
       ]
     }
   ]

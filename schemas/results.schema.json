@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Ego Lite recorded results v2",
-  "description": "One result per original baseline case is enforced by the helper, not this schema.",
+  "description": "Operator-supplied results. The helper additionally checks the frozen baseline: cases with nonempty clarificationQuestions may not have pass/fail final or attempt statuses. This cross-file constraint cannot be validated from results alone.",
   "type": "object",
   "required": [
     "schemaVersion",

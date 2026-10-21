@@ -2,7 +2,7 @@
 
 [中文](asset-formats.md)
 
-These formats stabilize AI input and output with business steps and per-step expectations, without prescribing fixed click scripts, a fixed DAG, business-specific behavior, or a hidden acceptance benchmark. AI still chooses actions and evaluates observations against the actual requirements. The local helper only records and checks structure; it does not run the browser or decide whether the product works.
+These formats stabilize AI input and output with business steps and optional step checkpoints, without prescribing fixed click scripts, a fixed DAG, business-specific behavior, or a hidden acceptance benchmark. AI still chooses actions and evaluates observations against the actual requirements. The local helper only records and checks structure; it does not run the browser or decide whether the product works.
 
 ## Human source material and normalized exchange
 
@@ -25,7 +25,7 @@ Store real project inputs, runs, reports and evidence outside the distributable 
 
 ## Cases: preserve intent, not a click script
 
-Each case requires:
+Case fields (required unless explicitly marked optional):
 
 - id: nonblank stable identifier, unique within the case list.
 - title: nonblank short description.
@@ -35,9 +35,14 @@ Each case requires:
 - requiredPath: null when no path is mandated, or nonblank text describing a genuinely required route. It is not a filesystem path and must not be invented just to constrain the agent.
 
 - stepOrder: required, strict or adaptive. strict preserves semantic business-step order. adaptive permits changes of methods or ordering only with intent, prerequisites, dependencies, and required routes preserved. Neither permits skipping key steps or reducing coverage.
-- steps: required nonempty ordered array. Each step contains exactly nonblank id, action, and expected strings. IDs are unique within each case, not necessarily across cases. action describes a business action and expected its observable checkpoint, not an observed result, coordinate, selector, or unauthorized action. The case-level expected remains the overall acceptance condition.
+- steps: required nonempty ordered array. Each step requires nonblank id and action strings; optional expected must be nonblank when present. No other step fields are allowed. IDs are unique within a case. action expresses business intent and necessary inputs; expected is a grounded independent checkpoint, not observed execution. Case-level expected remains required.
+- clarificationQuestions: optional case-level array of nonblank strings, possibly empty. A nonempty array makes overall acceptance unresolved: both the result and its attempts must not be pass or fail. It does not replace basis or case-level expected; an empty array does not establish sufficient criteria.
 
-For example: open search → enter a synthetic category → submit the query → inspect the current visible list, each with its own observable expectation. The model locates current UI elements autonomously and does not treat a displayed list as proof of backend correctness.
+Business steps need only express intent and necessary inputs, such as “open the template feature in configuration and create a template with the supplied name and fields.” Do not invent buttons, dialogs, or messages when requirements lack those details. Fine-grained steps remain appropriate when supported. A step-level expected is optional; when present it must be a grounded independent checkpoint. Omission means neither untested nor automatic success: judge against the case-level expected.
+
+Case-level expected and basis remain required. When acceptance details are missing, describe the known goal and optionally record clarificationQuestions (an array of nonblank strings). Include only unresolved questions that affect this case’s verdict, not ordinary UI-route exploration questions. Split independently decidable goals from unresolved ones without weakening the original requirement. A nonempty list means overall acceptance remains unresolved: neither the case nor its attempts may receive pass/fail. Authorized route exploration may record facts, but observed behavior must not become the acceptance standard. After clarification, prepare and freeze a revised case rather than editing the old baseline.
+
+AI explores the concrete route through Ego and records actual actions, observations, and evidence in existing observed, rationale, evidence, and attempts fields. Planned steps are not execution evidence; no mandatory per-step trace field is added.
 
 Both external and Skill-generated cases follow the same validation, freezing, and execution path for new features or regression. Optional `node scripts/ego.mjs validate-cases --cases ABS` validates and prints a summary without creating a run. Structural checks do not establish semantic quality, genuine requirements, or authorization. See the [bundled authoring guide](../skills/ego-lite-test/references/case-authoring.md).
 
@@ -82,4 +87,4 @@ Schema validation checks JSON shape, field types, allowed values and conditional
 
 Run check before generating the report. structurallyValid: true means structural checks passed, not that all tests ran, all required conditions were verified, or the product passed. hasUnexecutedCases and counts expose recorded coverage; inspect the individual evidence and reasoning.
 
-All current JSON assets accept only schemaVersion: 2. v1 is not supported and there is no automatic migration. Prepare new files against this contract; do not rewrite historical run baselines to impersonate a new-format run. Do not add arbitrary metadata or reinterpret fields. Checks are not a security boundary against changes made outside the helper.
+Version 0.1.2 keeps schemaVersion: 2. Existing v2 cases with full step expectations remain valid without migration. All current JSON assets reject v1; there is no migration layer. Prepare new files against this contract; do not rewrite historical run baselines to impersonate a new-format run. Do not add arbitrary metadata or reinterpret fields. Checks are not a security boundary against changes made outside the helper.

@@ -44,22 +44,23 @@ export function normalizeCases(input) {
   if (!object(input) || Object.keys(input).some(k => !['schemaVersion', 'project', 'cases'].includes(k)) || input.schemaVersion !== 2 || !nonempty(input.project) || !Array.isArray(input.cases) || !input.cases.length) fail('Cases require schemaVersion 2, project, and a nonempty cases array.');
   const ids = new Set();
   const cases = input.cases.map(c => {
-    if (!object(c) || Object.keys(c).some(k => !['id', 'title', 'basis', 'criticalConditions', 'expected', 'requiredPath', 'stepOrder', 'steps'].includes(k)) || !nonempty(c.id) || !nonempty(c.title) || !nonempty(c.expected)) fail('Each case requires id, title, and expected strings.');
+    if (!object(c) || Object.keys(c).some(k => !['id', 'title', 'basis', 'criticalConditions', 'expected', 'requiredPath', 'stepOrder', 'steps', 'clarificationQuestions'].includes(k)) || !nonempty(c.id) || !nonempty(c.title) || !nonempty(c.expected)) fail('Each case requires id, title, and expected strings.');
     if (ids.has(c.id)) fail(`Duplicate case id: ${c.id}`);
     ids.add(c.id);
     if (!object(c.basis) || Object.keys(c.basis).some(k => !['kind', 'source', 'text'].includes(k)) || !['explicit', 'interpretation', 'hypothesis'].includes(c.basis.kind) || !nonempty(c.basis.source) || !nonempty(c.basis.text)) fail(`Invalid basis: ${c.id}`);
+    if (Object.hasOwn(c, 'clarificationQuestions') && (!Array.isArray(c.clarificationQuestions) || !c.clarificationQuestions.every(nonempty))) fail(`Invalid clarificationQuestions: ${c.id}`);
     if (!Array.isArray(c.criticalConditions) || !c.criticalConditions.every(nonempty)) fail(`Invalid criticalConditions: ${c.id}`);
     if (c.requiredPath !== null && !nonempty(c.requiredPath)) fail(`requiredPath must be null or nonempty text: ${c.id}`);
     if (!['strict', 'adaptive'].includes(c.stepOrder)) fail(`Invalid stepOrder: ${c.id}`);
     if (!Array.isArray(c.steps) || !c.steps.length) fail(`A nonempty steps array is required: ${c.id}`);
     const stepIds = new Set();
     const steps = c.steps.map(step => {
-      if (!object(step) || Object.keys(step).some(k => !['id', 'action', 'expected'].includes(k)) || !nonempty(step.id) || !nonempty(step.action) || !nonempty(step.expected)) fail(`Invalid step: ${c.id}`);
+      if (!object(step) || Object.keys(step).some(k => !['id', 'action', 'expected'].includes(k)) || !nonempty(step.id) || !nonempty(step.action) || (Object.hasOwn(step, 'expected') && !nonempty(step.expected))) fail(`Invalid step: ${c.id}`);
       if (stepIds.has(step.id)) fail(`Duplicate step id: ${c.id}/${step.id}`);
       stepIds.add(step.id);
-      return { id: step.id, action: step.action, expected: step.expected };
+      return { id: step.id, action: step.action, ...(Object.hasOwn(step, 'expected') ? { expected: step.expected } : {}) };
     });
-    return { id: c.id, title: c.title, basis: { kind: c.basis.kind, source: c.basis.source, text: c.basis.text }, criticalConditions: [...c.criticalConditions], expected: c.expected, requiredPath: c.requiredPath, stepOrder: c.stepOrder, steps };
+    return { id: c.id, title: c.title, basis: { kind: c.basis.kind, source: c.basis.source, text: c.basis.text }, criticalConditions: [...c.criticalConditions], expected: c.expected, requiredPath: c.requiredPath, stepOrder: c.stepOrder, steps, ...(Object.hasOwn(c, 'clarificationQuestions') ? { clarificationQuestions: [...c.clarificationQuestions] } : {}) };
   });
   return { schemaVersion: 2, project: input.project, cases };
 }
@@ -71,7 +72,7 @@ export async function validateCases(casesFile) {
 export async function init(projectDir) {
   const target = await safePath(projectDir, { external: true });
   await fs.mkdir(target, { mode: 0o700 }); // Deliberately non-recursive: existing target is an error.
-  await writeNew(path.join(target, 'cases.example.json'), json({ schemaVersion: 2, project: 'Synthetic example', cases: [{ id: 'example-1', title: 'Replace with a user-approved case', basis: { kind: 'hypothesis', source: 'Example only, not an acceptance requirement', text: 'Replace with the actual source and requirement.' }, criticalConditions: [], expected: 'Describe observable behavior.', requiredPath: null, stepOrder: 'strict', steps: [{ id: 'step-1', action: 'Open the synthetic example screen in the approved test environment.', expected: 'The synthetic example screen is visible.' }, { id: 'step-2', action: 'Perform the user-approved example action.', expected: 'The specified observable outcome is visible.' }] }] }));
+  await writeNew(path.join(target, 'cases.example.json'), json({ schemaVersion: 2, project: 'Synthetic example', cases: [{ id: 'example-1', title: 'Create a synthetic configuration (replace before use)', basis: { kind: 'hypothesis', source: 'Example only, not an acceptance requirement', text: 'Synthetic requirement only: a configuration created with an approved name and value can be retrieved with those values. Replace with an actual source-backed requirement before use.' }, criticalConditions: [], expected: 'The configuration can be retrieved with name synthetic-example and value example-value.', requiredPath: null, stepOrder: 'strict', steps: [{ id: 'step-1', action: 'In the approved test environment, find the configuration center’s example configuration feature.' }, { id: 'step-2', action: 'Create an example configuration named synthetic-example with value example-value, using the user-approved test data.' }] }] }));
   return { projectDir: target };
 }
 export async function start({ projectDir, casesFile, outputDir }) {
@@ -95,8 +96,9 @@ async function evidenceFile(runDir, ref) {
   await safePath(filename, { existing: true });
   if (!(await fs.lstat(filename)).isFile()) fail(`Evidence is not a regular file: ${ref}`);
 }
-async function validateRecord(runDir, record, label, catalog) {
+async function validateRecord(runDir, record, label, catalog, clarificationQuestions = []) {
   if (!object(record) || !statuses.has(record.status) || typeof record.observed !== 'string' || typeof record.rationale !== 'string' || !Array.isArray(record.remainingQuestions) || !record.remainingQuestions.every(nonempty) || !Array.isArray(record.evidence)) fail(`Invalid result record: ${label}`);
+  if (clarificationQuestions.length && ['pass', 'fail'].includes(record.status)) fail(`Pending clarification prohibits pass/fail: ${label}`);
   if (record.cause !== undefined && !causes.has(record.cause)) fail(`Invalid cause: ${label}`);
   if (['pass', 'fail'].includes(record.status) && (!record.observed.trim() || !record.rationale.trim() || !record.evidence.length)) fail(`Pass/fail requires rationale and evidence plus observed behavior: ${label}`);
   if (['inconclusive', 'blocked'].includes(record.status) && !record.rationale.trim()) fail(`Inconclusive/blocked requires rationale: ${label}`);
@@ -135,12 +137,12 @@ export async function check(runDir) {
     const basis = record.basis;
     const expected = byId.get(record.id).basis;
     if (!object(basis) || Object.keys(basis).length !== 3 || ['kind', 'source', 'text'].some(key => basis[key] !== expected[key])) fail(`Basis changed: ${record.id}`);
-    await validateRecord(root, record, record.id, catalog);
+    await validateRecord(root, record, record.id, catalog, byId.get(record.id).clarificationQuestions);
     if (record.attempts !== undefined) {
       if (!Array.isArray(record.attempts)) fail(`Invalid attempts: ${record.id}`);
       for (const [index, attempt] of record.attempts.entries()) {
         if (!object(attempt) || Object.keys(attempt).some(key => !['status', 'observed', 'rationale', 'remainingQuestions', 'evidence', 'cause'].includes(key))) fail(`Unexpected attempt key: ${record.id}`);
-        await validateRecord(root, attempt, `${record.id} attempt ${index + 1}`, catalog);
+        await validateRecord(root, attempt, `${record.id} attempt ${index + 1}`, catalog, byId.get(record.id).clarificationQuestions);
       }
     }
   }
@@ -151,7 +153,7 @@ export async function check(runDir) {
 }
 const escape = value => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\\`*_{}\[\]()#+.!|~-]/g, '\\$&').replace(/\r?\n/g, '  \n');
 export function markdown(report) {
-  return `# Local evidence report\n\n${escape(report.project)}\n\n${report.caveat}\n\nUnexecuted cases remain: ${report.hasUnexecutedCases}\n\nRecorded explicit outcomes (operator supplied): ${report.recordedExplicitOutcomes.pass} pass, ${report.recordedExplicitOutcomes.fail} fail.\n\n` + report.cases.map(c => `## ${escape(c.id)}: ${escape(c.title)}\n\nBasis: ${c.basis.kind}${c.basis.kind === 'explicit' ? '' : ' (NOT confirmed acceptance)'}\n\nSource: ${escape(c.basis.source)}\n\nRequirement: ${escape(c.basis.text)}\n\nExpected: ${escape(c.expected)}\n\nCritical conditions: ${escape(c.criticalConditions.join('; ') || '(none supplied)')}\n\nRequired path: ${escape(c.requiredPath ?? '(none supplied)')}\n\nStep order: ${c.stepOrder} (${c.stepOrder === 'strict' ? 'preserve the business-step sequence' : 'UI route/order may adapt only within intent and preconditions; do not skip steps'})\n\nPlanned steps (frozen baseline, not execution proof):\n\n${c.steps.map((step, index) => `${index + 1}. ${escape(step.id)}: ${escape(step.action)}\n   Expected: ${escape(step.expected)}\n`).join('')}\nRecorded status: ${c.status}\n\nObserved: ${escape(c.observed)}\n\nRationale: ${escape(c.rationale)}\n\nRemaining questions: ${c.remainingQuestions.map(escape).join('; ') || '(none supplied)'}\n\nCause: ${c.cause ?? 'unknown'}\n\nEvidence references (not automatically opened): ${c.evidence.map(escape).join(', ') || '(none)'}\n\nOriginal attempts supplied: ${(c.attempts ?? []).length}\n\n${(c.attempts ?? []).map((a, i) => `Attempt ${i + 1}: ${a.status}; cause: ${a.cause ?? 'unknown'}\n\nObserved: ${escape(a.observed)}\n\nRationale: ${escape(a.rationale)}\n\nRemaining questions: ${a.remainingQuestions.map(escape).join('; ') || '(none supplied)'}\n\nEvidence: ${a.evidence.map(escape).join(', ') || '(none)'}\n\n`).join('')}`).join('') + `## Evidence catalog (operator-supplied metadata)\n\n` + report.evidenceCatalog.items.map(item => `- ${escape(item.id)}: ${escape(item.path)}\n  Kind: ${item.kind}; captured at: ${escape(item.capturedAt)}\n  Source: ${escape(item.source)}\n  Description: ${escape(item.description)}\n\n`).join('');
+  return `# Local evidence report\n\n${escape(report.project)}\n\n${report.caveat}\n\nUnexecuted cases remain: ${report.hasUnexecutedCases}\n\nRecorded explicit outcomes (operator supplied): ${report.recordedExplicitOutcomes.pass} pass, ${report.recordedExplicitOutcomes.fail} fail.\n\n` + report.cases.map(c => `## ${escape(c.id)}: ${escape(c.title)}\n\nBasis: ${c.basis.kind}${c.basis.kind === 'explicit' ? '' : ' (NOT confirmed acceptance)'}\n\nSource: ${escape(c.basis.source)}\n\nRequirement: ${escape(c.basis.text)}\n\nExpected: ${escape(c.expected)}\n\nBaseline clarification questions: ${(c.clarificationQuestions ?? []).map(escape).join('; ') || '(none supplied)'}\n\nCritical conditions: ${escape(c.criticalConditions.join('; ') || '(none supplied)')}\n\nRequired path: ${escape(c.requiredPath ?? '(none supplied)')}\n\nStep order: ${c.stepOrder} (${c.stepOrder === 'strict' ? 'preserve the business-step sequence' : 'UI route/order may adapt only within intent and preconditions; do not skip steps'})\n\nPlanned steps (frozen baseline, not execution proof):\n\n${c.steps.map((step, index) => `${index + 1}. ${escape(step.id)}: ${escape(step.action)}\n   Expected checkpoint: ${Object.hasOwn(step, 'expected') ? escape(step.expected) : '(not specified; no checkpoint verdict)'}\n`).join('')}\nRecorded status: ${c.status}\n\nObserved: ${escape(c.observed)}\n\nRationale: ${escape(c.rationale)}\n\nRemaining questions: ${c.remainingQuestions.map(escape).join('; ') || '(none supplied)'}\n\nCause: ${c.cause ?? 'unknown'}\n\nEvidence references (not automatically opened): ${c.evidence.map(escape).join(', ') || '(none)'}\n\nOriginal attempts supplied: ${(c.attempts ?? []).length}\n\n${(c.attempts ?? []).map((a, i) => `Attempt ${i + 1}: ${a.status}; cause: ${a.cause ?? 'unknown'}\n\nObserved: ${escape(a.observed)}\n\nRationale: ${escape(a.rationale)}\n\nRemaining questions: ${a.remainingQuestions.map(escape).join('; ') || '(none supplied)'}\n\nEvidence: ${a.evidence.map(escape).join(', ') || '(none)'}\n\n`).join('')}`).join('') + `## Evidence catalog (operator-supplied metadata)\n\n` + report.evidenceCatalog.items.map(item => `- ${escape(item.id)}: ${escape(item.path)}\n  Kind: ${item.kind}; captured at: ${escape(item.capturedAt)}\n  Source: ${escape(item.source)}\n  Description: ${escape(item.description)}\n\n`).join('');
 }
 export async function report(runDir) {
   const result = await check(runDir);

@@ -1,6 +1,6 @@
 {
   "name": "ego-lite-test-skill",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Unofficial AI-led feature validation and Web testing skill for Ego Lite with local evidence helpers.",
   "private": true,
   "type": "module",

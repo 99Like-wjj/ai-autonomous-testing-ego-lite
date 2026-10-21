@@ -6,16 +6,22 @@
 
 **Validate new requirements and features, then regress existing behavior, with the current Codex model and Ego's native browser capabilities.** Describe the outcome you need, supply project-specific acceptance criteria, and let the model choose its next step from the page it actually observes. Keep evidence and uncertainty visible instead of turning a successful click into an automatic pass.
 
-**Experimental 0.1.1.** This is an independent, unofficial project, not affiliated with or endorsed by Ego. Cloud validation covers local helper behavior only. Windows + Ego end-to-end validation is still pending; this is not a certified Windows integration. No production readiness or benchmark result is claimed. See the [current validation record](docs/testing.md).
+**Experimental 0.1.2.** This is an independent, unofficial project, not affiliated with or endorsed by Ego. Cloud validation covers local helper behavior only. Windows + Ego end-to-end validation is still pending; this is not a certified Windows integration. No production readiness or benchmark result is claimed. See the [current validation record](docs/testing.md).
 
 ## Two case sources. One contract and execution path.
 
 New-feature validation and regression are test purposes, not input categories. **Both sources support both purposes.**
 
-- **External cases:** accept schemaVersion 2 cases with prerequisites, business steps, per-step expectations, and final expectations. Validate structure and provenance without silently rewriting intent. If supplied as prose, normalize it while preserving the source and clarify material ambiguities.
+- **External cases:** accept schemaVersion 2 cases with prerequisites, business steps, optional step checkpoints, and final expectations. Validate structure and provenance without silently rewriting intent. If supplied as prose, normalize it while preserving the source and clarify material ambiguities.
 - **Skill-generated cases:** the current model follows the bundled [case-authoring guide](skills/ego-lite-test/references/case-authoring.md) to derive positive, negative, boundary, role, state, and affected-regression coverage and produce the same JSON format. Keep explicit requirements, interpretations, and hypotheses separate.
 
-Both sources are validated and frozen before AI drives Ego through the business steps. Steps guide business actions, not coordinates or fixed selectors. strict preserves semantic step order; adaptive can change methods or ordering only while intent, prerequisites, and dependencies remain intact. Neither permits skipping key steps or coverage.
+Both sources are validated and frozen before AI drives Ego through business steps. Steps express intent and necessary inputs; AI explores the concrete UI route. strict preserves business dependency order; adaptive must preserve prerequisites and coverage without weakening goals.
+
+Business steps need only express intent and necessary inputs, such as “open the template feature in configuration and create a template with the supplied name and fields.” Do not invent buttons, dialogs, or messages when requirements lack those details. Fine-grained steps remain appropriate when supported. A step-level expected is optional; when present it must be a grounded independent checkpoint. Omission means neither untested nor automatic success: judge against the case-level expected.
+
+Case-level expected and basis remain required. When acceptance details are missing, describe the known goal and optionally record clarificationQuestions (an array of nonblank strings). Include only unresolved questions that affect this case’s verdict, not ordinary UI-route exploration questions. Split independently decidable goals from unresolved ones without weakening the original requirement. A nonempty list means overall acceptance remains unresolved: neither the case nor its attempts may receive pass/fail. Authorized route exploration may record facts, but observed behavior must not become the acceptance standard. After clarification, prepare and freeze a revised case rather than editing the old baseline.
+
+AI explores the concrete route through Ego and records actual actions, observations, and evidence in existing observed, rationale, evidence, and attempts fields. Planned steps are not execution evidence; no mandatory per-step trace field is added.
 
 **Generation-only** needs no browser or deployed environment: deliver cases and unresolved questions, not a claim of execution. Actual execution requires an authorized, reachable deployment. See the [synthetic requirement](examples/project.example/feature-request.md) and [matching generated cases](examples/generated-cases.example.json).
 
@@ -90,7 +96,7 @@ Read my new-feature requirement and identify acceptance points, negative
 and boundary cases, and affected existing behavior. Label uncertainties;
 do not turn your assumptions into confirmed requirements.
 Generate schemaVersion 2 cases with criticalConditions, stepOrder,
-steps (id/action/expected), and final expected. Validate and freeze them,
+steps (id/action, optional expected), and final expected. Validate and freeze them,
 then validate the deployed feature in the
 explicitly authorized test environment. Ask if the environment, required
 business oracle, or permission is missing. Keep observed behavior,

@@ -65,7 +65,8 @@
         },
         "expected": {
           "type": "string",
-          "pattern": "\\S"
+          "pattern": "\\S",
+          "description": "Required overall observable expectation grounded in the stated basis source; the helper validates structure, not source truth."
         },
         "requiredPath": {
           "anyOf": [
@@ -91,7 +92,14 @@
           "items": {
             "$ref": "common.schema.json#/$defs/step"
           },
-          "description": "Natural-language guidance, not executable code. Step IDs must be unique within each case (enforced by helper). Frozen order and content are preserved in baseline and report."
+          "description": "Business-intent guidance and necessary test data, not executable code or compulsory UI click details. Step IDs must be unique within each case (enforced by helper). Frozen order, content, and omitted checkpoints are preserved in baseline and report."
+        },
+        "clarificationQuestions": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "description": "Optional unresolved specification questions, frozen with the baseline. A nonempty array prohibits pass/fail for this case and all attempts; use inconclusive, blocked, or not_run until a clarified case is approved in a new baseline."
         }
       },
       "additionalProperties": false
@@ -363,7 +371,8 @@
         },
         "expected": {
           "type": "string",
-          "pattern": "\\S"
+          "pattern": "\\S",
+          "description": "Required overall observable expectation grounded in the stated basis source; the helper validates structure, not source truth."
         },
         "requiredPath": {
           "anyOf": [
@@ -432,7 +441,14 @@
           "items": {
             "$ref": "common.schema.json#/$defs/step"
           },
-          "description": "Natural-language guidance, not executable code. Step IDs must be unique within each case (enforced by helper). Frozen order and content are preserved in baseline and report."
+          "description": "Business-intent guidance and necessary test data, not executable code or compulsory UI click details. Step IDs must be unique within each case (enforced by helper). Frozen order, content, and omitted checkpoints are preserved in baseline and report."
+        },
+        "clarificationQuestions": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "description": "Optional unresolved specification questions, frozen with the baseline. A nonempty array prohibits pass/fail for this case and all attempts; use inconclusive, blocked, or not_run until a clarified case is approved in a new baseline."
         }
       },
       "additionalProperties": false,
@@ -489,6 +505,42 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "required": [
+              "clarificationQuestions"
+            ],
+            "properties": {
+              "clarificationQuestions": {
+                "minItems": 1
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "inconclusive",
+                  "blocked",
+                  "not_run"
+                ]
+              },
+              "attempts": {
+                "items": {
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "inconclusive",
+                        "blocked",
+                        "not_run"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -529,18 +581,19 @@
       "type": "object",
       "required": [
         "id",
-        "action",
-        "expected"
+        "action"
       ],
       "properties": {
         "id": {
           "$ref": "common.schema.json#/$defs/nonempty"
         },
         "action": {
-          "$ref": "common.schema.json#/$defs/nonempty"
+          "$ref": "common.schema.json#/$defs/nonempty",
+          "description": "Business-intent action and necessary test data; detailed UI clicks are not required. The AI discovers the actual route within the case constraints."
         },
         "expected": {
-          "$ref": "common.schema.json#/$defs/nonempty"
+          "$ref": "common.schema.json#/$defs/nonempty",
+          "description": "Optional source-backed checkpoint. Omit when not specified; if supplied, use nonblank text, never null or empty placeholder text."
         }
       },
       "additionalProperties": false
