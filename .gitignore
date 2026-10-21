@@ -1,0 +1,40 @@
+# Local secrets and identity
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*
+secrets*
+auth.json
+cookies*
+storage-state*
+storageState*
+.codex/
+.agents/
+.claude/
+# Real project inputs and browser outputs belong OUTSIDE this repository.
+.local/
+local/
+projects/
+private/
+runs/
+run-output/
+evidence/
+reports/
+screenshots/
+traces/
+profiles/
+*.har
+*.log
+*.zip
+*.mp4
+# Development byproducts
+node_modules/
+coverage/
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+__pycache__/

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ego Lite case input and normalized baseline v1",
+  "description": "Canonical case input and normalized baseline. Unknown fields are rejected to prevent silent loss.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "project",
+    "cases"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "project": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/case"
+      }
+    }
+  },
+  "additionalProperties": false
+}

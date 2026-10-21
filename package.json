@@ -1,0 +1,13 @@
+{
+  "name": "ego-lite-test-skill",
+  "version": "0.1.0",
+  "description": "Unofficial AI-led feature validation and Web testing skill for Ego Lite with local evidence helpers.",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test",
+    "check:public": "node tools/public-check.mjs"
+  }
+}

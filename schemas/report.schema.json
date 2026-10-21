@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ego Lite generated report v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "runId",
+    "project",
+    "structurallyValid",
+    "hasUnexecutedCases",
+    "counts",
+    "recordedExplicitOutcomes",
+    "caveat",
+    "evidenceCatalog",
+    "cases"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "project": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "structurallyValid": {
+      "const": true
+    },
+    "hasUnexecutedCases": {
+      "type": "boolean"
+    },
+    "counts": {
+      "$ref": "common.schema.json#/$defs/counts"
+    },
+    "recordedExplicitOutcomes": {
+      "type": "object",
+      "required": [
+        "pass",
+        "fail"
+      ],
+      "properties": {
+        "pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fail": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "caveat": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "evidenceCatalog": {
+      "$ref": "evidence.schema.json"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/reportCase"
+      }
+    }
+  },
+  "additionalProperties": false
+}

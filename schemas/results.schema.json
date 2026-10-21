@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ego Lite recorded results v1",
+  "description": "One result per original baseline case is enforced by the helper, not this schema.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "cases"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/result"
+      }
+    }
+  },
+  "additionalProperties": false
+}

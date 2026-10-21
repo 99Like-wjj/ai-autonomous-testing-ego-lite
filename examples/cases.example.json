@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "project": "synthetic-example",
+  "cases": [
+    {
+      "id": "R-01-empty-title",
+      "title": "空标题被拒绝且不创建书签",
+      "basis": {
+        "kind": "explicit",
+        "source": "project.example/brief.md#明确要求 R-01 (synthetic-v1)",
+        "text": "通过新建书签表单提交空标题时，显示必填提示，且不创建书签。"
+      },
+      "criticalConditions": [
+        "实际身份已核验为编辑者",
+        "目标为获准使用的独立测试目录",
+        "标题为空，其他必要字段满足已确认要求",
+        "该测试提交及可能的副作用在用户授权范围内",
+        "能够只读核对提交前后是否新增对象"
+      ],
+      "expected": "出现标题必填提示；通过授权的只读核对确认没有新增书签。",
+      "requiredPath": "通过 UI 新建书签表单提交，不能改用写 API"
+    },
+    {
+      "id": "R-02-reader-detail",
+      "title": "读者从列表进入详情无可用编辑入口",
+      "basis": {
+        "kind": "explicit",
+        "source": "project.example/brief.md#明确要求 R-02 (synthetic-v1)",
+        "text": "读者角色通过列表打开已有条目后，详情不提供可用的编辑入口。"
+      },
+      "criticalConditions": [
+        "实际身份已核验为读者",
+        "已有条目属于本次授权测试数据",
+        "目标目录与条目初始状态已核验"
+      ],
+      "expected": "从列表打开对应详情后，没有可用的编辑入口；不据此断言后端权限已全面验证。",
+      "requiredPath": "书签列表 → 对应条目详情"
+    },
+    {
+      "id": "I-01-title-whitespace",
+      "title": "仅空白标题的解释性检查",
+      "basis": {
+        "kind": "interpretation",
+        "source": "project.example/brief.md R-01 的待确认解释",
+        "text": "空标题规则可能也包括仅空格输入，但原要求没有明确规定。"
+      },
+      "criticalConditions": [
+        "仅在用户授权测试该输入与可能创建数据后执行",
+        "保留仅空格输入，不替换为真正空字符串"
+      ],
+      "expected": "按暂定解释应拒绝仅空格标题；无论观察如何，标注规则解释尚待确认。",
+      "requiredPath": null
+    },
+    {
+      "id": "H-01-long-title",
+      "title": "长标题展示的探索观察",
+      "basis": {
+        "kind": "hypothesis",
+        "source": "本轮探索提议，非已确认需求",
+        "text": "已有测试条目的长标题可能遮挡详情的返回入口。"
+      },
+      "criticalConditions": [
+        "使用已有且获准读取的虚构长标题条目，不自行创建数据",
+        "记录实际视口与观察范围"
+      ],
+      "expected": "记录返回入口是否可见、可达及标题展示现象；不推导未规定的标题长度限制。",
+      "requiredPath": null
+    }
+  ]
+}

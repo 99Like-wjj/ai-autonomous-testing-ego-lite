@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ego Lite evidence catalog v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "path",
+          "kind",
+          "capturedAt",
+          "source",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "path": {
+            "$ref": "common.schema.json#/$defs/evidencePath"
+          },
+          "kind": {
+            "enum": [
+              "screenshot",
+              "dom",
+              "tool_receipt",
+              "log",
+              "other"
+            ]
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+          },
+          "source": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "description": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

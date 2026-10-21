@@ -1,0 +1,495 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ego Lite shared structural definitions",
+  "$defs": {
+    "nonempty": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "basis": {
+      "type": "object",
+      "required": [
+        "kind",
+        "source",
+        "text"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "explicit",
+            "interpretation",
+            "hypothesis"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "text": {
+          "type": "string",
+          "pattern": "\\S"
+        }
+      },
+      "additionalProperties": false
+    },
+    "case": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "basis",
+        "criticalConditions",
+        "expected",
+        "requiredPath"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "title": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "basis": {
+          "$ref": "common.schema.json#/$defs/basis"
+        },
+        "criticalConditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "expected": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "requiredPath": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidencePath": {
+      "type": "string",
+      "pattern": "^evidence/(?!\\.\\.?(?:/|$))[^/\\\\:\\u0000]+(?:/(?!\\.\\.?(?:/|$))[^/\\\\:\\u0000]+)*$"
+    },
+    "attempt": {
+      "type": "object",
+      "required": [
+        "status",
+        "observed",
+        "rationale",
+        "remainingQuestions",
+        "evidence"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "inconclusive",
+            "blocked",
+            "not_run"
+          ]
+        },
+        "observed": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "remainingQuestions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidencePath"
+          }
+        },
+        "cause": {
+          "enum": [
+            "product_candidate",
+            "agent",
+            "environment",
+            "spec",
+            "unknown"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "pass",
+                  "fail"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "observed": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "rationale": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "inconclusive",
+                  "blocked"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rationale": {
+                "type": "string",
+                "pattern": "\\S"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "result": {
+      "type": "object",
+      "required": [
+        "id",
+        "basis",
+        "status",
+        "observed",
+        "rationale",
+        "remainingQuestions",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "basis": {
+          "$ref": "common.schema.json#/$defs/basis"
+        },
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "inconclusive",
+            "blocked",
+            "not_run"
+          ]
+        },
+        "observed": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "remainingQuestions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidencePath"
+          }
+        },
+        "cause": {
+          "enum": [
+            "product_candidate",
+            "agent",
+            "environment",
+            "spec",
+            "unknown"
+          ]
+        },
+        "attempts": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/attempt"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "pass",
+                  "fail"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "observed": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "rationale": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "inconclusive",
+                  "blocked"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rationale": {
+                "type": "string",
+                "pattern": "\\S"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reportCase": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "basis",
+        "criticalConditions",
+        "expected",
+        "requiredPath",
+        "status",
+        "observed",
+        "rationale",
+        "remainingQuestions",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "title": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "basis": {
+          "$ref": "common.schema.json#/$defs/basis"
+        },
+        "criticalConditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "expected": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "requiredPath": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "inconclusive",
+            "blocked",
+            "not_run"
+          ]
+        },
+        "observed": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "remainingQuestions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidencePath"
+          }
+        },
+        "cause": {
+          "enum": [
+            "product_candidate",
+            "agent",
+            "environment",
+            "spec",
+            "unknown"
+          ]
+        },
+        "attempts": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/attempt"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "pass",
+                  "fail"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "observed": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "rationale": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "inconclusive",
+                  "blocked"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "rationale": {
+                "type": "string",
+                "pattern": "\\S"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "pass",
+        "fail",
+        "inconclusive",
+        "blocked",
+        "not_run"
+      ],
+      "properties": {
+        "pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fail": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inconclusive": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_run": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
