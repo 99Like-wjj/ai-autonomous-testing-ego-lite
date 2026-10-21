@@ -40,7 +40,9 @@
         "basis",
         "criticalConditions",
         "expected",
-        "requiredPath"
+        "requiredPath",
+        "stepOrder",
+        "steps"
       ],
       "properties": {
         "id": {
@@ -75,6 +77,21 @@
               "pattern": "\\S"
             }
           ]
+        },
+        "stepOrder": {
+          "enum": [
+            "strict",
+            "adaptive"
+          ],
+          "description": "strict preserves business-step sequence; adaptive may adjust UI route/order only within case intent and critical conditions, never skipping required steps. This is an operator execution contract, not automatically verified."
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/step"
+          },
+          "description": "Natural-language guidance, not executable code. Step IDs must be unique within each case (enforced by helper). Frozen order and content are preserved in baseline and report."
         }
       },
       "additionalProperties": false
@@ -321,7 +338,9 @@
         "observed",
         "rationale",
         "remainingQuestions",
-        "evidence"
+        "evidence",
+        "stepOrder",
+        "steps"
       ],
       "properties": {
         "id": {
@@ -399,6 +418,21 @@
           "items": {
             "$ref": "common.schema.json#/$defs/attempt"
           }
+        },
+        "stepOrder": {
+          "enum": [
+            "strict",
+            "adaptive"
+          ],
+          "description": "strict preserves business-step sequence; adaptive may adjust UI route/order only within case intent and critical conditions, never skipping required steps. This is an operator execution contract, not automatically verified."
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/step"
+          },
+          "description": "Natural-language guidance, not executable code. Step IDs must be unique within each case (enforced by helper). Frozen order and content are preserved in baseline and report."
         }
       },
       "additionalProperties": false,
@@ -490,6 +524,27 @@
         }
       },
       "additionalProperties": false
+    },
+    "step": {
+      "type": "object",
+      "required": [
+        "id",
+        "action",
+        "expected"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "action": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "expected": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        }
+      },
+      "additionalProperties": false
     }
-  }
+  },
+  "$id": "common.schema.json"
 }

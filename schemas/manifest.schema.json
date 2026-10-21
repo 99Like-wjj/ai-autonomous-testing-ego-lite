@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Ego Lite baseline manifest v1",
+  "title": "Ego Lite baseline manifest v2",
   "description": "Generated baseline manifest. The helper additionally checks that projectDir is absolute according to the host platform.",
   "type": "object",
   "required": [
@@ -11,7 +11,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 1
+      "const": 2
     },
     "runId": {
       "type": "string",
@@ -25,5 +25,6 @@
       "pattern": "^[a-f0-9]{64}$"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$id": "manifest.schema.json"
 }

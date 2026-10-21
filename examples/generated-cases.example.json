@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 2,
+  "project": "synthetic-archive-feature",
+  "cases": [
+    {
+      "id": "G-01",
+      "title": "编辑者归档有效书签并核对持久化与列表",
+      "basis": {
+        "kind": "explicit",
+        "source": "project.example/feature-request.md#F-01",
+        "text": "编辑者可以从书签详情将一条“有效”书签归档。完成后显示“已归档”，刷新详情仍显示“已归档”；默认有效书签列表不再显示该条目。"
+      },
+      "criticalConditions": [
+        "实际身份已核验为编辑者",
+        "功能已部署且测试条目初态为有效",
+        "该条目归档写入已获得用户授权，属于独立合成测试数据"
+      ],
+      "expected": "状态为已归档，刷新仍保持，默认有效列表不显示目标条目。",
+      "requiredPath": "从书签详情执行归档",
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "open",
+          "action": "打开获准有效条目的详情",
+          "expected": "对象标识及有效状态匹配前提"
+        },
+        {
+          "id": "archive",
+          "action": "通过详情的归档入口执行归档",
+          "expected": "显示已归档"
+        },
+        {
+          "id": "refresh",
+          "action": "刷新同一条目详情",
+          "expected": "仍显示已归档"
+        },
+        {
+          "id": "list",
+          "action": "打开默认有效书签列表并核对目标条目",
+          "expected": "列表不再显示该条目；仅在实际观察范围内判断"
+        }
+      ]
+    },
+    {
+      "id": "G-02",
+      "title": "读者详情没有可用归档入口",
+      "basis": {
+        "kind": "explicit",
+        "source": "project.example/feature-request.md#F-02",
+        "text": "读者可以查看已有书签，但详情页不能提供可用的归档入口。"
+      },
+      "criticalConditions": [
+        "实际身份已核验为读者",
+        "已有合成条目可读取且属于本次范围"
+      ],
+      "expected": "详情可查看但无可用归档入口，不推断后端 API 权限正确。",
+      "requiredPath": null,
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "open",
+          "action": "打开获准已有条目的详情",
+          "expected": "目标详情可查看"
+        },
+        {
+          "id": "inspect",
+          "action": "检查可用归档入口",
+          "expected": "没有可用归档入口"
+        }
+      ]
+    },
+    {
+      "id": "G-03",
+      "title": "已归档详情状态与归档入口",
+      "basis": {
+        "kind": "explicit",
+        "source": "project.example/feature-request.md#F-03",
+        "text": "对于已归档的书签，详情显示“已归档”，不再提供可用的归档入口。"
+      },
+      "criticalConditions": [
+        "使用预先准备且已获准读取的已归档合成条目",
+        "实际身份与对象状态已核验；不自行修改共享数据准备前提"
+      ],
+      "expected": "显示已归档且无可用归档入口；不添加恢复操作。",
+      "requiredPath": null,
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "open",
+          "action": "打开已归档条目详情",
+          "expected": "对应目标条目且显示已归档"
+        },
+        {
+          "id": "inspect",
+          "action": "检查可用归档入口",
+          "expected": "不再提供可用归档入口"
+        }
+      ]
+    }
+  ]
+}

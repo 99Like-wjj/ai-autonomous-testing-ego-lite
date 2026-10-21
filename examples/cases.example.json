@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "project": "synthetic-example",
   "cases": [
     {
@@ -18,7 +18,30 @@
         "能够只读核对提交前后是否新增对象"
       ],
       "expected": "出现标题必填提示；通过授权的只读核对确认没有新增书签。",
-      "requiredPath": "通过 UI 新建书签表单提交，不能改用写 API"
+      "requiredPath": "通过 UI 新建书签表单提交，不能改用写 API",
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "open",
+          "action": "打开新建书签表单",
+          "expected": "已显示标题与其他必填输入"
+        },
+        {
+          "id": "fill",
+          "action": "保持标题为空并填写其他已约定必要字段",
+          "expected": "标题为空且其他字段满足约定"
+        },
+        {
+          "id": "submit",
+          "action": "通过 UI 提交表单",
+          "expected": "显示标题必填提示"
+        },
+        {
+          "id": "verify",
+          "action": "使用获授权只读方式核对提交前后对象",
+          "expected": "没有新增书签"
+        }
+      ]
     },
     {
       "id": "R-02-reader-detail",
@@ -34,7 +57,25 @@
         "目标目录与条目初始状态已核验"
       ],
       "expected": "从列表打开对应详情后，没有可用的编辑入口；不据此断言后端权限已全面验证。",
-      "requiredPath": "书签列表 → 对应条目详情"
+      "requiredPath": "书签列表 → 对应条目详情",
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "list",
+          "action": "打开授权书签列表并确认目标条目",
+          "expected": "目标条目可见且匹配已核验对象"
+        },
+        {
+          "id": "detail",
+          "action": "从列表进入对应条目详情",
+          "expected": "详情对应目标条目"
+        },
+        {
+          "id": "inspect",
+          "action": "检查详情可用编辑入口",
+          "expected": "没有可用编辑入口；不据此证明后端权限"
+        }
+      ]
     },
     {
       "id": "I-01-title-whitespace",
@@ -49,7 +90,25 @@
         "保留仅空格输入，不替换为真正空字符串"
       ],
       "expected": "按暂定解释应拒绝仅空格标题；无论观察如何，标注规则解释尚待确认。",
-      "requiredPath": null
+      "requiredPath": null,
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "open",
+          "action": "打开获准的新建书签表单",
+          "expected": "表单可输入"
+        },
+        {
+          "id": "fill",
+          "action": "将标题设为仅空格并填写其他约定字段",
+          "expected": "标题保持仅空格，不替换为空串"
+        },
+        {
+          "id": "submit",
+          "action": "在授权范围内提交该表单",
+          "expected": "按暂定解释应拒绝仅空格标题；结果仍为待确认规则的观察"
+        }
+      ]
     },
     {
       "id": "H-01-long-title",
@@ -64,7 +123,20 @@
         "记录实际视口与观察范围"
       ],
       "expected": "记录返回入口是否可见、可达及标题展示现象；不推导未规定的标题长度限制。",
-      "requiredPath": null
+      "requiredPath": null,
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "detail",
+          "action": "打开已获准读取的长标题条目详情",
+          "expected": "显示目标条目和长标题"
+        },
+        {
+          "id": "inspect",
+          "action": "在记录的实际视口检查返回入口与标题布局",
+          "expected": "记录可见性、可达性和遮挡现象，不推导长度限制"
+        }
+      ]
     }
   ]
 }

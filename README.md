@@ -1,55 +1,58 @@
-<p align="center"><img src="docs/images/hero.png" alt="Ego Lite Test Skill: intent stays stable, the path can adapt. Experimental and unofficial; Windows and Ego validation pending." width="100%"></p>
+<p align="center"><img src="docs/images/hero.zh-CN.png" alt="Ego Lite 自主测试 Skill：目标稳定，路径可以自适应。实验版、非官方；Windows 与 Ego 实机验证待完成。" width="100%"></p>
 
-# Ego Lite Test Skill
+# Ego Lite 自主测试 Skill
 
-<p align="center"><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a><br><a href="#quick-start-on-windows">Quick start</a> · <a href="docs/architecture.md">Architecture</a> · <a href="docs/asset-formats.md">Resource contract</a> · <a href="docs/privacy.md">Privacy</a> · <a href="docs/testing.md">Validation status</a></p>
+<p align="center"><a href="README.en.md">English</a> · <strong>简体中文</strong><br><a href="#windows-快速开始">快速开始</a> · <a href="docs/architecture.md">架构</a> · <a href="docs/asset-formats.md">资源约定</a> · <a href="docs/privacy.md">隐私保护</a> · <a href="docs/testing.md">验证状态</a></p>
 
-**Validate new requirements and features, then regress existing behavior, with the current Codex model and Ego's native browser capabilities.** Describe the outcome you need, supply project-specific acceptance criteria, and let the model choose its next step from the page it actually observes. Keep evidence and uncertainty visible instead of turning a successful click into an automatic pass.
+**让当前 Codex 模型通过 Ego 原生浏览器能力，验证新需求、新功能，并回归已有行为。** 你提供目标和项目验收条件，模型根据实际页面决定下一步。保留可复核的证据与不确定性，不把“点击成功”直接当成“业务正确”。
 
-**Experimental 0.1.0.** This is an independent, unofficial project, not affiliated with or endorsed by Ego. Cloud validation covers local helper behavior only. Windows + Ego end-to-end validation is still pending; this is not a certified Windows integration. No production readiness or benchmark result is claimed. See the [current validation record](docs/testing.md).
+**实验版 0.1.1。** 本项目独立开发，非 Ego 官方项目，未获 Ego 背书。云端验证仅覆盖本地辅助工具；Windows + Ego 端到端实测尚未完成，不代表 Windows 集成已认证。暂不承诺生产可用性，也没有产品实测或性能基准结论。详见[当前验证记录](docs/testing.md)。
 
-## Two starting points. One evidence-first workflow.
+## 两种用例来源，同一套格式与执行流程
 
-**A new requirement or feature:** give the model a requirement document, change description, or feature specification. It derives acceptance points, negative and boundary cases, and likely regression impact. Ambiguity stays labeled as an interpretation or hypothesis until clarified. The AI can normalize those targets into the case exchange format; you do not need to hand-author JSON or generate test code before discussing the requirement.
+测试目的是验证新需求、新功能，也包括回归已有行为；**用例来源与测试目的相互独立**，下面两种来源均可用于任一目的。
 
-**Existing cases:** provide your current cases and resources. Preserve their acceptance criteria and required paths while letting the model adapt execution to the current UI.
+- **接收外部用例：** 提交符合 schemaVersion 2 的用例文件，包括前置条件、操作步骤、每步预期和最终预期。Skill 先检查结构与需求依据，不擅自重写原意；若材料是文档而非标准 JSON，先转换并保留来源，实质歧义再询问。
+- **Skill 自行生成用例：** 当前会话模型按 Skill 的[用例生成指南](skills/ego-lite-test/references/case-authoring.md)，从需求提取正向、反向、边界、角色、状态及受影响回归检查，生成相同格式的 JSON。明确标注 explicit / interpretation / hypothesis，不将推断冒充需求。
 
-A feature must be deployed and reachable in an authorized environment before browser validation can establish its behavior. A design document alone supports test planning, not a claim that the feature passed. See the [synthetic feature request](examples/project.example/feature-request.md).
+两类用例都先校验、冻结，再由 AI 驱动 Ego 执行业务步骤。steps 描述“打开搜索界面 → 输入合成类别 → 执行查询 → 核对当前可见列表”这类业务动作；UI 元素定位和等价导航由 AI 根据实际页面自主选择。strict 保持业务步骤顺序；adaptive 仅在意图、前提及依赖仍成立时调整执行方法或顺序，不能跳过关键步骤和覆盖点。
 
-## Why a skill, not another testing engine?
+支持**仅生成用例**：无需浏览器或部署环境，交付用例和待确认问题，不声称执行过测试。实际执行才需要已部署、可访问且已授权的环境。参见[虚构需求](examples/project.example/feature-request.md)和[对应生成用例](examples/generated-cases.example.json)。
 
-- **Reuse the model you're already working with.** No second model service is built into this repository.
-- **Keep the requirement stable, not every click.** The model can adapt navigation while preserving acceptance criteria, critical conditions, and any explicitly required path.
-- **Keep the browser native.** Ego performs page reading and browser actions. This project does not replace it with another browser driver.
-- **Make outcomes inspectable.** Separate `pass`, `fail`, `inconclusive`, `blocked`, and `not_run`; preserve evidence, requirement provenance, and attempts.
-- **Keep the machinery small.** The optional Node.js CLI creates and checks local record files. It does not run the model, run the browser, or prove a business claim.
+## 为什么是 Skill，而不是又一套测试引擎？
 
-A better underlying model may improve planning or judgment, but improvement is not guaranteed. Outcome quality also depends on the requirements, available evidence, application state, and operator review.
+- **复用你正在使用的模型。** 仓库不另建第二套模型服务。
+- **固定需求，不固定每一次点击。** 模型可以调整导航，但不能改变验收条件、关键条件或明确指定的必经路径。
+- **浏览器能力保持原生。** 页面读取与操作交给 Ego，不再包一层替代浏览器驱动。
+- **结果可检查。** 区分 `pass`、`fail`、`inconclusive`、`blocked`、`not_run`，保留证据、需求来源和执行尝试。
+- **工程保持轻量。** 可选 Node.js CLI 只创建、检查和整理本地记录，不运行模型、不启动浏览器，也不证明业务结论。
 
-## Who owns what?
+更强的底层模型可能改善规划和判断，但不保证效果必然提升。需求清晰度、证据可用性、应用状态和人工复核同样影响结果。
 
-![Ownership: current Codex model makes decisions; skill and project resources define context; Ego performs browser reads and actions. The optional helper only manages files.](docs/images/architecture.png)
+## 谁负责什么？
 
-| Layer | Responsibility | Not its job |
+![职责分工：当前 Codex 模型决策，Skill 与项目资源定义上下文，Ego 执行浏览器读取与操作。可选辅助工具只管理文件。](docs/images/architecture.zh-CN.png)
+
+| 层次 | 负责 | 不负责 |
 | --- | --- | --- |
-| Current Codex model | Interpret goals, plan, inspect evidence, diagnose uncertainty | Invent missing product requirements |
-| This skill + project resources | Define workflow, boundaries, cases, acceptance and evidence expectations | Hardcode a universal business oracle |
-| Ego native browser | Read and interact with the application | Decide whether the product fulfills your business rules |
-| Optional local helper | Scaffold, validate structure, format reports | Launch browser/model execution or independently verify verdicts |
+| 当前 Codex 模型 | 理解目标、规划、检查证据、分析不确定性 | 臆造缺失的产品需求 |
+| 本 Skill + 项目资源 | 工作流、授权边界、用例、验收与证据要求 | 硬编码通用业务判定器 |
+| Ego 原生浏览器 | 读取应用并执行操作 | 替项目判断业务规则是否正确 |
+| 可选本地辅助工具 | 创建记录、校验结构、生成报告 | 执行浏览器/模型测试，或独立验证结论 |
 
-The installed official `ego-browser` skill is the authority for Ego setup and commands. Read [the architecture](docs/architecture.md) for the boundary details.
+已安装的官方 `ego-browser` Skill 是 Ego 安装和命令用法的依据。更多边界说明见[架构文档](docs/architecture.md)。
 
-## Quick start on Windows
+## Windows 快速开始
 
-### 1. Prepare the official runtime
+### 1. 准备官方运行环境
 
-Install and configure Ego following the [official Windows quick start](https://lite.ego.app/document/en/docs/windows/quick-start). Ensure your Codex environment can discover the installed official `ego-browser` skill and connect to Ego. This repository does not install Ego or replace its setup instructions.
+按 [Ego 官方 Windows 快速开始](https://lite.ego.app/document/en/docs/windows/quick-start)安装和配置 Ego，确认 Codex 能发现已安装的官方 `ego-browser` Skill，并连接 Ego。本仓库不安装 Ego，也不替代官方配置说明。
 
-For the optional helper, install **Node.js 22 or newer** from the [official Node.js site](https://nodejs.org/). Use PowerShell below. No third-party npm dependencies are required for the helper.
+如需使用可选辅助工具，请从 [Node.js 官网](https://nodejs.org/)安装 **Node.js 22 或更新版本**，以下命令使用 PowerShell。辅助工具不依赖第三方 npm 包。
 
-### 2. Install this skill without overwriting another copy
+### 2. 安装本 Skill，避免覆盖已有版本
 
-Download or clone this repository, then open PowerShell in its root directory:
+下载或克隆仓库，在仓库根目录打开 PowerShell：
 
 ```powershell
 $Source = (Get-Location).Path
@@ -62,11 +65,11 @@ New-Item -ItemType Directory -Force -Path $SkillRoot | Out-Null
 Copy-Item -Recurse -Path (Join-Path $Source 'skills\ego-lite-test') -Destination $SkillTarget
 ```
 
-Start a fresh Codex session if needed for skill discovery. Ask it to use both `ego-lite-test` and the installed official `ego-browser` skill. Copying this folder installs instructions, not a model or browser service.
+必要时新开 Codex 会话以重新发现 Skill。让模型同时使用 `ego-lite-test` 和已安装的官方 `ego-browser` Skill。复制的是指令文件，不是模型服务或浏览器服务。
 
-### 3. Keep private project resources outside the checkout
+### 3. 将私有项目资源放在源码目录之外
 
-The following optional helper commands use absolute paths. `$LocalRoot` must be outside `$Source`. `init` and `start` require **new destination directories with existing parents**, and will not overwrite an existing run.
+以下辅助命令使用绝对路径。`$LocalRoot` 必须位于 `$Source` 之外。`init` 和 `start` 的目标目录必须**尚不存在，且父目录已存在**；不会覆盖已有项目或运行记录。
 
 ```powershell
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
@@ -75,101 +78,101 @@ $Project = Join-Path $LocalRoot 'demo-project'
 node .\scripts\ego.mjs init --project-dir $Project
 ```
 
-Edit the generated `$Project\cases.example.json` with real, approved requirements before execution. Use the [case example](examples/cases.example.json), [resource contract](docs/asset-formats.md), and [skill](skills/ego-lite-test/SKILL.md) as references. Do not put passwords, tokens, session cookies, or personal records into the case file.
+执行测试前，把生成的 `$Project\cases.example.json` 改成真实、已确认的需求。参考[用例示例](examples/cases.example.json)、[资源约定](docs/asset-formats.md)和 [Skill 指令](skills/ego-lite-test/SKILL.md)。不要把密码、token、会话 cookie 或个人记录写进用例文件。
 
-### 4. Ask the model to test
+### 4. 让模型开始测试
 
-Start from a new feature:
-
-```text
-Use ego-lite-test and the installed official ego-browser skill.
-Read my new-feature requirement and identify acceptance points, negative
-and boundary cases, and affected existing behavior. Label uncertainties;
-do not turn your assumptions into confirmed requirements.
-Prepare reusable cases, then validate the deployed feature in the
-explicitly authorized test environment. Ask if the environment, required
-business oracle, or permission is missing. Keep observed behavior,
-remaining questions, evidence, and original attempts in the result.
-Do not purchase, delete, send messages, or change permissions.
-```
-
-Or start from existing cases, with synthetic names only:
+从需求生成用例并测试（也可明确要求“只生成，不执行”）：
 
 ```text
-Use ego-lite-test and the installed official ego-browser skill.
-Read my local project resources from the absolute path I provide.
-In the authorized test environment, verify that searching the catalog
-shows only items matching the requested category.
-
-Keep the acceptance condition and critical conditions fixed; choose the
-navigation from the current page. Do not purchase, delete, send messages,
-change permissions, or cross the approved environment boundary.
-
-Separate explicit requirements from interpretations and hypotheses.
-Keep evidence and original attempts. If a requirement, permission, or
-business oracle is missing, stop and ask or mark the result inconclusive.
-Do not call a visible result list proof of backend correctness.
+请使用 ego-lite-test 和已安装的官方 ego-browser Skill。
+阅读我的新功能需求，提炼验收点、异常和边界用例，以及受影响的
+已有行为。明确标注歧义，不要把你推断的假设变成已确认需求。
+生成 schemaVersion 2 用例，包含 criticalConditions、stepOrder、
+steps（每步 id/action/expected）和最终 expected。先校验并冻结，再在明确授权的测试环境中验证已部署的功能。
+缺少环境、业务验收判据或权限时先询问。结果中保留实际观察、
+待澄清问题、证据与原始尝试。
+不要购买、删除、发送消息或更改权限。
 ```
 
-Supply the actual authorized URL, local project path, test account context, scope, and execution budget separately. Prefer a dedicated test environment and synthetic data. Sign in through the supported secure flow, not by placing credentials into a prompt or repository.
+或从已有用例开始，以下仅为虚构场景：
 
-## How an adaptive run works
+```text
+请使用 ego-lite-test 和已安装的官方 ego-browser Skill。
+读取我提供的绝对路径中的本地项目资源。
+在已授权的测试环境中，验证商品目录搜索后的可见结果
+是否都符合请求的分类。
 
-![Adaptive workflow: observe, decide, act, verify, then re-observe within the budget. Stop for uncertainty, missing authority, or insufficient evidence.](docs/images/workflow.png)
+保持验收条件与关键条件不变，根据当前页面自主选择导航。
+不要购买、删除、发送消息、更改权限，或越过已授权环境边界。
 
-The model checks the current page, decides the next permitted action, uses Ego, and compares observations with the stable acceptance condition. A required route remains required: adaptability is not permission to skip the part under test, silently weaken criteria, or erase a failed attempt.
+区分明确需求、解释和假设，保留证据与原始尝试。
+缺少需求依据、权限或业务验收判据时，停止询问或标记为不确定。
+不要把“结果列表已显示”当成“后端数据正确”的证明。
+```
 
-A failure is first a finding to diagnose, not automatically a confirmed product defect. The cause may be the product, agent, environment, specification, or unknown.
+另行提供实际授权的测试地址、本地项目路径、测试账户上下文、范围和执行预算。优先使用专用测试环境与合成数据。通过受支持的安全登录方式登录，不要把凭据放进提示词或仓库。
 
-## Reusable assets, one explicit contract
+## 自适应测试如何运行？
 
-Requirement documents remain human-readable context. The model can convert agreed testing targets into the versioned case format when structured records are useful. Cases preserve the requirement source; results separate expected from observed behavior, rationale, remaining questions, and attempts; the evidence catalog describes each referenced file. The report summarizes those supplied records without turning them into independently proven verdicts.
+![自适应工作流：观察、判断、行动、验证，在预算内重新观察。遇到授权不足、风险或证据缺失时如实停止。](docs/images/workflow.zh-CN.png)
 
-Use the [asset formats](docs/asset-formats.md) and [JSON Schemas](schemas/) as the shared contract rather than inventing project-specific field names. Keep private project instances outside this public-ready source tree.
+模型读取当前页面，选择下一步被允许的操作，调用 Ego，再用观察结果对照稳定的验收条件。必经路径仍然必须经过：“自适应”不是跳过被测流程、悄悄降低标准，或抹掉失败尝试的理由。
 
-## Optional evidence bookkeeping
+失败首先是一条待分析的发现，并不自动等于已确认的产品缺陷。原因可能在产品、模型执行、环境、需求规格，也可能尚不明确。
 
-From the repository root, using the variables above and a reviewed case file:
+## 可复用资产，统一格式约定
+
+需求文档保留为便于人阅读的上下文。Skill 生成与外部提供的用例统一采用 schemaVersion 2；不兼容旧版格式。用例保留需求来源；结果分别记录预期、实际观察、判断理由、待澄清问题与执行尝试；证据目录描述各个引用文件。报告汇总这些记录，但不会把操作者提供的结论变成独立验证的事实。
+
+请以[资产格式文档](docs/asset-formats.md)与 [JSON Schema](schemas/) 为共同约定，而不是每个项目自行发明字段。私有项目实例应保存在这份面向未来公开的源码目录之外。
+
+## 可选：整理运行证据
+
+在仓库根目录，沿用上面的变量，并使用已审阅的用例文件：
 
 ```powershell
 $Cases = Join-Path $Project 'cases.example.json'
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
+node .\scripts\ego.mjs validate-cases --cases $Cases
 node .\scripts\ego.mjs start --project-dir $Project --cases $Cases --output-dir $Run
 ```
 
-**`start` only creates files. It does not execute tests.** It snapshots the baseline and initializes every case as `not_run`. The model/operator must then perform authorized browser work, place sanitized evidence under the run directory, and populate `results.json` and the `evidence.json` catalog according to the [contract](docs/asset-formats.md).
+`validate-cases` 是可选的只读预检：输出结构校验摘要，不写入文件；`start` 仍会自行校验输入。
+
+**`start` 只创建文件，不执行测试。** 它保存用例基线，并将所有用例初始化为 `not_run`。之后由模型/操作者完成已授权的浏览器操作，把脱敏证据放在运行目录中，并按[资源约定](docs/asset-formats.md)填写 `results.json` 与 `evidence.json` 证据目录。
 
 ```powershell
 node .\scripts\ego.mjs check --run-dir $Run
 node .\scripts\ego.mjs report --run-dir $Run
 ```
 
-- `check` checks record structure, baseline consistency, case coverage, and referenced evidence-file existence. A structurally valid run may still contain `not_run` cases.
-- `report` creates `report.json` and `report.md`. It refuses to overwrite existing reports.
-- A `pass` or `fail` record requires observed behavior, a rationale, and an evidence reference. The helper does **not** judge whether that evidence supports the verdict.
-- Baseline hashing detects ordinary changes; it is not tamper-proof. These helpers are not a security boundary for actions that bypass them.
+- `check` 检查记录结构、基线一致性、用例覆盖和证据引用文件是否存在。结构合法的记录仍可能含有 `not_run`。
+- `report` 生成 `report.json` 和 `report.md`，拒绝覆盖已有报告。
+- `pass` / `fail` 必须附实际观察、理由与证据引用，但工具**不判断证据是否真的支持结论**。
+- 基线哈希可发现普通改动，但不防篡改。绕过这些辅助工具的行为不受其约束，工具不是安全隔离边界。
 
-![Illustrative result specimen, not a real run: distinguish observed UI facts from backend or unseen-data claims that have not been established.](docs/images/result-specimen.png)
+![结果展示示意，非真实运行：区分已观察到的页面事实，与尚未证实的后端数据或未显示内容。](docs/images/result-specimen.zh-CN.png)
 
-This image is an original explanatory illustration, **not a screenshot, real run, or measured result**. The actual helper currently produces JSON and Markdown, not the pictured visual interface.
+这是原创说明图，**不是产品截图、真实运行结果或实测数据**。当前辅助工具输出 JSON 和 Markdown，不会生成图中样式的界面。
 
-## Privacy before publication
+## 公开之前，先做好隐私保护
 
-A private repository is **not** a safe place to store secrets. Ignored artifacts are **not** credential protection. Keep private project resources and runs outside the checkout; review screenshots, page text, URLs, reports, and git history before sharing. A screenshot can expose data even when no credential file is committed.
+私有仓库**不是**存放秘密的安全保险箱；忽略文件**不等于**凭据保护。私有项目资源和运行记录应留在源码目录外。分享前检查截图、页面文本、URL、报告与 Git 历史；即使没有提交凭据文件，截图也可能泄露信息。
 
-The helper has no network/model/browser execution, but your model host and Ego have their own data flows and policies. This repository does not promise local-only inference or automatic redaction. See [privacy and publication guidance](docs/privacy.md).
+辅助工具不执行网络、模型或浏览器操作，但模型宿主与 Ego 各有自己的数据流和政策。本仓库不承诺模型本地推理或自动脱敏。详见[隐私与公开发布指南](docs/privacy.md)。
 
-## Explore the project
+## 继续阅读
 
-- [Skill instructions](skills/ego-lite-test/SKILL.md): the model's testing workflow.
-- [Architecture](docs/architecture.md): decisions, execution, evidence, and trust boundaries.
-- [Resource contract](docs/asset-formats.md): project resources, provenance, result fields, and helper semantics.
-- [Case example](examples/cases.example.json): synthetic schema example, not product requirements.
-- [Testing and limitations](docs/testing.md): what has and has not been validated.
-- [Privacy](docs/privacy.md): handling local data and preparing for publication.
+- [Skill 指令](skills/ego-lite-test/SKILL.md)：模型应遵循的测试工作流。
+- [架构](docs/architecture.md)：决策、执行、证据与信任边界。
+- [资源约定](docs/asset-formats.md)：项目资源、需求来源、结果字段及辅助工具语义。
+- [用例示例](examples/cases.example.json)：合成数据的结构示例，不是产品需求。
+- [测试与限制](docs/testing.md)：已验证与未验证的内容。
+- [隐私保护](docs/privacy.md)：本地数据管理和公开前的检查。
 
-## Inspiration, not affiliation
+## 借鉴表达方式，不借用品牌背书
 
-README presentation was informed by [Midscene](https://github.com/web-infra-dev/midscene)'s visual explanation and example-first onboarding, and [Stagehand](https://github.com/browserbase/stagehand)'s concise introduction and quick-start organization. The diagrams and copy here are original; their branding, code, claims, and results are not reused. [Ego Lite](https://github.com/citrolabs/ego-lite) is the native browser dependency, not an endorsement of this project.
+README 的组织借鉴了 [Midscene](https://github.com/web-infra-dev/midscene) 的可视化说明和示例先行方式，以及 [Stagehand](https://github.com/browserbase/stagehand) 的简洁定位与快速入门结构。本仓库的文案和图解为原创，不复用它们的品牌素材、代码、宣传结论或测试结果。[Ego Lite](https://github.com/citrolabs/ego-lite) 是原生浏览器依赖，并不代表对本项目的背书。
 
-**License:** not selected for public release yet. The current private draft is `UNLICENSED`; do not assume an open-source license.
+**许可证：** 公开发布的许可证尚未选定，当前私有草稿标记为 `UNLICENSED`，请勿默认视为开源授权。

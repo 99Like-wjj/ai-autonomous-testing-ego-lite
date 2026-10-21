@@ -1,61 +1,34 @@
-# Validation scope / 验证范围
+# 验证范围与限制
 
-## What this repository tests
+[README](../README.md) · [更新记录](../CHANGELOG.md)
 
-`npm test` runs synthetic Node unit and local integration tests of the optional
-file helpers. It covers normalized inputs, baseline integrity checks, result
-and evidence structure, output boundaries, non-overwrite behavior and reporting.
-These are software tests, not a benchmark of AI defect-finding ability.
+## 当前版本：0.1.1
 
-`npm run check:public` checks the current publication file list, common secret
-patterns, disallowed private artifact paths, text integrity and relative links.
-It is a heuristic pre-publication aid, not a security guarantee.
+2026-10-21，本次本地自动检查结果：Node 测试共 90 项通过，0 失败、0 跳过（辅助工具 78 项，发布检查器 12 项）。环境为 Linux / Node v24.19.0，输入为合成数据。这是文件逻辑与发布检查器验证，不是 AI 缺陷发现能力基准。
 
-## What has not been established
+`npm test` 覆盖输入规范化、v2 步骤契约、只读用例预检、基线完整性、结果与证据结构、输出路径、不覆盖行为及报告逻辑。`npm run check:public` 检查当前发布文件清单、常见秘密模式、禁止的私有产物路径、文本与相对链接；启发式检查不是安全保证。
 
-- No real application has been tested by this release's development process.
-- No Windows + Codex + Ego end-to-end run is claimed.
-- No defect-detection accuracy, false-positive rate or model-upgrade improvement
-  is measured or promised.
-- Node tests in Linux do not certify Windows filesystem behavior or Ego setup.
-- A structurally valid report is not a verified business result.
+本次最终交付的 schema、独立 Skill 链接、图解与发布扫描结果见[更新记录](../CHANGELOG.md)，不要将过去版本的检查记录误作当前验证。v2 是不兼容格式更新，不支持 v1 或自动迁移。
 
-## Safe first local trial
+## 未验证的范围
 
-Use a dedicated non-production project and synthetic data. Install Ego through
-its official documentation and use its installed Skill as the API authority.
-Confirm the actual role, environment, permitted side effects and resource limits.
-Begin with a small feature requirement or existing cases with clear expectations.
-Let the AI describe inferred expectations separately. Do not use a generated
-report as a release gate without reviewing its evidence and limitations.
+- 没有用本次开发流程测试真实应用。
+- 尚未完成 Windows + Codex + Ego 端到端实机运行。
+- 没有测量或承诺缺陷发现准确率、误报率或模型升级收益。
+- Linux 单测不认证 Windows 文件系统、PowerShell、Ego 连接或 Skill 发现。
+- 格式合法、文件存在或报告生成不证明业务结果正确。
+- 用例生成指南与合成示例不是已验证的模型效果，也不是能力验收数据集。
 
-If a submission's outcome is uncertain, inspect the actual application state
-before attempting it again. If the app/build/feature is unavailable, report a
-blocker rather than inventing a product defect. Keep real trial files out of Git.
+## 安全的首次试用
 
-## 中文
+使用专用非生产环境与合成数据，按 Ego 官方说明安装并读取安装版本的官方 Skill。核验实际角色、环境、允许副作用与资源预算。
 
-`npm test` 仅使用虚构数据测试辅助脚本的结构、路径、基线、证据引用和报告逻辑，
-不是 AI 测试能力验收样本集，也不衡量真实缺陷发现率。
-Linux 下测试通过不等于 Windows、Codex 与 Ego 的整条链路已验证。
+可选择外部用例或 Skill 从需求生成用例，两者都可用于新功能或回归。先检查每步动作/预期、顺序策略和来源，再校验、冻结、执行；也可以仅生成用例，此时无需浏览器，不报告执行结果。推断与明确要求分开；不能用生成报告直接代替人工复核发布条件。
 
-首轮本地试用请使用非生产环境和合成数据，按 Ego 官方文档安装，并核对实际账号角色。
-可以从一项新功能需求或已有用例开始。明确预期和模型推断要分开，证据不足不能默认通过。
-遇到提交结果不明先对账，功能未部署或环境不可用应记录阻塞。
-真实用例、截图、日志和报告不要提交到 GitHub。
+提交结果未知时先只读核对实际状态，再决定能否重试。版本未部署或环境不可达应记录阻塞，不编造产品缺陷。真实用例、截图、日志和报告留在 Git 之外。
 
-Exact automated check results for the delivered revision are listed in
-[the changelog](../CHANGELOG.md). / 实际交付版本的检查结果见更新记录。
+## English summary
 
-## Development verification snapshot — 2026-10-21
+Version 0.1.1 local Node tests on 2026-10-21: 90 passed, 0 failed, 0 skipped (78 helper and 12 publication-checker tests), Linux / Node v24.19.0, synthetic inputs only. These verify file logic, not AI testing effectiveness. See the changelog for final revision-specific schema, isolated Skill, artwork, and publication checks.
 
-| Check | Result | Limit |
-| --- | --- | --- |
-| Node helper + publication-checker tests | 67 passed, 0 failed, 0 skipped | Linux / Node v24.19.0, synthetic inputs only |
-| Generated cases, manifest, results, evidence and report schemas | Valid with Draft 2020-12, local references and format checks | Schema conformance, not business truth |
-| Skill metadata and isolated-copy links | Passed | Does not measure model behavior |
-| Eight bilingual original PNG diagrams | Visually reviewed | Illustrations, not product execution evidence |
-| Publication file scan | Passed | Current allowlisted tree, heuristic patterns; manual review still required |
-| Windows + Codex + Ego + real application | Not run | User pilot remains necessary |
-
-开发验证采用合成数据。上述检查不包括真实业务系统、模型效果基准或 Windows 实机链路。
+Both external and Skill-generated cases support features and regression, with the same v2 contract. Generation-only needs no browser and is not execution. v1 and automatic migration are unsupported. No Windows + Codex + Ego end-to-end run or real application test is claimed. No accuracy, false-positive rate, or model-upgrade improvement is measured. Use authorized non-production fixtures, preserve uncertainty and original attempts, inspect unknown write outcomes before retrying, and review evidence rather than treating a structurally valid report as a release gate.

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const rootFiles = new Set(['README.md', 'README.zh-CN.md', 'LICENSE', 'SECURITY.md', 'CHANGELOG.md', 'package.json', '.gitignore', '.gitattributes']);
+const rootFiles = new Set(['README.md', 'README.en.md', 'README.zh-CN.md', 'LICENSE', 'SECURITY.md', 'CHANGELOG.md', 'package.json', '.gitignore', '.gitattributes']);
 const dirs = new Set(['skills', 'scripts', 'schemas', 'examples', 'docs', 'tests', 'tools']);
 const textExtensions = new Set(['.md', '.mjs', '.json', '.svg', '.yaml', '.yml']);
 const forbiddenSegments = /^(?:\.env(?:\..*)?|\.local|local|private|projects|runs|run-output|evidence|reports|screenshots|traces|profiles|node_modules|credentials.*|secrets.*|auth\.json|cookies.*|storage-?state.*)$/i;

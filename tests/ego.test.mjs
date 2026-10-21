@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { init, start, check, report, normalizeCases, safePath, main, SOURCE_ROOT } from '../scripts/ego.mjs';
+import { init, start, check, report, normalizeCases, safePath, validateCases, main, SOURCE_ROOT } from '../scripts/ego.mjs';
 const exec = promisify(execFile);
-const caseOf = (id = 'one', kind = 'explicit') => ({ id, title: `Case ${id}`, basis: { kind, source: 'Synthetic test instruction', text: 'A synthetic requirement' }, criticalConditions: ['Synthetic condition'], expected: 'Synthetic outcome', requiredPath: null });
+const caseOf = (id = 'one', kind = 'explicit') => ({ id, title: `Case ${id}`, basis: { kind, source: 'Synthetic test instruction', text: 'A synthetic requirement' }, criticalConditions: ['Synthetic condition'], expected: 'Synthetic outcome', requiredPath: null, stepOrder: 'strict', steps: [{ id: 'step-1', action: 'Perform a synthetic action', expected: 'Observe the synthetic outcome' }] });
 async function registerEvidence(runDir, name) {
   await fs.writeFile(path.join(runDir, 'evidence', name), 'Synthetic observation');
   const catalogPath = path.join(runDir, 'evidence.json');
@@ -22,7 +23,7 @@ const fixture = async t => {
   await init(projectDir);
   const casesFile = path.join(projectDir, 'cases.json');
   const outputDir = path.join(root, 'run with spaces');
-  await fs.writeFile(casesFile, JSON.stringify({ schemaVersion: 1, project: 'Synthetic only', cases: [caseOf(), caseOf('two', 'hypothesis')] }));
+  await fs.writeFile(casesFile, JSON.stringify({ schemaVersion: 2, project: 'Synthetic only', cases: [caseOf(), caseOf('two', 'hypothesis')] }));
   await start({ projectDir, casesFile, outputDir });
   const edit = async fn => { const file = path.join(outputDir, 'results.json'); const value = JSON.parse(await fs.readFile(file)); fn(value); await fs.writeFile(file, JSON.stringify(value)); };
   return { root, projectDir, casesFile, outputDir, edit };
@@ -49,9 +50,9 @@ test('partial completion is preserved', async t => {
   const f = await fixture(t); await f.edit(r => { r.cases[0].status = 'inconclusive'; r.cases[0].rationale = 'Synthetic uncertainty'; });
   const r = await check(f.outputDir); assert.equal(r.hasUnexecutedCases, true); assert.equal(r.counts.not_run, 1);
 });
-test('duplicate input cases rejected', () => assert.throws(() => normalizeCases({ schemaVersion: 1, project: 'test', cases: [caseOf(), caseOf()] }), /Duplicate/));
+test('duplicate input cases rejected', () => assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'test', cases: [caseOf(), caseOf()] }), /Duplicate/));
 test('malformed cases rejected', () => {
-  for (const input of [null, {}, { schemaVersion: 1, project: 'x', cases: [] }, { schemaVersion: 1, project: 'x', cases: [{ ...caseOf(), requiredPath: undefined }] }]) assert.throws(() => normalizeCases(input));
+  for (const input of [null, {}, { schemaVersion: 2, project: 'x', cases: [] }, { schemaVersion: 2, project: 'x', cases: [{ ...caseOf(), requiredPath: undefined }] }]) assert.throws(() => normalizeCases(input));
 });
 for (const [label, change, pattern] of [
   ['duplicate results', r => r.cases.push(r.cases[0]), /Duplicate/],
@@ -97,7 +98,7 @@ test('original attempts retained rather than replacing a failed run with a later
 });
 test('interpretation pass is never counted as confirmed acceptance', async t => {
   const f = await fixture(t); const next = path.join(f.root, 'interpretation-run');
-  await fs.writeFile(f.casesFile, JSON.stringify({ schemaVersion: 1, project: 'Synthetic interpretation', cases: [caseOf('inferred', 'interpretation')] }));
+  await fs.writeFile(f.casesFile, JSON.stringify({ schemaVersion: 2, project: 'Synthetic interpretation', cases: [caseOf('inferred', 'interpretation')] }));
   await start({ projectDir: f.projectDir, casesFile: f.casesFile, outputDir: next });
   await registerEvidence(next, 'synthetic.txt');
   const filename = path.join(next, 'results.json'); const results = JSON.parse(await fs.readFile(filename));
@@ -112,7 +113,7 @@ test('malformed JSON fails and no report is emitted', async t => {
 test('evidence alternate stream syntax rejected', async t => {
   const f = await fixture(t); await f.edit(r => { r.cases[0].evidence = ['evidence/name:stream']; }); await assert.rejects(check(f.outputDir), /Evidence must/);
 });
-for (const key of ['expected', 'title', 'criticalConditions', 'requiredPath', 'unexpected']) {
+for (const key of ['expected', 'title', 'criticalConditions', 'requiredPath', 'stepOrder', 'steps', 'unexpected']) {
   test(`result cannot override baseline field ${key}`, async t => {
     const f = await fixture(t); await f.edit(r => { r.cases[0][key] = 'Rewritten requirement'; });
     await assert.rejects(check(f.outputDir), /Unexpected result key/);
@@ -124,7 +125,7 @@ test('unexpected attempt metadata rejected rather than propagated', async t => {
 });
 test('new scaffold includes empty catalog and explicit observation/question slots', async t => {
   const f = await fixture(t); const r = await check(f.outputDir);
-  assert.deepEqual(r.evidenceCatalog, { schemaVersion: 1, items: [] });
+  assert.deepEqual(r.evidenceCatalog, { schemaVersion: 2, items: [] });
   assert.equal(r.cases[0].observed, ''); assert.deepEqual(r.cases[0].remainingQuestions, []);
 });
 test('pass needs observed behavior, not only rationale and evidence', async t => {
@@ -157,10 +158,115 @@ for (const status of ['inconclusive', 'blocked']) test(`${status} requires an ex
 });
 test('closed case input format rejects unexpected keys', () => {
   for (const update of [x => { x.extra = 1; }, x => { x.cases[0].extra = 1; }, x => { x.cases[0].basis.extra = 1; }]) {
-    const input = { schemaVersion: 1, project: 'Synthetic', cases: [caseOf()] }; update(input); assert.throws(() => normalizeCases(input));
+    const input = { schemaVersion: 2, project: 'Synthetic', cases: [caseOf()] }; update(input); assert.throws(() => normalizeCases(input));
   }
 });
 test('closed manifest and result roots reject unexpected keys', async t => {
   const f = await fixture(t); await f.edit(r => { r.extra = true; }); await assert.rejects(check(f.outputDir), /Invalid results/);
   const filename = path.join(f.outputDir, 'manifest.json'); const manifest = JSON.parse(await fs.readFile(filename)); manifest.extra = true; await fs.writeFile(filename, JSON.stringify(manifest)); await assert.rejects(check(f.outputDir), /Invalid manifest/);
+});
+
+for (const [label, update] of [
+  ['missing steps', c => { delete c.steps; }],
+  ['empty steps', c => { c.steps = []; }],
+  ['non-array steps', c => { c.steps = {}; }],
+  ['duplicate step IDs', c => { c.steps.push({ ...c.steps[0], action: 'Another action' }); }],
+  ['missing stepOrder', c => { delete c.stepOrder; }],
+  ['unsupported stepOrder', c => { c.stepOrder = 'free'; }],
+  ['unexpected step field', c => { c.steps[0].script = 'do not execute'; }],
+  ['missing step id', c => { delete c.steps[0].id; }],
+  ['blank step action', c => { c.steps[0].action = '  '; }],
+  ['missing step expected', c => { delete c.steps[0].expected; }],
+  ['null step', c => { c.steps[0] = null; }]
+]) test(`v2 cases reject ${label}`, () => {
+  const c = caseOf(); update(c);
+  assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [c] }));
+});
+test('strict/adaptive preserve identical step semantics, including original order and text', () => {
+  const cases = ['strict', 'adaptive'].map((stepOrder, i) => ({ ...caseOf(String(i)), stepOrder, steps: [{ id: 'second', action: 'First business action', expected: 'First observation' }, { id: 'first', action: 'Next business action', expected: 'Next observation' }] }));
+  const input = { schemaVersion: 2, project: 'Synthetic', cases };
+  const normalized = normalizeCases(input);
+  assert.deepEqual(normalized, input);
+  assert.notEqual(normalized.cases[0].steps, cases[0].steps);
+  assert.notEqual(normalized.cases[0].steps[0], cases[0].steps[0]);
+});
+test('v1 input is rejected rather than migrated', () => {
+  assert.throws(() => normalizeCases({ schemaVersion: 1, project: 'Synthetic', cases: [caseOf()] }), /schemaVersion 2/);
+});
+for (const asset of ['manifest.json', 'results.json', 'evidence.json']) test(`v1 ${asset} is rejected`, async t => {
+  const f = await fixture(t); const filename = path.join(f.outputDir, asset);
+  const data = JSON.parse(await fs.readFile(filename)); data.schemaVersion = 1;
+  await fs.writeFile(filename, JSON.stringify(data));
+  await assert.rejects(check(f.outputDir), /Invalid/);
+});
+test('new sample and all persisted/generated assets use v2', async t => {
+  const f = await fixture(t);
+  const sample = JSON.parse(await fs.readFile(path.join(f.projectDir, 'cases.example.json')));
+  assert.deepEqual(normalizeCases(sample), sample); assert.ok(sample.cases[0].steps.length);
+  const out = await report(f.outputDir);
+  for (const filename of ['baseline.json', 'manifest.json', 'results.json', 'evidence.json', 'report.json']) assert.equal(JSON.parse(await fs.readFile(path.join(f.outputDir, filename))).schemaVersion, 2);
+  assert.equal(JSON.parse(await fs.readFile(out.reportJson)).evidenceCatalog.schemaVersion, 2);
+});
+test('validate-cases checks the same contract without writing or freezing input', async t => {
+  const f = await fixture(t);
+  const before = await fs.readFile(f.casesFile);
+  const listing = await fs.readdir(f.projectDir);
+  const summary = await main(['validate-cases', '--cases', f.casesFile]);
+  assert.deepEqual(summary, { schemaVersion: 2, structurallyValid: true, project: 'Synthetic only', caseCount: 2, stepCount: 2, stepOrderCounts: { strict: 2, adaptive: 0 } });
+  assert.deepEqual(await validateCases(f.casesFile), summary);
+  assert.deepEqual(await fs.readFile(f.casesFile), before);
+  assert.deepEqual(await fs.readdir(f.projectDir), listing);
+  const input = JSON.parse(before); input.cases[0].steps = [];
+  await fs.writeFile(f.casesFile, JSON.stringify(input));
+  await assert.rejects(validateCases(f.casesFile), /nonempty steps/);
+  await assert.rejects(start({ ...f, outputDir: path.join(f.root, 'invalid-run') }), /nonempty steps/);
+  await assert.rejects(fs.stat(path.join(f.root, 'invalid-run')), /ENOENT/);
+  await assert.rejects(main(['validate-cases']));
+  await assert.rejects(main(['validate-cases', '--cases', 'relative.json']), /absolute/);
+});
+test('steps survive freezing and reporting verbatim, with Markdown/HTML escaped', async t => {
+  const f = await fixture(t); const input = JSON.parse(await fs.readFile(f.casesFile));
+  input.cases[0].stepOrder = 'adaptive';
+  input.cases[0].steps = [{ id: '<b>step</b>', action: '<script>synthetic</script> [link](https://invalid.example)\n*action*', expected: '`synthetic` & <img>' }];
+  await fs.writeFile(f.casesFile, JSON.stringify(input));
+  const run = path.join(f.root, 'steps-run'); await start({ ...f, outputDir: run });
+  const baseline = JSON.parse(await fs.readFile(path.join(run, 'baseline.json')));
+  const checked = await check(run); const out = await report(run);
+  assert.deepEqual(baseline, input);
+  assert.deepEqual(checked.cases[0].steps, input.cases[0].steps);
+  assert.equal(checked.cases[0].stepOrder, 'adaptive');
+  const md = await fs.readFile(out.reportMarkdown, 'utf8');
+  assert.match(md, /frozen baseline, not execution proof/);
+  assert.match(md, /&lt;script&gt;/); assert.doesNotMatch(md, /<script>|<img>|\[link\]\(/);
+  assert.ok(md.includes('\\[link\\]\\(')); assert.ok(md.includes('\\`synthetic\\` &amp; &lt;img&gt;'));
+  baseline.cases[0].steps[0].action = 'Changed business action';
+  await fs.writeFile(path.join(run, 'baseline.json'), JSON.stringify(baseline));
+  await assert.rejects(check(run), /hash mismatch/);
+});
+test('schemas declare only v2 and closed step fields through local references', async () => {
+  for (const name of ['cases', 'manifest', 'results', 'evidence', 'report']) {
+    const schema = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'schemas', `${name}.schema.json`)));
+    assert.equal(schema.properties.schemaVersion.const, 2);
+    assert.equal(schema.$id, `${name}.schema.json`);
+  }
+  const common = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'schemas', 'common.schema.json')));
+  assert.deepEqual(common.$defs.step.required, ['id', 'action', 'expected']);
+  assert.equal(common.$defs.step.additionalProperties, false);
+  for (const name of ['case', 'reportCase']) {
+    assert.ok(common.$defs[name].required.includes('stepOrder'));
+    assert.ok(common.$defs[name].required.includes('steps'));
+    assert.equal(common.$defs[name].properties.steps.minItems, 1);
+    assert.deepEqual(common.$defs[name].properties.stepOrder.enum, ['strict', 'adaptive']);
+  }
+});
+
+test('v1 baseline rejected even with its matching manifest hash', async t => {
+  const f = await fixture(t); const filename = path.join(f.outputDir, 'baseline.json');
+  const baseline = JSON.parse(await fs.readFile(filename)); baseline.schemaVersion = 1;
+  const bytes = JSON.stringify(baseline); await fs.writeFile(filename, bytes);
+  const manifestPath = path.join(f.outputDir, 'manifest.json');
+  const manifest = JSON.parse(await fs.readFile(manifestPath));
+  manifest.baselineSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+  await fs.writeFile(manifestPath, JSON.stringify(manifest));
+  await assert.rejects(check(f.outputDir), /schemaVersion 2/);
 });
