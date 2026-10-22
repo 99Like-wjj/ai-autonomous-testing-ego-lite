@@ -1,6 +1,7 @@
 {
   "name": "ego-lite-test-skill",
   "version": "0.1.3-dev",
+  "egoLiteTest": { "toolRevision": "html-report-delivery-1", "schemaVersion": 3 },
   "description": "Unofficial AI-led Ego Lite testing skill with local evidence records and offline HTML reports.",
   "private": true,
   "type": "module",
@@ -8,6 +9,7 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "test": "node --test",
-    "check:public": "node tools/public-check.mjs"
+    "check:public": "node tools/public-check.mjs",
+    "build:skill": "node tools/build-skill.mjs"
   }
 }

@@ -1,5 +1,7 @@
 # Architecture and trust boundaries
 
+Delivery constraint: default HTML + JSON + Markdown, with real screenshots for key UI outcomes and defects. The AI still chooses business routes, capture moments and judgments. The standalone package includes tools and schemas, with explicit root/version/integrity checks. File checks are separate from browser opening; retrospective assembly is never a pre-execution freeze.
+
 ![Diagram: the AI session plans and runs authorized tests; local tools only maintain evidence and result records.](images/architecture.png)
 
 ## Three boundaries

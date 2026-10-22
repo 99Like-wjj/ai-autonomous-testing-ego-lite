@@ -1,6 +1,19 @@
 # Validation record and coverage limits
 
-## v0.1.3-dev checks
+## Report delivery repair validation (2026-10-22, Windows)
+
+- Windows / Node v24.19.0: complete `npm test` ran 64 tests, with 60 PASS, 0 FAIL and 4 SKIP due to unavailable synthetic symlink privileges. All 8 new delivery regressions passed, covering standalone assets, revision/integrity refusals, three-file readback, retained originals, retrospective scope/reviews, source hashes, drift and duplicate text registrations.
+- The first full run had one failure because its schema inventory omitted the new report-context contract. After updating the contract check, the complete suite passed as above. Skill validation initially failed under default GBK decoding; `python -X utf8` validation passed.
+- `check:public` passed for 68 current distribution files; relative links and `git diff --check` passed. Credential scanning is heuristic and excludes Git history and image semantics. Real session assets remain outside the repository.
+- Independent Draft 2020-12 validation passed 9 schemas and 16 example/generated/existing v3 assets, with an invalid context capture-time field rejected. The development validator is outside the repository and is not a runtime dependency.
+- Ego Lite actually opened the synthetic file:// HTML. Search, filtering, history expansion, PNG decoding, zoom, Escape, close and retained initial failure passed, with a QA screenshot. Initial click/screenshot errors were retained; the window was minimized, then restored within the same TaskSpace before successful verification. There was no file:// access refusal or alternate-channel workaround.
+- The retrospective report also opened and showed the 26 original goals, one supplemental finding, 24 current inconclusive reviews, 3 untested goals and zero screenshots. A subsequent change prefixes overview metrics as original records, verified by generated DOM tests. The final installed-tool copy was also opened in Ego: URL, all 27 cases, original-record labels, review scope and search passed. Its final screenshot again failed because the window remained minimized after a restore request; final full visual acceptance remains unverified. DOM checks are not visual acceptance.
+- SHA-256 comparison preserved 37 original report/run files. No real business operation was repeated, and no capture time or screenshot was invented. Historical claims and current evidence review are separate.
+
+Not run: four symlink scenarios, full mobile visual acceptance, and new-session acceptance of real business screenshot capture/default delivery. This remains 0.1.3-dev; no main merge, tag or release is authorized.
+
+## Historical checks before this repair
+
 
 On 2026-10-22, Linux / Node v24.19.0: `npm test` passed 56/56 tests (44 helper tests and 12 publication-checker tests), with zero failures or skips. `npm run check:public` passed and printed the current 64-file allowlisted manifest. These checks cover this branch's local helper and synthetic assets; they are not Ego or application tests.
 

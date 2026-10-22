@@ -468,7 +468,7 @@ test('offline HTML report embeds verified raster evidence, exposes frozen contex
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const ids = ['report-data', 'project-line', 'integrity', 'summary', 'search', 'status-filter', 'shown', 'empty-results', 'case-list', 'lightbox-image', 'lightbox-error', 'lightbox-caption', 'lightbox', 'lightbox-close'];
+  const ids = ['report-data', 'project-line', 'integrity', 'summary', 'report-context', 'evidence-coverage', 'search', 'status-filter', 'shown', 'empty-results', 'case-list', 'lightbox-image', 'lightbox-error', 'lightbox-caption', 'lightbox', 'lightbox-close'];
   const elements = Object.fromEntries(ids.map(id => [id, new TestElement(id === 'report-data' ? 'script' : id === 'lightbox' ? 'dialog' : 'div')]));
   elements['report-data'].textContent = embeddedData;
   elements['status-filter'].value = 'all';
@@ -820,11 +820,11 @@ test('JSON schemas and synthetic examples use a consistent v3 contract and local
   }
   assert.deepEqual([...schemas.keys()].sort(), [
     'cases.schema.json', 'common.schema.json', 'evidence-request.schema.json', 'evidence.schema.json',
-    'manifest.schema.json', 'record-request.schema.json', 'report.schema.json', 'results.schema.json'
+    'manifest.schema.json', 'record-request.schema.json', 'report-context.schema.json', 'report.schema.json', 'results.schema.json'
   ]);
   for (const [filename, schema] of schemas) {
     if (filename === 'common.schema.json') continue;
-    if (schema.properties?.schemaVersion) assert.equal(schema.properties.schemaVersion.const, 3, filename);
+    if (schema.properties?.schemaVersion) assert.equal(schema.properties.schemaVersion.const, filename === 'report-context.schema.json' ? 1 : 3, filename);
     const inspectRefs = value => {
       if (!value || typeof value !== 'object') return;
       if (typeof value.$ref === 'string') {

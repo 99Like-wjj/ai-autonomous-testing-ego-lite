@@ -2,6 +2,18 @@
 
 ## 0.1.3-dev — 本地证据与结果工具箱
 
+### 报告交付修复（本地验收前，仍为开发版）
+
+- 默认交付独立 HTML、JSON、Markdown，不能仅聊天摘要或静默降级。明确测试中需保留的事实、关键 UI 结果/缺陷的真实截图要求，以及取证受限时的证据缺口和结论复核；不强制逐步截图/expected，不改变 AI 的业务决策职责。
+- 完整目录安装包增加 scripts、schemas、格式文档、示例及 runtime-manifest；`tool-info` 确认实际根、版本、revision、schema 和指纹，CLI 拒绝安装文件缺失或不一致。只构建新目录，不覆盖不明用户修改，不新建备份或同名重复安装。
+- 报告增加截图覆盖与不同留存内容统计，去除“图片不是强制要求”的淡化措辞；`verify-report` 和生成后的读回校验核对三个文件、当前记录、证据及整理来源，回执的 browserOpen 明确为 not_checked。
+- 支持在新目录另存报告；可选 retrospective context（schemaVersion 1）标明事后整理、真实来源/限制、补充用例和 AI 逐目标复核，原记录结论单列，不覆盖或删除旧报告，不补造截图、执行步骤或时间，不重跑业务。
+- 升级影响：软件仍为 0.1.3-dev，tool revision 为 html-report-delivery-1；case/run/request 仍为 schemaVersion 3，派生 report.json 增加 evidenceCoverage 和可选 context。旧安装须使用完整包更新，不能只复制说明文件；不提供历史迁移或删除。中文/英文 README 与指南同步。
+- 本次验证结果见 docs/testing.md 与 docs/testing.en.md；历史 56/56、52 PASS/4 SKIP 等记录保留为历史，不代替本次结果。未授权 main 合并、Tag 或 Release；正式发布继续等待用户本地能力验收。
+
+English: Default three-format delivery, real screenshots for key UI conclusions, standalone version-checked installation, report readback verification and explicit retrospective provenance/reviews. No fixed business execution route, automatic verdict inference, historical overwrite or release.
+
+
 - 明确首要场景为新项目首次上线前、新功能首次交付时的 Web 业务验证；区分 AI 自主规划能力与上线质量保证，同步中英文介绍。
 - 重写四组介绍图的中文业务表述与英文说明，更新开发版和验收边界；README 加入流程图与报告内容示意。示意图不代表真实测试截图。
 
@@ -19,9 +31,9 @@
 - v0.1.3 Release 需等待用户本地能力验收通过；本次只更新开发分支，不建 v0.1.3 tag 或 release。
 - 另建 [`docs/requirements.md`](docs/requirements.md) 记录 v0.1.4 的 subagent 并行及单用例单 Space 待研究需求；此项没有并入 v0.1.3-dev 工具箱实现。
 
-验证：Linux / Node v24.19.0，56/56 合成测试通过（44 项辅助工具、12 项发布检查器），零失败、零跳过；`npm run check:public` 扫描 64 个 allowlist 文件并通过。覆盖 HTML 报告的内嵌截图、冻结上下文、来源/hash 显示、图片解码错误、历史剩余问题、尝试与未尝试区分、close/sync 错误回滚和被替换输出保护、注入文本转义、SVG 安全预览、完整性失败不落盘和悬空引用回归。另在 Windows 对提交 `8af3754` 完成合成验证：52 PASS、0 FAIL、4 SKIP（符号链接权限），64 文件检查和含两份合成 PNG 的报告生成通过；未执行 Ego 或业务环境实测。本地浏览器工具拒绝打开 file://，没有绕过限制。再次尝试 Chromium headless 仍以 timeout exit 124 结束且未生成截图；实际视觉/交互验收为 NOT RUN。
+修复前历史验证：Linux / Node v24.19.0，56/56 合成测试通过（44 项辅助工具、12 项发布检查器），零失败、零跳过；`npm run check:public` 扫描 64 个 allowlist 文件并通过。覆盖 HTML 报告的内嵌截图、冻结上下文、来源/hash 显示、图片解码错误、历史剩余问题、尝试与未尝试区分、close/sync 错误回滚和被替换输出保护、注入文本转义、SVG 安全预览、完整性失败不落盘和悬空引用回归。另在 Windows 对提交 `8af3754` 完成合成验证：52 PASS、0 FAIL、4 SKIP（符号链接权限），64 文件检查和含两份合成 PNG 的报告生成通过；未执行 Ego 或业务环境实测。本地浏览器工具拒绝打开 file://，没有绕过限制。再次尝试 Chromium headless 仍以 timeout exit 124 结束且未生成截图；实际视觉/交互验收为 NOT RUN。
 
-English summary: Added a local-only evidence/result toolbox with retained-copy SHA-256, revisioned idempotent writes, a run lock, history-preserving attempts, progress, and offline image-rich HTML reporting alongside JSON/Markdown. JSON case/run/request/report assets use schemaVersion 3, with no v0.1.2 migration; the HTML view wrapper is version 1. Report cards show frozen preconditions/path/order, per-attempt questions, evidence source/hash, decode errors, and distinguish never-attempted cases from attempts lacking a final outcome. The branch uses the MIT License for original project code and documentation only; it does not license Ego or third-party software. Final verification: Linux synthetic suite 56/56, publication scan 64 files; Windows synthetic validation of commit 8af3754 reported 52 PASS, 0 FAIL, and 4 symlink-permission skips; the 64-file scan and synthetic PNG report generation passed. Chromium/local-browser visual acceptance, Ego, and real business execution remain unverified. v0.1.3 Release is gated on user local capability acceptance.
+English summary: Added a local-only evidence/result toolbox with retained-copy SHA-256, revisioned idempotent writes, a run lock, history-preserving attempts, progress, and offline image-rich HTML reporting alongside JSON/Markdown. JSON case/run/request/report assets use schemaVersion 3, with no v0.1.2 migration; the HTML view wrapper is version 1. Report cards show frozen preconditions/path/order, per-attempt questions, evidence source/hash, decode errors, and distinguish never-attempted cases from attempts lacking a final outcome. The branch uses the MIT License for original project code and documentation only; it does not license Ego or third-party software. Earlier verification before the delivery repair: Linux synthetic suite 56/56, publication scan 64 files; Windows synthetic validation of commit 8af3754 reported 52 PASS, 0 FAIL, and 4 symlink-permission skips; the 64-file scan and synthetic PNG report generation passed. Chromium/local-browser visual acceptance, Ego, and real business execution remain unverified. v0.1.3 Release is gated on user local capability acceptance.
 
 ## 0.1.2 — 业务意图级步骤与可选检查点
 

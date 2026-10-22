@@ -147,3 +147,11 @@ node scripts/ego.mjs report --run-dir ABS
 ```
 
 All paths must be absolute. Commands only organize local facts; they do not call a network, model, Ego, or browser, and they do not select a test route or retry business operations. v0.1.2 v2 files must be rebuilt from their original sources and placed in a new run; migration is unsupported.
+
+## Report delivery extension (html-report-delivery-1)
+
+Default delivery includes HTML, JSON and Markdown. Key UI conclusions require real screenshots. `evidenceCoverage` counts registered screenshots, distinct retained contents and final case records without screenshot links; it does not infer business judgments. Preview counts reflect safely embedded image headers, not browser decode acceptance.
+
+`report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON]` can save new files in an existing external directory, refusing any overwrite. Generation reads all three files back and returns absolute paths, sizes, hashes and browserOpen=not_checked. `verify-report --run-dir ABS --report-dir ABS` compares them against current records and evidence; drift refuses verification without rewriting reports.
+
+Optional retrospective context follows [report-context.schema.json](../schemas/report-context.schema.json), version 1, with summary, limitations, existing source file paths/hashes, supplemental case IDs and one AI-supplied review per goal (verified/violation/inconclusive/not_tested plus rationale). Original claims, supplemental scope and current reviews stay separate. Post-execution assembly never proves a pre-execution freeze. Cases, runs and requests keep schemaVersion 3; no historical data is migrated or removed.

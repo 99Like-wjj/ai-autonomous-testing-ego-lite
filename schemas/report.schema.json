@@ -30,6 +30,16 @@
       "properties": { "hashVerifiedItems": { "type": "integer", "minimum": 0 } },
       "additionalProperties": false
     },
+    "evidenceCoverage": {
+      "type": "object", "required": ["registeredScreenshots", "distinctRetainedContents", "finalCasesWithoutScreenshots"],
+      "properties": {
+        "registeredScreenshots": { "type": "integer", "minimum": 0 },
+        "distinctRetainedContents": { "type": "integer", "minimum": 0 },
+        "finalCasesWithoutScreenshots": { "type": "array", "uniqueItems": true, "items": { "$ref": "common.schema.json#/$defs/nonempty" } }
+      },
+      "additionalProperties": false
+    },
+    "context": { "$ref": "report-context.schema.json" },
     "caveat": { "$ref": "common.schema.json#/$defs/nonempty" },
     "evidenceCatalog": { "$ref": "evidence.schema.json" },
     "cases": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/reportCaseV3" } }

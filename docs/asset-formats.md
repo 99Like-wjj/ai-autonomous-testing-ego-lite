@@ -147,3 +147,13 @@ node scripts/ego.mjs report --run-dir ABS
 ```
 
 所有路径必须为绝对路径。命令仅对本地文件执行事实整理，不调用网络、模型、Ego 或浏览器，不自动选择测试路径或重试业务操作。v0.1.2 的 v2 文件需按原始来源重新准备并新建运行；不支持迁移。
+
+## 报告交付扩展（html-report-delivery-1）
+
+默认交付 HTML、JSON、Markdown；关键 UI 结论须有真实截图。`check` / `report` 增加 `evidenceCoverage`：登记截图数、不同留存内容数、最终结果未关联截图的用例 ID。它是机械统计，不判断证据是否充分，也不推导业务结论。可预览数由 HTML 实际内嵌的安全图片决定，浏览器解码仍须实际验证。
+
+`report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON]` 默认写入 run，可指定已存在的仓库外新目录另存；三个目标任一存在即拒绝覆盖。生成后读回校验，返回文件绝对路径、大小、hash 和 browserOpen=not_checked。`verify-report --run-dir ABS --report-dir ABS` 可再核对；若当前 run、证据或整理来源变化会拒绝，不修改旧报告。
+
+可选 `context` 遵循 [report-context.schema.json](../schemas/report-context.schema.json)，自身 schemaVersion=1、kind=retrospective，包含 summary、非空 limitations、sources（label/file/sha256）、supplementalCaseIds 与逐目标 reviews（caseId/status/rationale）。来源必须是当前存在的普通文件且 hash 匹配；reviews 必须覆盖每个源用例一次，状态为 verified/violation/inconclusive/not_tested。状态及理由由 AI 提供，工具只校验结构与引用。原用例与新增发现、原记录与本次复核分别展示；事后保存基线不能证明执行前冻结。
+
+以上只扩展派生报告，不改变 cases / run / requests 的 schemaVersion 3，不自动迁移或删除历史。使用已确认根下的绝对脚本路径；`tool-info` 核对 0.1.3-dev、revision、schema、路径和安装清单，独立安装资源不依赖仓库外相对链接。

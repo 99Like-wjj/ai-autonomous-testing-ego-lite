@@ -5,6 +5,7 @@ import { constants as fsConstants } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { toolInfo } from './toolchain.mjs';
 
 export const SOURCE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const statuses = new Set(['pass', 'fail', 'inconclusive', 'blocked', 'not_run']);
@@ -450,6 +451,11 @@ async function checkV3(root, manifest) {
     hasUnexecutedCases: ordered.some(c => c.status === 'not_run' && c.attempts.length === 0), counts, progress: progressSummary,
     recordedExplicitOutcomes: { pass: ordered.filter(c => c.basis.kind === 'explicit' && c.status === 'pass').length, fail: ordered.filter(c => c.basis.kind === 'explicit' && c.status === 'fail').length },
     evidenceIntegrity: { hashVerifiedItems: evidenceCatalog.items.length },
+    evidenceCoverage: {
+      registeredScreenshots: evidenceCatalog.items.filter(item => item.kind === 'screenshot').length,
+      distinctRetainedContents: new Set(evidenceCatalog.items.map(item => item.sha256)).size,
+      finalCasesWithoutScreenshots: ordered.filter(c => c.status !== 'not_run' && !c.evidenceIds.some(id => evidenceCatalog.items.some(item => item.id === id && item.kind === 'screenshot'))).map(c => c.id)
+    },
     caveat: 'Structural validation and file hash comparison only. Verdicts, sources, and capture times are operator supplied, not authenticated. SHA-256 matching proves only that the current bytes match the catalog hash, not who created them or whether they are true. The frozen baseline hash is not tamper-proof. Helpers are not a security boundary for actions bypassing them.',
     evidenceCatalog, cases: ordered
   };
@@ -705,6 +711,13 @@ export async function progress(runDir) {
 const escape = value => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\\*_{}\[\]()#+.!|~-]/g, '\\$&').split(String.fromCharCode(96)).join('\\' + String.fromCharCode(96)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, character => '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')).replace(/\r?\n/g, '  \n');
 export function markdown(report) {
   let output = '# Local evidence report\n\n' + escape(report.project) + '\n\n' + report.caveat + '\n\n';
+  if (report.evidenceCoverage) output += 'Screenshot evidence: ' + report.evidenceCoverage.registeredScreenshots + ' registered; distinct retained contents: ' + report.evidenceCoverage.distinctRetainedContents + '.\n\nFinal records without screenshot evidence: ' + (report.evidenceCoverage.finalCasesWithoutScreenshots.join(', ') || '(none)') + '. Key UI conclusions require real screenshots; missing evidence needs AI review, not an automatic product failure.\n\n';
+  if (report.context) {
+    output += '## 事后整理与本次复核（未重新执行）\n\n' + escape(report.context.summary) + '\n\n';
+    output += report.context.limitations.map(text => '- ' + escape(text)).join('\n') + '\n\n';
+    output += 'Supplemental cases: ' + (report.context.supplementalCaseIds.map(escape).join(', ') || '(none)') + '\n\n';
+    output += report.context.sources.map(source => '- Source: ' + escape(source.label) + '; file: ' + escape(source.file) + '; SHA-256: ' + source.sha256).join('\n') + '\n\n';
+  }
   if (report.schemaVersion === 3) {
     output += 'Run revision: ' + report.revision + '; evidence revision: ' + report.evidenceRevision + '\n\n';
     output += 'Evidence entries with matching SHA-256 at check: ' + report.evidenceIntegrity.hashVerifiedItems + '\n\n';
@@ -714,7 +727,9 @@ export function markdown(report) {
   output += 'Recorded explicit outcomes (operator supplied): ' + report.recordedExplicitOutcomes.pass + ' pass, ' + report.recordedExplicitOutcomes.fail + ' fail.\n\n';
   output += report.cases.map(c => {
     const attempts = c.attempts ?? [], evidenceIds = c.evidenceIds ?? [];
+    const review = report.context?.reviews.find(item => item.caseId === c.id);
     return '## ' + escape(c.id) + ': ' + escape(c.title) + '\n\n' +
+      (review ? 'Current retrospective review: ' + review.status + '; ' + escape(review.rationale) + '\n\n' : '') +
       'Basis: ' + c.basis.kind + (c.basis.kind === 'explicit' ? '' : ' (NOT confirmed acceptance)') + '\n\n' +
       'Source: ' + escape(c.basis.source) + '\n\nRequirement: ' + escape(c.basis.text) + '\n\n' +
       'Expected: ' + escape(c.expected) + '\n\n' +
@@ -722,7 +737,7 @@ export function markdown(report) {
       'Critical conditions: ' + escape(c.criticalConditions.join('; ') || '(none supplied)') + '\n\n' +
       'Required path: ' + escape(c.requiredPath ?? '(none supplied)') + '\n\n' +
       'Step order: ' + c.stepOrder + ' (' + (c.stepOrder === 'strict' ? 'preserve the business-step sequence' : 'UI route/order may adapt only within intent and preconditions; do not skip steps') + ')\n\n' +
-      'Planned steps (frozen baseline, not execution proof):\n\n' +
+      (report.context ? 'Source planned steps (retrospective assembly, not proof of a pre-execution freeze):\n\n' : 'Planned steps (frozen baseline, not execution proof):\n\n') +
       c.steps.map((step, index) => (index + 1) + '. ' + escape(step.id) + ': ' + escape(step.action) + '\n   Expected checkpoint: ' + (Object.hasOwn(step, 'expected') ? escape(step.expected) : '(not specified; no checkpoint verdict)') + '\n').join('') +
       'Recorded status: ' + c.status + '\n\nObserved: ' + escape(c.observed) + '\n\nRationale: ' + escape(c.rationale) + '\n\n' +
       'Remaining questions: ' + ((c.remainingQuestions ?? []).map(escape).join('; ') || '(none supplied)') + '\n\n' +
@@ -779,6 +794,8 @@ export function htmlReport(reportData) {
 <header><h1>测试结果与证据</h1><p id="project-line"></p></header><main class="wrap">
 <div class="notice"><strong>解读：</strong>状态是记录的业务判断；下方文件完整性只表示报告生成时证据字节与 catalog 中的 SHA-256 / 大小匹配。匹配不证明来源真实或业务结论正确。此文件可离线打开，截图以安全识别的 PNG/JPEG/WebP 数据内嵌。</div>
 <div class="summary" id="summary" aria-label="结果概览"></div>
+<section id="report-context" class="notice" hidden aria-label="事后整理与复核"></section>
+<p id="evidence-coverage" class="notice" role="status"></p>
 <p class="integrity" id="integrity"></p>
 <div class="toolbar"><input id="search" type="search" placeholder="搜索用例、预期、观察或证据说明" aria-label="搜索报告"><select id="status-filter" aria-label="按状态筛选"><option value="all">所有状态</option><option value="pass">通过</option><option value="fail">失败</option><option value="inconclusive">待判断</option><option value="blocked">受阻</option><option value="not_run">未记录最终结论</option></select><span id="shown" class="meta" aria-live="polite"></span></div>
 <div class="case-list" id="case-list"></div><p id="empty-results" class="empty" hidden>没有符合筛选条件的用例。</p></main>
@@ -786,9 +803,12 @@ export function htmlReport(reportData) {
 <script type="application/json" id="report-data">${embedded}</script>
 <script>
 (()=>{'use strict';const payload=JSON.parse(document.getElementById('report-data').textContent);if(payload.htmlPayloadVersion!==1)throw new Error('Unsupported HTML report payload.');const data=payload.report;const $=s=>document.querySelector(s);const labels={pass:'通过',fail:'失败',inconclusive:'待判断',blocked:'受阻',not_run:'未记录最终结论'};const itemMap=new Map(data.evidenceCatalog.items.map(x=>[x.id,{...x,...payload.previews[x.id]}]));$('#project-line').textContent=(data.project||'未命名项目')+' · Run '+data.runId;$('#integrity').textContent='文件完整性：生成报告时 '+data.evidenceIntegrity.hashVerifiedItems+' 项已登记证据均通过 hash / 字节数校验。该检查与业务状态分开展示。';
-const cards=[['用例总数',data.cases.length],['通过',data.counts.pass],['失败',data.counts.fail],['待判断',data.counts.inconclusive],['受阻',data.counts.blocked],['从未尝试',data.cases.filter(c=>c.status==='not_run'&&c.attempts.length===0).length],['待澄清用例',data.progress.pendingClarification.count],['已尝试但无最终结论',data.cases.filter(c=>c.status==='not_run'&&c.attempts.length>0).length],['历史尝试',data.progress.attemptedCases.totalAttempts]];const summary=$('#summary');for(const [label,value] of cards){const div=document.createElement('div');div.className='metric';const strong=document.createElement('b');strong.textContent=String(value);const span=document.createElement('span');span.textContent=label;div.append(strong,span);summary.append(div)}
+const cards=[['用例总数',data.cases.length],['通过',data.counts.pass],['失败',data.counts.fail],['待判断',data.counts.inconclusive],['受阻',data.counts.blocked],['从未尝试',data.cases.filter(c=>c.status==='not_run'&&c.attempts.length===0).length],['待澄清用例',data.progress.pendingClarification.count],['已尝试但无最终结论',data.cases.filter(c=>c.status==='not_run'&&c.attempts.length>0).length],['历史尝试',data.progress.attemptedCases.totalAttempts]];const summary=$('#summary');for(const [label,value] of cards){const div=document.createElement('div');div.className='metric';const strong=document.createElement('b');strong.textContent=String(value);const span=document.createElement('span');span.textContent=(data.context?'原记录 · ':'')+label;div.append(strong,span);summary.append(div)}
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n}
 function panel(title,text){const p=el('section','panel');p.append(el('h3','',title),el('p','',text||'（未提供）'));return p}
+const context=data.context,reviewMap=new Map((context?.reviews||[]).map(item=>[item.caseId,item])),reviewLabels={verified:'已验证',violation:'发现违反',inconclusive:'无法判断',not_tested:'未测试'};
+const previewCount=[...itemMap.values()].filter(item=>item.kind==='screenshot'&&item.preview).length;const coverage=data.evidenceCoverage;$('#evidence-coverage').textContent='截图证据：已登记 '+coverage.registeredScreenshots+' 项，可预览 '+previewCount+' 项；不同证据内容 '+coverage.distinctRetainedContents+' 份。'+(coverage.finalCasesWithoutScreenshots.length?'有 '+coverage.finalCasesWithoutScreenshots.length+' 条最终记录未关联截图。关键 UI 结果及缺陷须有真实截图；缺失是证据缺口，需复核结论，不自动判产品失败。':'截图存在不代表证据充分或业务结论正确。');
+if(context){const box=$('#report-context');box.hidden=false;box.append(el('h2','','事后整理与本次复核（未重新执行）'),el('p','',context.summary));for(const text of context.limitations)box.append(el('p','',text));const ids=new Set(context.supplementalCaseIds);for(const [label,cases] of [['原范围',data.cases.filter(c=>!ids.has(c.id))],['补充发现',data.cases.filter(c=>ids.has(c.id))]]){const counts={};for(const c of cases)counts[c.status]=(counts[c.status]||0)+1;box.append(el('p','',label+' '+cases.length+' 条；原记录状态：'+Object.entries(counts).map(([status,n])=>(labels[status]||status)+' '+n).join('，')))}for(const status of Object.keys(reviewLabels)){box.append(el('p','', '本次复核 '+reviewLabels[status]+'：'+context.reviews.filter(item=>item.status===status).length))}for(const source of context.sources)box.append(el('p','meta','整理来源：'+source.label+' · '+source.file+' · SHA-256 '+source.sha256));box.append(el('p','meta','来源文件存在且字节校验匹配；不认证原始观察。以下概览数字保留原记录状态，不是本次重新验证通过。'))}
 const imageDecodeFailure='图片文件头符合 PNG/JPEG/WebP，但浏览器无法解码；未显示该图。hash 匹配仅代表字节一致，不证明内容真实性。';
 function watchImageDecode(img){img.addEventListener('error',()=>img.replaceWith(el('p','image-error',imageDecodeFailure)))}
 function evidenceMetadata(item){const details=el('details','evidence-meta');details.append(el('summary','','来源与文件完整性'),el('p','','来源：'+item.source),el('p','meta','SHA-256（字节一致性）：'+item.sha256),el('p','meta','留存字节：'+item.bytes),el('p','meta','登记时间：'+item.collectedAt),el('p','meta','来源采集时间：'+(item.capturedAt||'未提供')));return details}
@@ -797,45 +817,107 @@ function openImage(img){$('#lightbox-error').hidden=true;$('#lightbox-image').hi
 function renderCase(c){
 const details=el('details','case-card');details.dataset.status=c.status;
 const searchable=[c.id,c.title,c.expected,c.observed,c.rationale,c.basis.text,c.basis.source,c.requiredPath,c.stepOrder,...c.criticalConditions,...c.remainingQuestions,...(c.clarificationQuestions||[]),...c.attempts.flatMap(a=>[a.observed,a.rationale,...a.remainingQuestions]),...data.evidenceCatalog.items.filter(x=>x.caseId===c.id).map(x=>x.description)].join(' ').toLocaleLowerCase();details.dataset.search=searchable;
-const sum=document.createElement('summary');sum.append(el('span','case-id',c.id),el('span','case-title',c.title),el('span','badge status-'+c.status,labels[c.status]||c.status));details.append(sum);
-const body=el('div','case-body');const facts=el('div','facts');const currentObserved=c.observed||(c.status==='not_run'?(c.attempts.length?'尚未记录最终结论；已有 '+c.attempts.length+' 条历史尝试观察。':'尚无执行观察。'):'尚未记录观察。');facts.append(panel('冻结业务预期',c.expected),panel('实际观察',currentObserved),panel('判断理由',c.rationale||'尚未记录判断理由。'),panel('需求依据 · '+(c.basis.kind==='explicit'?'明确要求':'解释 / 探索依据'),(c.basis.source?c.basis.source+' · ':'')+c.basis.text));body.append(facts);
-const constraints=el('section','section');constraints.append(el('h3','','冻结关键前提与操作语义'));const conditions=el('ul','list');if(c.criticalConditions.length){for(const condition of c.criticalConditions)conditions.append(el('li','',condition))}else conditions.append(el('li','','冻结用例未列出显式关键前提。'));const orderText=c.stepOrder==='strict'?'strict：按冻结的业务步骤顺序执行。':'adaptive：可调整 UI 方法或顺序，但必须保留业务意图、前提和覆盖。';constraints.append(conditions,panel('必经路径',c.requiredPath===null?'未指定必经路径。':c.requiredPath),panel('步骤顺序策略',orderText));body.append(constraints);
-const steps=el('section','section');steps.append(el('h3','','冻结步骤与可选检查点'));const ol=el('ol','steps');for(const s of c.steps){const li=el('li','',s.action);if(Object.hasOwn(s,'expected'))li.append(el('span','checkpoint','预期检查点：'+s.expected+'（没有单独的步骤 verdict 字段）'));else li.append(el('span','meta','未定义独立步骤预期。'));ol.append(li)}steps.append(ol,el('p','meta','步骤检查点不单独记录 verdict；本报告不从计划步骤推断执行完成。请结合实际观察、判断理由与下方未验证项复核。'));body.append(steps);
+const sum=document.createElement('summary');const review=reviewMap.get(c.id);if(review)sum.append(el('span','badge','本次复核：'+reviewLabels[review.status]),el('span','meta',context.supplementalCaseIds.includes(c.id)?'补充发现':'原范围'));sum.append(el('span','case-id',c.id),el('span','case-title',c.title),el('span','badge status-'+c.status,(context?'原记录：':'')+(labels[c.status]||c.status)));details.append(sum);
+const body=el('div','case-body');const facts=el('div','facts');const currentObserved=c.observed||(c.status==='not_run'?(c.attempts.length?'尚未记录最终结论；已有 '+c.attempts.length+' 条历史尝试观察。':'尚无执行观察。'):'尚未记录观察。');if(review)facts.append(panel('本次复核理由（未重新执行）',review.rationale));facts.append(panel(context?'来源用例预期':'冻结业务预期',c.expected),panel('实际观察',currentObserved),panel('判断理由',c.rationale||'尚未记录判断理由。'),panel('需求依据 · '+(c.basis.kind==='explicit'?'明确要求':'解释 / 探索依据'),(c.basis.source?c.basis.source+' · ':'')+c.basis.text));body.append(facts);
+const constraints=el('section','section');constraints.append(el('h3','',context?'来源关键前提与操作语义':'冻结关键前提与操作语义'));const conditions=el('ul','list');if(c.criticalConditions.length){for(const condition of c.criticalConditions)conditions.append(el('li','',condition))}else conditions.append(el('li','','冻结用例未列出显式关键前提。'));const orderText=c.stepOrder==='strict'?'strict：按冻结的业务步骤顺序执行。':'adaptive：可调整 UI 方法或顺序，但必须保留业务意图、前提和覆盖。';constraints.append(conditions,panel('必经路径',c.requiredPath===null?'未指定必经路径。':c.requiredPath),panel('步骤顺序策略',orderText));body.append(constraints);
+const steps=el('section','section');steps.append(el('h3','',context?'来源计划步骤（不证明执行前冻结）':'冻结步骤与可选检查点'));const ol=el('ol','steps');for(const s of c.steps){const li=el('li','',s.action);if(Object.hasOwn(s,'expected'))li.append(el('span','checkpoint','预期检查点：'+s.expected+'（没有单独的步骤 verdict 字段）'));else li.append(el('span','meta','未定义独立步骤预期。'));ol.append(li)}steps.append(ol,el('p','meta','步骤检查点不单独记录 verdict；本报告不从计划步骤推断执行完成。请结合实际观察、判断理由与下方未验证项复核。'));body.append(steps);
 const gaps=el('section','section');gaps.append(el('h3','','未验证项与待澄清'));const questions=[...(c.clarificationQuestions||[]).map(x=>'冻结待澄清：'+x),...(c.remainingQuestions||[]).map(x=>'当前结果剩余问题：'+x)];if(c.status==='not_run'){if(c.attempts.length)questions.unshift('尚未记录最终结论；已有 '+c.attempts.length+' 条历史尝试观察，请查看下方历史。');else questions.unshift('没有记录尝试观察，尚未开始尝试。')}else if(c.status==='blocked')questions.unshift('执行受阻；不能据此判断未观察目标。');else if(c.status==='inconclusive')questions.unshift('当前结论不确定；未解决的预期不可视为已验证。');else questions.unshift('步骤级结论未单独记录；报告只显示用例级状态。');if(!questions.length)questions.push('没有记录剩余问题；这不代表文件哈希能证明业务正确。');const ul=el('ul','list');for(const q of questions)ul.append(el('li','',q));gaps.append(ul);body.append(gaps);
-const history=el('section','section');history.append(el('h3','','当前结果与历史尝试'));const observations=[...c.attempts.map((a,i)=>({record:a,label:(a.kind==='superseded_final'?'被替换的最终观察':'历史尝试')+' '+(i+1)})),{record:c,label:'当前最终结果'}];for(const entry of observations){const r=entry.record,box=el('div','history-item'),head=el('div','history-head');head.append(el('strong','',entry.label),el('span','badge status-'+r.status,labels[r.status]||r.status),el('span','meta',r.recordedAt||''),el('span','meta','原因：'+(r.cause||'unknown')));box.append(head,panel('观察',r.observed||'未记录'),panel('判断理由',r.rationale||'未记录'));const questionsPanel=el('section','section');questionsPanel.append(el('h3','',entry.label==='当前最终结果'?'当前结果剩余问题':'该次观察仍未解决的问题'));const remaining=Array.isArray(r.remainingQuestions)?r.remainingQuestions:[];if(remaining.length){const list=el('ul','list');for(const question of remaining)list.append(el('li','',question));questionsPanel.append(list)}else questionsPanel.append(el('p','meta','此记录没有列出剩余问题。'));box.append(questionsPanel);const evidence=el('div','section');evidence.append(el('h3','','关联证据'));const shots=addEvidence(evidence,r.evidenceIds||[]);if(!shots.length)evidence.append(el('p','meta','这条观察没有关联可预览的图片证据；图片不是强制要求，也不因此自动判定失败。'));box.append(evidence);history.append(box)}body.append(history);
+const history=el('section','section');history.append(el('h3','','当前结果与历史尝试'));const observations=[...c.attempts.map((a,i)=>({record:a,label:(a.kind==='superseded_final'?'被替换的最终观察':'历史尝试')+' '+(i+1)})),{record:c,label:'当前最终结果'}];for(const entry of observations){const r=entry.record,box=el('div','history-item'),head=el('div','history-head');head.append(el('strong','',entry.label),el('span','badge status-'+r.status,labels[r.status]||r.status),el('span','meta',r.recordedAt||''),el('span','meta','原因：'+(r.cause||'unknown')));box.append(head,panel('观察',r.observed||'未记录'),panel('判断理由',r.rationale||'未记录'));const questionsPanel=el('section','section');questionsPanel.append(el('h3','',entry.label==='当前最终结果'?'当前结果剩余问题':'该次观察仍未解决的问题'));const remaining=Array.isArray(r.remainingQuestions)?r.remainingQuestions:[];if(remaining.length){const list=el('ul','list');for(const question of remaining)list.append(el('li','',question));questionsPanel.append(list)}else questionsPanel.append(el('p','meta','此记录没有列出剩余问题。'));box.append(questionsPanel);const evidence=el('div','section');evidence.append(el('h3','','关联证据'));const shots=addEvidence(evidence,r.evidenceIds||[]);if(!shots.length)evidence.append(el('p','meta','这条观察没有关联可预览的图片证据。关键 UI 结果及缺陷须有真实截图；当前存在截图证据缺口，需复核结论，不因此自动判定产品失败。'));box.append(evidence);history.append(box)}body.append(history);
 const caseItems=data.evidenceCatalog.items.filter(x=>x.caseId===c.id).map(x=>itemMap.get(x.id));const unlinked=caseItems.filter(x=>![...c.evidenceIds,...c.attempts.flatMap(a=>a.evidenceIds)].includes(x.id));if(unlinked.length){const section=el('section','section');section.append(el('h3','','已登记但未被观察引用的证据'));const ids=unlinked.map(x=>x.id);addEvidence(section,ids);section.append(el('p','meta','这些文件已通过本次完整性校验，但未关联到当前结果或历史尝试，不作为其结论依据。'));body.append(section)}
 const allShots=caseItems.filter(x=>x.kind==='screenshot'&&x.preview).sort((a,b)=>Date.parse(a.collectedAt)-Date.parse(b.collectedAt));if(allShots.length>=2){const section=el('section','section');section.append(el('h3','','截图时间对照'));const compare=el('div','compare');for(const [item,label] of [[allShots[0],'较早登记（collectedAt）'],[allShots[allShots.length-1],'较晚登记（collectedAt）']]){const figure=document.createElement('figure'),img=el('img','');img.alt=item.description||label;img.dataset.caption=item.description||label;img.tabIndex=0;watchImageDecode(img);img.src=item.preview;img.addEventListener('click',()=>openImage(img));img.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openImage(img)}});figure.append(img,el('figcaption','',label+' · '+(item.description||item.id)));compare.append(figure)}section.append(compare,el('p','meta','顺序依据工具登记时间；这只是文件时间对照，不代表业务状态变化或成功。'));body.append(section)}details.append(body);return details}
 const list=$('#case-list');for(const c of data.cases)list.append(renderCase(c));function filter(){const q=$('#search').value.trim().toLocaleLowerCase(),status=$('#status-filter').value;let shown=0;for(const card of list.children){const visible=(status==='all'||card.dataset.status===status)&&(!q||card.dataset.search.includes(q));card.hidden=!visible;if(visible)shown++}$('#shown').textContent='显示 '+shown+' / '+data.cases.length+' 个用例';$('#empty-results').hidden=shown!==0}$('#search').addEventListener('input',filter);$('#status-filter').addEventListener('change',filter);filter();})();
 </script></body></html>`;
 }
-export async function report(runDir) {
+async function validateReportContext(context, result) {
+  assertClosed(context, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'reviews'], 'report context');
+  if (context.schemaVersion !== 1 || context.kind !== 'retrospective' || !nonempty(context.summary) ||
+      !Array.isArray(context.limitations) || !context.limitations.length || !context.limitations.every(nonempty) ||
+      !Array.isArray(context.sources) || !context.sources.length || !Array.isArray(context.supplementalCaseIds) || !Array.isArray(context.reviews)) fail('Invalid retrospective report context.');
+  const ids = new Set(result.cases.map(c => c.id)), supplemental = new Set();
+  for (const id of context.supplementalCaseIds) {
+    if (!ids.has(id) || supplemental.has(id)) fail('Unknown or duplicate supplemental case ID.');
+    supplemental.add(id);
+  }
+  const reviewed = new Set();
+  for (const review of context.reviews) {
+    assertClosed(review, ['caseId', 'status', 'rationale'], 'retrospective review');
+    if (!ids.has(review.caseId) || reviewed.has(review.caseId) || !['verified', 'violation', 'inconclusive', 'not_tested'].includes(review.status) || !nonempty(review.rationale)) fail('Invalid retrospective case review.');
+    reviewed.add(review.caseId);
+  }
+  if (reviewed.size !== ids.size) fail('A retrospective report needs an AI-supplied review for every case.');
+  for (const source of context.sources) {
+    assertClosed(source, ['label', 'file', 'sha256'], 'report source');
+    if (!nonempty(source.label) || !/^[a-f0-9]{64}$/.test(source.sha256)) fail('Invalid report source.');
+    const filename = await safePath(source.file, { existing: true });
+    if (!(await fs.lstat(filename)).isFile() || hash(await fs.readFile(filename)) !== source.sha256) fail('Report source hash mismatch or non-regular file.');
+  }
+  return context;
+}
+async function verifyReportFiles(root, reportDir, result) {
+  const expected = [json(result), markdown(result), htmlReport(await htmlReportPayload(root, result))];
+  const names = ['report.json', 'report.md', 'report.html'], artifacts = [];
+  for (let i = 0; i < names.length; i++) {
+    const filename = await safePath(path.join(reportDir, names[i]), { existing: true });
+    if (!(await fs.lstat(filename)).isFile()) fail('Report output is not a regular file.');
+    const bytes = await fs.readFile(filename);
+    if (!bytes.equals(Buffer.from(expected[i], 'utf8'))) fail('Report file does not match the checked records: ' + names[i]);
+    artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
+  }
+  return { filesVerified: true, artifacts, browserOpen: 'not_checked' };
+}
+export async function verifyReport(runDir, reportDir = runDir) {
+  return withRunLock(runDir, async root => {
+    const target = await directory(reportDir), saved = await readJSON(path.join(target, 'report.json'));
+    const result = await checkUnlocked(root);
+    if (saved.context !== undefined) result.context = await validateReportContext(saved.context, result);
+    return verifyReportFiles(root, target, result);
+  });
+}
+export async function report(runDir, { outputDir = runDir, contextFile } = {}) {
   return withRunLock(runDir, async root => {
     await recoverEvidence(root);
-    const result = await checkUnlocked(root), htmlPayload = htmlReport(await htmlReportPayload(root, result)), jsonPayload = json(result), markdownPayload = markdown(result);
-    const filenames = [path.join(root, 'report.json'), path.join(root, 'report.md'), path.join(root, 'report.html')];
+    const target = await directory(outputDir), result = await checkUnlocked(root);
+    if (contextFile !== undefined) result.context = await validateReportContext(await readJSON(contextFile), result);
+    const htmlPayload = htmlReport(await htmlReportPayload(root, result)), jsonPayload = json(result), markdownPayload = markdown(result);
+    const filenames = [path.join(target, 'report.json'), path.join(target, 'report.md'), path.join(target, 'report.html')];
     for (const filename of filenames) {
       await safePath(filename);
       try { await fs.lstat(filename); fail('Refusing to overwrite ' + path.basename(filename) + '.'); }
       catch (error) { if (error.code !== 'ENOENT') throw error; }
     }
     const created = [];
+    let verification;
     try {
       created.push({ filename: filenames[0], identity: await writeNew(filenames[0], jsonPayload) });
       created.push({ filename: filenames[1], identity: await writeNew(filenames[1], markdownPayload) });
       created.push({ filename: filenames[2], identity: await writeNew(filenames[2], htmlPayload) });
+      verification = await verifyReportFiles(root, target, result);
     } catch (error) {
       const cleanupErrors = [];
       for (const item of created.reverse()) { try { await removeOwnedFileIfPresent(item.filename, item.identity); } catch (cleanupError) { cleanupErrors.push(cleanupError.message); } }
       if (cleanupErrors.length) error.cleanupError = cleanupErrors.join('; ');
       throw error;
     }
-    return { reportJson: filenames[0], reportMarkdown: filenames[1], reportHtml: filenames[2], schemaVersion: result.schemaVersion };
+    return { reportJson: filenames[0], reportMarkdown: filenames[1], reportHtml: filenames[2], schemaVersion: result.schemaVersion, ...verification };
   });
 }
 export async function main(argv) {
   const [command, ...rest] = argv;
-  if (command === '--help' || command === 'help' || !command) return 'Usage: node scripts/ego.mjs init --project-dir ABS\n       node scripts/ego.mjs validate-cases --cases ABS\n       node scripts/ego.mjs start --project-dir ABS --cases ABS --output-dir ABS\n       node scripts/ego.mjs evidence-add --run-dir ABS --request ABS_JSON\n       node scripts/ego.mjs record --run-dir ABS --request ABS_JSON\n       node scripts/ego.mjs progress --run-dir ABS\n       node scripts/ego.mjs check --run-dir ABS\n       node scripts/ego.mjs report --run-dir ABS\nreport writes report.json, report.md, and a standalone offline report.html; it refuses to overwrite them. Invalid run data or registered evidence stops report generation.\nCase inputs, run manifest, results, evidence catalog, requests, and JSON reports use schemaVersion 3. Existing v0.1.2 run directories are intentionally incompatible; create a new run from the original cases file. No migration command is provided.\nEvidence and record requests use operationId and expectedRevision. No network, model, browser, or Ego actions.';
-  const allowed = { init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir'] }[command];
+  if (command === '--help' || command === 'help' || !command) return `Usage: node ABS_TOOL_ROOT/scripts/ego.mjs tool-info [--expect-version VERSION] [--expect-revision REVISION]
+       node ABS_TOOL_ROOT/scripts/ego.mjs init --project-dir ABS
+       node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS
+       node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS --cases ABS --output-dir ABS
+       node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS --request ABS_JSON
+       node ABS_TOOL_ROOT/scripts/ego.mjs record --run-dir ABS --request ABS_JSON
+       node ABS_TOOL_ROOT/scripts/ego.mjs progress --run-dir ABS
+       node ABS_TOOL_ROOT/scripts/ego.mjs check --run-dir ABS
+       node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON]
+       node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS --report-dir ABS
+report writes report.json, report.md, and a standalone offline report.html; it refuses to overwrite them. Invalid run data or registered evidence stops report generation.
+Generation and verify-report read back all three files; browserOpen stays not_checked. Retrospective context preserves original recorded outcomes and separate AI reviews.
+Case/run/request/report assets use schemaVersion 3; retrospective context uses version 1. Existing v0.1.2 runs are incompatible; no migration command is provided.
+No network, model, browser, or Ego actions.`;
+  const allowed = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'context'], 'verify-report': ['run-dir', 'report-dir'] }[command];
   if (!allowed) fail('Unknown command. Use --help.');
   const flags = {};
   for (let i = 0; i < rest.length; i += 2) {
@@ -843,7 +925,14 @@ export async function main(argv) {
     if (!rest[i].startsWith('--') || !allowed.includes(key) || flags[key] !== undefined || !rest[i + 1] || rest[i + 1].startsWith('--')) fail('Unknown, duplicate, or incomplete option.');
     flags[key] = rest[i + 1];
   }
-  if (allowed.some(key => !flags[key])) fail('Missing required option. Use --help.');
+  const required = command === 'tool-info' ? [] : command === 'report' ? ['run-dir'] : allowed;
+  if (required.some(key => !flags[key])) fail('Missing required option. Use --help.');
+  const info = await toolInfo();
+  if (command === 'tool-info') {
+    if ((flags['expect-version'] && flags['expect-version'] !== info.version) || (flags['expect-revision'] && flags['expect-revision'] !== info.toolRevision)) fail('Requested Skill/tool version or revision mismatch.');
+    const { files, ...identity } = info;
+    return identity;
+  }
   if (command === 'validate-cases') return validateCases(flags.cases);
   if (command === 'init') return init(flags['project-dir']);
   if (command === 'start') return start({ projectDir: flags['project-dir'], casesFile: flags.cases, outputDir: flags['output-dir'] });
@@ -851,7 +940,8 @@ export async function main(argv) {
   if (command === 'record') return recordResult({ runDir: flags['run-dir'], request: await readJSON(await safePath(flags.request, { existing: true })) });
   if (command === 'progress') return progress(flags['run-dir']);
   if (command === 'check') return check(flags['run-dir']);
-  return report(flags['run-dir']);
+  if (command === 'verify-report') return verifyReport(flags['run-dir'], flags['report-dir']);
+  return report(flags['run-dir'], { outputDir: flags['output-dir'] ?? flags['run-dir'], contextFile: flags.context });
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2)).then(result => process.stdout.write(typeof result === 'string' ? result + '\n' : json(result))).catch(error => { process.stderr.write('Error: ' + error.message + '\n'); process.exitCode = 1; });

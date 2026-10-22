@@ -1,6 +1,18 @@
 # 本地工具箱调用指南（schemaVersion 3）
 
-本指南只适用于仓库中的可选 Node.js 文件工具。使用前确认工具包根目录，并读取其 [`docs/asset-formats.md`](../../../docs/asset-formats.md)。若仓库不可用，继续使用 Ego 与私有 Markdown 记录，不声称工具已运行。
+工具只做本地数据事务与报告渲染。默认测试交付需要 HTML、JSON、Markdown；工具不可用应报告阻塞，不能以 Markdown 退回冒充完成。
+
+## 确认实际根目录与版本
+
+独立安装时，`ToolRoot` 就是本次实际加载的 `SKILL.md` 所在绝对目录，包含 `scripts/`、`schemas/`、`docs/`、`examples/` 和 `runtime-manifest.json`。源码模式使用用户明确提供或已核实的仓库绝对根；不要从安装目录向上猜位置，也不要凭同名 preview 目录选择工具。
+
+```powershell
+$ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
+$Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
+node $Tool tool-info --expect-version 0.1.3-dev --expect-revision html-report-delivery-1
+```
+
+核对回执中的 toolRoot、skillFile、schemaVersion 3、版本与 revision；独立安装的 installationIntegrity 必须为 verified，源码模式为 source-layout。指纹只用于文件一致性，不认证发布者。每次 CLI 操作也检查安装清单，缺失、混用或改动会拒绝；先报告差异，不擅自覆盖不明用户修改。随后读取此根目录的 `docs/asset-formats.md` 和所需 schema。所有命令显式传入同一绝对脚本路径。
 
 ## 边界
 
@@ -15,8 +27,8 @@
 项目用例须符合 `schemas/cases.schema.json`。在源码仓库外保存项目和 run，使用绝对路径；run 目标目录须不存在。
 
 ```text
-node scripts/ego.mjs validate-cases --cases ABS_CASES_JSON
-node scripts/ego.mjs start --project-dir ABS_PROJECT_DIR --cases ABS_CASES_JSON --output-dir ABS_RUN_DIR
+node "ABS_TOOL_ROOT/scripts/ego.mjs" validate-cases --cases ABS_CASES_JSON
+node "ABS_TOOL_ROOT/scripts/ego.mjs" start --project-dir ABS_PROJECT_DIR --cases ABS_CASES_JSON --output-dir ABS_RUN_DIR
 ```
 
 `start` 只冻结基线并创建初始 `not_run` 结果和空 evidence catalog。执行浏览器操作仍需用户授权及本机 Ego 官方 Skill。
@@ -28,7 +40,7 @@ node scripts/ego.mjs start --project-dir ABS_PROJECT_DIR --cases ABS_CASES_JSON 
 3. 保存 UTF-8 JSON 请求，然后运行：
 
 ```text
-node scripts/ego.mjs evidence-add --run-dir ABS_RUN_DIR --request ABS_REQUEST_JSON
+node "ABS_TOOL_ROOT/scripts/ego.mjs" evidence-add --run-dir ABS_RUN_DIR --request ABS_REQUEST_JSON
 ```
 
 4. 将返回的 `evidenceId` 用于同一 `caseId` 的结果或 attempt。返回值包含 operation ID、revision、path、SHA-256、字节数和 collectedAt。
@@ -73,11 +85,17 @@ node scripts/ego.mjs evidence-add --run-dir ABS_RUN_DIR --request ABS_REQUEST_JS
 ## 查进度和报告
 
 ```text
-node scripts/ego.mjs progress --run-dir ABS_RUN_DIR
-node scripts/ego.mjs check --run-dir ABS_RUN_DIR
-node scripts/ego.mjs report --run-dir ABS_RUN_DIR
+node "ABS_TOOL_ROOT/scripts/ego.mjs" progress --run-dir ABS_RUN_DIR
+node "ABS_TOOL_ROOT/scripts/ego.mjs" check --run-dir ABS_RUN_DIR
+node "ABS_TOOL_ROOT/scripts/ego.mjs" report --run-dir ABS_RUN_DIR
+node "ABS_TOOL_ROOT/scripts/ego.mjs" verify-report --run-dir ABS_RUN_DIR --report-dir ABS_RUN_DIR
 ```
 
 进度只按每个基线用例的当前 final 状态统计；历史失败不重复计入当前失败。`not_run` 表示尚无最终结论，可与 attempt 并存；`not_run` 且没有 attempt 才表示从未尝试。`blocked`、`inconclusive` 和待澄清分别保留。`report` 会创建 `report.json`、`report.md` 和自包含 `report.html`；任一目标已存在就拒绝覆盖。可单独复制 `report.html` 并在无网络的浏览器中打开，不引用 Run 路径或外链。HTML 显示冻结目标、关键条件、必经路径、顺序策略、观察、理由、依据、未验证项、逐条历史尝试剩余问题和证据来源/hash 元数据；只预览 hash / 大小校验通过的 PNG/JPEG/WebP。缺图会说明但不自动判失败；可识别图片头但浏览器无法解码时会显示错误提示，不使用替代图。哈希错误、悬空引用或结构无效时会拒绝生成报告，不生成带缺口的可信通过外观。
 
 报告只是结构有效的调用者记录与本地文件完整性结果，不是独立验证的测试结论。业务状态与文件完整性分开显示；SHA-256 不证明真实性或业务正确。报告只有用例级状态，没有单独的步骤 verdict，不会声称计划步骤已执行。不要自动上传原始报告；先按授权决定收件人和分享方式，并人工检查敏感内容。
+
+
+默认交付三个文件的实际绝对路径。生成回执包含文件读回校验、字节数与 SHA-256；`browserOpen: not_checked` 表示尚未验证浏览器打开，不能改称已验证打开。关键 UI 结果及缺陷须有关联真实截图；取证节点由 AI 决定，不强制逐步截图。摘要不能替代截图，缺图须复核结论并展示缺口。
+
+已有报告不得覆盖。另存报告时先准备新的仓库外目录，传 `report --run-dir ABS_RUN --output-dir ABS_EXISTING_NEW_DIR`；事后整理再传 `--context ABS_CONTEXT_JSON`。context 的 v1 格式见工具根 `schemas/report-context.schema.json`，仅扩展报告展示，不修改源 run。它要求说明整理性质/限制、现有来源文件与 hash、补充用例和 AI 提供的逐目标复核；不捏造执行前基线或采集时间。文件存在、引用校验和实际浏览器打开是独立事实。

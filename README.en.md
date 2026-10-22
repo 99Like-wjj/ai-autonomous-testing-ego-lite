@@ -10,7 +10,22 @@ An existing automated test suite is not required. Supply prepared cases, or prov
 
 First launch is a target use case, not a promise to infer missing rules or guarantee release readiness. Missing requirements need clarification, and insufficient evidence must remain uncertain. Existing-feature regression is also supported.
 
-**Development version 0.1.3-dev.** This independent project is not affiliated with or endorsed by Ego. v0.1.3-dev uses schemaVersion 3 in place of v0.1.2's schemaVersion 2. This is an intentional format change; no migration command is provided. Linux synthetic checks passed 56/56; Windows synthetic checks passed 52 tests with zero failures and 4 skips caused by symlink permissions. Real-browser interactions, Ego, and business capabilities still await acceptance. See the [validation record](docs/testing.en.md).
+**Development version 0.1.3-dev.** This independent project is not affiliated with or endorsed by Ego. v0.1.3-dev uses schemaVersion 3 in place of v0.1.2's schemaVersion 2. This is an intentional format change; no migration command is provided. Historical synthetic checks and this repair are documented separately; file checks do not establish real business acceptance. See the [validation record](docs/testing.en.md).
+
+
+## 0.1.3-dev report delivery fix
+
+Unless the user explicitly requests another format, completed test execution delivers standalone offline HTML, JSON, and Markdown. Chat summaries are insufficient. Key UI outcomes and defects require real screenshots; DOM, logs and summaries supplement them. The AI chooses capture moments, without a screenshot or expectation for every step. Missing screenshots must be visible and trigger conclusion review, not automatic product failure.
+
+Build a complete standalone directory from the source repository with `npm run build:skill -- --output-dir ABS_NEW_EXTERNAL_SKILL_DIR`. The package contains the Skill, guides, scripts, schemas, synthetic examples and `runtime-manifest.json`. Copying only the source Skill instructions is incomplete. Before updating an existing installation, compare known source files and report unknown edits instead of overwriting them, creating duplicate installations or adding old-version backups.
+
+Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.3-dev --expect-revision html-report-delivery-1`. Check paths, schemaVersion 3 and installationIntegrity. Every CLI command verifies installed files. Source mode uses an explicitly confirmed repository root. Fingerprints check consistency, not publisher identity.
+
+`report` reads back all three outputs. `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` compares the files with current records, retained evidence and context sources. Receipts include paths, sizes, hashes and `browserOpen: not_checked`; actual browser opening is separate. Report access restrictions honestly without routing around them.
+
+To retain an existing report, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Post-execution assembly also passes `--context ABS_CONTEXT_JSON`, defined by [the context schema](schemas/report-context.schema.json). It records limitations, existing source files and hashes, supplemental case IDs and AI-supplied reviews for every goal. Original claims remain separate; no pre-execution freeze, screenshot, timestamp or execution step is invented. No business actions run to fill a report.
+
+This remains `0.1.3-dev`, tool revision `html-report-delivery-1`. Cases and runs keep schemaVersion 3. Reports add screenshot coverage and optional retrospective context (context version 1); existing data is neither migrated nor deleted. See [validation](docs/testing.en.md).
 
 ## Cases and judgments
 
@@ -26,7 +41,7 @@ Statuses remain distinct: `pass`, `fail`, `inconclusive`, `blocked`, and `not_ru
 
 ### Prepare the runtime
 
-Follow the [official Ego Windows quick start](https://lite.ego.app/document/en/docs/windows/quick-start) to configure Ego and its official `ego-browser` Skill. This repository neither installs Ego nor replaces its official usage guide. The optional local helper uses Node.js 22 or newer and has no third-party runtime package dependency.
+Follow the [official Ego Windows quick start](https://lite.ego.app/document/en/docs/windows/quick-start) to configure Ego and its official `ego-browser` Skill. This repository neither installs Ego nor replaces its official usage guide. The local report helper uses Node.js 22 or newer and has no third-party runtime package dependency.
 
 ### Keep private assets outside the source directory
 
