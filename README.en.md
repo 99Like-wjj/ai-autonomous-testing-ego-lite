@@ -6,7 +6,7 @@
 
 **The current AI session understands requirements and plans tests, using Ego's native browser capability to explore the application.** This project preserves requirement provenance, observations, uncertainty, and a local evidence index. It does not treat a successful click as proof of business correctness.
 
-**Development version 0.1.3-dev.** This independent project is not affiliated with or endorsed by Ego. v0.1.3-dev uses schemaVersion 3 in place of v0.1.2's schemaVersion 2. This is an intentional format change; no migration command is provided. Cloud checks cover only local helper behavior and synthetic assets on Linux. Windows, Ego, and real business workflows have not been tested. See the [validation record](docs/testing.en.md).
+**Development version 0.1.3-dev.** This independent project is not affiliated with or endorsed by Ego. v0.1.3-dev uses schemaVersion 3 in place of v0.1.2's schemaVersion 2. This is an intentional format change; no migration command is provided. Linux synthetic checks passed 56/56; Windows synthetic checks passed 52 tests with zero failures and 4 skips caused by symlink permissions. Real-browser interactions, Ego, and business capabilities still await acceptance. See the [validation record](docs/testing.en.md).
 
 ## Cases and judgments
 

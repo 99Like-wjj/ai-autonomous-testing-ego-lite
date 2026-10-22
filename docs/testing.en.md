@@ -34,7 +34,9 @@ This only checks local synthetic files and the ability to open the report. Conti
 
 ## Windows and external systems
 
-The implementation uses Node.js built-ins and platform path APIs; it does not depend on shell commands or third-party runtime packages. Windows compatibility was reviewed at source level: absolute paths, built-in `path`, Node file operations, PowerShell command examples, and unique file naming. **No real Windows execution test was run.** Linux Node 24 checks do not verify Windows lock, rename, permission, hard-link, or filesystem behavior.
+The implementation uses Node.js built-ins and platform path APIs; it does not depend on shell commands or third-party runtime packages. On 2026-10-22, commit `8af375474352442428190af21a0318fdadf9f3ce` was exercised on Windows: `npm test` reported 52 PASS, 0 FAIL, and 4 SKIP because synthetic symlink creation was not permitted. The 64-file publication check passed. A fresh temporary run exercised case validation, run creation, two synthetic PNG evidence registrations, attempt/status recording, integrity checking, and HTML generation. This does not cover the skipped symlink cases or all Windows filesystem, locking, and permission combinations.
+
+The local browser tool refused to open the `file://` report; no local server or alternate browser channel was used to bypass that restriction. Real-browser search, status filtering, image enlargement, and decode-error notices remain **NOT RUN** and require user acceptance. The synthetic report statuses are UI fixtures, not business outcomes.
 
 No Ego, real application, account, yiliai data, or business write operation was used. AI defect-finding accuracy, false positives, and model-upgrade effects were not measured. Tests support only limited claims about local structured-record and file behavior. A v0.1.3 Release is gated on the user's local capability acceptance; this task only updates the development branch and creates no tag or release.
 
