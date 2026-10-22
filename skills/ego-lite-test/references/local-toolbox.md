@@ -78,6 +78,6 @@ node scripts/ego.mjs check --run-dir ABS_RUN_DIR
 node scripts/ego.mjs report --run-dir ABS_RUN_DIR
 ```
 
-进度只按每个基线用例的当前 final 状态统计；历史失败不重复计入当前失败。`not_run`、`blocked`、`inconclusive` 和待澄清分别保留。`report` 会创建 `report.json`、`report.md` 和自包含 `report.html`；任一目标已存在就拒绝覆盖。可单独复制 `report.html` 并在无网络的浏览器中打开，不引用 Run 路径或外链。HTML 显示冻结目标、观察、理由、依据、未验证项、历史尝试和证据；只预览 hash / 大小校验通过的 PNG/JPEG/WebP。缺图会说明但不自动判失败；哈希错误、悬空引用或结构无效时会拒绝生成报告，不生成带缺口的可信通过外观。
+进度只按每个基线用例的当前 final 状态统计；历史失败不重复计入当前失败。`not_run` 表示尚无最终结论，可与 attempt 并存；`not_run` 且没有 attempt 才表示从未尝试。`blocked`、`inconclusive` 和待澄清分别保留。`report` 会创建 `report.json`、`report.md` 和自包含 `report.html`；任一目标已存在就拒绝覆盖。可单独复制 `report.html` 并在无网络的浏览器中打开，不引用 Run 路径或外链。HTML 显示冻结目标、关键条件、必经路径、顺序策略、观察、理由、依据、未验证项、逐条历史尝试剩余问题和证据来源/hash 元数据；只预览 hash / 大小校验通过的 PNG/JPEG/WebP。缺图会说明但不自动判失败；可识别图片头但浏览器无法解码时会显示错误提示，不使用替代图。哈希错误、悬空引用或结构无效时会拒绝生成报告，不生成带缺口的可信通过外观。
 
 报告只是结构有效的调用者记录与本地文件完整性结果，不是独立验证的测试结论。业务状态与文件完整性分开显示；SHA-256 不证明真实性或业务正确。报告只有用例级状态，没有单独的步骤 verdict，不会声称计划步骤已执行。不要自动上传原始报告；先按授权决定收件人和分享方式，并人工检查敏感内容。

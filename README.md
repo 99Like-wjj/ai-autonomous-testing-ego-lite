@@ -14,7 +14,7 @@
 
 整体预期与需求依据必须保留。每步 `expected` 可省略；提供时必须有独立依据，省略不会被当作未执行或自动通过。验收存在未决问题时，在冻结基线中填写 `clarificationQuestions`；只要问题非空，该用例的最终结果和每条尝试都不得为 `pass` 或 `fail`。澄清后用修订用例重新开始，不改写旧基线。
 
-状态区分 `pass`、`fail`、`inconclusive`、`blocked`、`not_run`。工具只校验本地数据结构、revision 和证据文件哈希，不自动诊断缺陷、选择路径、重试业务操作或判断证据是否支持结论。
+状态区分 `pass`、`fail`、`inconclusive`、`blocked`、`not_run`。`not_run` 表示尚未记录最终结论，可能已有探索尝试；报告会单独区分从未尝试和尝试过但无最终结论。工具只校验本地数据结构、revision 和证据文件哈希，不自动诊断缺陷、选择路径、重试业务操作或判断证据是否支持结论。
 
 ## Windows 快速开始
 
@@ -95,7 +95,7 @@ node .\scripts\ego.mjs report --run-dir $Run
 Invoke-Item (Join-Path $Run 'report.html')
 ```
 
-进度按冻结用例的**当前最终状态**统计；`blocked`、`inconclusive`、`not_run` 分开列出，pending clarification 单独列出。历史尝试不重复计入当前 pass/fail。`report` 会在 Run 目录写出 `report.json`、`report.md` 和可独立离线打开的 `report.html`；任一目标已存在都会拒绝覆盖。HTML 展示冻结目标、实际观察、判断理由、依据、未验证项、当前状态与历史尝试。经过 hash / 大小核验的 PNG、JPEG、WebP 截图内嵌显示，缺图和不支持的图片格式会明确提示。可把 `report.html` 单独复制给获准查看报告的人，不需要连同 Run 或联网打开。完整内容见[格式与运行约定](docs/asset-formats.md)。
+进度按冻结用例的**当前最终状态**统计；`blocked`、`inconclusive`、`not_run` 分开列出，pending clarification 单独列出。历史尝试不重复计入当前 pass/fail。`report` 会在 Run 目录写出 `report.json`、`report.md` 和可独立离线打开的 `report.html`；任一目标已存在都会拒绝覆盖。HTML 展示冻结目标、关键条件、必经路径、顺序策略、实际观察、判断理由、依据、未验证项、逐条尝试及其未决问题、证据来源和 SHA-256。经过 hash / 大小核验的 PNG、JPEG、WebP 截图内嵌显示；缺图、不支持格式或浏览器无法解码会明确提示，不生成替代图片。可把 `report.html` 单独复制给获准查看报告的人，不需要连同 Run 或联网打开。完整内容见[格式与运行约定](docs/asset-formats.md)。
 
 报告会分开显示业务结论和文件完整性；SHA-256 匹配不证明截图真实或结果正确。HTML 生成前会完整校验 run 与所有登记证据；若校验失败，不写出任何报告。没有图片不会自动变成失败；业务覆盖、判断以及是否需要补证仍由 AI 根据授权与事实决定。点击成功或按钮变为 enabled 不足以证明提交成功，需观察实际后果和必要的持久化状态。
 
@@ -121,4 +121,6 @@ SHA-256 用于检测留存文件是否与 catalog 一致，不证明证据真实
 - [合成用例](examples/cases.example.json)、[合成证据请求](examples/evidence-request.example.json)、[合成结果请求](examples/record-request.example.json)
 - [验证状态](docs/testing.md)、[隐私保护](docs/privacy.md)、[变更记录](CHANGELOG.md)
 
-许可证尚未选定，当前标记为 `UNLICENSED`。本项目非 Ego 官方项目，不获其背书。
+## 许可证
+
+本仓库原创代码和文档按 [MIT License](LICENSE) 授权，版权声明为 2026 99Like-wjj。此许可不覆盖 Ego、Ego 官方浏览器或其他第三方软件；它们仍受各自许可和官方条款约束。本项目非 Ego 官方项目，未获其背书。仓库仍为私有开发仓库；许可证声明不会改变仓库可见性，也不代表已创建公开发布。

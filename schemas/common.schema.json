@@ -312,7 +312,8 @@
             "inconclusive",
             "blocked",
             "not_run"
-          ]
+          ],
+          "description": "Current final outcome. not_run means no final outcome is recorded and may coexist with historical attempts."
         },
         "observed": {
           "type": "string"
@@ -468,7 +469,8 @@
             "inconclusive",
             "blocked",
             "not_run"
-          ]
+          ],
+          "description": "Current final outcome. not_run means no final outcome is recorded and may coexist with historical attempts."
         },
         "attemptId": {
           "$ref": "common.schema.json#/$defs/safeId"

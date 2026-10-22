@@ -16,7 +16,7 @@
 
 `clarificationQuestions` 是冻结验收条件的一部分。非空时，该用例的**最终结果和每一条历史尝试**均不得为 `pass` 或 `fail`。不得通过清空问题、删除历史或补造 step expected 绕过限制。澄清后创建并冻结修订用例，保留旧基线与结果。
 
-可选工具区分当前最终状态与历史尝试：`mode: final` 更新当前结果；`mode: attempt` 追加 observation，不改变最终状态。历史失败保留一次但不重复计入当前进度。被替换的最终 observation 会保留为历史快照。`blocked`、`inconclusive` 与 `not_run` 分开计数；只有当前 final 为 `not_run` 才算尚未开始。
+可选工具区分当前最终状态与历史尝试：`mode: final` 更新当前结果；`mode: attempt` 追加 observation，不改变最终状态。历史失败保留一次但不重复计入当前进度。被替换的最终 observation 会保留为历史快照。`not_run` 表示尚无最终结论，可能已有尝试；只有 `not_run` 且没有 attempt 才算从未尝试。报告概览会分别显示从未尝试与已尝试但无最终结论。
 
 ## 报告应回答什么
 

@@ -28,7 +28,7 @@ A leftover `.run.lock` blocks future writes. The helper does not guess that a PI
 
 `clarificationQuestions` belong to the frozen baseline. When nonempty, neither the final result nor any attempt may use `pass` or `fail`. Runtime validation applies the same veto to saved results and history; a result request cannot clear the questions. If requirements are clarified, create and freeze a revised case instead of editing the old baseline.
 
-The attempts array excludes the current final result. It stores explicit attempt observations and snapshots of replaced final observations. Progress counts each case's current final status once, so historical failures do not get counted again as current failures, and `blocked`/`inconclusive` are not collapsed into unexecuted cases. `hasUnexecutedCases` only reflects `not_run`.
+The attempts array excludes the current final result. It stores explicit attempt observations and snapshots of replaced final observations. Progress counts each case's current final status once, so historical failures do not get counted again as current failures, and `blocked`/`inconclusive` are not collapsed into unexecuted cases. `not_run` means no final outcome and can coexist with attempts; a case is never attempted only when it is `not_run` with an empty attempts array. `hasUnexecutedCases` uses this definition.
 
 ## Security and limits
 

@@ -17,11 +17,11 @@
 提交前检查实际文件清单和差异，运行 `npm run check:public`，并逐张查看图片。
 未来公开前还需检查完整 Git 历史、提交信息、附件、发布包、CI 日志和产物。
 当前检查器不扫描历史、图片像素或外部平台，不能承诺没有任何泄漏。
-当前版本尚未选择开源许可证，不会自动公开或上传 npm。
+本项目原创代码与文档采用 MIT 许可。该许可不覆盖 Ego 官方浏览器或其他第三方软件；它们仍受各自许可约束。许可证不改变私有仓库可见性，也不会自动公开或上传 npm。
 
 哈希和格式检查只校验记录结构与部分完整性，不证明证据真实或业务结论正确。
 
-分别保管通用仓库、私有输入和私有运行产物；真实业务资料不作为公共示例。证据 source/description 不包含签名链接或秘密。优先合成账号与数据，最小化采集，仅保留授权目的所需时长。发布前选择许可证，另行审查未来 CI、遥测、依赖与安装钩子；当前版本不注册持久服务。
+分别保管通用仓库、私有输入和私有运行产物；真实业务资料不作为合成示例。证据 source/description 不包含签名链接或秘密。优先合成账号与数据，最小化采集，仅保留授权目的所需时长。发布前仍需审查未来 CI、遥测、依赖与安装钩子；当前版本不注册持久服务。
 
 ## English
 
@@ -65,8 +65,9 @@ local originals only as long as the authorized purpose requires.
   not history, image pixels or external systems.
 - Ensure no original/private project data appears in filenames, metadata,
   examples, commit messages or links. Do not copy the developer's research notes.
-- Choose an open-source license before public redistribution. Current package
-  is deliberately private/UNLICENSED; no registry publishing is configured.
+- The repository's original code and documentation use the MIT License. This
+  does not change the repository's private visibility or cover Ego and other
+  third-party software. No registry publishing is configured.
 - Review future CI, telemetry, installation hooks and dependencies separately.
   This version installs no hook and registers no persistent service.
 

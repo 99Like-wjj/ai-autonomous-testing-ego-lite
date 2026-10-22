@@ -28,7 +28,7 @@ run 级 `.run.lock` 使用文件独占创建。写操作先获取锁，再读取
 
 `clarificationQuestions` 属于冻结基线。问题非空时，最终结果和每条 attempt 都不能记录 `pass` / `fail`；runtime validator 对磁盘上的结果和历史也重复应用同一规则，不能通过结果请求清空问题。需要澄清时应重新整理并冻结新用例，不回头修改旧基线。
 
-attempt 数组不包含当前最终结果。它保存显式 attempt 观察和被替换的最终观察快照；当前进度只计算每个用例的当前最终状态一次。因此历史失败不会重复计入当前 fail，也不会把 blocked/inconclusive 归成未执行。`hasUnexecutedCases` 仅针对 `not_run`。
+attempt 数组不包含当前最终结果。它保存显式 attempt 观察和被替换的最终观察快照；当前进度只计算每个用例的当前最终状态一次。因此历史失败不会重复计入当前 fail，也不会把 blocked/inconclusive 归成未执行。`not_run` 表示没有最终结果，可与真实 attempt 并存；只有 `not_run` 且没有 attempt 才算从未尝试，`hasUnexecutedCases` 采用该定义。
 
 ## 安全与限制
 

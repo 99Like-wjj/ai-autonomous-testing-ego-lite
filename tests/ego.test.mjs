@@ -382,15 +382,18 @@ test('progress reports current outcome once, pending questions, and distinct blo
   assert.equal(current.currentStatusCounts.fail, 0);
 });
 
-test('not_run is the only status reported by hasUnexecutedCases', async t => {
-  const f = await fixture(t, [caseOf('blocked-case'), caseOf('uncertain-case')]);
+test('hasUnexecutedCases distinguishes no attempts from not_run after an attempt', async t => {
+  const f = await fixture(t, [caseOf('blocked-case'), caseOf('uncertain-case'), caseOf('attempted-no-final'), caseOf('never-run')]);
   await recorded(f, 'blocked', { caseId: 'blocked-case', operationId: 'blocked', rationale: 'Synthetic block.' });
   await recorded(f, 'inconclusive', { caseId: 'uncertain-case', operationId: 'uncertain', rationale: 'Synthetic uncertainty.' });
+  await recorded(f, 'blocked', { caseId: 'attempted-no-final', operationId: 'attempt-without-final', mode: 'attempt', rationale: 'Synthetic attempt without final outcome.' });
   const result = await check(f.outputDir);
-  assert.equal(result.hasUnexecutedCases, false);
-  assert.equal(result.counts.not_run, 0);
+  assert.equal(result.hasUnexecutedCases, true);
+  assert.equal(result.counts.not_run, 2);
   assert.equal(result.counts.blocked, 1);
   assert.equal(result.counts.inconclusive, 1);
+  assert.equal(result.cases.find(item => item.id === 'attempted-no-final').status, 'not_run');
+  assert.equal(result.cases.find(item => item.id === 'attempted-no-final').attempts.length, 1);
 });
 
 test('evidence hash check detects altered retained bytes', async t => {
@@ -430,15 +433,16 @@ test('report includes hash, byte count, timestamps, frozen expectations, and esc
   await assert.rejects(report(f.outputDir), /overwrite/);
 });
 
-test('offline HTML report embeds verified raster evidence, exposes attempts, and keeps text inert', async t => {
+test('offline HTML report embeds verified raster evidence, exposes frozen context and attempts, and keeps text inert', async t => {
   const maliciousTitle = 'Synthetic </script><img src=x onerror=alert(1)>';
-  const f = await fixture(t, [caseOf('one', 'explicit', { title: maliciousTitle }), caseOf('blocked-case')]);
+  const f = await fixture(t, [caseOf('one', 'explicit', { title: maliciousTitle, requiredPath: 'Synthetic route through local fixture only.' }), caseOf('attempted-no-final'), caseOf('never-run')]);
   const before = path.join(f.root, 'before.png'), after = path.join(f.root, 'after.png');
   await fs.writeFile(before, syntheticPng(24)); await fs.writeFile(after, syntheticPng(232));
-  const first = await committedEvidence(f, { operationId: 'before-shot', sourceFile: before, kind: 'screenshot', description: 'Synthetic initial screen' });
-  await recorded(f, 'fail', { operationId: 'first-failure', evidenceIds: [first.receipt.evidenceId], observed: 'Synthetic first observation.', rationale: 'Synthetic failure before recovery.' });
+  const first = await committedEvidence(f, { operationId: 'before-shot', sourceFile: before, kind: 'screenshot', description: 'Synthetic initial screen', source: 'Synthetic PNG fixture source' });
+  await recorded(f, 'fail', { operationId: 'first-failure', evidenceIds: [first.receipt.evidenceId], observed: 'Synthetic first observation.', rationale: 'Synthetic failure before recovery.', remainingQuestions: ['Could the synthetic state be reproduced?'] });
   const second = await committedEvidence(f, { operationId: 'after-shot', expectedRevision: 1, sourceFile: after, kind: 'screenshot', description: 'Synthetic confirmation screen' });
   await recorded(f, 'pass', { operationId: 'recovered-pass', expectedRevision: 1, evidenceIds: [second.receipt.evidenceId], observed: 'Synthetic independently confirmed observation.', rationale: 'Synthetic recovery confirmation.' });
+  await recorded(f, 'blocked', { operationId: 'attempt-without-final', expectedRevision: 2, caseId: 'attempted-no-final', mode: 'attempt', observed: 'Synthetic observed attempt, final status intentionally not recorded.', rationale: 'Synthetic follow-up is blocked.', remainingQuestions: ['Synthetic final persistence remains unverified.'] });
   const out = await report(f.outputDir);
   const html = await fs.readFile(out.reportHtml, 'utf8');
   assert.equal(path.basename(out.reportHtml), 'report.html');
@@ -456,37 +460,73 @@ test('offline HTML report embeds verified raster evidence, exposes attempts, and
   assert.equal(inlineScripts.length, 1);
   assert.doesNotThrow(() => new vm.Script(inlineScripts[0][1]));
   class TestElement {
-    constructor(tag = 'div') { this.tagName = tag.toUpperCase(); this.children = []; this.dataset = {}; this.listeners = {}; this.hidden = false; this.value = ''; this.open = false; this.textContent = ''; }
-    append(...nodes) { for (const node of nodes) if (node != null) this.children.push(node); }
+    constructor(tag = 'div') { this.tagName = tag.toUpperCase(); this.children = []; this.dataset = {}; this.listeners = {}; this.hidden = false; this.value = ''; this.open = false; this.textContent = ''; this.parentNode = null; }
+    append(...nodes) { for (const node of nodes) if (node != null) { node.parentNode = this; this.children.push(node); } }
+    replaceWith(node) { if (!this.parentNode) return; const index = this.parentNode.children.indexOf(this); if (index < 0) return; node.parentNode = this.parentNode; this.parentNode.children.splice(index, 1, node); this.parentNode = null; }
     addEventListener(type, handler) { (this.listeners[type] ??= []).push(handler); }
     dispatch(type, event = {}) { for (const handler of this.listeners[type] ?? []) handler({ target: this, ...event }); }
     showModal() { this.open = true; }
     close() { this.open = false; }
   }
-  const ids = ['report-data', 'project-line', 'integrity', 'summary', 'search', 'status-filter', 'shown', 'empty-results', 'case-list', 'lightbox-image', 'lightbox-caption', 'lightbox', 'lightbox-close'];
+  const ids = ['report-data', 'project-line', 'integrity', 'summary', 'search', 'status-filter', 'shown', 'empty-results', 'case-list', 'lightbox-image', 'lightbox-error', 'lightbox-caption', 'lightbox', 'lightbox-close'];
   const elements = Object.fromEntries(ids.map(id => [id, new TestElement(id === 'report-data' ? 'script' : id === 'lightbox' ? 'dialog' : 'div')]));
   elements['report-data'].textContent = embeddedData;
   elements['status-filter'].value = 'all';
   const fakeDocument = { getElementById: id => elements[id], querySelector: selector => elements[selector.slice(1)], createElement: tag => new TestElement(tag) };
   new vm.Script(inlineScripts[0][1]).runInNewContext({ document: fakeDocument });
   const caseNodes = elements['case-list'].children;
-  assert.equal(caseNodes.length, 2);
-  assert.equal(elements.summary.children.length, 8);
-  elements.search.value = 'blocked-case'; elements.search.dispatch('input');
-  assert.deepEqual(caseNodes.map(card => card.hidden), [true, false]);
+  assert.equal(caseNodes.length, 3);
+  assert.equal(elements.summary.children.length, 9);
+  const flattenText = node => [node.textContent ?? '', ...(node.children ?? []).flatMap(flattenText)].join(' ');
+  const caseText = caseNodes.map(flattenText);
+  assert.match(caseText[0], /Use only synthetic values\./);
+  assert.match(caseText[0], /Synthetic route through local fixture only\./);
+  assert.match(caseText[0], /strict：按冻结的业务步骤顺序执行/);
+  assert.match(caseText[0], /来源：Synthetic PNG fixture source/);
+  assert.match(caseText[0], /SHA-256（字节一致性）：/);
+  assert.match(caseText[0], /Could the synthetic state be reproduced\?/);
+  assert.match(caseText[1], /尚未记录最终结论/);
+  assert.match(caseText[1], /Synthetic observed attempt, final status intentionally not recorded\./);
+  assert.match(caseText[1], /Synthetic final persistence remains unverified\./);
+  assert.doesNotMatch(caseText[1], /没有记录尝试观察，尚未开始尝试/);
+  assert.match(caseText[2], /没有记录尝试观察，尚未开始尝试/);
+  assert.match(caseText[2], /未指定必经路径/);
+  const metricText = elements.summary.children.map(flattenText).join(' ');
+  assert.match(metricText, /从未尝试/);
+  assert.match(metricText, /已尝试但无最终结论/);
+  elements.search.value = 'attempted-no-final'; elements.search.dispatch('input');
+  assert.deepEqual(caseNodes.map(card => card.hidden), [true, false, true]);
   elements.search.value = ''; elements['status-filter'].value = 'not_run'; elements['status-filter'].dispatch('change');
-  assert.deepEqual(caseNodes.map(card => card.hidden), [true, false]);
+  assert.deepEqual(caseNodes.map(card => card.hidden), [true, false, false]);
   const findImages = node => [...(node.children ?? [])].flatMap(child => [child, ...findImages(child)]).filter(child => child.tagName === 'IMG');
-  findImages(caseNodes[0]).at(0).dispatch('click');
+  const firstThumbnail = findImages(caseNodes[0]).at(0);
+  firstThumbnail.dispatch('click');
   assert.equal(elements.lightbox.open, true);
+  elements.lightbox.dispatch('cancel');
+  assert.equal(elements.lightbox.open, false);
+  firstThumbnail.dispatch('click');
+  assert.equal(elements.lightbox.open, true);
+  elements['lightbox-image'].dispatch('error');
+  assert.equal(elements['lightbox-image'].hidden, true);
+  assert.equal(elements['lightbox-error'].hidden, false);
+  assert.match(elements['lightbox-error'].textContent, /浏览器无法解码/);
   elements['lightbox-close'].dispatch('click');
   assert.equal(elements.lightbox.open, false);
+  const thumbnailParent = firstThumbnail.parentNode;
+  firstThumbnail.dispatch('error');
+  assert.equal(thumbnailParent.children.some(node => node.className === 'image-error'), true);
+  assert.equal(thumbnailParent.children.some(node => node.tagName === 'IMG'), false);
   assert.doesNotMatch(html, new RegExp(f.root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.match(html, /未执行/);
+  assert.match(html, /从未尝试/);
+  assert.match(html, /未记录最终结论/);
+  assert.match(html, /attempts\.length===0/);
+  assert.match(html, /attempts\.length>0/);
+  assert.match(html, /图片文件头符合 PNG\/JPEG\/WebP，但浏览器无法解码/);
   assert.match(html, /connect-src 'none'/);
   assert.match(html, /addEventListener\('input',filter\)/);
   assert.match(html, /addEventListener\('change',filter\)/);
   assert.match(html, /showModal\(\)/);
+  assert.match(html, /addEventListener\('cancel'/);
   assert.match(html, /<dialog id="lightbox"/);
   assert.match(html, /@media\(max-width:560px\)/);
   assert.doesNotMatch(html, /<script\s+src=|<link[^>]+href=|fetch\s*\(/i);
@@ -495,8 +535,9 @@ test('offline HTML report embeds verified raster evidence, exposes attempts, and
   assert.deepEqual(await fs.readFile(copied), await fs.readFile(out.reportHtml));
   const payload = await readJson(out.reportJson);
   assert.equal(payload.counts.pass, 1);
-  assert.equal(payload.counts.not_run, 1);
-  assert.equal(payload.progress.attemptedCases.totalAttempts, 1);
+  assert.equal(payload.counts.not_run, 2);
+  assert.equal(payload.progress.attemptedCases.totalAttempts, 2);
+  assert.equal(payload.hasUnexecutedCases, true);
 });
 
 test('HTML report refuses broken evidence before creating any report output', async t => {
@@ -819,6 +860,64 @@ test('reports do not overwrite existing output, init/start do not overwrite, and
   await assert.rejects(report(f.outputDir), /overwrite/);
   assert.deepEqual(await fs.readFile(out.reportMarkdown), mdBefore);
   assert.deepEqual(await fs.readFile(out.reportHtml), htmlBefore);
+});
+
+test('report rollback removes only files created by this operation after close or directory-sync errors', async t => {
+  for (const fault of ['close', 'directory-sync', 'replaced-output']) {
+    const f = await fixture(t);
+    const outputFiles = ['report.json', 'report.md', 'report.html'].map(name => path.join(f.outputDir, name));
+    const htmlPath = outputFiles[2];
+    const preserved = path.join(f.outputDir, 'preserved-by-user.txt');
+    await fs.writeFile(preserved, 'synthetic preserved user file\n');
+    const originalOpen = fs.open.bind(fs);
+    let htmlOpened = false;
+    let injected = false;
+    fs.open = async (...args) => {
+      const filename = path.resolve(String(args[0]));
+      const mode = args[1];
+      if (filename === htmlPath && mode === 'wx') htmlOpened = true;
+      if (fault === 'directory-sync' && htmlOpened && filename === f.outputDir && mode === 'r' && !injected) {
+        injected = true;
+        const error = new Error('synthetic EIO during report directory sync'); error.code = 'EIO'; throw error;
+      }
+      if (fault === 'replaced-output' && htmlOpened && filename === f.outputDir && mode === 'r' && !injected) {
+        injected = true;
+        const movedOwnedFile = htmlPath + '.moved-by-synthetic-test';
+        await fs.rename(htmlPath, movedOwnedFile);
+        const replacement = await originalOpen(htmlPath, 'wx');
+        await replacement.writeFile('synthetic foreign replacement\n');
+        await replacement.close();
+        const error = new Error('synthetic EIO after replacing report output'); error.code = 'EIO'; throw error;
+      }
+      const handle = await originalOpen(...args);
+      if (fault !== 'close' || filename !== htmlPath || mode !== 'wx' || injected) return handle;
+      return new Proxy(handle, {
+        get(target, property) {
+          if (property === 'close') return async () => {
+            await target.close();
+            if (!injected) { injected = true; const error = new Error('synthetic EIO during report file close'); error.code = 'EIO'; throw error; }
+          };
+          const value = Reflect.get(target, property, target);
+          return typeof value === 'function' ? value.bind(target) : value;
+        }
+      });
+    };
+    try {
+      await assert.rejects(report(f.outputDir), error => error.code === 'EIO' && (fault !== 'replaced-output' || Boolean(error.cleanupError)));
+    } finally { fs.open = originalOpen; }
+    assert.equal(injected, true, fault);
+    assert.equal(await fs.readFile(preserved, 'utf8'), 'synthetic preserved user file\n');
+    if (fault === 'replaced-output') {
+      assert.equal(await fs.readFile(htmlPath, 'utf8'), 'synthetic foreign replacement\n');
+      await assert.rejects(fs.stat(outputFiles[0]), /ENOENT/);
+      await assert.rejects(fs.stat(outputFiles[1]), /ENOENT/);
+    } else {
+      for (const filename of outputFiles) await assert.rejects(fs.stat(filename), /ENOENT/);
+      const retry = await report(f.outputDir);
+      assert.equal(await fs.readFile(retry.reportHtml, 'utf8').then(value => value.includes('<!doctype html>')), true);
+      assert.equal(await fs.readFile(preserved, 'utf8'), 'synthetic preserved user file\n');
+    }
+  }
 });
 
 test('Node CLI contains no network or shell invocations and records no workflow selection', async () => {

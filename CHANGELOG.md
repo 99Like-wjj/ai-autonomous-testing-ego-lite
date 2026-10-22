@@ -7,14 +7,18 @@
 - 使用 run 级单写者锁、expectedRevision、canonical payload hash 与操作回执。相同 operation ID 和内容重试幂等；内容变更和过期 revision 拒绝。证据登记使用恢复 marker；单文件 rename 不声明为多文件事务或断电持久性保证。
 - check/report 现在核对 evidence ID、保留文件 hash 与字节数，报告展示 hash、时间和来源。冻结澄清 veto 同时适用于所有最终结果与历史尝试。
 - `report` 新增可单独离线打开的 `report.html`，保留 JSON/Markdown。展示冻结目标、当前观察和理由、需求依据、未验证事项、历史尝试及核验后的 PNG/JPEG/WebP 图片；含状态筛选、搜索、展开历史、放大和时间排序对照。缺图单独提示；坏 hash、悬空引用或结构错误阻止报告生成。HTML 不使用外链、网络或占位图。
+- HTML 补充展示冻结关键条件、必经路径、步骤顺序、逐条尝试的剩余问题，以及证据来源和 SHA-256 元数据；浏览器无法解码已识别图片头时明确提示。`not_run` 统一表示尚无最终结论，报告分别统计从未尝试与已有尝试但未记录最终结论。
+- 报告创建若在文件关闭或目录同步时返回错误，会按文件身份清理本操作生成的输出；如输出路径已被替换则拒绝删除该文件。此错误回滚不构成断电持久性或通用多文件事务保证。
 - HTML 报告明确区分业务判断与证据文件完整性。报告不生成 verdict，也不从计划步骤推断完成；截图并非强制每步采集，工具不自动判断截图存在即为业务正确。
 - 所有用例、运行 JSON、请求与 `report.json` 使用 schemaVersion 3。这是相对 v0.1.2 schemaVersion 2 的格式断裂；本分支不提供迁移层。保留业务意图步骤、来源依据、可选步骤预期和旧状态语义；`report.html` 是从通过校验的 v3 数据生成的离线呈现文件。
 - 新增证据请求、结果请求与 Skill 本地工具箱调用指南，中英文格式/架构/README 同步；示例仅包含合成数据。未实现数据对比、测试数据生成、导入、脱敏或跨次对比。
+- 本开发分支新增标准 MIT 许可证（Copyright (c) 2026 99Like-wjj），仅适用于本项目自有代码与文档；不覆盖 Ego、其官方浏览器或其他第三方软件，且不改变仓库私有状态或 v0.1.2 历史发布。
+- v0.1.3 Release 需等待用户本地能力验收通过；本次只更新开发分支，不建 v0.1.3 tag 或 release。
 - 另建 [`docs/requirements.md`](docs/requirements.md) 记录 v0.1.4 的 subagent 并行及单用例单 Space 待研究需求；此项没有并入 v0.1.3-dev 工具箱实现。
 
-验证：Linux / Node v24.19.0，55/55 合成测试通过，零失败、零跳过。新增 HTML 报告的内嵌截图、注入文本转义、SVG 安全预览、完整性失败不落盘和悬空引用回归。源码检查 Windows 路径和 Node API 使用方式；没有真实 Windows、Ego 或业务环境实测。尝试用本机 Chromium headless 做报告打开与截图，但此容器无法初始化用户数据目录/渲染进程，未完成视觉或交互验收。
+验证：Linux / Node v24.19.0，56/56 合成测试通过（44 项辅助工具、12 项发布检查器），零失败、零跳过；`npm run check:public` 扫描 64 个 allowlist 文件并通过。覆盖 HTML 报告的内嵌截图、冻结上下文、来源/hash 显示、图片解码错误、历史剩余问题、尝试与未尝试区分、close/sync 错误回滚和被替换输出保护、注入文本转义、SVG 安全预览、完整性失败不落盘和悬空引用回归。源码检查 Windows 路径和 Node API 使用方式；没有真实 Windows、Ego 或业务环境实测。再次尝试 Chromium headless 仍以 timeout exit 124 结束且未生成截图；实际视觉/交互验收为 NOT RUN。
 
-English summary: Added a local-only evidence/result toolbox with retained-copy SHA-256, revisioned idempotent writes, a run lock, history-preserving attempts, progress, and offline image-rich HTML reporting alongside JSON/Markdown. JSON case/run/request/report assets use schemaVersion 3, with no v0.1.2 migration; the HTML view wrapper is version 1. Linux synthetic suite: 55/55 passed; no successful visual browser run, Windows, Ego, or real business execution.
+English summary: Added a local-only evidence/result toolbox with retained-copy SHA-256, revisioned idempotent writes, a run lock, history-preserving attempts, progress, and offline image-rich HTML reporting alongside JSON/Markdown. JSON case/run/request/report assets use schemaVersion 3, with no v0.1.2 migration; the HTML view wrapper is version 1. Report cards show frozen preconditions/path/order, per-attempt questions, evidence source/hash, decode errors, and distinguish never-attempted cases from attempts lacking a final outcome. The branch uses the MIT License for original project code and documentation only; it does not license Ego or third-party software. Final verification: Linux synthetic suite 56/56, publication scan 64 files; Chromium visual acceptance, Windows, Ego, and real business execution remain unverified. v0.1.3 Release is gated on user local capability acceptance.
 
 ## 0.1.2 — 业务意图级步骤与可选检查点
 

@@ -83,7 +83,7 @@ basis.kind 三类严格区分：explicit 是原文明确规定；interpretation 
 
 例如需求仅说“支持在配置中心创建模板”，却未规定名称重复时如何处理：整体 expected 保留“支持创建模板”的已知目标，clarificationQuestions 可列“同名模板应允许创建还是应拒绝？”；对依赖此问题的用例，不填写猜测的成功提示或拒绝文案。将能够独立判断的明确目标另列用例，不让无关歧义覆盖全部范围。
 
-只列影响本用例验收的未决问题，不把非阻塞的 UI 路线探索问题放进 clarificationQuestions。非空问题列表意味着该用例整体验收尚未确定，结果与全部 attempts 都不得 pass/fail。未尝试为 not_run；已授权探索但无法确定判据时为 inconclusive；已知障碍为 blocked。可记录如何到达功能、实际发生了什么，但现状不是标准。澄清后准备修订用例并重新冻结，保留旧记录；不能直接清除旧基线的问题来放行结果。
+只列影响本用例验收的未决问题，不把非阻塞的 UI 路线探索问题放进 clarificationQuestions。非空问题列表意味着该用例整体验收尚未确定，结果与全部 attempts 都不得 pass/fail。`not_run` 表示没有最终结论，可能已存在探索尝试；只有没有任何 attempt 才表示从未尝试。已授权探索但无法确定判据时可记录 `inconclusive` attempt；已知障碍可记录 `blocked` attempt。可记录如何到达功能、实际发生了什么，但现状不是标准。澄清后准备修订用例并重新冻结，保留旧记录；不能直接清除旧基线的问题来放行结果。
 
 省略步骤 expected 不表示该步未执行，也不自动通过。整体 expected 和 basis 始终必需；空 clarificationQuestions 也不证明没有未知问题。完整细粒度步骤若确有需求依据仍然有效，不为“简化”删除业务约束。
 

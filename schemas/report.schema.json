@@ -12,7 +12,7 @@
     "structurallyValid": { "const": true },
     "revision": { "type": "integer", "minimum": 0 },
     "evidenceRevision": { "type": "integer", "minimum": 0 },
-    "hasUnexecutedCases": { "type": "boolean", "description": "True only when a current final status is not_run. blocked and inconclusive remain distinct statuses." },
+    "hasUnexecutedCases": { "type": "boolean", "description": "True only when at least one case has no final result and no recorded attempt. A not_run final status may coexist with attempts." },
     "counts": { "$ref": "common.schema.json#/$defs/counts" },
     "progress": { "$ref": "common.schema.json#/$defs/progress" },
     "recordedExplicitOutcomes": {

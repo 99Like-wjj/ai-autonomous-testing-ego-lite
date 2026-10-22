@@ -125,11 +125,11 @@ node .\scripts\ego.mjs check --run-dir $Run
 node .\scripts\ego.mjs report --run-dir $Run
 ```
 
-`progress` 返回每个冻结用例的当前 status 计数、完成（`pass` / `fail`）、未完成（`not_run` / `blocked` / `inconclusive`）、待澄清用例，以及尝试数。`hasUnexecutedCases` 只在当前最终状态为 `not_run` 时为 true；blocked 与 inconclusive 保持独立。`check` 会校验冻结 hash、封闭字段、关联、操作账本、路径和每条证据文件的 hash / 字节数。
+`progress` 返回每个冻结用例的当前 status 计数、完成（`pass` / `fail`）、未完成（`not_run` / `blocked` / `inconclusive`）、待澄清用例，以及尝试数。`not_run` 表示尚未记录最终结论，不保证没有实际尝试；只有 `not_run` 且 attempts 为空的用例才算从未尝试。`hasUnexecutedCases` 只在至少存在一个从未尝试的用例时为 true；blocked 与 inconclusive 保持独立。`check` 会校验冻结 hash、封闭字段、关联、操作账本、路径和每条证据文件的 hash / 字节数。
 
-`report` 写出 `report.json`、`report.md` 和独立文件 `report.html`，三个目标都拒绝覆盖。HTML 单文件内嵌页面样式、脚本、报告数据及通过 hash / 字节数核验的 PNG、JPEG、WebP 截图；可以直接双击离线打开，也可以只复制该 HTML 给获准查看者。 HTML 内部包装格式为 `htmlPayloadVersion: 1`，其中 `report` 字段仍是经过校验的 schemaVersion 3 报告对象，图片数据放在独立 `previews` 映射中；该包装不是新的用例输入协议。它不引用 Run 目录、用户机器绝对路径、CDN、外部脚本或网络接口。概览分别统计用例总量、pass/fail/inconclusive/blocked/not_run、待澄清数和历史尝试数。报告按用例展示冻结目标、依据、可选步骤预期、当前观察/理由、澄清与剩余问题、attempt 历史、已关联证据及必要的登记时间对照；可搜索、按当前状态筛选、展开历史并点图放大。工具不记录每步独立 verdict，因此报告不会推断步骤已完成，会明确标注这项限制。
+`report` 写出 `report.json`、`report.md` 和独立文件 `report.html`，三个目标都拒绝覆盖。HTML 单文件内嵌页面样式、脚本、报告数据及通过 hash / 字节数核验的 PNG、JPEG、WebP 截图；可以直接双击离线打开，也可以只复制该 HTML 给获准查看者。HTML 内部包装格式为 `htmlPayloadVersion: 1`，其中 `report` 字段仍是经过校验的 schemaVersion 3 报告对象，图片数据放在独立 `previews` 映射中；该包装不是新的用例输入协议。它不引用 Run 目录、用户机器绝对路径、CDN、外部脚本或网络接口。概览分别统计用例总量、pass/fail/inconclusive/blocked/not_run、从未尝试数、已尝试但无最终结论数、待澄清数和历史尝试数。报告按用例展示冻结目标、关键前提、必经路径、顺序策略、依据、可选步骤预期、当前观察/理由、澄清与剩余问题、每条 attempt 历史及其剩余问题、已关联证据的来源/hash 元数据及必要的登记时间对照；可搜索、按当前状态筛选、展开历史并点图放大。工具不记录每步独立 verdict，因此报告不会推断步骤已完成，会明确标注这项限制。
 
-业务状态、步骤覆盖与文件完整性分开展示；匹配 hash 仅说明生成时保存字节与 catalog 匹配，不能证明真实性或结论正确。不存在截图会在对应记录下提示，但不会因此自动失败；AI 决定证据时机、是否补测及业务结论。截图只接受 magic bytes 可识别的 PNG/JPEG/WebP 预览；SVG、HTML 等主动内容不作图片预览。哈希错误、悬空引用、冻结数据或结构无效会阻止报告生成；不会降级为看似可信的业务通过报告，校验失败时不创建输出。缺图或存在未执行/阻塞/待判断项目属于可显示的覆盖缺口，不是文件完整性错误。三份输出不是断电持久的多文件事务；发生进程/主机崩溃时可能只留下其中一部分，修复后需检查并移除或改名已存在的报告文件再重试。
+业务状态、步骤覆盖与文件完整性分开展示；匹配 hash 仅说明生成时保存字节与 catalog 匹配，不能证明真实性或结论正确。证据卡会折叠展示来源、SHA-256 和登记时间；此 hash 只说明当前字节一致。没有截图会在对应记录下提示，但不会因此自动失败；AI 决定证据时机、是否补测及业务结论。若 PNG/JPEG/WebP 文件头符合类型但浏览器无法解码，报告显著提示图片无法显示，不伪造替代图。截图只接受 magic bytes 可识别的 PNG/JPEG/WebP 预览；SVG、HTML 等主动内容不作图片预览。哈希错误、悬空引用、冻结数据或结构无效会阻止报告生成；不会降级为看似可信的业务通过报告，校验失败时不创建输出。缺图或存在未执行/阻塞/待判断项目属于可显示的覆盖缺口，不是文件完整性错误。三份输出不是断电持久的多文件事务；发生进程/主机崩溃时可能只留下其中一部分，修复后需检查并移除或改名已存在的报告文件再重试。
 
 合法结构只是记录格式合法，不代表操作者提供的结果经独立证实。报告和哈希不会自动证明业务正确性或缺陷归因。
 

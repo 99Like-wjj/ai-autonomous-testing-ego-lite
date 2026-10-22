@@ -2,21 +2,41 @@
 
 ## v0.1.3-dev checks
 
-On 2026-10-22, Linux / Node v24.19.0: `npm test` passed 55/55 tests (43 helper tests and 12 publication-checker tests), with zero failures or skips. `npm run check:public` passed and printed the current allowlisted release file manifest. These checks cover this branch's local helper and synthetic assets; they are not Ego or application tests.
+On 2026-10-22, Linux / Node v24.19.0: `npm test` passed 56/56 tests (44 helper tests and 12 publication-checker tests), with zero failures or skips. `npm run check:public` passed and printed the current 64-file allowlisted manifest. These checks cover this branch's local helper and synthetic assets; they are not Ego or application tests.
 
-`npm test` covers schemaVersion 3 case validation and freezing, evidence copies and retained-file hashes, source/capture timestamp distinction, paths and symlinks, reserved IDs, overwrite prevention, the single-writer lock, revision conflicts, idempotency and key ordering, receipt recovery after a lost response, final and attempt history, clarification vetoes, current-status progress, HTML/Markdown escaping, safe raster embedding, bad-hash and dangling-reference report refusal, active-format non-preview, CLI entry points, and publication-checker cases. HTML source checks cover the offline policy, no external links, and safe static-data binding; a minimal DOM shim simulates filtering and lightbox button handlers, but does not replace a real browser.
+`npm test` covers schemaVersion 3 case validation and freezing, evidence copies and retained-file hashes, source/capture timestamp distinction, paths and symlinks, reserved IDs, overwrite prevention, the single-writer lock, revision conflicts, idempotency and key ordering, receipt recovery after a lost response, final and attempt history, clarification vetoes, current-status progress, HTML/Markdown escaping, safe raster embedding, frozen conditions/required path/order display, each attempt's remaining questions, evidence source/hash metadata, image decode-error handling, the distinction between `not_run` and no recorded attempt, rollback after close/directory-sync errors, protection of a replaced output, bad-hash and dangling-reference report refusal, active-format non-preview, CLI entry points, and publication-checker cases. HTML source checks cover the offline policy, no external links, and safe static-data binding; a minimal DOM shim simulates filtering, lightbox buttons, a cancel-close event, and image errors, but the simulated cancel is not a real keyboard or visual browser check.
 
-Chromium headless was attempted to open a synthetic report and capture a screenshot. In this container Chromium could not initialize its user-data directory; a second launch attempt timed out under renderer/cache restrictions. The report passed Node synthetic regression, the DOM shim, and source/protocol checks, but there was no completed desktop or mobile visual check and no real-browser interaction acceptance, including Escape-key lightbox close.
+Chromium headless was retried against a synthetic report in an isolated temporary directory with its own profile/cache, background networking disabled, and a 20-second timeout. The browser process did not exit (timeout exit 124) and produced no reviewable screenshot. Desktop/mobile visual review and real-browser interaction checks are **NOT RUN**. Node regressions and the DOM shim are not UI acceptance; the browser launch block was not bypassed.
 
 Independent format review checked all 8 JSON Schema Draft 2020-12 schemas, local `$ref` resolution, and 4 synthetic case/request examples. Case, evidence-request, and result-request examples use schemaVersion 3.
 
 The publication check scans only the current allowlisted tree for file names and extensions, text, relative links, common credential patterns, forbidden private-output paths, and symlinks. It is heuristic. It does not scan Git history, remote attachments, image contents, or semantic privacy issues.
 
+For local Windows acceptance, PowerShell can create a separate synthetic run under `$env:TEMP`, exercise the CLI, then copy and open the offline report. This does not access Ego or a business site and does not overwrite an existing directory:
+
+```powershell
+$ReviewRoot = Join-Path $env:TEMP ('ego-lite-synthetic-' + [guid]::NewGuid().ToString('N'))
+$Project = Join-Path $ReviewRoot 'project'
+$Run = Join-Path $ReviewRoot 'run'
+New-Item -ItemType Directory -Path $ReviewRoot | Out-Null
+node .\scripts\ego.mjs init --project-dir $Project
+$Cases = Join-Path $Project 'cases.example.json'
+node .\scripts\ego.mjs validate-cases --cases $Cases
+node .\scripts\ego.mjs start --project-dir $Project --cases $Cases --output-dir $Run
+node .\scripts\ego.mjs check --run-dir $Run
+node .\scripts\ego.mjs report --run-dir $Run
+$Copy = Join-Path $ReviewRoot 'report-copy.html'
+Copy-Item (Join-Path $Run 'report.html') $Copy
+Invoke-Item $Copy
+```
+
+This only checks local synthetic files and the ability to open the report. Continue with a visual and interaction review of content, image decoding, filters, enlargement, and Escape-to-close. Report outputs refuse overwrites; use a new GUID directory for another run. The operator can remove the temporary folder after retaining any needed acceptance notes.
+
 ## Windows and external systems
 
 The implementation uses Node.js built-ins and platform path APIs; it does not depend on shell commands or third-party runtime packages. Windows compatibility was reviewed at source level: absolute paths, built-in `path`, Node file operations, PowerShell command examples, and unique file naming. **No real Windows execution test was run.** Linux Node 24 checks do not verify Windows lock, rename, permission, hard-link, or filesystem behavior.
 
-No Ego, browser, real application, account, yiliai data, or business write operation was used. AI defect-finding accuracy, false positives, and model-upgrade effects were not measured. Tests support only limited claims about local structured-record and file behavior.
+No Ego, real application, account, yiliai data, or business write operation was used. AI defect-finding accuracy, false positives, and model-upgrade effects were not measured. Tests support only limited claims about local structured-record and file behavior. A v0.1.3 Release is gated on the user's local capability acceptance; this task only updates the development branch and creates no tag or release.
 
 ## Runtime and record limitations
 
