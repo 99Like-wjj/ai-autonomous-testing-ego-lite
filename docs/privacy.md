@@ -46,6 +46,9 @@ by that host. Review those settings before testing sensitive applications.
 3. **Private run output:** copied expectations, observations, evidence catalog,
    screenshots and reports. These may contain business or personal information.
    The helpers do not automatically redact them. Do not upload them unreviewed.
+   The standalone `report.html` embeds any previewable registered screenshots,
+   so a copy of that file contains the associated image bytes even without the
+   run directory. Review the complete report before sharing it.
 
 Catalog `source` and `description` fields should describe how evidence was
 obtained without tokens, signed URLs, credentials, or sensitive payloads.

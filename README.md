@@ -92,9 +92,12 @@ node .\scripts\ego.mjs start --project-dir $Project --cases $Cases --output-dir 
 node .\scripts\ego.mjs progress --run-dir $Run
 node .\scripts\ego.mjs check --run-dir $Run
 node .\scripts\ego.mjs report --run-dir $Run
+Invoke-Item (Join-Path $Run 'report.html')
 ```
 
-进度按冻结用例的**当前最终状态**统计；`blocked`、`inconclusive`、`not_run` 分开列出，pending clarification 单独列出。历史尝试不重复计入当前 pass/fail。`report` 写出 JSON 与 Markdown，拒绝覆盖已有报告。完整结构和命令见[格式与运行约定](docs/asset-formats.md)。
+进度按冻结用例的**当前最终状态**统计；`blocked`、`inconclusive`、`not_run` 分开列出，pending clarification 单独列出。历史尝试不重复计入当前 pass/fail。`report` 会在 Run 目录写出 `report.json`、`report.md` 和可独立离线打开的 `report.html`；任一目标已存在都会拒绝覆盖。HTML 展示冻结目标、实际观察、判断理由、依据、未验证项、当前状态与历史尝试。经过 hash / 大小核验的 PNG、JPEG、WebP 截图内嵌显示，缺图和不支持的图片格式会明确提示。可把 `report.html` 单独复制给获准查看报告的人，不需要连同 Run 或联网打开。完整内容见[格式与运行约定](docs/asset-formats.md)。
+
+报告会分开显示业务结论和文件完整性；SHA-256 匹配不证明截图真实或结果正确。HTML 生成前会完整校验 run 与所有登记证据；若校验失败，不写出任何报告。没有图片不会自动变成失败；业务覆盖、判断以及是否需要补证仍由 AI 根据授权与事实决定。点击成功或按钮变为 enabled 不足以证明提交成功，需观察实际后果和必要的持久化状态。
 
 ## 责任与限制
 
@@ -104,7 +107,7 @@ node .\scripts\ego.mjs report --run-dir $Run
 | --- | --- | --- |
 | 当前 AI 会话 | 理解目标、选择测试、操作授权的浏览器、审阅观察 | 臆造缺失需求或超出授权 |
 | Ego 原生浏览器 | 页面读取与用户授权的浏览器操作 | 判断业务规则是否正确 |
-| 本地工具箱 | 登记文件、验证记录、计算当前哈希、报告进度 | 访问网络/模型/Ego、自动判 bug、重试业务动作 |
+| 本地工具箱 | 登记文件、验证记录、计算当前哈希、报告进度并展示离线证据报告 | 访问网络/模型/Ego、自动判 bug、重试业务动作 |
 
 SHA-256 用于检测留存文件是否与 catalog 一致，不证明证据真实性、来源身份或业务结论。工具不是绕过直接文件修改或本地并发程序的安全隔离边界。单个 JSON 文件通过临时文件和 rename 更新；证据文件与 catalog 不是支持任意崩溃恢复的多文件事务，也不承诺断电持久性。遗留 `.run.lock` 会拒绝写入；确认无对应进程后才由操作者检查并处理。
 

@@ -2,9 +2,11 @@
 
 ## v0.1.3-dev checks
 
-On 2026-10-22, Linux / Node v24.19.0: `npm test` passed 44/44 tests (32 helper tests and 12 publication-checker tests), with zero failures or skips. `npm run check:public` passed and printed the current allowlisted release file manifest. These checks cover this branch's local helper and synthetic assets; they are not Ego or application tests.
+On 2026-10-22, Linux / Node v24.19.0: `npm test` passed 55/55 tests (43 helper tests and 12 publication-checker tests), with zero failures or skips. `npm run check:public` passed and printed the current allowlisted release file manifest. These checks cover this branch's local helper and synthetic assets; they are not Ego or application tests.
 
-`npm test` covers schemaVersion 3 case validation and freezing, evidence copies and retained-file hashes, source/capture timestamp distinction, paths and symlinks, reserved IDs, overwrite prevention, the single-writer lock, revision conflicts, idempotency and key ordering, receipt recovery after a lost response, final and attempt history, clarification vetoes, current-status progress, report escaping, CLI entry points, and publication-checker cases.
+`npm test` covers schemaVersion 3 case validation and freezing, evidence copies and retained-file hashes, source/capture timestamp distinction, paths and symlinks, reserved IDs, overwrite prevention, the single-writer lock, revision conflicts, idempotency and key ordering, receipt recovery after a lost response, final and attempt history, clarification vetoes, current-status progress, HTML/Markdown escaping, safe raster embedding, bad-hash and dangling-reference report refusal, active-format non-preview, CLI entry points, and publication-checker cases. HTML source checks cover the offline policy, no external links, and safe static-data binding; a minimal DOM shim simulates filtering and lightbox button handlers, but does not replace a real browser.
+
+Chromium headless was attempted to open a synthetic report and capture a screenshot. In this container Chromium could not initialize its user-data directory; a second launch attempt timed out under renderer/cache restrictions. The report passed Node synthetic regression, the DOM shim, and source/protocol checks, but there was no completed desktop or mobile visual check and no real-browser interaction acceptance, including Escape-key lightbox close.
 
 Independent format review checked all 8 JSON Schema Draft 2020-12 schemas, local `$ref` resolution, and 4 synthetic case/request examples. Case, evidence-request, and result-request examples use schemaVersion 3.
 

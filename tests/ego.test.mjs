@@ -6,6 +6,8 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { deflateSync } from 'node:zlib';
+import vm from 'node:vm';
 import {
   init, start, check, report, normalizeCases, safePath, validateCases, main,
   progress, registerEvidence, recordResult, SOURCE_ROOT
@@ -27,6 +29,24 @@ const caseOf = (id = 'one', kind = 'explicit', additions = {}) => ({
 const writeJson = (filename, data) => fs.writeFile(filename, JSON.stringify(data, null, 2) + '\n');
 const readJson = async filename => JSON.parse(await fs.readFile(filename, 'utf8'));
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+function pngChunk(type, data) {
+  const name = Buffer.from(type), length = Buffer.alloc(4), checksum = Buffer.alloc(4);
+  length.writeUInt32BE(data.length); checksum.writeUInt32BE(crc32(Buffer.concat([name, data])));
+  return Buffer.concat([length, name, data, checksum]);
+}
+function syntheticPng(red = 30) {
+  const header = Buffer.alloc(13); header.writeUInt32BE(1, 0); header.writeUInt32BE(1, 4); header[8] = 8; header[9] = 6;
+  const scanline = Buffer.from([0, red, 120, 210, 255]);
+  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), pngChunk('IHDR', header), pngChunk('IDAT', deflateSync(scanline)), pngChunk('IEND', Buffer.alloc(0))]);
+}
 
 async function fixture(t, cases = [caseOf(), caseOf('two', 'hypothesis')]) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-toolbox-synthetic-'));
@@ -410,6 +430,105 @@ test('report includes hash, byte count, timestamps, frozen expectations, and esc
   await assert.rejects(report(f.outputDir), /overwrite/);
 });
 
+test('offline HTML report embeds verified raster evidence, exposes attempts, and keeps text inert', async t => {
+  const maliciousTitle = 'Synthetic </script><img src=x onerror=alert(1)>';
+  const f = await fixture(t, [caseOf('one', 'explicit', { title: maliciousTitle }), caseOf('blocked-case')]);
+  const before = path.join(f.root, 'before.png'), after = path.join(f.root, 'after.png');
+  await fs.writeFile(before, syntheticPng(24)); await fs.writeFile(after, syntheticPng(232));
+  const first = await committedEvidence(f, { operationId: 'before-shot', sourceFile: before, kind: 'screenshot', description: 'Synthetic initial screen' });
+  await recorded(f, 'fail', { operationId: 'first-failure', evidenceIds: [first.receipt.evidenceId], observed: 'Synthetic first observation.', rationale: 'Synthetic failure before recovery.' });
+  const second = await committedEvidence(f, { operationId: 'after-shot', expectedRevision: 1, sourceFile: after, kind: 'screenshot', description: 'Synthetic confirmation screen' });
+  await recorded(f, 'pass', { operationId: 'recovered-pass', expectedRevision: 1, evidenceIds: [second.receipt.evidenceId], observed: 'Synthetic independently confirmed observation.', rationale: 'Synthetic recovery confirmation.' });
+  const out = await report(f.outputDir);
+  const html = await fs.readFile(out.reportHtml, 'utf8');
+  assert.equal(path.basename(out.reportHtml), 'report.html');
+  assert.match(html, /data:image\/png;base64,/);
+  assert.match(html, /截图时间对照/);
+  assert.match(html, /历史尝试/);
+  assert.match(html, /Synthetic \\u003c\/script\\u003e\\u003cimg src=x onerror=alert\(1\)\\u003e/);
+  assert.doesNotMatch(html, /<img src=x onerror=alert\(1\)>/);
+  const embeddedData = html.match(/<script type="application\/json" id="report-data">([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(embeddedData);
+  assert.equal(JSON.parse(embeddedData).htmlPayloadVersion, 1);
+  assert.equal(JSON.parse(embeddedData).report.schemaVersion, 3);
+  assert.equal(JSON.parse(embeddedData).report.cases[0].title, maliciousTitle);
+  const inlineScripts = [...html.matchAll(/<script(?![^>]*application\/json)[^>]*>([\s\S]*?)<\/script>/g)];
+  assert.equal(inlineScripts.length, 1);
+  assert.doesNotThrow(() => new vm.Script(inlineScripts[0][1]));
+  class TestElement {
+    constructor(tag = 'div') { this.tagName = tag.toUpperCase(); this.children = []; this.dataset = {}; this.listeners = {}; this.hidden = false; this.value = ''; this.open = false; this.textContent = ''; }
+    append(...nodes) { for (const node of nodes) if (node != null) this.children.push(node); }
+    addEventListener(type, handler) { (this.listeners[type] ??= []).push(handler); }
+    dispatch(type, event = {}) { for (const handler of this.listeners[type] ?? []) handler({ target: this, ...event }); }
+    showModal() { this.open = true; }
+    close() { this.open = false; }
+  }
+  const ids = ['report-data', 'project-line', 'integrity', 'summary', 'search', 'status-filter', 'shown', 'empty-results', 'case-list', 'lightbox-image', 'lightbox-caption', 'lightbox', 'lightbox-close'];
+  const elements = Object.fromEntries(ids.map(id => [id, new TestElement(id === 'report-data' ? 'script' : id === 'lightbox' ? 'dialog' : 'div')]));
+  elements['report-data'].textContent = embeddedData;
+  elements['status-filter'].value = 'all';
+  const fakeDocument = { getElementById: id => elements[id], querySelector: selector => elements[selector.slice(1)], createElement: tag => new TestElement(tag) };
+  new vm.Script(inlineScripts[0][1]).runInNewContext({ document: fakeDocument });
+  const caseNodes = elements['case-list'].children;
+  assert.equal(caseNodes.length, 2);
+  assert.equal(elements.summary.children.length, 8);
+  elements.search.value = 'blocked-case'; elements.search.dispatch('input');
+  assert.deepEqual(caseNodes.map(card => card.hidden), [true, false]);
+  elements.search.value = ''; elements['status-filter'].value = 'not_run'; elements['status-filter'].dispatch('change');
+  assert.deepEqual(caseNodes.map(card => card.hidden), [true, false]);
+  const findImages = node => [...(node.children ?? [])].flatMap(child => [child, ...findImages(child)]).filter(child => child.tagName === 'IMG');
+  findImages(caseNodes[0]).at(0).dispatch('click');
+  assert.equal(elements.lightbox.open, true);
+  elements['lightbox-close'].dispatch('click');
+  assert.equal(elements.lightbox.open, false);
+  assert.doesNotMatch(html, new RegExp(f.root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(html, /未执行/);
+  assert.match(html, /connect-src 'none'/);
+  assert.match(html, /addEventListener\('input',filter\)/);
+  assert.match(html, /addEventListener\('change',filter\)/);
+  assert.match(html, /showModal\(\)/);
+  assert.match(html, /<dialog id="lightbox"/);
+  assert.match(html, /@media\(max-width:560px\)/);
+  assert.doesNotMatch(html, /<script\s+src=|<link[^>]+href=|fetch\s*\(/i);
+  const copied = path.join(f.root, 'copied elsewhere', 'review.html');
+  await fs.mkdir(path.dirname(copied)); await fs.copyFile(out.reportHtml, copied);
+  assert.deepEqual(await fs.readFile(copied), await fs.readFile(out.reportHtml));
+  const payload = await readJson(out.reportJson);
+  assert.equal(payload.counts.pass, 1);
+  assert.equal(payload.counts.not_run, 1);
+  assert.equal(payload.progress.attemptedCases.totalAttempts, 1);
+});
+
+test('HTML report refuses broken evidence before creating any report output', async t => {
+  const f = await fixture(t);
+  const source = path.join(f.root, 'broken.png'); await fs.writeFile(source, syntheticPng());
+  const evidence = await committedEvidence(f, { sourceFile: source, kind: 'screenshot' });
+  await fs.appendFile(path.join(f.outputDir, ...evidence.receipt.path.split('/')), 'changed');
+  await assert.rejects(report(f.outputDir), /hash or byte count mismatch/);
+  for (const filename of ['report.json', 'report.md', 'report.html']) await assert.rejects(fs.lstat(path.join(f.outputDir, filename)), { code: 'ENOENT' });
+});
+
+test('HTML report marks missing and unsafe image previews without executing active formats', async t => {
+  const f = await fixture(t, [caseOf('one'), caseOf('never-run')]);
+  const source = path.join(f.root, 'not-an-image.svg');
+  await fs.writeFile(source, '<svg onload="alert(1)"><text>synthetic</text></svg>');
+  const evidence = await committedEvidence(f, { sourceFile: source, kind: 'screenshot', description: 'Synthetic unsupported active image' });
+  await recorded(f, 'inconclusive', { evidenceIds: [evidence.receipt.evidenceId], observed: 'Synthetic observation without a safe raster preview.', rationale: 'Synthetic unsupported preview format.' });
+  const out = await report(f.outputDir);
+  const html = await fs.readFile(out.reportHtml, 'utf8');
+  assert.match(html, /不是支持预览的 PNG、JPEG 或 WebP/);
+  assert.match(html, /这条观察没有关联可预览的图片证据/);
+  assert.doesNotMatch(html, /data:image\/svg|onload="alert\(1\)"|<svg/i);
+});
+
+test('HTML report rejects dangling evidence references and emits no partial files', async t => {
+  const f = await fixture(t);
+  const resultsPath = path.join(f.outputDir, 'results.json'), results = await readJson(resultsPath);
+  results.cases[0].evidenceIds = ['ev-missing']; await writeJson(resultsPath, results);
+  await assert.rejects(report(f.outputDir), /missing from catalog/);
+  for (const filename of ['report.json', 'report.md', 'report.html']) await assert.rejects(fs.lstat(path.join(f.outputDir, filename)), { code: 'ENOENT' });
+});
+
 test('baseline hash protects case intent, clarification questions, and optional checkpoint omission', async t => {
   const f = await fixture(t, [caseOf('one', 'explicit', { steps: [{ id: 'intent', action: 'Complete the synthetic business task.' }], clarificationQuestions: ['Unresolved synthetic question?'] })]);
   const baselineFile = path.join(f.outputDir, 'baseline.json');
@@ -646,6 +765,10 @@ test('CLI evidence-add and record requests use documented local files', async t 
   assert.equal(evidenceOutput.evidenceId.length > 0, true);
   assert.equal(resultOutput.revision, 1);
   assert.equal((await main(['progress', '--run-dir', f.outputDir])).progress.uncompleted.statusCounts.blocked, 1);
+  const reportOutput = await exec(process.execPath, [path.join(SOURCE_ROOT, 'scripts', 'ego.mjs'), 'report', '--run-dir', f.outputDir]);
+  const reportPaths = JSON.parse(reportOutput.stdout);
+  assert.equal(path.basename(reportPaths.reportHtml), 'report.html');
+  assert.equal(await fs.readFile(reportPaths.reportHtml, 'utf8').then(value => value.includes('<!doctype html>')), true);
 });
 
 test('JSON schemas and synthetic examples use a consistent v3 contract and local references', async () => {
@@ -692,8 +815,10 @@ test('reports do not overwrite existing output, init/start do not overwrite, and
   assert.deepEqual(await fs.readFile(manifestPath), before);
   const out = await report(f.outputDir);
   const mdBefore = await fs.readFile(out.reportMarkdown);
+  const htmlBefore = await fs.readFile(out.reportHtml);
   await assert.rejects(report(f.outputDir), /overwrite/);
   assert.deepEqual(await fs.readFile(out.reportMarkdown), mdBefore);
+  assert.deepEqual(await fs.readFile(out.reportHtml), htmlBefore);
 });
 
 test('Node CLI contains no network or shell invocations and records no workflow selection', async () => {

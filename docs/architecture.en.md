@@ -10,7 +10,9 @@
 
 ## Data flow
 
-Cases are validated as schemaVersion 3, then `start` freezes `baseline.json` in a new directory and creates result and evidence catalogs at revision 0. `evidence-add` copies a user-selected local regular file into the run. Its catalog item records the case, source and description, SHA-256 and byte count of the retained bytes, helper-set `collectedAt`, and optional source-provided `capturedAt`. `record` writes results: `final` updates current status; `attempt` appends a historical observation. `progress` counts current frozen-case statuses, `check` validates files and associations, and `report` writes JSON and Markdown.
+Cases are validated as schemaVersion 3, then `start` freezes `baseline.json` in a new directory and creates result and evidence catalogs at revision 0. `evidence-add` copies a user-selected local regular file into the run. Its catalog item records the case, source and description, SHA-256 and byte count of the retained bytes, helper-set `collectedAt`, and optional source-provided `capturedAt`. `record` writes results: `final` updates current status; `attempt` appends a historical observation. `progress` counts current frozen-case statuses, `check` validates files and associations, and `report` writes JSON, Markdown, and a self-contained offline HTML file with verified safe raster previews, requirement context, unverified items, and attempt history.
+
+The HTML is a presentation layer over local data; it does not create a business verdict. Missing images are called out without automatically failing the case, and a matching hash does not prove authenticity or a correct business outcome. Invalid hashes, dangling evidence references, or structural errors block normal report generation. Reports only have case-level outcomes; they do not infer completion from planned steps without separately stored step verdicts.
 
 The helper does not infer whether a source, file, or conclusion is true and does not redact content. SHA-256 compares current bytes with the catalog value; it cannot prove authenticity.
 

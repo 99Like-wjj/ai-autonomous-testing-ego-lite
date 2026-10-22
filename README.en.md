@@ -92,9 +92,12 @@ Put the returned evidence ID in a `record` request's `evidenceIds`. `mode: "fina
 node .\scripts\ego.mjs progress --run-dir $Run
 node .\scripts\ego.mjs check --run-dir $Run
 node .\scripts\ego.mjs report --run-dir $Run
+Invoke-Item (Join-Path $Run 'report.html')
 ```
 
-Progress counts each frozen case's **current final status**. `blocked`, `inconclusive`, and `not_run` stay separate; pending clarifications have their own list. Historical attempts are not counted again as current pass/fail outcomes. `report` writes JSON and Markdown and refuses to overwrite existing reports. See the [schema v3 format and runtime contract](docs/asset-formats.en.md).
+Progress counts each frozen case's **current final status**. `blocked`, `inconclusive`, and `not_run` stay separate; pending clarifications have their own list. Historical attempts are not counted again as current pass/fail outcomes. `report` writes `report.json`, `report.md`, and a standalone offline `report.html` in the run directory; it refuses to overwrite any of them. The HTML shows frozen goals, observations, rationale, requirement basis, unverified items, current outcomes, and attempt history. Hash/size-verified PNG, JPEG, and WebP screenshots are safely embedded; missing screenshots and unsupported formats are called out. You can copy `report.html` by itself for an authorized reviewer; it does not need the run directory or network access. See the [schema v3 format and runtime contract](docs/asset-formats.en.md).
+
+Business outcomes and file integrity are shown separately. A matching SHA-256 does not prove a screenshot is authentic or an outcome is correct. Before writing any report, the helper validates the run and every registered evidence file; a failed check writes no report. No image does not automatically mean failure; the AI decides whether more evidence or testing is needed under the user's authorization. A successful click or enabled button does not prove a submission succeeded; observe the actual result and persistence when required.
 
 ## Responsibilities and limits
 
@@ -104,7 +107,7 @@ Progress counts each frozen case's **current final status**. `blocked`, `inconcl
 | --- | --- | --- |
 | Current AI session | Understand goals, select tests, use an authorized browser, review observations | Invent missing requirements or exceed authorization |
 | Native Ego browser | Page reads and user-authorized browser actions | Decide whether business rules are correct |
-| Local toolbox | Register files, validate records, hash current files, report progress | Network/model/Ego access, automatic bug verdicts, retrying business actions |
+| Local toolbox | Register files, validate records, hash current files, report progress, display an offline evidence report | Network/model/Ego access, automatic bug verdicts, retrying business actions |
 
 SHA-256 detects whether retained bytes still match the catalog. It does not prove authenticity, source identity, or a business conclusion. The helper is not a security boundary against direct file edits or other local programs. A single JSON file is updated with a temporary file and rename. Evidence and catalog updates are not a general multi-file transaction and do not promise power-loss durability. A leftover `.run.lock` blocks writes; an operator should verify its process has exited before inspecting and handling the lock.
 

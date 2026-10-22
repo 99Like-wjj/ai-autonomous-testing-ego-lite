@@ -10,7 +10,9 @@
 
 ## 数据路径
 
-用例先按 schemaVersion 3 校验，然后 `start` 在新目录冻结 `baseline.json`，并创建 revision 0 的结果和证据 catalog。证据通过 `evidence-add` 从用户指定的本地普通文件复制到运行目录；登记项保留来源/说明、用例关联、实际留存字节的 SHA-256 和大小，以及独立的 `collectedAt` 与可选来源时间 `capturedAt`。结果通过 `record` 写入：`final` 更新当前状态，`attempt` 追加历史观察。`progress` 按冻结用例的当前状态统计，`check` 校验所有文件和关联，`report` 输出 JSON 与 Markdown。
+用例先按 schemaVersion 3 校验，然后 `start` 在新目录冻结 `baseline.json`，并创建 revision 0 的结果和证据 catalog。证据通过 `evidence-add` 从用户指定的本地普通文件复制到运行目录；登记项保留来源/说明、用例关联、实际留存字节的 SHA-256 和大小，以及独立的 `collectedAt` 与可选来源时间 `capturedAt`。结果通过 `record` 写入：`final` 更新当前状态，`attempt` 追加历史观察。`progress` 按冻结用例的当前状态统计，`check` 校验所有文件和关联，`report` 输出 JSON、Markdown 和可单独离线查看的自包含 HTML；HTML 将实际保存且 hash 匹配的安全光栅图片内嵌，展现目标、观察、依据、未验证项和尝试历史。
+
+HTML 是本地数据的呈现层，不生成业务 verdict；缺失图片会提示但不会自动判失败，hash 匹配也不证明图片真实或业务结论正确。无效 hash、悬空关联或结构错误会阻止完整报告生成。报告只展示用例级结果；每步没有独立 verdict 数据，因此不会推断计划步骤已完成。
 
 工具不推断来源、内容或结论是否真实，不做自动脱敏。SHA-256 只用于比对当前字节与 catalog 中的值，不能证明真实性。
 

@@ -6,13 +6,15 @@
 - 增加 revision 化 `record` 与 `progress`。最终状态与历史尝试分开，保留被替换的旧最终观察；进度只统计当前状态并单独列出待澄清用例。
 - 使用 run 级单写者锁、expectedRevision、canonical payload hash 与操作回执。相同 operation ID 和内容重试幂等；内容变更和过期 revision 拒绝。证据登记使用恢复 marker；单文件 rename 不声明为多文件事务或断电持久性保证。
 - check/report 现在核对 evidence ID、保留文件 hash 与字节数，报告展示 hash、时间和来源。冻结澄清 veto 同时适用于所有最终结果与历史尝试。
-- 所有用例、运行资产、请求与报告使用 schemaVersion 3。这是相对 v0.1.2 schemaVersion 2 的格式断裂；本分支不提供迁移层。保留业务意图步骤、来源依据、可选步骤预期和旧状态语义。
+- `report` 新增可单独离线打开的 `report.html`，保留 JSON/Markdown。展示冻结目标、当前观察和理由、需求依据、未验证事项、历史尝试及核验后的 PNG/JPEG/WebP 图片；含状态筛选、搜索、展开历史、放大和时间排序对照。缺图单独提示；坏 hash、悬空引用或结构错误阻止报告生成。HTML 不使用外链、网络或占位图。
+- HTML 报告明确区分业务判断与证据文件完整性。报告不生成 verdict，也不从计划步骤推断完成；截图并非强制每步采集，工具不自动判断截图存在即为业务正确。
+- 所有用例、运行 JSON、请求与 `report.json` 使用 schemaVersion 3。这是相对 v0.1.2 schemaVersion 2 的格式断裂；本分支不提供迁移层。保留业务意图步骤、来源依据、可选步骤预期和旧状态语义；`report.html` 是从通过校验的 v3 数据生成的离线呈现文件。
 - 新增证据请求、结果请求与 Skill 本地工具箱调用指南，中英文格式/架构/README 同步；示例仅包含合成数据。未实现数据对比、测试数据生成、导入、脱敏或跨次对比。
 - 另建 [`docs/requirements.md`](docs/requirements.md) 记录 v0.1.4 的 subagent 并行及单用例单 Space 待研究需求；此项没有并入 v0.1.3-dev 工具箱实现。
 
-验证：Linux / Node v24.19.0，44/44 合成测试通过，零失败、零跳过。测试覆盖证据副本 hash、幂等、锁/冲突、澄清 veto、结果历史、进度、报告转义、schema/示例版本与发布检查器。源码检查 Windows 路径和 Node API 使用方式；没有真实 Windows、Ego 或业务环境实测。
+验证：Linux / Node v24.19.0，55/55 合成测试通过，零失败、零跳过。新增 HTML 报告的内嵌截图、注入文本转义、SVG 安全预览、完整性失败不落盘和悬空引用回归。源码检查 Windows 路径和 Node API 使用方式；没有真实 Windows、Ego 或业务环境实测。尝试用本机 Chromium headless 做报告打开与截图，但此容器无法初始化用户数据目录/渲染进程，未完成视觉或交互验收。
 
-English summary: Added a local-only evidence/result toolbox with retained-copy SHA-256, revisioned idempotent writes, a run lock, history-preserving attempts, progress, and report integration. All assets use schemaVersion 3 with no v0.1.2 migration. Linux synthetic suite: 44/44 passed; Windows/Ego/business execution not tested.
+English summary: Added a local-only evidence/result toolbox with retained-copy SHA-256, revisioned idempotent writes, a run lock, history-preserving attempts, progress, and offline image-rich HTML reporting alongside JSON/Markdown. JSON case/run/request/report assets use schemaVersion 3, with no v0.1.2 migration; the HTML view wrapper is version 1. Linux synthetic suite: 55/55 passed; no successful visual browser run, Windows, Ego, or real business execution.
 
 ## 0.1.2 — 业务意图级步骤与可选检查点
 

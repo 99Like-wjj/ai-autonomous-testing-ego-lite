@@ -2,9 +2,11 @@
 
 ## v0.1.3-dev 当前检查
 
-2026-10-22，Linux / Node v24.19.0：`npm test` 为 44/44 通过（32 项辅助工具测试、12 项发布检查器测试），零失败、零跳过。`npm run check:public` 通过并输出当前 allowlist 发布文件清单。本文件只记录本分支实际检查结果，不代表 Ego 或业务产品实测。
+2026-10-22，Linux / Node v24.19.0：`npm test` 为 55/55 通过（43 项辅助工具测试、12 项发布检查器测试），零失败、零跳过。`npm run check:public` 通过并输出当前 allowlist 发布文件清单。本文件只记录本分支实际检查结果，不代表 Ego 或业务产品实测。
 
-`npm test` 执行完整 Node.js 套件，覆盖 schemaVersion 3 用例、启动与冻结、证据复制和留存文件 hash、capturedAt / collectedAt 区分、路径与符号链接、危险 ID、文件覆盖、单 writer 锁、revision 冲突、幂等与 key 顺序、响应丢失后的原回执、final/attempt 历史、clarification veto、当前状态进度、报告转义、命令入口和发布检查器。
+`npm test` 执行完整 Node.js 套件，覆盖 schemaVersion 3 用例、启动与冻结、证据复制和留存文件 hash、capturedAt / collectedAt 区分、路径与符号链接、危险 ID、文件覆盖、单 writer 锁、revision 冲突、幂等与 key 顺序、响应丢失后的原回执、final/attempt 历史、clarification veto、当前状态进度、HTML / Markdown 转义、安全图片内嵌、坏 hash 与悬空引用阻断报告、活动格式不预览、CLI 入口和发布检查器。HTML 源码检查离线策略、无外链、安全静态数据绑定，并用最小 DOM shim 验证筛选与灯箱按钮事件；这不等同真实浏览器事件或视觉检查。
+
+尝试以 Chromium headless 打开合成报告并生成屏幕截图。当前容器中 Chromium 无法初始化用户数据目录，替代启动尝试也因渲染进程/缓存环境限制超时；所以报告通过 Node 合成回归、最小 DOM shim 和源码/协议检查，但没有完成实际桌面、手机视口视觉检查，也未在真实浏览器验收 Escape 键关闭灯箱。
 
 `npm run check:public` 检查当前分支 allowlist 内的文件清单、扩展名、文本、相对链接、常见 credential 模式、禁止的私有产物目录与符号链接。成功时输出当前发布文件清单。该检查为启发式，不检查 Git 历史、远端附件、图片内容或语义上的敏感信息。
 
