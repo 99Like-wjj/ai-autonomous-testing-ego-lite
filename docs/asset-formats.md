@@ -1,90 +1,145 @@
-# 测试资产格式规范（v2）
+# 本地资产格式与运行约定（schemaVersion 3）
 
-[English](asset-formats.en.md)
+本指南定义用例、运行目录、证据登记请求、结果请求与进度/报告语义。Schema 文件放在 [`schemas/`](../schemas/)，均为 JSON Schema Draft 2020-12，并通过本地相对引用共享定义。运行代码会做额外的业务约束校验，例如证据归属、哈希核验、revision 和冻结澄清 veto。
 
-规范的目标是让 AI 稳定地读取、交换和输出信息，规定业务步骤及可选步骤检查点，但不是固定点击脚本、固定 DAG、特定业务行为或隐藏的验收基准数据集。AI 仍需根据真实需求选择动作、观察和判断；本地助手只整理记录、检查结构，不运行浏览器，也不替 AI 判定产品是否正确。
+## 版本策略
 
-## 业务材料与内部交换格式
+v0.1.3-dev 的所有用例、运行资产、请求和报告使用 `schemaVersion: 3`。相较 v0.1.2 的 schemaVersion 2，本版增加 revision 化结果/证据 catalog、操作回执、证据 ID 关联和本地写入入口；结果及证据资产不再支持直接手工维护。旧运行目录和旧用例文件不会自动转换，也不提供迁移层。要使用 v3，请依据原始需求和来源重新整理用例并创建新运行；不要只改版本号，也不要改写历史基线来伪装新格式。
 
-用户可以提供 Markdown、CSV、普通文本、工单或其他可读取的业务文档，不需要手写 JSON。AI 读取原文、识别歧义后，把约定范围规范化为用例。应保留可定位的来源和真实需求文本；需求冲突或缺失意味着需要澄清，不能自动补成验收标准。
+所有对象均为封闭格式，未知字段会被拒绝。ID 只允许 1–128 个 ASCII 字母、数字、点、下划线或连字符，首字符必须为字母或数字；`__proto__`、`prototype`、`constructor` 等危险属性名禁止使用。工具没有第三方运行依赖，需要 Node.js 22 或更新版本。
 
-内部交换使用 UTF-8 JSON，版本字段为 schemaVersion: 2。../schemas 中的 JSON Schema 使用 draft 2020-12 和本地相对引用，应一起加载整个目录。助手直接实现检查，不会自动加载这些 Schema。不要在资产 JSON 中添加 $schema 字段，封闭格式会拒绝未知字段；请在编辑器或验证器中关联 Schema。
+## 用例文件与冻结基线
 
-## 资产及其职责
+用例根对象只含 `schemaVersion`、非空 `project` 和非空 `cases`。用例字段见 [`cases.schema.json`](../schemas/cases.schema.json)：
 
-- cases.json：准备好的用例输入，对应 cases.schema.json。文件名只是约定，start 接受显式指定的输入文件路径。
-- baseline.json：start 生成的规范化、冻结用例，使用同一 Schema。不能为了适配实际结果而改写。
-- manifest.json：生成的运行标识、绝对路径 projectDir 和 baselineSha256，对应 manifest.schema.json。哈希覆盖基线文件的原始字节，包括空白；可发现意外变化，但不防恶意篡改。
-- results.json：操作者记录的观察与结论，对应 results.schema.json。start 为每个基线用例创建一条 not_run 记录。
-- evidence.json：证据目录，对应 evidence.schema.json。初始 items 为空。
-- evidence/：本次运行的实际证据文件。登记一条目录元数据并不等于证明行为发生。
-- report.json 与 report.md：生成的复核材料。JSON 对应 report.schema.json；Markdown 是便于阅读的呈现，不是另一套判定来源。report 不会覆盖已有报告。
-- common.schema.json：共享定义，不是独立的运行资产。
+- `id`、`title`：非空；用例 ID 全局唯一。
+- `basis`：恰好包含 `kind`、`source`、`text`。分类为 `explicit`、`interpretation` 或 `hypothesis`。
+- `criticalConditions`：非空字符串数组，可为空；不能借空数组忽略已知前提。
+- `expected`：必需的整体验收预期。
+- `requiredPath`：必需；未指定时为 `null`。
+- `stepOrder`：`strict` 或 `adaptive`。
+- `steps`：有序且非空；每步必需 `id` 和 `action`，可选 `expected`。可选检查点有依据时才填写；省略不代表未执行或自动通过。
+- `clarificationQuestions`：可选字符串数组。冻结用例中非空的问题阻止该用例所有最终结果及历史尝试使用 `pass` / `fail`。结果请求不能清除、替换或覆盖这些问题。
 
-真实项目输入、运行记录、报告与证据应放在可分发 Skill 仓库之外。仓库内只放合成的 .example 示例，域名使用 app.example 等占位符，不放真实秘密、身份、账号数据或敏感截图。示例仅说明语法，其中的描述不构成规范性测试要求。
+`start --project-dir ABS --cases ABS --output-dir ABS` 要求项目目录已存在而运行目录不存在。它校验用例，将规范化后的内容写入 `baseline.json`，并在 `manifest.json` 记录基线 SHA-256。结果与证据文件都从 revision 0 开始。哈希能发现普通更改，不是防篡改签名；绕过工具直接改本地文件不在其安全边界内。
 
-## 用例：保留意图，不写死动作脚本
+新运行目录：
 
-每条用例的字段如下（除明确标为可选外均必需）：
+```text
+run/
+  baseline.json       # 冻结的 schemaVersion 3 用例
+  manifest.json       # runId、基线 hash 与 schema 版本
+  results.json        # 当前最终状态、历史尝试、结果操作账本
+  evidence.json       # 证据 catalog 与证据操作账本
+  evidence/           # evidence-add 复制进来的文件
+```
 
-- id：非空白、稳定的标识，在用例列表中唯一。
-- title：非空白简述。
-- basis：仅包含 kind、source、text。kind 为 explicit、interpretation 或 hypothesis；source 和 text 不得为空白。explicit 必须有真实明确需求支撑，不能只因为 AI 很有把握就这样标记。
-- criticalConditions：非空白字符串数组，描述重要角色、输入、初始状态或其他前提，可以为空数组。
-- expected：非空白的可观察预期行为，不表示行为已经发生。
-- requiredPath：没有规定路径时为 null；否则是描述真实必经路径的非空白文本。这不是文件系统路径，也不应凭空增加以限制 Agent。
+真实项目、来源文件、运行、截图与报告应放在源码仓库之外。目录中的绝对项目路径只作为上下文元数据，不会被工具访问。
 
-- stepOrder：必需，strict 或 adaptive。strict 保持步骤的业务语义顺序；adaptive 仅在意图、前提、依赖及必经路径不变时允许调整方法或顺序。两者都不能跳过关键步骤或降低覆盖。
-- steps：必需的非空有序数组。每步必须包含非空白 id 和 action；可选 expected 若提供必须为非空白字符串，除此之外不允许额外字段。id 在本用例内唯一，不要求跨用例唯一。action 表达业务意图与必要输入，expected 仅为有依据的独立检查点，不是实际执行事实。用例整体 expected 仍为必需。
-- clarificationQuestions：用例级可选非空白字符串数组，可为空。非空时整体验收标准待澄清；用例结果及 attempts 均不能为 pass 或 fail。该字段不能代替 basis 或整体 expected；空数组也不是判据充分的证明。
+## 证据登记
 
-业务步骤只需表达意图和必要输入，例如“进入配置中心的模板功能，按给定名称与字段新建模板”。无需从不完整需求中猜测按钮、弹窗或提示文案；细节确有依据时仍可写细粒度步骤。每步 expected 可省略，提供时必须是有依据的独立检查点；省略不表示该步未测或自动通过，最终仍按用例整体 expected 判断。
+不要直接往 `evidence/` 放文件并手工修改 catalog。先准备一个 UTF-8 JSON 请求文件，再运行：
 
-整体 expected 与 basis 必须保留。验收细节不足时，描述已知目标并用可选 clarificationQuestions 列出待澄清问题（数组中的字符串均须非空白）。只列影响该用例验收结论的未决问题，不列普通 UI 路线探索疑问；可独立判断的目标与待澄清目标应拆开，且不弱化原要求。非空问题列表表示整体验收标准待澄清，该用例及其 attempts 不能给 pass/fail；可在授权内探索路线并记录事实，但不得把当前表现反推为验收标准。问题澄清后另存修订用例并重新冻结，不改旧基线。
+```powershell
+node .\scripts\ego.mjs evidence-add --run-dir $Run --request $EvidenceRequest
+```
 
-AI 通过 Ego 自主探索具体路径，将实际行为、观察与证据记入已有 observed、rationale、evidence、attempts；planned steps 是计划，不是执行证据，不新增强制按步 trace 字段。
+请求格式见 [`evidence-request.schema.json`](../schemas/evidence-request.schema.json)：
 
-外部提供和 Skill 生成的用例走相同校验、冻结与执行流程，均可用于新功能或回归。可选命令 `node scripts/ego.mjs validate-cases --cases ABS` 只读校验并打印摘要，不创建运行。结构校验不判断步骤是否合理、需求是否真实或授权是否充分；模型仍须语义复核。生成规则见[独立安装的生成参考](../skills/ego-lite-test/references/case-authoring.md)。
+```json
+{
+  "schemaVersion": 3,
+  "operationId": "evidence-config-01-first",
+  "expectedRevision": 0,
+  "caseId": "CONFIG-01",
+  "sourceFile": "C:\\Users\\example\\AppData\\Local\\EgoLiteTest\\capture.png",
+  "kind": "screenshot",
+  "source": "测试期间保存的本地页面截图",
+  "description": "合成配置页面的观察"
+}
+```
 
-根对象必须包含 schemaVersion、非空白 project 和非空 cases 数组。根对象、用例、步骤和 basis 中的未知字段会被拒绝，而不是悄悄丢弃。额外背景保留在原始文档；确实需要新字段时，应明确修订协议。
+字段约定：
 
-## 结果与尝试记录
+- `operationId`：本次登记的幂等 ID，在该运行的 evidence / result 操作空间内不可复用。
+- `expectedRevision`：证据 catalog 的当前 `revision`；成功新登记后递增 1。
+- `caseId`：必须关联冻结基线中的一个用例。
+- `sourceFile`：绝对路径；来源必须是本地普通文件。逐级拒绝符号链接路径，并且不会删除或修改来源文件。
+- `kind`：`screenshot`、`dom`、`tool_receipt`、`log` 或 `other`。
+- `source`、`description`：由调用者提供的非空来源与说明。
+- `capturedAt`：可选的来源提供采集时间，格式为 UTC ISO 8601。本字段未知时应省略，工具不从文件时间猜测。
 
-每条结果必须包含 id、与基线完全一致的 basis，以及 status、observed、rationale、remainingQuestions、evidence。仅 cause 和 attempts 可省略。未知字段会被拒绝。
+工具先在运行目录独占锁下检查 revision 和源文件，将来源复制到唯一暂存文件，hash 与字节数基于实际复制的字节计算。它通过同卷独占硬链接将完整暂存文件安装到唯一最终名称，避免把部分复制文件暴露为最终证据；目标文件系统若不支持硬链接，登记会失败并清理本操作的文件。最终留存文件再独立核对。catalog 项包含唯一 `id`、相对 `path`、`caseId`、元数据、`sha256`、`bytes`、工具登记的 `collectedAt` 及操作 ID。返回值是后续 `record` 可使用的凭据；同一请求响应丢失后，用同一 ID 和相同 payload 重试会返回原回执。
 
-- status：pass、fail、inconclusive、blocked 或 not_run。
-- observed：实际观察到的行为，与 expected 分开记录。
-- rationale：为什么这些观察支持当前状态，以及哪些事情尚不能证明。
-- remainingQuestions：非空白问题字符串数组；没有已记录问题时用 []。空数组不证明所有不确定性已经消除。
-- evidence：证据文件的相对路径数组，不是目录条目 ID，也不是外部 URL。
-- cause：product_candidate、agent、environment、spec 或 unknown。产品问题候选不等于已确认根因；省略时报告显示 unknown。
-- attempts：按发生顺序保留的尝试，包括首次失败。每条尝试包含 status、observed、rationale、remainingQuestions、evidence，可选 cause；不包含 id、basis 或嵌套 attempts。
+SHA-256 只说明当前留存字节与 catalog 中的 hash 一致，不能证明文件真实、来源可信或结论正确。工具不自动脱敏，调用者需在复制前审查内容。
 
-pass/fail 必须有非空白 observed、rationale 和至少一个证据引用。inconclusive/blocked 必须有非空白 rationale。not_run 可以保留空 observed/rationale 和空数组。相同规则也适用于 attempts。结构有效的运行仍然可能尚未完成。
+## 最终结果与历史尝试
 
-所有原始基线用例必须恰好出现一次，包括 blocked 与 not_run；不得出现未知或重复的结果 ID。不能用后来的成功覆盖失败尝试，不能更换需求，也不能悄悄删除未完成用例。助手只能检查已提供的尝试，无法发现从未记录的尝试，也不能证明历史记录完整。
+结果请求格式见 [`record-request.schema.json`](../schemas/record-request.schema.json)：
 
-interpretation 和 hypothesis 即使状态为 pass/fail，也仍是未确认的验收发现。只有 explicit 结果计入 recordedExplicitOutcomes，但这些数字仍是操作者记录的结果，不是独立证明的判定。
+```json
+{
+  "schemaVersion": 3,
+  "operationId": "CONFIG-01-observation-1",
+  "expectedRevision": 0,
+  "caseId": "CONFIG-01",
+  "mode": "attempt",
+  "record": {
+    "status": "inconclusive",
+    "observed": "页面显示了合成配置名称，但刷新后的状态未观察。",
+    "rationale": "这次观察不足以判断整体预期。",
+    "remainingQuestions": ["是否要求刷新后仍能读取？"],
+    "evidenceIds": ["替换为登记回执的 evidenceId"],
+    "cause": "unknown"
+  }
+}
+```
 
-## 证据目录
+`record --run-dir ABS --request ABS_JSON` 支持 `mode: "final"` 和 `mode: "attempt"`：
 
-根对象只能包含必需的 schemaVersion 和 items。每条条目恰好包含以下必需字段：
+- `final` 更新用例的当前最终状态，进度按此状态计数。状态可为 `pass`、`fail`、`inconclusive`、`blocked` 或 `not_run`。若替换已有最终观察，旧状态会保留为 `superseded_final` 历史快照，除非该相同观察已在历史中保存。
+- `attempt` 追加一条操作观察，不改变当前最终状态。尝试需要自己的 `attemptId`、revision、时间与操作 ID。
+- **历史尝试数组不含当前最终观察本身。** 它包含明确用 `mode: attempt` 写入的观察，以及被替换且此前没有保留的最终观察快照。progress 的当前状态计数不重复统计历史状态；历史尝试数包含这两类记录。
+- `pass` / `fail` 必须有非空 `observed`、`rationale` 和至少一个已登记且属于同一用例的 `evidenceId`。`blocked` / `inconclusive` 必须给出 rationale。`not_run` 只适用于 final，不是已发生的 attempt。
+- 冻结基线有非空 `clarificationQuestions` 时，工具同时拒绝最终结果及尝试的 `pass` / `fail`。请求只记录结果字段，不能更改 frozen basis、expected、steps 或澄清问题。
+- `remainingQuestions` 描述结果/尝试仍有的问题；它不能代替或清除冻结用例中的 `clarificationQuestions`。
 
-- id：非空白目录标识，目录内唯一。
-- path：在目录中唯一、位于 evidence/ 下的斜杠分隔相对路径，例如 evidence/example.txt。
-- kind：screenshot、dom、tool_receipt、log 或 other。
-- capturedAt：有效 UTC ISO 时间，格式为 YYYY-MM-DDTHH:mm:ssZ 或 YYYY-MM-DDTHH:mm:ss.sssZ；不接受时区偏移或其他小数位数。
-- source：非空白的采集来源说明，例如使用的工具或页面视图；不能包含凭据或私有会话令牌。
-- description：非空白说明，描述证据展示了什么，以及重要限制或脱敏情况。
+工具验证证据 ID 存在、属于该用例，并拒绝重复引用。结果操作在单文件原子替换后返回操作 ID 与 revision 回执。进程在提交成功后、回执返回前失败时，同一请求重试会从账本读取原回执，不会重复追加。
 
-所有目录路径和结果/尝试引用必须指向本次运行 evidence 目录内已存在的普通文件。助手拒绝路径中的符号链接、绝对路径、目录穿越、空路径段、反斜杠、冒号和 NUL 字符。每个结果引用必须匹配目录中的 path。允许没有被引用的目录条目，但其文件仍必须存在；待执行运行可以使用空目录。
+## ID、revision 与并发规则
 
-时间、来源与描述均由操作者提供，不代表可信采集认证、签名、文件内容哈希或密码学真实性。安全允许时保留原始观察；脱敏不能误导复核者，使其误以为仍能看到已移除的内容。
+- 每个写操作使用安全的唯一 `operationId`；同一个 ID、同一规范化 JSON payload（对象 key 顺序不影响）是幂等重试；内容不同则拒绝。
+- 同一 run 的 evidence 和 result 操作 ID 共用唯一空间，避免跨类型误复用。
+- 新操作的 `expectedRevision` 必须等于相应 catalog 或 results 的当前 revision。过期请求拒绝，调用者先查询最新 revision 再决定如何构造新操作。
+- 每次 run 写入先以 `wx` 获取 `.run.lock` 独占锁，再读取和校验当前 revision。并发调用有一个获得锁，其他调用收到冲突错误；不会后台排队或自动重试。
+- 遗留锁会拒绝写入。确认其 PID 对应进程已退出后，操作者可检查锁文件并处理。不要自动删除未知锁。
+- `init`、`start`、报告和证据路径均拒绝目标覆盖；证据使用唯一名称。清理只针对由当前 operation 的暂存、marker 或唯一 evidence ID 生成的文件。
 
-## 校验边界与版本演进
+工具使用同目录临时文件、`fsync`（系统支持时）和单文件 rename 更新 JSON。证据先完整复制到暂存文件，再用同卷独占硬链接安装为唯一最终文件；不支持硬链接的文件系统会拒绝该次登记。它不提供跨 catalog、marker 与 evidence 文件的通用多文件事务或断电持久性保证。evidence 登记 marker 用于识别和恢复已知未提交/已提交操作状态；任何恢复结果仍会在 `check` 中核验文件 hash。运行目录不能被外部程序并发编辑。
 
-Schema 检查 JSON 结构、字段类型、枚举和单条记录的条件要求。验证器须支持 draft 2020-12 并解析本地引用；date-time 格式断言可能需要显式启用。助手另外检查真实日历时间、用例/目录 ID 唯一、单用例内步骤 ID 唯一、目录路径唯一、完整基线覆盖、basis 不变、基线字节哈希、引用归属、文件存在、符号链接和平台相关的绝对路径语义。单靠 JSON Schema 不能保证这些跨文件及文件系统规则。
+## 进度、check 与报告
 
-生成报告前运行 check。structurallyValid: true 只表示结构检查通过，不意味着全部用例已执行、全部关键前提已核实或产品通过。hasUnexecutedCases 与 counts 展示已记录覆盖情况，仍应审阅逐条证据和推理。
+```powershell
+node .\scripts\ego.mjs progress --run-dir $Run
+node .\scripts\ego.mjs check --run-dir $Run
+node .\scripts\ego.mjs report --run-dir $Run
+```
 
-0.1.2 保持 schemaVersion: 2；已有包含完整步骤 expected 的 v2 用例仍有效，无需迁移。全部 JSON 资产不接受 v1，也没有迁移层。旧文件必须按当前契约重新准备；不要修改历史运行基线来伪装新版记录。不要随意增加元数据或改变字段含义。检查不构成绕过工具直接修改文件等行为的安全边界。
+`progress` 返回每个冻结用例的当前 status 计数、完成（`pass` / `fail`）、未完成（`not_run` / `blocked` / `inconclusive`）、待澄清用例，以及尝试数。`hasUnexecutedCases` 只在当前最终状态为 `not_run` 时为 true；blocked 与 inconclusive 保持独立。`check` 会校验冻结 hash、封闭字段、关联、操作账本、路径和每条证据文件的 hash / 字节数。`report` 生成 `report.json` 和 `report.md`，转义 Markdown 文本并拒绝覆盖。
+
+合法结构只是记录格式合法，不代表操作者提供的结果经独立证实。报告和哈希不会自动证明业务正确性或缺陷归因。
+
+## 命令速查
+
+```text
+node scripts/ego.mjs init --project-dir ABS
+node scripts/ego.mjs validate-cases --cases ABS
+node scripts/ego.mjs start --project-dir ABS --cases ABS --output-dir ABS
+node scripts/ego.mjs evidence-add --run-dir ABS --request ABS_JSON
+node scripts/ego.mjs record --run-dir ABS --request ABS_JSON
+node scripts/ego.mjs progress --run-dir ABS
+node scripts/ego.mjs check --run-dir ABS
+node scripts/ego.mjs report --run-dir ABS
+```
+
+所有路径必须为绝对路径。命令仅对本地文件执行事实整理，不调用网络、模型、Ego 或浏览器，不自动选择测试路径或重试业务操作。v0.1.2 的 v2 文件需按原始来源重新准备并新建运行；不支持迁移。

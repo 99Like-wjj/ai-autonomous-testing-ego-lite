@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence-request.schema.json",
+  "title": "Evidence registration request v3",
+  "type": "object",
+  "required": ["schemaVersion", "operationId", "expectedRevision", "caseId", "sourceFile", "kind", "source", "description"],
+  "properties": {
+    "schemaVersion": { "const": 3 },
+    "operationId": { "$ref": "common.schema.json#/$defs/safeId" },
+    "expectedRevision": { "type": "integer", "minimum": 0 },
+    "caseId": { "$ref": "common.schema.json#/$defs/safeId" },
+    "sourceFile": { "$ref": "common.schema.json#/$defs/nonempty", "description": "Absolute local regular file path on the current operating system." },
+    "kind": { "enum": ["screenshot", "dom", "tool_receipt", "log", "other"] },
+    "capturedAt": { "$ref": "common.schema.json#/$defs/timestamp", "description": "Optional source-provided capture time. Omit when unknown; collectedAt is recorded independently." },
+    "source": { "$ref": "common.schema.json#/$defs/nonempty", "maxLength": 4096 },
+    "description": { "$ref": "common.schema.json#/$defs/nonempty", "maxLength": 4096 }
+  },
+  "additionalProperties": false
+}

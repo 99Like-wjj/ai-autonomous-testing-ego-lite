@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 3,
+  "operationId": "evidence-r01-first",
+  "expectedRevision": 0,
+  "caseId": "R-01-empty-title",
+  "sourceFile": "C:\\replace\\with\\synthetic-capture.txt",
+  "kind": "other",
+  "source": "Synthetic local fixture",
+  "description": "Fictional example bytes only. Replace this path and description before use."
+}

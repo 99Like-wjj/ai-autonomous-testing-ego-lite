@@ -6,400 +6,519 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { init, start, check, report, normalizeCases, safePath, validateCases, main, SOURCE_ROOT } from '../scripts/ego.mjs';
+import {
+  init, start, check, report, normalizeCases, safePath, validateCases, main,
+  progress, registerEvidence, recordResult, SOURCE_ROOT
+} from '../scripts/ego.mjs';
+
 const exec = promisify(execFile);
-const caseOf = (id = 'one', kind = 'explicit') => ({ id, title: `Case ${id}`, basis: { kind, source: 'Synthetic test instruction', text: 'A synthetic requirement' }, criticalConditions: ['Synthetic condition'], expected: 'Synthetic outcome', requiredPath: null, stepOrder: 'strict', steps: [{ id: 'step-1', action: 'Perform a synthetic action', expected: 'Observe the synthetic outcome' }] });
-async function registerEvidence(runDir, name) {
-  await fs.writeFile(path.join(runDir, 'evidence', name), 'Synthetic observation');
-  const catalogPath = path.join(runDir, 'evidence.json');
-  const catalog = JSON.parse(await fs.readFile(catalogPath));
-  catalog.items.push({ id: name, path: `evidence/${name}`, kind: 'log', capturedAt: '2026-01-01T00:00:00Z', source: 'Synthetic test', description: 'Synthetic observation only' });
-  await fs.writeFile(catalogPath, JSON.stringify(catalog));
-}
-const fixture = async t => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-synthetic-'));
+const schemaVersion = 3;
+const caseOf = (id = 'one', kind = 'explicit', additions = {}) => ({
+  id, title: `Synthetic case ${id}`,
+  basis: { kind, source: 'Synthetic fixture only', text: 'A synthetic requirement.' },
+  criticalConditions: ['Use only synthetic values.'], expected: 'The synthetic value can be retrieved.',
+  requiredPath: null, stepOrder: 'strict',
+  steps: [
+    { id: 'locate', action: 'Find the synthetic settings feature.' },
+    { id: 'create', action: 'Create a record using the synthetic value.', expected: 'The record is retrievable.' }
+  ],
+  ...additions
+});
+const writeJson = (filename, data) => fs.writeFile(filename, JSON.stringify(data, null, 2) + '\n');
+const readJson = async filename => JSON.parse(await fs.readFile(filename, 'utf8'));
+const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+
+async function fixture(t, cases = [caseOf(), caseOf('two', 'hypothesis')]) {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-toolbox-synthetic-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   const projectDir = path.join(root, 'project with spaces');
   await init(projectDir);
   const casesFile = path.join(projectDir, 'cases.json');
   const outputDir = path.join(root, 'run with spaces');
-  await fs.writeFile(casesFile, JSON.stringify({ schemaVersion: 2, project: 'Synthetic only', cases: [caseOf(), caseOf('two', 'hypothesis')] }));
+  await writeJson(casesFile, { schemaVersion, project: 'Synthetic only', cases });
   await start({ projectDir, casesFile, outputDir });
-  const edit = async fn => { const file = path.join(outputDir, 'results.json'); const value = JSON.parse(await fs.readFile(file)); fn(value); await fs.writeFile(file, JSON.stringify(value)); };
-  return { root, projectDir, casesFile, outputDir, edit };
-};
-test('initial scaffold is structurally valid and honestly incomplete', async t => {
-  const f = await fixture(t); const r = await check(f.outputDir);
-  assert.equal(r.structurallyValid, true); assert.equal(r.hasUnexecutedCases, true); assert.equal(r.counts.not_run, 2);
-});
-test('explicit pass and ambiguous fail remain separate; report deterministic and HTML escaped', async t => {
-  const f = await fixture(t);
-  await registerEvidence(f.outputDir, 'synthetic.txt');
-  await f.edit(r => r.cases.forEach((c, i) => { c.status = i ? 'fail' : 'pass'; c.observed = 'Synthetic observation'; c.rationale = '<script>alert(1)</script>'; c.evidence = ['evidence/synthetic.txt']; }));
-  const r = await check(f.outputDir); assert.deepEqual(r.recordedExplicitOutcomes, { pass: 1, fail: 0 }); assert.equal(r.hasUnexecutedCases, false);
-  const out = await report(f.outputDir); const md = await fs.readFile(out.reportMarkdown, 'utf8');
-  assert.match(md, /NOT confirmed acceptance/); assert.doesNotMatch(md, /<script>/); assert.match(md, /&lt;script&gt;/);
-  assert.deepEqual(JSON.parse(await fs.readFile(out.reportJson)), r);
-  await assert.rejects(report(f.outputDir), /overwrite/);
-});
-test('inconclusive and blocked are valid, not forced failures', async t => {
-  const f = await fixture(t); await f.edit(r => { r.cases[0].status = 'inconclusive'; r.cases[0].rationale = 'Synthetic uncertainty'; r.cases[1].status = 'blocked'; r.cases[1].rationale = 'Synthetic blocker'; });
-  const r = await check(f.outputDir); assert.equal(r.counts.fail, 0); assert.equal(r.counts.inconclusive, 1); assert.equal(r.counts.blocked, 1);
-});
-test('partial completion is preserved', async t => {
-  const f = await fixture(t); await f.edit(r => { r.cases[0].status = 'inconclusive'; r.cases[0].rationale = 'Synthetic uncertainty'; });
-  const r = await check(f.outputDir); assert.equal(r.hasUnexecutedCases, true); assert.equal(r.counts.not_run, 1);
-});
-test('duplicate input cases rejected', () => assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'test', cases: [caseOf(), caseOf()] }), /Duplicate/));
-test('malformed cases rejected', () => {
-  for (const input of [null, {}, { schemaVersion: 2, project: 'x', cases: [] }, { schemaVersion: 2, project: 'x', cases: [{ ...caseOf(), requiredPath: undefined }] }]) assert.throws(() => normalizeCases(input));
-});
-for (const [label, change, pattern] of [
-  ['duplicate results', r => r.cases.push(r.cases[0]), /Duplicate/],
-  ['unknown result', r => { r.cases[0].id = 'unknown'; }, /Unknown/],
-  ['missing original result', r => r.cases.pop(), /Missing original/],
-  ['basis rewrite', r => { r.cases[0].basis.text = 'Different requirement'; }, /Basis changed/],
-  ['missing evidence', r => { r.cases[0].status = 'pass'; r.cases[0].rationale = 'Claim'; }, /requires rationale and evidence/],
-  ['missing rationale', r => { r.cases[0].status = 'fail'; r.cases[0].evidence = ['evidence/x.txt']; }, /requires rationale and evidence/],
-  ['unknown cause', r => { r.cases[0].cause = 'definitely_product'; }, /Invalid cause/],
-  ['invalid attempt', r => { r.cases[0].attempts = [{ status: 'pass', observed: 'Synthetic observation', remainingQuestions: [], rationale: '', evidence: [] }]; }, /requires rationale and evidence/]
-]) test(label, async t => { const f = await fixture(t); await f.edit(change); await assert.rejects(check(f.outputDir), pattern); });
-test('baseline hash change detected even for whitespace', async t => {
-  const f = await fixture(t); await fs.appendFile(path.join(f.outputDir, 'baseline.json'), ' '); await assert.rejects(check(f.outputDir), /hash mismatch/);
-});
-for (const ref of ['../outside.txt', '/etc/passwd', 'C:/outside.txt', 'evidence\\outside.txt', 'evidence/../results.json', './results.json', 'evidence//x', 'evidence/missing.txt', 'evidence']) {
-  test(`reject unsafe or nonexistent evidence ${ref}`, async t => { const f = await fixture(t); await f.edit(r => { r.cases[0].evidence = [ref]; }); await assert.rejects(check(f.outputDir)); });
+  return { root, projectDir, casesFile, outputDir };
 }
-test('symlink evidence and parent paths rejected', async t => {
-  const f = await fixture(t); const target = path.join(f.root, 'outside.txt'); await fs.writeFile(target, 'synthetic');
-  try { await fs.symlink(target, path.join(f.outputDir, 'evidence', 'link.txt')); } catch (e) { if (e.code === 'EPERM') { t.skip('OS does not allow test symlink creation'); return; } throw e; }
-  await f.edit(r => { r.cases[0].evidence = ['evidence/link.txt']; }); await assert.rejects(check(f.outputDir), /Symlink/);
-  await fs.symlink(f.projectDir, path.join(f.root, 'linked'), 'dir'); await assert.rejects(safePath(path.join(f.root, 'linked', 'new'), { external: true }), /Symlink/);
-});
-test('refuse existing targets without modifying them', async t => {
-  const f = await fixture(t); const before = await fs.readFile(path.join(f.outputDir, 'manifest.json'), 'utf8');
-  await assert.rejects(start(f), /EEXIST/); await assert.rejects(init(f.projectDir), /EEXIST/);
-  assert.equal(await fs.readFile(path.join(f.outputDir, 'manifest.json'), 'utf8'), before);
-});
-test('source repo, roots, and relative record directories rejected', async () => {
-  for (const p of [SOURCE_ROOT, path.join(SOURCE_ROOT, 'private-run'), path.parse(SOURCE_ROOT).root, 'relative']) await assert.rejects(safePath(p, { external: true }));
-});
-test('CLI argument parser rejects missing, unknown, and duplicate flags', async () => {
-  for (const args of [['wat'], ['init'], ['check', '--run-dir'], ['check', '--wrong', '/tmp'], ['check', '--run-dir', '/tmp', '--run-dir', '/tmp']]) await assert.rejects(main(args));
-});
-test('CLI handles quoted-equivalent paths with spaces, without shell dependencies', async t => {
-  const f = await fixture(t); const result = await exec(process.execPath, [path.join(SOURCE_ROOT, 'scripts', 'ego.mjs'), 'check', '--run-dir', f.outputDir]);
-  assert.equal(JSON.parse(result.stdout).structurallyValid, true);
-});
-test('original attempts retained rather than replacing a failed run with a later pass', async t => {
-  const f = await fixture(t); await registerEvidence(f.outputDir, 'attempt.txt');
-  await f.edit(r => { r.cases[0].attempts = [{ status: 'fail', observed: 'Synthetic observation', remainingQuestions: [], rationale: 'Initial synthetic failure', evidence: ['evidence/attempt.txt'], cause: 'unknown' }, { status: 'inconclusive', observed: '', remainingQuestions: [], rationale: 'Later synthetic ambiguity', evidence: [] }]; });
-  const r = await check(f.outputDir); assert.equal(r.cases[0].attempts[0].status, 'fail'); assert.equal(r.cases[0].attempts.length, 2);
-});
-test('interpretation pass is never counted as confirmed acceptance', async t => {
-  const f = await fixture(t); const next = path.join(f.root, 'interpretation-run');
-  await fs.writeFile(f.casesFile, JSON.stringify({ schemaVersion: 2, project: 'Synthetic interpretation', cases: [caseOf('inferred', 'interpretation')] }));
-  await start({ projectDir: f.projectDir, casesFile: f.casesFile, outputDir: next });
-  await registerEvidence(next, 'synthetic.txt');
-  const filename = path.join(next, 'results.json'); const results = JSON.parse(await fs.readFile(filename));
-  Object.assign(results.cases[0], { status: 'pass', observed: 'Synthetic observation', remainingQuestions: [], rationale: 'Synthetic', evidence: ['evidence/synthetic.txt'] });
-  await fs.writeFile(filename, JSON.stringify(results));
-  const result = await check(next); assert.equal(result.counts.pass, 1); assert.equal(result.recordedExplicitOutcomes.pass, 0);
-});
-test('malformed JSON fails and no report is emitted', async t => {
-  const f = await fixture(t); await fs.writeFile(path.join(f.outputDir, 'results.json'), '{');
-  await assert.rejects(report(f.outputDir)); await assert.rejects(fs.stat(path.join(f.outputDir, 'report.md')), /ENOENT/);
-});
-test('evidence alternate stream syntax rejected', async t => {
-  const f = await fixture(t); await f.edit(r => { r.cases[0].evidence = ['evidence/name:stream']; }); await assert.rejects(check(f.outputDir), /Evidence must/);
-});
-for (const key of ['expected', 'title', 'criticalConditions', 'requiredPath', 'stepOrder', 'steps', 'clarificationQuestions', 'unexpected']) {
-  test(`result cannot override baseline field ${key}`, async t => {
-    const f = await fixture(t); await f.edit(r => { r.cases[0][key] = 'Rewritten requirement'; });
-    await assert.rejects(check(f.outputDir), /Unexpected result key/);
+
+async function addEvidence(f, {
+  operationId = 'evidence-op-1', expectedRevision = 0, caseId = 'one',
+  sourceFile = path.join(f.root, 'source.log'), kind = 'log',
+  source = 'Synthetic tool receipt', description = 'Synthetic observation only', capturedAt
+} = {}, hooks = {}) {
+  try { await fs.access(sourceFile); } catch { await fs.writeFile(sourceFile, 'synthetic retained bytes\n'); }
+  const request = {
+    schemaVersion, operationId, expectedRevision, caseId, sourceFile, kind,
+    source, description, ...(capturedAt === undefined ? {} : { capturedAt })
+  };
+  const receipt = await registerEvidence({ runDir: f.outputDir, request }, hooks);
+  return { request, receipt };
+}
+
+function recordRequest({
+  operationId, expectedRevision, caseId = 'one', mode = 'final', status,
+  observed = '', rationale = '', evidenceIds = [], remainingQuestions = [], cause = 'unknown'
+}) {
+  return {
+    schemaVersion, operationId, expectedRevision, caseId, mode,
+    record: { status, observed, rationale, remainingQuestions, evidenceIds, cause }
+  };
+}
+
+async function committedEvidence(f, options = {}) {
+  return addEvidence(f, options);
+}
+
+async function recorded(f, status, options = {}) {
+  const current = await readJson(path.join(f.outputDir, 'results.json'));
+  const request = recordRequest({
+    operationId: options.operationId ?? `result-${current.revision + 1}`,
+    expectedRevision: options.expectedRevision ?? current.revision,
+    caseId: options.caseId ?? 'one', mode: options.mode ?? 'final', status,
+    observed: options.observed ?? (['pass', 'fail'].includes(status) ? `Synthetic ${status} observation.` : ''),
+    rationale: options.rationale ?? (status === 'not_run' ? '' : `Synthetic ${status} rationale.`),
+    evidenceIds: options.evidenceIds ?? [], remainingQuestions: options.remainingQuestions ?? [],
+    cause: options.cause ?? 'unknown'
   });
+  return { request, receipt: await recordResult({ runDir: f.outputDir, request }) };
 }
-test('unexpected attempt metadata rejected rather than propagated', async t => {
-  const f = await fixture(t); await f.edit(r => { r.cases[0].attempts = [{ status: 'not_run', observed: '', remainingQuestions: [], rationale: '', evidence: [], unexpected: 'do not propagate' }]; });
-  await assert.rejects(check(f.outputDir), /Unexpected attempt key/);
-});
-test('new scaffold includes empty catalog and explicit observation/question slots', async t => {
-  const f = await fixture(t); const r = await check(f.outputDir);
-  assert.deepEqual(r.evidenceCatalog, { schemaVersion: 2, items: [] });
-  assert.equal(r.cases[0].observed, ''); assert.deepEqual(r.cases[0].remainingQuestions, []);
-});
-test('pass needs observed behavior, not only rationale and evidence', async t => {
-  const f = await fixture(t); await registerEvidence(f.outputDir, 'synthetic.txt');
-  await f.edit(r => Object.assign(r.cases[0], { status: 'pass', rationale: 'Claim', evidence: ['evidence/synthetic.txt'] }));
-  await assert.rejects(check(f.outputDir), /observed behavior/);
-});
-test('every referenced evidence file needs catalog metadata', async t => {
-  const f = await fixture(t); await fs.writeFile(path.join(f.outputDir, 'evidence', 'uncataloged.txt'), 'Synthetic');
-  await f.edit(r => { r.cases[0].evidence = ['evidence/uncataloged.txt']; });
-  await assert.rejects(check(f.outputDir), /missing from catalog/);
-});
-for (const [label, edit] of [
-  ['duplicate ids', c => c.items.push({ ...c.items[0], path: 'evidence/other.txt' })],
-  ['duplicate paths', c => c.items.push({ ...c.items[0], id: 'other' })],
-  ['invalid date', c => { c.items[0].capturedAt = '2026-02-30T00:00:00Z'; }],
-  ['offset date', c => { c.items[0].capturedAt = '2026-01-01T00:00:00+08:00'; }],
-  ['unknown kind', c => { c.items[0].kind = 'proof'; }],
-  ['missing source', c => { delete c.items[0].source; }],
-  ['missing file', c => { c.items[0].path = 'evidence/missing.txt'; }],
-  ['outside evidence directory', c => { c.items[0].path = 'results.json'; }],
-  ['extra metadata', c => { c.items[0].unknown = 'Unexpected'; }]
-]) test(`catalog rejects ${label}`, async t => {
-  const f = await fixture(t); await registerEvidence(f.outputDir, 'synthetic.txt');
-  const filename = path.join(f.outputDir, 'evidence.json'); const catalog = JSON.parse(await fs.readFile(filename)); edit(catalog); await fs.writeFile(filename, JSON.stringify(catalog));
-  await assert.rejects(check(f.outputDir));
-});
-for (const status of ['inconclusive', 'blocked']) test(`${status} requires an explanation`, async t => {
-  const f = await fixture(t); await f.edit(r => { r.cases[0].status = status; }); await assert.rejects(check(f.outputDir), /requires rationale/);
-});
-test('closed case input format rejects unexpected keys', () => {
-  for (const update of [x => { x.extra = 1; }, x => { x.cases[0].extra = 1; }, x => { x.cases[0].basis.extra = 1; }]) {
-    const input = { schemaVersion: 2, project: 'Synthetic', cases: [caseOf()] }; update(input); assert.throws(() => normalizeCases(input));
+
+test('new run uses closed schema v3 files and starts each frozen case as not_run', async t => {
+  const f = await fixture(t);
+  const result = await check(f.outputDir);
+  assert.equal(result.schemaVersion, 3);
+  assert.equal(result.structurallyValid, true);
+  assert.equal(result.hasUnexecutedCases, true);
+  assert.equal(result.counts.not_run, 2);
+  assert.deepEqual(result.progress.uncompleted.statusCounts, { not_run: 2, blocked: 0, inconclusive: 0 });
+  for (const name of ['baseline.json', 'manifest.json', 'results.json', 'evidence.json']) {
+    assert.equal((await readJson(path.join(f.outputDir, name))).schemaVersion, 3);
   }
-});
-test('closed manifest and result roots reject unexpected keys', async t => {
-  const f = await fixture(t); await f.edit(r => { r.extra = true; }); await assert.rejects(check(f.outputDir), /Invalid results/);
-  const filename = path.join(f.outputDir, 'manifest.json'); const manifest = JSON.parse(await fs.readFile(filename)); manifest.extra = true; await fs.writeFile(filename, JSON.stringify(manifest)); await assert.rejects(check(f.outputDir), /Invalid manifest/);
+  assert.equal(result.evidenceCatalog.revision, 0);
+  assert.deepEqual(result.evidenceCatalog.items, []);
 });
 
-for (const [label, update] of [
-  ['missing steps', c => { delete c.steps; }],
-  ['empty steps', c => { c.steps = []; }],
-  ['non-array steps', c => { c.steps = {}; }],
-  ['duplicate step IDs', c => { c.steps.push({ ...c.steps[0], action: 'Another action' }); }],
-  ['missing stepOrder', c => { delete c.stepOrder; }],
-  ['unsupported stepOrder', c => { c.stepOrder = 'free'; }],
-  ['unexpected step field', c => { c.steps[0].script = 'do not execute'; }],
-  ['missing step id', c => { delete c.steps[0].id; }],
-  ['blank step action', c => { c.steps[0].action = '  '; }],
-  ['null step', c => { c.steps[0] = null; }]
-]) test(`v2 cases reject ${label}`, () => {
-  const c = caseOf(); update(c);
-  assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [c] }));
-});
-test('strict/adaptive preserve identical step semantics, including original order and text', () => {
-  const cases = ['strict', 'adaptive'].map((stepOrder, i) => ({ ...caseOf(String(i)), stepOrder, steps: [{ id: 'second', action: 'First business action', expected: 'First observation' }, { id: 'first', action: 'Next business action', expected: 'Next observation' }] }));
-  const input = { schemaVersion: 2, project: 'Synthetic', cases };
-  const normalized = normalizeCases(input);
-  assert.deepEqual(normalized, input);
-  assert.notEqual(normalized.cases[0].steps, cases[0].steps);
-  assert.notEqual(normalized.cases[0].steps[0], cases[0].steps[0]);
-});
-test('v1 input is rejected rather than migrated', () => {
-  assert.throws(() => normalizeCases({ schemaVersion: 1, project: 'Synthetic', cases: [caseOf()] }), /schemaVersion 2/);
-});
-for (const asset of ['manifest.json', 'results.json', 'evidence.json']) test(`v1 ${asset} is rejected`, async t => {
-  const f = await fixture(t); const filename = path.join(f.outputDir, asset);
-  const data = JSON.parse(await fs.readFile(filename)); data.schemaVersion = 1;
-  await fs.writeFile(filename, JSON.stringify(data));
-  await assert.rejects(check(f.outputDir), /Invalid/);
-});
-test('new sample and all persisted/generated assets use v2', async t => {
+test('init gives a synthetic v3 case preserving business intent and optional checkpoints', async t => {
   const f = await fixture(t);
-  const sample = JSON.parse(await fs.readFile(path.join(f.projectDir, 'cases.example.json')));
-  assert.deepEqual(normalizeCases(sample), sample); assert.ok(sample.cases[0].steps.length);
-  const out = await report(f.outputDir);
-  for (const filename of ['baseline.json', 'manifest.json', 'results.json', 'evidence.json', 'report.json']) assert.equal(JSON.parse(await fs.readFile(path.join(f.outputDir, filename))).schemaVersion, 2);
-  assert.equal(JSON.parse(await fs.readFile(out.reportJson)).evidenceCatalog.schemaVersion, 2);
+  const sample = await readJson(path.join(f.projectDir, 'cases.example.json'));
+  assert.deepEqual(normalizeCases(sample), sample);
+  assert.equal(sample.schemaVersion, 3);
+  assert.ok(sample.cases[0].steps.some(step => !Object.hasOwn(step, 'expected')));
+  assert.ok(sample.cases[0].expected.trim());
 });
-test('validate-cases checks the same contract without writing or freezing input', async t => {
+
+test('evidence registration copies local bytes and hashes the retained file without inventing capture time', async t => {
+  const f = await fixture(t);
+  const source = path.join(f.root, 'actual-source.bin');
+  const sourceBytes = Buffer.from([0, 1, 2, 255, 10]);
+  await fs.writeFile(source, sourceBytes);
+  const { receipt } = await addEvidence(f, { sourceFile: source });
+  const catalog = await readJson(path.join(f.outputDir, 'evidence.json'));
+  const item = catalog.items[0];
+  assert.match(item.id, /^ev-[a-f0-9-]+$/);
+  assert.equal(item.bytes, sourceBytes.length);
+  assert.equal(item.sha256, hash(sourceBytes));
+  assert.equal(item.collectedAt, receipt.collectedAt);
+  assert.equal(Object.hasOwn(item, 'capturedAt'), false);
+  assert.deepEqual(await fs.readFile(path.join(f.outputDir, ...item.path.split('/'))), sourceBytes);
+  assert.deepEqual(await fs.readFile(source), sourceBytes);
+  assert.equal(receipt.evidenceId, item.id);
+  assert.equal(receipt.replayed, false);
+  assert.equal((await check(f.outputDir)).evidenceIntegrity.hashVerifiedItems, 1);
+});
+
+test('capturedAt is recorded only when supplied and remains distinct from collectedAt', async t => {
+  const f = await fixture(t);
+  const capture = '2026-10-20T10:11:12Z';
+  const { receipt } = await addEvidence(f, { capturedAt: capture });
+  const item = (await readJson(path.join(f.outputDir, 'evidence.json'))).items[0];
+  assert.equal(item.capturedAt, capture);
+  assert.equal(item.collectedAt, receipt.collectedAt);
+  assert.notEqual(item.collectedAt, capture);
+});
+
+test('evidence operation is idempotent across JSON key order and rejects changed payloads', async t => {
+  const f = await fixture(t);
+  const { request, receipt } = await addEvidence(f);
+  const reordered = Object.fromEntries(Object.entries(request).reverse());
+  const replay = await registerEvidence({ runDir: f.outputDir, request: reordered });
+  assert.equal(replay.evidenceId, receipt.evidenceId);
+  assert.equal(replay.replayed, true);
+  assert.equal((await readJson(path.join(f.outputDir, 'evidence.json'))).items.length, 1);
+  await assert.rejects(registerEvidence({ runDir: f.outputDir, request: { ...request, description: 'Changed payload' } }), /different payload/);
+  await assert.rejects(addEvidence(f, { operationId: 'different-operation', expectedRevision: 0 }), /revision conflict/);
+});
+
+test('evidence association, timestamps, kinds, request shape, and unsafe IDs are validated', async t => {
+  const f = await fixture(t);
+  const base = {
+    schemaVersion, operationId: 'op', expectedRevision: 0, caseId: 'missing',
+    sourceFile: path.join(f.root, 'source.log'), kind: 'log', source: 'Synthetic source', description: 'Synthetic description'
+  };
+  await fs.writeFile(base.sourceFile, 'synthetic');
+  await assert.rejects(registerEvidence({ runDir: f.outputDir, request: base }), /Unknown case/);
+  for (const changes of [
+    { caseId: '__proto__' }, { operationId: 'constructor' },
+    { capturedAt: '2026-02-30T10:11:12Z' }, { capturedAt: '2026-01-01T00:00:00+08:00' },
+    { kind: 'proof' }, { extra: true }, { expectedRevision: -1 }
+  ]) {
+    await assert.rejects(registerEvidence({ runDir: f.outputDir, request: { ...base, caseId: 'one', ...changes } }));
+  }
+});
+
+test('evidence source must be a regular, nonsymlink local file within a checked path', async t => {
+  const f = await fixture(t);
+  const dir = path.join(f.root, 'source-directory');
+  await fs.mkdir(dir);
+  const directoryRequest = {
+    schemaVersion, operationId: 'directory', expectedRevision: 0, caseId: 'one',
+    sourceFile: dir, kind: 'other', source: 'Synthetic', description: 'Synthetic'
+  };
+  await assert.rejects(registerEvidence({ runDir: f.outputDir, request: directoryRequest }), /regular file/);
+  const outside = path.join(f.root, 'outside.log'); await fs.writeFile(outside, 'synthetic');
+  const link = path.join(f.root, 'source-link.log');
+  try { await fs.symlink(outside, link); } catch (error) { if (['EPERM', 'EACCES'].includes(error.code)) { t.skip('OS does not allow synthetic symlink creation'); return; } throw error; }
+  await assert.rejects(addEvidence(f, { operationId: 'symlink', sourceFile: link }), /Symlink|ELOOP/);
+});
+
+test('evidence copy or catalog failure cleans only the operation-owned staged files', async t => {
+  const f = await fixture(t);
+  await assert.rejects(addEvidence(f, { operationId: 'copy-fail' }, { afterCopy: async () => { throw new Error('synthetic injected copy failure'); } }), /injected copy failure/);
+  await assert.rejects(addEvidence(f, { operationId: 'catalog-fail' }, { beforeCatalogCommit: async () => { throw new Error('synthetic injected catalog failure'); } }), /injected catalog failure/);
+  assert.deepEqual((await readJson(path.join(f.outputDir, 'evidence.json'))).items, []);
+  assert.deepEqual((await fs.readdir(path.join(f.outputDir, 'evidence'))), []);
+  assert.deepEqual((await fs.readdir(f.outputDir)).filter(name => name.startsWith('.ego-') || name === '.evidence.pending.json'), []);
+});
+
+test('evidence commit followed by lost response recovers and retries without duplication', async t => {
+  const f = await fixture(t);
+  const request = {
+    schemaVersion, operationId: 'response-lost', expectedRevision: 0, caseId: 'one',
+    sourceFile: path.join(f.root, 'source.log'), kind: 'log', source: 'Synthetic source', description: 'Synthetic bytes'
+  };
+  await fs.writeFile(request.sourceFile, 'synthetic retained bytes\n');
+  await assert.rejects(registerEvidence({ runDir: f.outputDir, request }, { afterCommit: async () => { throw new Error('synthetic response loss'); } }), /response loss/);
+  assert.ok(await fs.stat(path.join(f.outputDir, '.evidence.pending.json')));
+  const replay = await registerEvidence({ runDir: f.outputDir, request });
+  assert.equal(replay.replayed, true);
+  assert.equal((await readJson(path.join(f.outputDir, 'evidence.json'))).items.length, 1);
+  assert.deepEqual((await fs.readdir(path.join(f.outputDir, 'evidence'))).filter(name => name.startsWith('.')), []);
+});
+
+test('result recording preserves fail once across fail to pass and duplicate pass replay', async t => {
+  const f = await fixture(t);
+  const { receipt: ev } = await committedEvidence(f);
+  const evidenceIds = [ev.evidenceId];
+  const first = await recorded(f, 'fail', { operationId: 'fail-once', evidenceIds, rationale: 'Synthetic first failure.' });
+  assert.equal(first.receipt.revision, 1);
+  const passRequest = recordRequest({ operationId: 'pass-final', expectedRevision: 1, status: 'pass', observed: 'Synthetic value shown.', rationale: 'Synthetic pass observation.', evidenceIds });
+  const pass = await recordResult({ runDir: f.outputDir, request: passRequest });
+  assert.equal(pass.revision, 2);
+  const replay = await recordResult({ runDir: f.outputDir, request: { ...passRequest, record: Object.fromEntries(Object.entries(passRequest.record).reverse()) } });
+  assert.equal(replay.replayed, true);
+  const checked = await check(f.outputDir);
+  assert.equal(checked.cases[0].status, 'pass');
+  assert.deepEqual(checked.cases[0].attempts.map(attempt => attempt.status), ['fail']);
+  assert.equal(checked.progress.attemptedCases.totalAttempts, 1);
+  assert.equal(checked.counts.fail, 0);
+  assert.equal(checked.counts.pass, 1);
+});
+
+test('attempt observations append independently and do not replace the current final result', async t => {
+  const f = await fixture(t);
+  const { receipt: ev } = await committedEvidence(f);
+  const result = await recordResult({ runDir: f.outputDir, request: recordRequest({
+    operationId: 'observation-attempt', expectedRevision: 0, mode: 'attempt', status: 'fail',
+    observed: 'Synthetic failure.', rationale: 'Synthetic evidence supports this attempt.', evidenceIds: [ev.evidenceId]
+  }) });
+  assert.equal(result.attemptId.length > 0, true);
+  const checked = await check(f.outputDir);
+  assert.equal(checked.cases[0].status, 'not_run');
+  assert.deepEqual(checked.cases[0].attempts.map(item => item.status), ['fail']);
+  assert.equal(checked.progress.uncompleted.statusCounts.not_run, 2);
+});
+
+test('result operations use idempotency, reject altered payload and stale revisions, and recover a lost response', async t => {
+  const f = await fixture(t);
+  const request = recordRequest({ operationId: 'lost-result-response', expectedRevision: 0, status: 'blocked', rationale: 'Synthetic environment block.' });
+  await assert.rejects(recordResult({ runDir: f.outputDir, request }, { afterCommit: async () => { throw new Error('synthetic response loss'); } }), /response loss/);
+  const replay = await recordResult({ runDir: f.outputDir, request });
+  assert.equal(replay.replayed, true);
+  assert.equal((await readJson(path.join(f.outputDir, 'results.json'))).revision, 1);
+  await assert.rejects(recordResult({ runDir: f.outputDir, request: { ...request, record: { ...request.record, rationale: 'Altered.' } } }), /different payload/);
+  await assert.rejects(recordResult({ runDir: f.outputDir, request: recordRequest({ operationId: 'stale', expectedRevision: 0, status: 'blocked', rationale: 'Synthetic blocker.' }) }), /Revision conflict/);
+});
+
+test('concurrent writers do not overwrite a shared revision', async t => {
+  const f = await fixture(t);
+  const make = id => recordResult({ runDir: f.outputDir, request: recordRequest({ operationId: id, expectedRevision: 0, status: 'blocked', rationale: 'Synthetic blocker.' }) });
+  const outcomes = await Promise.allSettled([make('writer-a'), make('writer-b')]);
+  assert.equal(outcomes.filter(item => item.status === 'fulfilled').length, 1);
+  assert.equal(outcomes.filter(item => item.status === 'rejected').length, 1);
+  assert.match(outcomes.find(item => item.status === 'rejected').reason.message, /locked|revision conflict/);
+  assert.equal((await check(f.outputDir)).revision, 1);
+});
+
+test('stale or symlink run locks refuse writers; lock is removed after a normal operation', async t => {
+  const f = await fixture(t);
+  const lock = path.join(f.outputDir, '.run.lock');
+  await fs.writeFile(lock, JSON.stringify({ token: 'synthetic-stale', pid: 0, startedAt: '2026-01-01T00:00:00Z' }));
+  await assert.rejects(progress(f.outputDir), /locked/);
+  await fs.unlink(lock);
+  await progress(f.outputDir);
+  await assert.rejects(fs.stat(lock), /ENOENT/);
+  const target = path.join(f.root, 'lock-target'); await fs.writeFile(target, '{}');
+  try { await fs.symlink(target, lock); } catch (error) { if (['EPERM', 'EACCES'].includes(error.code)) { t.skip('OS does not allow synthetic symlink creation'); return; } throw error; }
+  await assert.rejects(progress(f.outputDir), /Symlink|locked/);
+});
+
+test('pending baseline clarification prohibits pass or fail in final records and attempts', async t => {
+  const f = await fixture(t, [caseOf('one', 'explicit', { clarificationQuestions: ['Which synthetic scope is requested?'] })]);
+  const { receipt: ev } = await committedEvidence(f);
+  for (const mode of ['final', 'attempt']) for (const status of ['pass', 'fail']) {
+    const request = recordRequest({ operationId: `clarify-${mode}-${status}`, expectedRevision: 0, mode, status,
+      observed: 'Synthetic observed behavior.', rationale: 'Synthetic rationale.', evidenceIds: [ev.evidenceId] });
+    await assert.rejects(recordResult({ runDir: f.outputDir, request }), /Pending clarification prohibits pass\/fail/);
+  }
+  assert.equal((await readJson(path.join(f.outputDir, 'results.json'))).revision, 0);
+});
+
+test('check catches a cleared frozen clarification and any pass or fail attempt in saved history', async t => {
+  const f = await fixture(t, [caseOf('one', 'explicit', { clarificationQuestions: ['Unresolved synthetic question?'] })]);
+  const resultPath = path.join(f.outputDir, 'results.json');
+  const results = await readJson(resultPath);
+  results.cases[0].clarificationQuestions = [];
+  await writeJson(resultPath, results);
+  await assert.rejects(check(f.outputDir), /Unexpected result key|clarificationQuestions/);
+
+  const f2 = await fixture(t, [caseOf('one', 'explicit', { clarificationQuestions: ['Unresolved synthetic question?'] })]);
+  const ev = await committedEvidence(f2);
+  const attemptRequest = recordRequest({ operationId: 'forged-history', expectedRevision: 0, mode: 'attempt', status: 'blocked', rationale: 'Synthetic blocker.' });
+  const attemptReceipt = await recordResult({ runDir: f2.outputDir, request: attemptRequest });
+  const resultPath2 = path.join(f2.outputDir, 'results.json');
+  const saved = await readJson(resultPath2);
+  saved.cases[0].attempts[0].status = 'pass';
+  saved.cases[0].attempts[0].observed = 'Synthetic observed.';
+  saved.cases[0].attempts[0].rationale = 'Synthetic rationale.';
+  saved.cases[0].attempts[0].evidenceIds = [ev.receipt.evidenceId];
+  saved.operations.find(op => op.attemptId === attemptReceipt.attemptId).status = 'pass';
+  await writeJson(resultPath2, saved);
+  await assert.rejects(check(f2.outputDir), /Pending clarification prohibits pass\/fail/);
+});
+
+test('progress reports current outcome once, pending questions, and distinct blocked/inconclusive/not_run', async t => {
+  const f = await fixture(t, [
+    caseOf('pass-case'), caseOf('blocked-case'), caseOf('uncertain-case'),
+    caseOf('pending-case', 'interpretation', { clarificationQuestions: ['Synthetic question?'] })
+  ]);
+  const { receipt: ev } = await committedEvidence(f, { caseId: 'pass-case' });
+  await recorded(f, 'fail', { caseId: 'pass-case', operationId: 'first-fail', evidenceIds: [ev.evidenceId] });
+  await recordResult({ runDir: f.outputDir, request: recordRequest({ operationId: 'replacement-pass', expectedRevision: 1, caseId: 'pass-case', status: 'pass', observed: 'Synthetic value is visible.', rationale: 'Synthetic final comparison.', evidenceIds: [ev.evidenceId] }) });
+  await recorded(f, 'blocked', { caseId: 'blocked-case', operationId: 'blocked', rationale: 'Synthetic setup block.' });
+  await recorded(f, 'inconclusive', { caseId: 'uncertain-case', operationId: 'uncertain', rationale: 'Synthetic outcome is unclear.' });
+  const current = await progress(f.outputDir);
+  assert.deepEqual(current.progress.completed.statusCounts, { pass: 1, fail: 0 });
+  assert.deepEqual(current.progress.uncompleted.statusCounts, { not_run: 1, blocked: 1, inconclusive: 1 });
+  assert.deepEqual(current.progress.pendingClarification.caseIds, ['pending-case']);
+  assert.equal(current.progress.attemptedCases.totalAttempts, 1);
+  assert.equal(current.currentStatusCounts.fail, 0);
+});
+
+test('not_run is the only status reported by hasUnexecutedCases', async t => {
+  const f = await fixture(t, [caseOf('blocked-case'), caseOf('uncertain-case')]);
+  await recorded(f, 'blocked', { caseId: 'blocked-case', operationId: 'blocked', rationale: 'Synthetic block.' });
+  await recorded(f, 'inconclusive', { caseId: 'uncertain-case', operationId: 'uncertain', rationale: 'Synthetic uncertainty.' });
+  const result = await check(f.outputDir);
+  assert.equal(result.hasUnexecutedCases, false);
+  assert.equal(result.counts.not_run, 0);
+  assert.equal(result.counts.blocked, 1);
+  assert.equal(result.counts.inconclusive, 1);
+});
+
+test('evidence hash check detects altered retained bytes', async t => {
+  const f = await fixture(t);
+  const { receipt } = await committedEvidence(f);
+  await fs.appendFile(path.join(f.outputDir, ...receipt.path.split('/')), 'tamper');
+  await assert.rejects(check(f.outputDir), /hash or byte count mismatch/);
+});
+
+test('evidence IDs must belong to the case and pass/fail requires observation, rationale, and evidence', async t => {
+  const f = await fixture(t);
+  const ev = await committedEvidence(f);
+  await assert.rejects(recordResult({ runDir: f.outputDir, request: recordRequest({ operationId: 'missing', expectedRevision: 0, status: 'pass', observed: 'Synthetic.', rationale: 'Synthetic.', evidenceIds: ['unknown'] }) }), /not registered/);
+  await assert.rejects(recordResult({ runDir: f.outputDir, request: recordRequest({ operationId: 'empty-observation', expectedRevision: 0, status: 'pass', rationale: 'Synthetic.', evidenceIds: [ev.receipt.evidenceId] }) }), /requires rationale and evidence/);
+  await assert.rejects(recordResult({ runDir: f.outputDir, request: recordRequest({ operationId: 'duplicate-evidence', expectedRevision: 0, status: 'pass', observed: 'Synthetic.', rationale: 'Synthetic.', evidenceIds: [ev.receipt.evidenceId, ev.receipt.evidenceId] }) }), /Duplicate evidence/);
+  const evOther = await committedEvidence(f, { operationId: 'other-evidence', expectedRevision: 1, caseId: 'two' });
+  await assert.rejects(recordResult({ runDir: f.outputDir, request: recordRequest({ operationId: 'cross-case', expectedRevision: 0, status: 'pass', observed: 'Synthetic.', rationale: 'Synthetic.', evidenceIds: [evOther.receipt.evidenceId] }) }), /different case/);
+});
+
+test('report includes hash, byte count, timestamps, frozen expectations, and escaped user strings', async t => {
+  const f = await fixture(t, [caseOf('one', 'explicit', { expected: 'Synthetic \u0000 expectation.', clarificationQuestions: ['What is <scope> & [source](https://invalid.example)?'] })]);
+  const ev = await committedEvidence(f, { capturedAt: '2026-10-20T10:11:12Z', description: 'Synthetic <img> & evidence' });
+  const out = await report(f.outputDir);
+  const payload = await readJson(out.reportJson);
+  const md = await fs.readFile(out.reportMarkdown, 'utf8');
+  assert.equal(payload.evidenceIntegrity.hashVerifiedItems, 1);
+  assert.equal(payload.evidenceCatalog.items[0].sha256, ev.receipt.sha256);
+  assert.equal(payload.evidenceCatalog.items[0].bytes, ev.receipt.bytes);
+  assert.match(md, /SHA-256/);
+  assert.match(md, /source captured at/);
+  assert.match(md, /&lt;scope&gt; &amp;/);
+  assert.match(md, /&lt;img&gt;/);
+  assert.match(md, /Synthetic \\u0000 expectation/);
+  assert.doesNotMatch(md, /<scope>|<img>|\[source\]\(/);
+  assert.match(md, /not specified; no checkpoint verdict/);
+  assert.deepEqual(await check(f.outputDir), payload);
+  await assert.rejects(report(f.outputDir), /overwrite/);
+});
+
+test('baseline hash protects case intent, clarification questions, and optional checkpoint omission', async t => {
+  const f = await fixture(t, [caseOf('one', 'explicit', { steps: [{ id: 'intent', action: 'Complete the synthetic business task.' }], clarificationQuestions: ['Unresolved synthetic question?'] })]);
+  const baselineFile = path.join(f.outputDir, 'baseline.json');
+  const baseline = await readJson(baselineFile);
+  assert.equal(Object.hasOwn(baseline.cases[0].steps[0], 'expected'), false);
+  baseline.cases[0].clarificationQuestions = [];
+  await writeJson(baselineFile, baseline);
+  await assert.rejects(check(f.outputDir), /hash mismatch/);
+});
+
+test('closed input format validates safe unique case and step IDs, source basis, and optional step expectations', () => {
+  const base = { schemaVersion, project: 'Synthetic', cases: [caseOf()] };
+  assert.deepEqual(normalizeCases(base), base);
+  for (const change of [
+    x => { x.schemaVersion = 2; }, x => { x.cases[0].id = '__proto__'; },
+    x => { x.cases[0].steps[0].id = 'constructor'; }, x => { x.cases.push(caseOf()); },
+    x => { x.cases[0].steps.push({ ...x.cases[0].steps[0] }); },
+    x => { x.cases[0].unexpected = true; }, x => { x.cases[0].steps[0].expected = ' '; },
+    x => { x.cases[0].basis = { kind: 'explicit', text: 'Missing source' }; }
+  ]) {
+    const input = structuredClone(base); change(input); assert.throws(() => normalizeCases(input));
+  }
+});
+
+test('validator is read-only and rejects bad cases before creating a run', async t => {
   const f = await fixture(t);
   const before = await fs.readFile(f.casesFile);
   const listing = await fs.readdir(f.projectDir);
   const summary = await main(['validate-cases', '--cases', f.casesFile]);
-  assert.deepEqual(summary, { schemaVersion: 2, structurallyValid: true, project: 'Synthetic only', caseCount: 2, stepCount: 2, stepOrderCounts: { strict: 2, adaptive: 0 } });
+  assert.deepEqual(summary, { schemaVersion: 3, structurallyValid: true, project: 'Synthetic only', caseCount: 2, stepCount: 4, stepOrderCounts: { strict: 2, adaptive: 0 } });
   assert.deepEqual(await validateCases(f.casesFile), summary);
   assert.deepEqual(await fs.readFile(f.casesFile), before);
   assert.deepEqual(await fs.readdir(f.projectDir), listing);
-  const input = JSON.parse(before); input.cases[0].steps = [];
-  await fs.writeFile(f.casesFile, JSON.stringify(input));
-  await assert.rejects(validateCases(f.casesFile), /nonempty steps/);
-  await assert.rejects(start({ ...f, outputDir: path.join(f.root, 'invalid-run') }), /nonempty steps/);
-  await assert.rejects(fs.stat(path.join(f.root, 'invalid-run')), /ENOENT/);
-  await assert.rejects(main(['validate-cases']));
-  await assert.rejects(main(['validate-cases', '--cases', 'relative.json']), /absolute/);
+  const bad = await readJson(f.casesFile); bad.cases[0].steps = [];
+  await writeJson(f.casesFile, bad);
+  const missing = path.join(f.root, 'bad-run');
+  await assert.rejects(start({ projectDir: f.projectDir, casesFile: f.casesFile, outputDir: missing }), /nonempty steps/);
+  await assert.rejects(fs.stat(missing), /ENOENT/);
 });
-test('steps survive freezing and reporting verbatim, with Markdown/HTML escaped', async t => {
-  const f = await fixture(t); const input = JSON.parse(await fs.readFile(f.casesFile));
-  input.cases[0].stepOrder = 'adaptive';
-  input.cases[0].steps = [{ id: '<b>step</b>', action: '<script>synthetic</script> [link](https://invalid.example)\n*action*', expected: '`synthetic` & <img>' }];
-  await fs.writeFile(f.casesFile, JSON.stringify(input));
-  const run = path.join(f.root, 'steps-run'); await start({ ...f, outputDir: run });
-  const baseline = JSON.parse(await fs.readFile(path.join(run, 'baseline.json')));
-  const checked = await check(run); const out = await report(run);
-  assert.deepEqual(baseline, input);
-  assert.deepEqual(checked.cases[0].steps, input.cases[0].steps);
-  assert.equal(checked.cases[0].stepOrder, 'adaptive');
-  const md = await fs.readFile(out.reportMarkdown, 'utf8');
-  assert.match(md, /frozen baseline, not execution proof/);
-  assert.match(md, /&lt;script&gt;/); assert.doesNotMatch(md, /<script>|<img>|\[link\]\(/);
-  assert.ok(md.includes('\\[link\\]\\(')); assert.ok(md.includes('\\`synthetic\\` &amp; &lt;img&gt;'));
-  baseline.cases[0].steps[0].action = 'Changed business action';
-  await fs.writeFile(path.join(run, 'baseline.json'), JSON.stringify(baseline));
-  await assert.rejects(check(run), /hash mismatch/);
+
+test('v0.1.2 schemaVersion 2 case and run assets fail with an explicit breaking-version message', async t => {
+  assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Old', cases: [caseOf()] }));
+  const f = await fixture(t);
+  const manifest = await readJson(path.join(f.outputDir, 'manifest.json'));
+  manifest.schemaVersion = 2; await writeJson(path.join(f.outputDir, 'manifest.json'), manifest);
+  await assert.rejects(check(f.outputDir), /Unsupported run schema version/);
 });
-test('schemas declare only v2 and closed step fields through local references', async () => {
-  for (const name of ['cases', 'manifest', 'results', 'evidence', 'report']) {
-    const schema = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'schemas', `${name}.schema.json`)));
-    assert.equal(schema.properties.schemaVersion.const, 2);
-    assert.equal(schema.$id, `${name}.schema.json`);
+
+test('malformed and tampered catalogs, ledgers, and case records are rejected', async t => {
+  for (const edit of [
+    async f => { await fs.writeFile(path.join(f.outputDir, 'results.json'), '{'); },
+    async f => { const p = path.join(f.outputDir, 'evidence.json'); const c = await readJson(p); c.extra = true; await writeJson(p, c); },
+    async f => { const p = path.join(f.outputDir, 'results.json'); const r = await readJson(p); r.cases[0].basis.text = 'Changed basis'; await writeJson(p, r); },
+    async f => { const p = path.join(f.outputDir, 'results.json'); const r = await readJson(p); r.cases.pop(); await writeJson(p, r); },
+    async f => { const p = path.join(f.outputDir, 'manifest.json'); const r = await readJson(p); r.extra = 'no'; await writeJson(p, r); }
+  ]) {
+    const f = await fixture(t); await edit(f); await assert.rejects(check(f.outputDir));
   }
-  const common = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'schemas', 'common.schema.json')));
+});
+
+test('symlink evidence paths and run directories are refused', async t => {
+  const f = await fixture(t);
+  const target = path.join(f.root, 'outside.txt'); await fs.writeFile(target, 'synthetic');
+  try { await fs.symlink(target, path.join(f.outputDir, 'evidence', 'link.txt')); }
+  catch (error) { if (['EPERM', 'EACCES'].includes(error.code)) { t.skip('OS does not allow synthetic symlink creation'); return; } throw error; }
+  const catalog = await readJson(path.join(f.outputDir, 'evidence.json'));
+  catalog.items.push({ id: 'synthetic', path: 'evidence/link.txt', caseId: 'one', kind: 'log', collectedAt: '2026-01-01T00:00:00Z', source: 'Synthetic', description: 'Synthetic', sha256: hash('synthetic'), bytes: 9, operationId: 'synthetic' });
+  await writeJson(path.join(f.outputDir, 'evidence.json'), catalog);
+  await assert.rejects(check(f.outputDir), /Symlink/);
+  await assert.rejects(safePath('relative', { external: true }), /absolute/);
+  await assert.rejects(safePath(path.parse(f.root).root, { external: true }), /filesystem root/);
+  await assert.rejects(safePath(path.join(SOURCE_ROOT, 'runs'), { external: true }), /source repository/);
+});
+
+test('command parser rejects unknown or duplicate flags and handles paths with spaces', async t => {
+  for (const args of [['wat'], ['check'], ['check', '--run-dir'], ['check', '--wrong', '/tmp'], ['progress', '--run-dir', '/tmp', '--run-dir', '/tmp']]) await assert.rejects(main(args));
+  const f = await fixture(t);
+  const result = await exec(process.execPath, [path.join(SOURCE_ROOT, 'scripts', 'ego.mjs'), 'check', '--run-dir', f.outputDir]);
+  assert.equal(JSON.parse(result.stdout).structurallyValid, true);
+});
+
+test('CLI evidence-add and record requests use documented local files', async t => {
+  const f = await fixture(t);
+  const ev = path.join(f.root, 'cli.log'); await fs.writeFile(ev, 'synthetic cli bytes');
+  const evidenceRequest = {
+    schemaVersion, operationId: 'cli-evidence', expectedRevision: 0, caseId: 'one', sourceFile: ev,
+    kind: 'log', source: 'Synthetic command-line example', description: 'Synthetic CLI bytes'
+  };
+  const evidenceFile = path.join(f.root, 'evidence-request.json'); await writeJson(evidenceFile, evidenceRequest);
+  const evidenceOutput = await main(['evidence-add', '--run-dir', f.outputDir, '--request', evidenceFile]);
+  const resultRequest = recordRequest({ operationId: 'cli-result', expectedRevision: 0, status: 'blocked', rationale: 'Synthetic CLI run is intentionally blocked.' });
+  const resultFile = path.join(f.root, 'record-request.json'); await writeJson(resultFile, resultRequest);
+  const resultOutput = await main(['record', '--run-dir', f.outputDir, '--request', resultFile]);
+  assert.equal(evidenceOutput.evidenceId.length > 0, true);
+  assert.equal(resultOutput.revision, 1);
+  assert.equal((await main(['progress', '--run-dir', f.outputDir])).progress.uncompleted.statusCounts.blocked, 1);
+});
+
+test('JSON schemas and synthetic examples use a consistent v3 contract and local references', async () => {
+  const schemaDir = path.join(SOURCE_ROOT, 'schemas');
+  const schemas = new Map();
+  for (const name of await fs.readdir(schemaDir)) {
+    if (name.endsWith('.schema.json')) schemas.set(name, await readJson(path.join(schemaDir, name)));
+  }
+  assert.deepEqual([...schemas.keys()].sort(), [
+    'cases.schema.json', 'common.schema.json', 'evidence-request.schema.json', 'evidence.schema.json',
+    'manifest.schema.json', 'record-request.schema.json', 'report.schema.json', 'results.schema.json'
+  ]);
+  for (const [filename, schema] of schemas) {
+    if (filename === 'common.schema.json') continue;
+    if (schema.properties?.schemaVersion) assert.equal(schema.properties.schemaVersion.const, 3, filename);
+    const inspectRefs = value => {
+      if (!value || typeof value !== 'object') return;
+      if (typeof value.$ref === 'string') {
+        assert.ok(!/^[a-z]+:/i.test(value.$ref), `${filename} has only local schema refs`);
+        const target = value.$ref.split('#')[0];
+        if (target) assert.ok(schemas.has(target), `${filename} reference ${value.$ref} exists`);
+      }
+      for (const child of Object.values(value)) inspectRefs(child);
+    };
+    inspectRefs(schema);
+  }
+  for (const name of ['cases.example.json', 'generated-cases.example.json', 'evidence-request.example.json', 'record-request.example.json']) {
+    const sample = await readJson(path.join(SOURCE_ROOT, 'examples', name));
+    assert.equal(sample.schemaVersion, 3, name);
+  }
+  const common = schemas.get('common.schema.json');
   assert.deepEqual(common.$defs.step.required, ['id', 'action']);
   assert.equal(common.$defs.step.additionalProperties, false);
-  for (const name of ['case', 'reportCase']) {
-    assert.ok(common.$defs[name].required.includes('stepOrder'));
-    assert.ok(common.$defs[name].required.includes('steps'));
-    assert.equal(common.$defs[name].properties.steps.minItems, 1);
-    assert.deepEqual(common.$defs[name].properties.stepOrder.enum, ['strict', 'adaptive']);
-  }
+  const clarificationVeto = common.$defs.reportCaseV3.allOf.find(rule => rule.if.required?.includes('clarificationQuestions'));
+  assert.deepEqual(clarificationVeto.then.properties.status.enum, ['inconclusive', 'blocked', 'not_run']);
+  assert.deepEqual(clarificationVeto.then.properties.attempts.items.properties.status.enum, ['inconclusive', 'blocked', 'not_run']);
 });
 
-test('v1 baseline rejected even with its matching manifest hash', async t => {
-  const f = await fixture(t); const filename = path.join(f.outputDir, 'baseline.json');
-  const baseline = JSON.parse(await fs.readFile(filename)); baseline.schemaVersion = 1;
-  const bytes = JSON.stringify(baseline); await fs.writeFile(filename, bytes);
-  const manifestPath = path.join(f.outputDir, 'manifest.json');
-  const manifest = JSON.parse(await fs.readFile(manifestPath));
-  manifest.baselineSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
-  await fs.writeFile(manifestPath, JSON.stringify(manifest));
-  await assert.rejects(check(f.outputDir), /schemaVersion 2/);
-});
-
-// v0.1.2: business intent is sufficient; checkpoints are optional, never inferred.
-for (const stepOrder of ['strict', 'adaptive']) test(`${stepOrder} accepts omitted and mixed checkpoints without fabrication`, () => {
-  for (const steps of [
-    [{ id: 'locate', action: 'Find the synthetic configuration feature.' }],
-    [{ id: 'locate', action: 'Find the synthetic configuration feature.' }, { id: 'create', action: 'Create a configuration named synthetic with value example.', expected: 'The source-specified configuration exists.' }]
-  ]) {
-    const input = { schemaVersion: 2, project: 'Synthetic intent', cases: [{ ...caseOf(), stepOrder, steps }] };
-    const normalized = normalizeCases(input);
-    assert.deepEqual(normalized, input);
-    assert.equal(Object.hasOwn(normalized.cases[0].steps[0], 'expected'), false);
-    assert.deepEqual(normalizeCases(JSON.parse(JSON.stringify(normalized))), input);
-  }
-});
-for (const [label, expected] of [['null', null], ['empty', ''], ['whitespace', ' \t\n '], ['number', 1], ['boolean', false], ['array', []], ['object', {}], ['undefined property', undefined]]) {
-  test(`supplied step expected rejects ${label}`, () => {
-    const c = caseOf(); c.steps[0].expected = expected;
-    assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [c] }), /Invalid step/);
-  });
-  test(`overall expected still rejects ${label}`, () => {
-    const c = caseOf(); c.expected = expected;
-    assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [c] }), /expected strings/);
-  });
-}
-test('overall expected and source remain required even when checkpoints are omitted', () => {
-  for (const change of [c => { delete c.expected; }, c => { delete c.basis.source; }, c => { c.basis.source = ' '; }]) {
-    const c = caseOf(); delete c.steps[0].expected; change(c);
-    assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [c] }));
-  }
-});
-for (const [label, clarificationQuestions] of [['null', null], ['string', 'Question?'], ['object', {}], ['number', 2], ['undefined property', undefined], ['blank question', [' ']], ['empty question', ['']], ['null question', [null]], ['nonstring question', [42]], ['mixed invalid', ['Question?', false]]]) test(`clarificationQuestions rejects ${label}`, () => {
-  assert.throws(() => normalizeCases({ schemaVersion: 2, project: 'Synthetic', cases: [{ ...caseOf(), clarificationQuestions }] }), /Invalid clarificationQuestions/);
-});
-test('optional clarification questions preserve omission, empty arrays, order and exact text without aliasing', () => {
-  const cases = [caseOf('absent'), { ...caseOf('empty'), clarificationQuestions: [] }, { ...caseOf('pending'), clarificationQuestions: ['  Source question?  ', 'Another question?'] }];
-  const input = { schemaVersion: 2, project: 'Synthetic', cases };
-  const normalized = normalizeCases(input);
-  assert.deepEqual(normalized, input);
-  assert.equal(Object.hasOwn(normalized.cases[0], 'clarificationQuestions'), false);
-  assert.notEqual(normalized.cases[1].clarificationQuestions, cases[1].clarificationQuestions);
-  assert.notEqual(normalized.cases[2].clarificationQuestions, cases[2].clarificationQuestions);
-});
-async function clarificationFixture(t, questions = ['Which synthetic configuration scope is required?']) {
+test('reports do not overwrite existing output, init/start do not overwrite, and root destinations are refused', async t => {
   const f = await fixture(t);
-  const input = { schemaVersion: 2, project: 'Synthetic pending case', cases: [{ ...caseOf(), clarificationQuestions: questions, steps: [{ id: 'locate', action: 'Find the synthetic configuration feature.' }, { id: 'create', action: 'Create a configuration named synthetic with value example.', expected: 'Source-backed synthetic checkpoint' }] }] };
-  await fs.writeFile(f.casesFile, JSON.stringify(input));
-  const run = path.join(f.root, 'clarification-run');
-  await start({ ...f, outputDir: run });
-  const edit = async fn => { const file = path.join(run, 'results.json'); const value = JSON.parse(await fs.readFile(file)); fn(value); await fs.writeFile(file, JSON.stringify(value)); };
-  return { ...f, outputDir: run, edit, input };
-}
-for (const status of ['pass', 'fail']) {
-  for (const target of ['final', 'attempt']) test(`pending clarification rejects ${target} ${status} even with complete evidence`, async t => {
-    const f = await clarificationFixture(t); await registerEvidence(f.outputDir, 'synthetic.txt');
-    const record = { status, observed: 'Synthetic actual behavior', rationale: 'Synthetic interpretation', remainingQuestions: [], evidence: ['evidence/synthetic.txt'] };
-    await f.edit(r => { if (target === 'final') Object.assign(r.cases[0], record); else r.cases[0].attempts = [record]; });
-    await assert.rejects(check(f.outputDir), /Pending clarification prohibits pass\/fail/);
-    await assert.rejects(report(f.outputDir), /Pending clarification/);
-    await assert.rejects(fs.stat(path.join(f.outputDir, 'report.json')), /ENOENT/);
-    await assert.rejects(fs.stat(path.join(f.outputDir, 'report.md')), /ENOENT/);
-  });
-  test(`empty clarificationQuestions does not prohibit ${status}`, async t => {
-    const f = await clarificationFixture(t, []); await registerEvidence(f.outputDir, 'synthetic.txt');
-    const record = { status, observed: 'Synthetic actual behavior', rationale: 'Source-backed synthetic comparison', remainingQuestions: [], evidence: ['evidence/synthetic.txt'] };
-    await f.edit(r => { Object.assign(r.cases[0], record); r.cases[0].attempts = [{ ...record }]; });
-    const checked = await check(f.outputDir);
-    assert.equal(checked.cases[0].status, status);
-    assert.equal(checked.cases[0].attempts[0].status, status);
-    assert.deepEqual(checked.cases[0].clarificationQuestions, []);
-  });
-}
-for (const status of ['inconclusive', 'blocked', 'not_run']) test(`pending clarification accepts ${status} final and attempts`, async t => {
-  const f = await clarificationFixture(t);
-  const record = { status, observed: '', rationale: status === 'not_run' ? '' : 'Pending source clarification', remainingQuestions: ['Which synthetic scope?'], evidence: [] };
-  await f.edit(r => { Object.assign(r.cases[0], record); r.cases[0].attempts = [{ ...record }]; });
-  const checked = await check(f.outputDir);
-  assert.equal(checked.cases[0].status, status); assert.equal(checked.cases[0].attempts[0].status, status);
-  assert.deepEqual(checked.recordedExplicitOutcomes, { pass: 0, fail: 0 });
+  const manifestPath = path.join(f.outputDir, 'manifest.json'); const before = await fs.readFile(manifestPath);
+  await assert.rejects(start({ projectDir: f.projectDir, casesFile: f.casesFile, outputDir: f.outputDir }), /EEXIST/);
+  await assert.rejects(init(f.projectDir), /EEXIST/);
+  assert.deepEqual(await fs.readFile(manifestPath), before);
+  const out = await report(f.outputDir);
+  const mdBefore = await fs.readFile(out.reportMarkdown);
+  await assert.rejects(report(f.outputDir), /overwrite/);
+  assert.deepEqual(await fs.readFile(out.reportMarkdown), mdBefore);
 });
-test('optional checkpoints and questions survive hashing and reports; absent checkpoints are not passed', async t => {
-  const f = await clarificationFixture(t, ['What is <scope> & [source](https://invalid.example)?']);
-  const bytes = await fs.readFile(path.join(f.outputDir, 'baseline.json'));
-  const baseline = JSON.parse(bytes);
-  const manifest = JSON.parse(await fs.readFile(path.join(f.outputDir, 'manifest.json')));
-  assert.deepEqual(baseline, f.input);
-  assert.equal(manifest.baselineSha256, crypto.createHash('sha256').update(bytes).digest('hex'));
-  // Editing the input does not modify the frozen run.
-  const revised = structuredClone(f.input); revised.cases[0].clarificationQuestions = []; revised.cases[0].steps[0].expected = 'New checkpoint';
-  await fs.writeFile(f.casesFile, JSON.stringify(revised));
-  const result = await check(f.outputDir); const out = await report(f.outputDir);
-  const reportText = await fs.readFile(out.reportJson, 'utf8'); const md = await fs.readFile(out.reportMarkdown, 'utf8');
-  assert.deepEqual(JSON.parse(reportText), result);
-  assert.deepEqual(result.cases[0].steps, baseline.cases[0].steps);
-  assert.deepEqual(result.cases[0].clarificationQuestions, baseline.cases[0].clarificationQuestions);
-  assert.equal(result.cases[0].expected, baseline.cases[0].expected);
-  assert.equal(Object.hasOwn(result.cases[0].steps[0], 'expected'), false);
-  assert.match(md, /Expected checkpoint: \(not specified; no checkpoint verdict\)/);
-  assert.match(md, /Expected: Synthetic outcome/); assert.match(md, /Expected checkpoint: Source/);
-  assert.match(md, /Baseline clarification questions:/); assert.match(md, /&lt;scope&gt; &amp;/);
-  assert.doesNotMatch(md, /undefined|<scope>|\[source\]\(/); assert.doesNotMatch(reportText, /undefined|"expected": null/);
-});
-for (const [label, change] of [
-  ['add omitted checkpoint', c => { c.steps[0].expected = 'Invented checkpoint'; }],
-  ['remove supplied checkpoint', c => { delete c.steps[1].expected; }],
-  ['clear pending questions', c => { c.clarificationQuestions = []; }],
-  ['remove pending questions', c => { delete c.clarificationQuestions; }],
-  ['rewrite pending question', c => { c.clarificationQuestions[0] = 'Different question?'; }]
-]) test(`baseline hash rejects ${label}`, async t => {
-  const f = await clarificationFixture(t); const file = path.join(f.outputDir, 'baseline.json');
-  const baseline = JSON.parse(await fs.readFile(file)); change(baseline.cases[0]); await fs.writeFile(file, JSON.stringify(baseline));
-  await assert.rejects(check(f.outputDir), /hash mismatch/);
-});
-test('init demonstrates business actions with an omitted checkpoint and retains overall expectation', async t => {
-  const f = await fixture(t); const sample = JSON.parse(await fs.readFile(path.join(f.projectDir, 'cases.example.json')));
-  assert.deepEqual(normalizeCases(sample), sample);
-  assert.ok(sample.cases[0].steps.some(s => !Object.hasOwn(s, 'expected')));
-  assert.ok(sample.cases[0].expected.trim()); assert.match(sample.cases[0].steps[1].action, /named synthetic-example with value example-value/);
-});
-test('schemas expose optional checkpoints/questions and report pending-verdict constraint', async () => {
-  const common = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'schemas/common.schema.json')));
-  const defs = common.$defs;
-  assert.ok(!defs.step.required.includes('expected'));
-  assert.equal(defs.step.properties.expected.$ref, 'common.schema.json#/$defs/nonempty');
-  for (const name of ['case', 'reportCase']) {
-    assert.ok(defs[name].required.includes('expected'));
-    assert.ok(!defs[name].required.includes('clarificationQuestions'));
-    assert.equal(defs[name].properties.clarificationQuestions.type, 'array');
-    assert.equal(defs[name].properties.clarificationQuestions.items.$ref, 'common.schema.json#/$defs/nonempty');
-  }
-  const rule = defs.reportCase.allOf.find(rule => rule.if.required.includes('clarificationQuestions'));
-  assert.equal(rule.if.properties.clarificationQuestions.minItems, 1);
-  assert.deepEqual(rule.then.properties.status.enum, ['inconclusive', 'blocked', 'not_run']);
-  assert.deepEqual(rule.then.properties.attempts.items.properties.status.enum, ['inconclusive', 'blocked', 'not_run']);
+
+test('Node CLI contains no network or shell invocations and records no workflow selection', async () => {
+  const source = await fs.readFile(path.join(SOURCE_ROOT, 'scripts/ego.mjs'), 'utf8');
+  assert.doesNotMatch(source, /fetch\s*\(|https?:\/\/|child_process|execFile|spawn\s*\(/);
+  assert.match(source, /No network, model, browser, or Ego actions/);
 });

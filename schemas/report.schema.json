@@ -1,73 +1,38 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Ego Lite generated report v2",
+  "$id": "report.schema.json",
+  "title": "Ego Lite generated report v3",
+  "description": "The report summarizes current final statuses; historical attempts are preserved on each case and are not recounted as current outcomes.",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "runId",
-    "project",
-    "structurallyValid",
-    "hasUnexecutedCases",
-    "counts",
-    "recordedExplicitOutcomes",
-    "caveat",
-    "evidenceCatalog",
-    "cases"
-  ],
+  "required": ["schemaVersion", "runId", "project", "structurallyValid", "revision", "evidenceRevision", "hasUnexecutedCases", "counts", "progress", "recordedExplicitOutcomes", "evidenceIntegrity", "caveat", "evidenceCatalog", "cases"],
   "properties": {
-    "schemaVersion": {
-      "const": 2
-    },
-    "runId": {
-      "type": "string",
-      "pattern": "\\S"
-    },
-    "project": {
-      "type": "string",
-      "pattern": "\\S"
-    },
-    "structurallyValid": {
-      "const": true
-    },
-    "hasUnexecutedCases": {
-      "type": "boolean"
-    },
-    "counts": {
-      "$ref": "common.schema.json#/$defs/counts"
-    },
+    "schemaVersion": { "const": 3 },
+    "runId": { "type": "string", "format": "uuid" },
+    "project": { "$ref": "common.schema.json#/$defs/nonempty" },
+    "structurallyValid": { "const": true },
+    "revision": { "type": "integer", "minimum": 0 },
+    "evidenceRevision": { "type": "integer", "minimum": 0 },
+    "hasUnexecutedCases": { "type": "boolean", "description": "True only when a current final status is not_run. blocked and inconclusive remain distinct statuses." },
+    "counts": { "$ref": "common.schema.json#/$defs/counts" },
+    "progress": { "$ref": "common.schema.json#/$defs/progress" },
     "recordedExplicitOutcomes": {
       "type": "object",
-      "required": [
-        "pass",
-        "fail"
-      ],
+      "required": ["pass", "fail"],
       "properties": {
-        "pass": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "fail": {
-          "type": "integer",
-          "minimum": 0
-        }
+        "pass": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 }
       },
       "additionalProperties": false
     },
-    "caveat": {
-      "type": "string",
-      "pattern": "\\S"
+    "evidenceIntegrity": {
+      "type": "object",
+      "required": ["hashVerifiedItems"],
+      "properties": { "hashVerifiedItems": { "type": "integer", "minimum": 0 } },
+      "additionalProperties": false
     },
-    "evidenceCatalog": {
-      "$ref": "evidence.schema.json"
-    },
-    "cases": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "common.schema.json#/$defs/reportCase"
-      }
-    }
+    "caveat": { "$ref": "common.schema.json#/$defs/nonempty" },
+    "evidenceCatalog": { "$ref": "evidence.schema.json" },
+    "cases": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/reportCaseV3" } }
   },
-  "additionalProperties": false,
-  "$id": "report.schema.json"
+  "additionalProperties": false
 }

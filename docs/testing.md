@@ -1,34 +1,35 @@
-# 验证范围与限制
+# 验证记录与覆盖边界
 
-[README](../README.md) · [更新记录](../CHANGELOG.md)
+## v0.1.3-dev 当前检查
 
-## 当前版本：0.1.2
+2026-10-22，Linux / Node v24.19.0：`npm test` 为 44/44 通过（32 项辅助工具测试、12 项发布检查器测试），零失败、零跳过。`npm run check:public` 通过并输出当前 allowlist 发布文件清单。本文件只记录本分支实际检查结果，不代表 Ego 或业务产品实测。
 
-2026-10-21，Linux / Node v24.19.0：137/137 合成测试通过（辅助工具 125 项、发布检查器 12 项），零失败、零跳过。独立验证通过 6 份 Schema、18 个示例及生成 JSON 资产和独立安装 Skill 的 9 条相对链接。验证仅覆盖合成数据上的文件逻辑与发布检查器，不是 AI 缺陷发现能力基准。
+`npm test` 执行完整 Node.js 套件，覆盖 schemaVersion 3 用例、启动与冻结、证据复制和留存文件 hash、capturedAt / collectedAt 区分、路径与符号链接、危险 ID、文件覆盖、单 writer 锁、revision 冲突、幂等与 key 顺序、响应丢失后的原回执、final/attempt 历史、clarification veto、当前状态进度、报告转义、命令入口和发布检查器。
 
-`npm test` 覆盖输入规范化、v2 步骤契约、只读用例预检、基线完整性、结果与证据结构、输出路径、不覆盖行为及报告逻辑。`npm run check:public` 检查当前发布文件清单、常见秘密模式、禁止的私有产物路径、文本与相对链接；启发式检查不是安全保证。
+`npm run check:public` 检查当前分支 allowlist 内的文件清单、扩展名、文本、相对链接、常见 credential 模式、禁止的私有产物目录与符号链接。成功时输出当前发布文件清单。该检查为启发式，不检查 Git 历史、远端附件、图片内容或语义上的敏感信息。
 
-本次最终交付的 schema、独立 Skill 链接、图解与发布扫描结果见[更新记录](../CHANGELOG.md)，不要将过去版本的检查记录误作当前验证。本版保持 schemaVersion 2，已有完整步骤预期的 v2 用例仍有效；不支持 v1 或迁移层。
+JSON 格式独立复核包含 8 份 JSON Schema Draft 2020-12 自身检查、相对 `$ref` 解析，以及 4 个合成用例/请求示例验证。当前案例、证据请求、结果请求示例统一使用 schemaVersion 3。
 
-## 未验证的范围
+## Windows 与外部系统
 
-- 没有用本次开发流程测试真实应用。
-- 尚未完成 Windows + Codex + Ego 端到端实机运行。
-- 没有测量或承诺缺陷发现准确率、误报率或模型升级收益。
-- Linux 单测不认证 Windows 文件系统、PowerShell、Ego 连接或 Skill 发现。
-- 格式合法、文件存在或报告生成不证明业务结果正确。
-- 用例生成指南与合成示例不是已验证的模型效果，也不是能力验收数据集。
+代码只使用 Node.js 内置模块与平台路径接口，不依赖 shell 命令或第三方运行包。Windows 兼容性目前是源码层检查：确认绝对路径、`path` API、Node 文件操作、PowerShell 调用示例与唯一文件名逻辑；**没有真实 Windows 执行实测**。Linux 的 Node 24 测试不能替代 Windows 上文件锁、rename、权限和文件系统行为验证。
 
-## 安全的首次试用
+本次未执行 Ego、浏览器、真实应用、账号、yiliai 数据或业务写入。没有测 AI 缺陷发现准确率、误报率或模型升级效果。测试结果只能支持本地结构化记录与文件行为的有限结论。
 
-使用专用非生产环境与合成数据，按 Ego 官方说明安装并读取安装版本的官方 Skill。核验实际角色、环境、允许副作用与资源预算。
+## 运行与记录限制
 
-可选择外部用例或 Skill 从需求生成用例，两者都可用于新功能或回归。先检查业务意图、必要输入、可选检查点、整体预期、待澄清问题、顺序策略和来源，再校验、冻结、执行；也可以仅生成用例，此时无需浏览器，不报告执行结果。推断与明确要求分开；不能用生成报告直接代替人工复核发布条件。
+- `pass` / `fail` 是经授权的调用者提供的结果；工具检查字段、证据关联与文件 hash，不独立确认事实。
+- SHA-256 匹配不是来源真实性或证据完整性的证明，也不会检测敏感信息。
+- 单文件 rename 不等于 catalog + evidence 的一般多文件事务，也不承诺断电持久性。异常锁和不可识别的恢复 marker 可能需要人工检查。
+- `check:public` 和其他模式扫描不能代替人工隐私复核，也不会检查历史提交。
+- v0.1.2 schemaVersion 2 不被 v3 接受；没有迁移层。按原始来源重新整理后新建 run。
 
-提交结果未知时先只读核对实际状态，再决定能否重试。版本未部署或环境不可达应记录阻塞，不编造产品缺陷。真实用例、截图、日志和报告留在 Git 之外。
+## 历史验证记录
 
-## English summary
+以下为过往版本的验证摘要，不应误读为 v0.1.3-dev 结果：
 
-Version 0.1.2: 137/137 synthetic tests passed on Linux / Node v24.19.0 on 2026-10-21 (125 helper tests and 12 publication-check tests), with no failures or skips. Independent validation passed for 6 schemas, 18 example/generated JSON assets and 9 isolated Skill relative links. Checks use synthetic inputs and verify file behavior, not AI testing effectiveness. See the changelog for revision-specific results.
+- **v0.1.2：** 2026-10-21，Linux / Node v24.19.0，137/137 合成测试通过，旧协议为 schemaVersion 2。
+- **v0.1.1：** Linux / Node v24.19.0，90 项合成测试通过，资产格式升级至 schemaVersion 2。
+- **v0.1.0：** 2026-10-21，Linux / Node v24.19.0，67/67 合成测试通过。
 
-Both external and Skill-generated cases support features and regression, with the same v2 contract. Generation-only needs no browser and is not execution. v1 and automatic migration are unsupported. No Windows + Codex + Ego end-to-end run or real application test is claimed. No accuracy, false-positive rate, or model-upgrade improvement is measured. Use authorized non-production fixtures, preserve uncertainty and original attempts, inspect unknown write outcomes before retrying, and review evidence rather than treating a structurally valid report as a release gate.
+这些历史版本均未声称完成 Windows + Ego + 真实应用端到端测试。更多当前实现细节见[资产格式](asset-formats.md)和[更新记录](../CHANGELOG.md)。

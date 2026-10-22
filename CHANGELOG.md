@@ -1,5 +1,19 @@
 # 更新记录 / Changelog
 
+## 0.1.3-dev — 本地证据与结果工具箱
+
+- 增加 `evidence-add`，从本地普通文件安全复制到 run 的 `evidence/`，按留存副本计算 SHA-256 与字节数，并分别记录工具登记时间 `collectedAt` 和可选来源时间 `capturedAt`。
+- 增加 revision 化 `record` 与 `progress`。最终状态与历史尝试分开，保留被替换的旧最终观察；进度只统计当前状态并单独列出待澄清用例。
+- 使用 run 级单写者锁、expectedRevision、canonical payload hash 与操作回执。相同 operation ID 和内容重试幂等；内容变更和过期 revision 拒绝。证据登记使用恢复 marker；单文件 rename 不声明为多文件事务或断电持久性保证。
+- check/report 现在核对 evidence ID、保留文件 hash 与字节数，报告展示 hash、时间和来源。冻结澄清 veto 同时适用于所有最终结果与历史尝试。
+- 所有用例、运行资产、请求与报告使用 schemaVersion 3。这是相对 v0.1.2 schemaVersion 2 的格式断裂；本分支不提供迁移层。保留业务意图步骤、来源依据、可选步骤预期和旧状态语义。
+- 新增证据请求、结果请求与 Skill 本地工具箱调用指南，中英文格式/架构/README 同步；示例仅包含合成数据。未实现数据对比、测试数据生成、导入、脱敏或跨次对比。
+- 另建 [`docs/requirements.md`](docs/requirements.md) 记录 v0.1.4 的 subagent 并行及单用例单 Space 待研究需求；此项没有并入 v0.1.3-dev 工具箱实现。
+
+验证：Linux / Node v24.19.0，44/44 合成测试通过，零失败、零跳过。测试覆盖证据副本 hash、幂等、锁/冲突、澄清 veto、结果历史、进度、报告转义、schema/示例版本与发布检查器。源码检查 Windows 路径和 Node API 使用方式；没有真实 Windows、Ego 或业务环境实测。
+
+English summary: Added a local-only evidence/result toolbox with retained-copy SHA-256, revisioned idempotent writes, a run lock, history-preserving attempts, progress, and report integration. All assets use schemaVersion 3 with no v0.1.2 migration. Linux synthetic suite: 44/44 passed; Windows/Ego/business execution not tested.
+
 ## 0.1.2 — 业务意图级步骤与可选检查点
 
 - 操作步骤描述业务意图和必要输入，AI 使用 Ego 根据当前界面选择具体操作路径；不要求生成需求文档未提供的按钮、弹窗或提示。

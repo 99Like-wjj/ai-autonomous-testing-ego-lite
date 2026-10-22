@@ -1,90 +1,145 @@
-# Test asset contracts (v2)
+# Local asset formats and runtime contract (schemaVersion 3)
 
-[中文](asset-formats.md)
+This guide defines cases, run directories, evidence-registration requests, result requests, progress, and reports. Schemas live in [`schemas/`](../schemas/) and use JSON Schema Draft 2020-12 with local relative references. The runtime adds checks for evidence ownership, hashes, revisions, and the frozen clarification veto.
 
-These formats stabilize AI input and output with business steps and optional step checkpoints, without prescribing fixed click scripts, a fixed DAG, business-specific behavior, or a hidden acceptance benchmark. AI still chooses actions and evaluates observations against the actual requirements. The local helper only records and checks structure; it does not run the browser or decide whether the product works.
+## Version policy
 
-## Human source material and normalized exchange
+v0.1.3-dev uses `schemaVersion: 3` for all cases, run assets, requests, and reports. Compared with v0.1.2 schemaVersion 2, this release adds revisioned result/evidence catalogs, operation receipts, evidence-ID references, and local write commands. Results and evidence are no longer maintained by editing files directly. Old run directories and cases are not converted; there is no migration layer or migration command. To use v3, reconstruct cases from their original requirements and sources, then start a new run. Do not only change the version number or rewrite a historical baseline to make it look like a new run.
 
-Users can supply requirements as Markdown, CSV, text, tickets, or other readable business documents. They do not need to hand-author JSON. The AI reads those sources, identifies ambiguities, and normalizes the agreed scope into the case contract. Preserve a meaningful source locator and the actual requirement text. Conflicting or missing requirements are questions, not permission to invent acceptance criteria.
+All objects are closed: unknown keys are rejected. IDs allow 1–128 ASCII letters, digits, dots, underscores, or hyphens and must start with a letter or digit. Dangerous property names such as `__proto__`, `prototype`, and `constructor` are rejected. The helper has no third-party runtime dependencies and requires Node.js 22 or newer.
 
-JSON is the machine exchange format. Files use UTF-8 JSON and schemaVersion: 2. The JSON Schema files in ../schemas use draft 2020-12 and local relative references; load the full directory together. The helper implements its checks directly, without loading these schemas. Do not add a $schema property to asset instances: the closed contracts reject unknown keys. Configure the schema in your editor or validator instead.
+## Cases and frozen baseline
 
-## Assets and ownership
+The case root contains only `schemaVersion`, nonempty `project`, and a nonempty `cases` array. See [`cases.schema.json`](../schemas/cases.schema.json):
 
-- cases.json: prepared case input, validated by cases.schema.json. The name is conventional; start accepts any explicit input file path.
-- baseline.json: normalized, frozen cases written by start, with the same schema. Do not edit it to fit observed behavior.
-- manifest.json: generated run identity, absolute projectDir, and baselineSha256, validated by manifest.schema.json. The digest covers the exact baseline file bytes, including whitespace. It detects accidental changes, not adversarial tampering.
-- results.json: operator-recorded observations and outcomes, validated by results.schema.json. start creates one not_run entry for every baseline case.
-- evidence.json: evidence catalog, validated by evidence.schema.json. start creates an empty catalog.
-- evidence/: actual run-local evidence files. A catalog entry is not itself proof of the recorded behavior.
-- report.json and report.md: generated review artifacts. report.json follows report.schema.json; Markdown is the human-readable rendering, not another source of verdicts. report refuses to overwrite existing reports.
-- common.schema.json: reusable schema definitions, not a standalone run asset.
+- `id`, `title`: nonempty; case IDs are unique.
+- `basis`: exactly `kind`, `source`, and `text`. `kind` is `explicit`, `interpretation`, or `hypothesis`.
+- `criticalConditions`: array of nonempty strings; it may be empty, but known prerequisites must not be hidden by omitting them.
+- `expected`: required overall acceptance expectation.
+- `requiredPath`: required; use `null` when no route is mandated.
+- `stepOrder`: `strict` or `adaptive`.
+- `steps`: nonempty and ordered. Each step requires `id` and `action`; `expected` is optional. Supply a checkpoint only when supported by a source. Omitting it does not mean the step was skipped or automatically passed.
+- `clarificationQuestions`: optional string array. A nonempty list in the frozen case prevents every final result and historical attempt for that case from using `pass` or `fail`. Result requests cannot clear, replace, or override these questions.
 
-Store real project inputs, runs, reports and evidence outside the distributable skill repository. Use synthetic .example assets in the repository, placeholder domains such as app.example, and no real secrets, identities, account data or sensitive screenshots. Examples illustrate syntax only; their text is not a normative test requirement.
+`start --project-dir ABS --cases ABS --output-dir ABS` requires an existing project directory and a run directory that does not exist. It validates cases, writes the normalized case data to `baseline.json`, and stores its SHA-256 in `manifest.json`. Results and evidence start at revision 0. A hash can detect ordinary edits; it is not a tamper-proof signature. Direct local file edits outside the helper are outside its security boundary.
 
-## Cases: preserve intent, not a click script
+New run directory:
 
-Case fields (required unless explicitly marked optional):
+```text
+run/
+  baseline.json       # frozen schemaVersion 3 cases
+  manifest.json       # runId, baseline hash, schema version
+  results.json        # current final status, attempts, result operation ledger
+  evidence.json       # evidence catalog and evidence operation ledger
+  evidence/           # files copied by evidence-add
+```
 
-- id: nonblank stable identifier, unique within the case list.
-- title: nonblank short description.
-- basis: exactly kind, source, text. kind is explicit, interpretation or hypothesis; source and text are nonblank. explicit means a cited actual requirement, not merely confident AI phrasing.
-- criticalConditions: an array of nonblank strings describing material roles, inputs, initial state or other prerequisites; an empty array is allowed.
-- expected: nonblank observable expected behavior, not a claim that it already happened.
-- requiredPath: null when no path is mandated, or nonblank text describing a genuinely required route. It is not a filesystem path and must not be invented just to constrain the agent.
+Keep real projects, source files, runs, screenshots, and reports outside the source repository. The absolute project path in the manifest is context metadata only; the helper does not access it.
 
-- stepOrder: required, strict or adaptive. strict preserves semantic business-step order. adaptive permits changes of methods or ordering only with intent, prerequisites, dependencies, and required routes preserved. Neither permits skipping key steps or reducing coverage.
-- steps: required nonempty ordered array. Each step requires nonblank id and action strings; optional expected must be nonblank when present. No other step fields are allowed. IDs are unique within a case. action expresses business intent and necessary inputs; expected is a grounded independent checkpoint, not observed execution. Case-level expected remains required.
-- clarificationQuestions: optional case-level array of nonblank strings, possibly empty. A nonempty array makes overall acceptance unresolved: both the result and its attempts must not be pass or fail. It does not replace basis or case-level expected; an empty array does not establish sufficient criteria.
+## Evidence registration
 
-Business steps need only express intent and necessary inputs, such as “open the template feature in configuration and create a template with the supplied name and fields.” Do not invent buttons, dialogs, or messages when requirements lack those details. Fine-grained steps remain appropriate when supported. A step-level expected is optional; when present it must be a grounded independent checkpoint. Omission means neither untested nor automatic success: judge against the case-level expected.
+Do not put files in `evidence/` and edit the catalog manually. Prepare a UTF-8 JSON request, then run:
 
-Case-level expected and basis remain required. When acceptance details are missing, describe the known goal and optionally record clarificationQuestions (an array of nonblank strings). Include only unresolved questions that affect this case’s verdict, not ordinary UI-route exploration questions. Split independently decidable goals from unresolved ones without weakening the original requirement. A nonempty list means overall acceptance remains unresolved: neither the case nor its attempts may receive pass/fail. Authorized route exploration may record facts, but observed behavior must not become the acceptance standard. After clarification, prepare and freeze a revised case rather than editing the old baseline.
+```powershell
+node .\scripts\ego.mjs evidence-add --run-dir $Run --request $EvidenceRequest
+```
 
-AI explores the concrete route through Ego and records actual actions, observations, and evidence in existing observed, rationale, evidence, and attempts fields. Planned steps are not execution evidence; no mandatory per-step trace field is added.
+Request format is defined by [`evidence-request.schema.json`](../schemas/evidence-request.schema.json):
 
-Both external and Skill-generated cases follow the same validation, freezing, and execution path for new features or regression. Optional `node scripts/ego.mjs validate-cases --cases ABS` validates and prints a summary without creating a run. Structural checks do not establish semantic quality, genuine requirements, or authorization. See the [bundled authoring guide](../skills/ego-lite-test/references/case-authoring.md).
+```json
+{
+  "schemaVersion": 3,
+  "operationId": "evidence-config-01-first",
+  "expectedRevision": 0,
+  "caseId": "CONFIG-01",
+  "sourceFile": "C:\\Users\\example\\AppData\\Local\\EgoLiteTest\\capture.png",
+  "kind": "screenshot",
+  "source": "Local page capture saved during this test",
+  "description": "Observation of the synthetic configuration page"
+}
+```
 
-The root requires schemaVersion, project (nonblank), and a nonempty cases array. Unknown fields at root, case, step and basis levels are rejected, rather than silently dropped. Keep optional background in the original source document, or deliberately revise the contract if a new field is needed.
+Fields:
 
-## Results and attempts
+- `operationId`: idempotency ID for this registration; it cannot be reused across evidence and result operations in the run.
+- `expectedRevision`: current evidence-catalog revision; a new successful registration increments it by one.
+- `caseId`: must identify a case in the frozen baseline.
+- `sourceFile`: absolute path to a local regular file. Symlink path components are rejected. The source file is not deleted or changed.
+- `kind`: `screenshot`, `dom`, `tool_receipt`, `log`, or `other`.
+- `source`, `description`: nonempty caller-supplied provenance and explanation.
+- `capturedAt`: optional source-provided capture time in UTC ISO 8601. Omit it when unknown; the helper does not guess it from file timestamps.
 
-Every result requires id and an unchanged copy of its baseline basis, plus status, observed, rationale, remainingQuestions and evidence. Only cause and attempts are optional. Unknown fields are rejected.
+Under the run lock, the helper checks the revision and source, copies the source into a unique staging file, and hashes the copied bytes. It installs the complete staged file at a unique final name with an exclusive same-volume hard link, so a partially copied file is not exposed as final evidence. Registration fails and cleans up its own files if the target filesystem does not support hard links. It verifies the retained file again. The catalog entry contains a unique `id`, relative `path`, `caseId`, metadata, `sha256`, `bytes`, helper-set `collectedAt`, and operation ID. The returned receipt can be used by `record`. If the response is lost, retry the same ID and payload to get the original receipt.
 
-- status: pass, fail, inconclusive, blocked or not_run.
-- observed: actual observed behavior, separately from expected behavior.
-- rationale: why those observations support this recorded status and what they do not establish.
-- remainingQuestions: array of nonblank questions; use [] when none are recorded. An empty array is not proof that uncertainty was resolved.
-- evidence: array of relative evidence file paths, not catalog IDs or external URLs.
-- cause: product_candidate, agent, environment, spec or unknown. A candidate product issue is not a confirmed root cause. Omitted cause is displayed as unknown.
-- attempts: chronological records preserving prior observations, including initial failures. Each attempt has status, observed, rationale, remainingQuestions and evidence, with optional cause. It has no id, basis or nested attempts.
+SHA-256 only indicates that current retained bytes match the catalog hash. It does not prove the file is genuine, the source is trusted, or the conclusion is correct. The helper does not redact content; review evidence before copying it.
 
-pass and fail require nonblank observed and rationale and at least one evidence reference. inconclusive and blocked require nonblank rationale. not_run may retain empty observed/rationale and empty arrays. These requirements apply equally to attempts. A structurally valid run can remain incomplete.
+## Final outcomes and historical attempts
 
-All original baseline cases must appear exactly once, including blocked and not_run cases. No unknown or duplicate result IDs are allowed. Do not overwrite failed attempts with a later success, change requirements, or quietly drop incomplete cases. The helper validates supplied attempts; it cannot discover an attempt that was never recorded or prove chronological completeness.
+Result requests follow [`record-request.schema.json`](../schemas/record-request.schema.json):
 
-Interpretation and hypothesis outcomes remain explicitly unconfirmed acceptance findings, even if their recorded status is pass or fail. Only explicit outcomes enter recordedExplicitOutcomes, and those are still operator-supplied outcomes, not independently proven verdicts.
+```json
+{
+  "schemaVersion": 3,
+  "operationId": "CONFIG-01-observation-1",
+  "expectedRevision": 0,
+  "caseId": "CONFIG-01",
+  "mode": "attempt",
+  "record": {
+    "status": "inconclusive",
+    "observed": "The page showed the synthetic name, but refresh persistence was not observed.",
+    "rationale": "This observation is insufficient to judge the overall expectation.",
+    "remainingQuestions": ["Must the value remain after refresh?"],
+    "evidenceIds": ["replace-with-evidenceId-from-receipt"],
+    "cause": "unknown"
+  }
+}
+```
 
-## Evidence catalog
+`record --run-dir ABS --request ABS_JSON` accepts `mode: "final"` and `mode: "attempt"`:
 
-The catalog requires schemaVersion and items, with no extra properties. Each item requires exactly:
+- `final` updates the current final status used for progress. Status is `pass`, `fail`, `inconclusive`, `blocked`, or `not_run`. When it replaces an existing final observation, that observation is retained as a `superseded_final` snapshot unless the same observation already exists in history.
+- `attempt` appends an observation and leaves the current final status unchanged. Attempts have their own `attemptId`, revision, time, and operation ID.
+- **The attempts array excludes the current final observation itself.** It contains explicit `mode: attempt` observations and replaced final observations not previously preserved. Progress counts current status once; history counts both kinds of entries.
+- `pass` and `fail` require nonempty `observed`, nonempty `rationale`, and at least one registered `evidenceId` associated with the same case. `blocked` and `inconclusive` require a rationale. `not_run` is valid only in final mode; it is not an observed attempt.
+- If the frozen baseline has nonempty `clarificationQuestions`, the helper rejects `pass` and `fail` for final results and attempts alike. Requests only change result fields; they cannot rewrite the frozen basis, expected outcome, steps, or clarification questions.
+- `remainingQuestions` describes questions about this result or attempt. It cannot replace or clear frozen `clarificationQuestions`.
 
-- id: nonblank catalog identifier, unique in the catalog.
-- path: unique slash-separated relative path under evidence/, such as evidence/example.txt.
-- kind: screenshot, dom, tool_receipt, log or other.
-- capturedAt: valid UTC ISO timestamp, YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss.sssZ. Offsets and other fractional precision are not accepted.
-- source: nonblank description of the capture source, such as the tool or view used. Do not include credentials or private session tokens.
-- description: nonblank explanation of what the evidence shows and any material limits or redaction.
+The helper verifies evidence IDs exist, belong to the case, and are not duplicated. Result operations are written by atomic replacement of one file, then return an operation ID and revision receipt. If the process exits after commit but before returning the receipt, retrying the same request returns the ledger receipt without appending twice.
 
-All catalog paths and all result/attempt references must resolve to existing regular files within the run's evidence directory. The helper rejects symlink components, absolute paths, traversal, empty path segments, backslashes, colons and NUL characters. Every result reference must match a catalog path. Unreferenced catalog items are allowed but must still exist; an empty catalog is valid for a pending run.
+## IDs, revisions, and concurrency
 
-Timestamps, sources and descriptions are supplied by the operator. No signature, trusted capture attestation, file-content digest or cryptographic authenticity is implied. Keep original observations where safe; use redaction without misleading the reviewer about what remains visible.
+- Every write uses a safe unique `operationId`. The same ID with the same canonical JSON payload (object-key order is ignored) is an idempotent retry; changed content is rejected.
+- Evidence and result operations share one ID namespace within the run to prevent cross-type reuse.
+- A new operation's `expectedRevision` must equal the current revision for its catalog or results file. Stale requests are rejected; read the latest revision before deciding whether to construct a new operation.
+- Every run write obtains an exclusive `.run.lock` with create-exclusive semantics before reading or validating revisions. Concurrent calls do not queue: one may acquire the lock and others receive a conflict error.
+- A leftover lock blocks writes. An operator should verify the associated process exited before inspecting and handling the lock. Do not delete unknown locks automatically.
+- `init`, `start`, reports, and evidence destinations refuse overwrites. Evidence uses unique names. Cleanup targets only staging, marker, or unique evidence-ID files owned by the current operation.
 
-## Validation and evolution
+The helper uses same-directory temporary files, `fsync` when supported, and single-file rename. It does not provide a general multi-file transaction across catalog, marker, and evidence files or guarantee power-loss durability. Evidence markers identify known uncommitted/committed work for recovery; `check` still verifies file hashes. The run directory must not be edited concurrently by external programs.
 
-Schema validation checks JSON shape, field types, allowed values and conditional per-record requirements. A validator must support draft 2020-12 and resolve the local references; date-time format assertion may need explicit enabling. The helper additionally validates actual calendar timestamps, unique case/catalog IDs, unique step IDs within each case, unique catalog paths, full baseline coverage, unchanged basis, baseline byte hash, reference membership, file existence, symlinks and platform-specific absolute path semantics. JSON Schema alone cannot establish these cross-file and filesystem guarantees.
+## Progress, check, and report
 
-Run check before generating the report. structurallyValid: true means structural checks passed, not that all tests ran, all required conditions were verified, or the product passed. hasUnexecutedCases and counts expose recorded coverage; inspect the individual evidence and reasoning.
+```powershell
+node .\scripts\ego.mjs progress --run-dir $Run
+node .\scripts\ego.mjs check --run-dir $Run
+node .\scripts\ego.mjs report --run-dir $Run
+```
 
-Version 0.1.2 keeps schemaVersion: 2. Existing v2 cases with full step expectations remain valid without migration. All current JSON assets reject v1; there is no migration layer. Prepare new files against this contract; do not rewrite historical run baselines to impersonate a new-format run. Do not add arbitrary metadata or reinterpret fields. Checks are not a security boundary against changes made outside the helper.
+`progress` returns current-status counts per frozen case, completed (`pass` / `fail`), uncompleted (`not_run` / `blocked` / `inconclusive`), pending clarifications, and attempt counts. `hasUnexecutedCases` is true only for a current final `not_run`; `blocked` and `inconclusive` remain distinct. `check` validates frozen hashes, closed fields, associations, operation ledgers, paths, and every evidence file's hash and byte count. `report` writes `report.json` and `report.md`, escapes Markdown text, and refuses to overwrite.
+
+Valid structure means only that the record format is valid. It does not independently verify operator-supplied outcomes. Reports and hashes do not prove business correctness or defect attribution.
+
+## Command reference
+
+```text
+node scripts/ego.mjs init --project-dir ABS
+node scripts/ego.mjs validate-cases --cases ABS
+node scripts/ego.mjs start --project-dir ABS --cases ABS --output-dir ABS
+node scripts/ego.mjs evidence-add --run-dir ABS --request ABS_JSON
+node scripts/ego.mjs record --run-dir ABS --request ABS_JSON
+node scripts/ego.mjs progress --run-dir ABS
+node scripts/ego.mjs check --run-dir ABS
+node scripts/ego.mjs report --run-dir ABS
+```
+
+All paths must be absolute. Commands only organize local facts; they do not call a network, model, Ego, or browser, and they do not select a test route or retry business operations. v0.1.2 v2 files must be rebuilt from their original sources and placed in a new run; migration is unsupported.

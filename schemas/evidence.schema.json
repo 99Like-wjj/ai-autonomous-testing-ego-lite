@@ -1,62 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Ego Lite evidence catalog v2",
+  "$id": "evidence.schema.json",
+  "title": "Ego Lite evidence catalog v3",
+  "description": "New entries bind a local file copy to its associated case, source metadata, collectedAt, optional source-provided capturedAt, byte count, and SHA-256 of the retained bytes. A matching hash is not proof of authenticity.",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "items"
-  ],
+  "required": ["schemaVersion", "revision", "items", "operations"],
   "properties": {
-    "schemaVersion": {
-      "const": 2
-    },
-    "items": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "path",
-          "kind",
-          "capturedAt",
-          "source",
-          "description"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "pattern": "\\S"
-          },
-          "path": {
-            "$ref": "common.schema.json#/$defs/evidencePath"
-          },
-          "kind": {
-            "enum": [
-              "screenshot",
-              "dom",
-              "tool_receipt",
-              "log",
-              "other"
-            ]
-          },
-          "capturedAt": {
-            "type": "string",
-            "format": "date-time",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
-          },
-          "source": {
-            "type": "string",
-            "pattern": "\\S"
-          },
-          "description": {
-            "type": "string",
-            "pattern": "\\S"
-          }
-        },
-        "additionalProperties": false
-      }
-    }
+    "schemaVersion": { "const": 3 },
+    "revision": { "type": "integer", "minimum": 0 },
+    "items": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/evidenceItemV3" } },
+    "operations": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/evidenceOperationV3" } }
   },
-  "additionalProperties": false,
-  "$id": "evidence.schema.json"
+  "additionalProperties": false
 }

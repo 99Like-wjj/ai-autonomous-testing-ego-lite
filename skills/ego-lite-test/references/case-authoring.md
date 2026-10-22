@@ -1,4 +1,4 @@
-# 用例接收与生成（schemaVersion 2）
+# 用例接收与生成（schemaVersion 3）
 
 ## 两种来源，一套执行契约
 
@@ -9,7 +9,7 @@
 ## 接收外部用例
 
 1. 保留原文件、原始要求及可定位的来源，不覆盖用户输入。
-2. 已是 v2 JSON 时，检查必需字段、非空值、枚举和唯一 ID，再核对语义与前提。缺项明确报错，不静默编造步骤、重写期望或丢弃未知字段。
+2. 已是 v3 JSON 时，检查必需字段、非空值、枚举和唯一 ID，再核对语义与前提。缺项明确报错，不静默编造步骤、重写期望或丢弃未知字段。
 3. 文本/表格输入可转换为下方契约；保持意图、顺序、关键输入与原有覆盖，标出不能无损表达之处。不要将当前 UI 行为当成外部用例的需求依据。
 4. 只就影响验收的实质歧义、来源冲突、关键条件或权限询问。普通措辞规范化无须逐条审批；实际要求变更必须保留原版与原因。
 
@@ -27,7 +27,7 @@ basis.kind 三类严格区分：explicit 是原文明确规定；interpretation 
 
 ## 完整最小格式
 
-使用 UTF-8 JSON。0.1.2 保持 schemaVersion 2；已有完整步骤 expected 的 v2 用例仍有效，无迁移层。不接受 v1。用例根对象只允许 schemaVersion、project、cases；project 非空白，cases 非空。
+使用 UTF-8 JSON。v0.1.3-dev 使用 schemaVersion 3；v0.1.2 的 schemaVersion 2 用例不能直接使用，也没有迁移层。应从原始需求和来源重新整理用例并新建运行，不要只改版本字段。用例根对象只允许 schemaVersion、project、cases；project 非空白，cases 非空。
 
 每个用例包含以下字段，不允许其他字段（除标明可选外均必需）：
 
@@ -44,7 +44,7 @@ basis.kind 三类严格区分：explicit 是原文明确规定；interpretation 
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "project": "synthetic-config",
   "cases": [
     {

@@ -1,23 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Ego Lite recorded results v2",
-  "description": "Operator-supplied results. The helper additionally checks the frozen baseline: cases with nonempty clarificationQuestions may not have pass/fail final or attempt statuses. This cross-file constraint cannot be validated from results alone.",
+  "$id": "results.schema.json",
+  "title": "Ego Lite recorded results v3",
+  "description": "Revisioned final results, explicit attempts, and idempotency receipts. Runtime validation also enforces evidence ownership and the frozen-baseline clarification veto.",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "cases"
-  ],
+  "required": ["schemaVersion", "revision", "cases", "operations"],
   "properties": {
-    "schemaVersion": {
-      "const": 2
-    },
-    "cases": {
-      "type": "array",
-      "items": {
-        "$ref": "common.schema.json#/$defs/result"
-      }
-    }
+    "schemaVersion": { "const": 3 },
+    "revision": { "type": "integer", "minimum": 0 },
+    "cases": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/resultV3" } },
+    "operations": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/resultOperationV3" } }
   },
-  "additionalProperties": false,
-  "$id": "results.schema.json"
+  "additionalProperties": false
 }

@@ -6,6 +6,17 @@
       "type": "string",
       "pattern": "\\S"
     },
+    "safeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "not": { "enum": ["__proto__", "prototype", "constructor"] },
+      "description": "Reserved property names such as __proto__, prototype, and constructor are forbidden."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
+    },
     "basis": {
       "type": "object",
       "required": [
@@ -22,12 +33,31 @@
           ]
         },
         "source": {
-          "type": "string",
-          "pattern": "\\S"
+          "$ref": "common.schema.json#/$defs/nonempty"
         },
         "text": {
-          "type": "string",
-          "pattern": "\\S"
+          "$ref": "common.schema.json#/$defs/nonempty"
+        }
+      },
+      "additionalProperties": false
+    },
+    "step": {
+      "type": "object",
+      "required": [
+        "id",
+        "action"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "action": {
+          "$ref": "common.schema.json#/$defs/nonempty",
+          "description": "Business-intent guidance and necessary test data, not executable code or compulsory UI click details."
+        },
+        "expected": {
+          "$ref": "common.schema.json#/$defs/nonempty",
+          "description": "Optional source-backed checkpoint. Omission means no checkpoint verdict is supplied."
         }
       },
       "additionalProperties": false
@@ -46,12 +76,10 @@
       ],
       "properties": {
         "id": {
-          "type": "string",
-          "pattern": "\\S"
+          "$ref": "common.schema.json#/$defs/safeId"
         },
         "title": {
-          "type": "string",
-          "pattern": "\\S"
+          "$ref": "common.schema.json#/$defs/nonempty"
         },
         "basis": {
           "$ref": "common.schema.json#/$defs/basis"
@@ -59,14 +87,12 @@
         "criticalConditions": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "\\S"
+            "$ref": "common.schema.json#/$defs/nonempty"
           }
         },
         "expected": {
-          "type": "string",
-          "pattern": "\\S",
-          "description": "Required overall observable expectation grounded in the stated basis source; the helper validates structure, not source truth."
+          "$ref": "common.schema.json#/$defs/nonempty",
+          "description": "Required overall observable expectation; the helper validates structure, not source truth."
         },
         "requiredPath": {
           "anyOf": [
@@ -74,8 +100,7 @@
               "type": "null"
             },
             {
-              "type": "string",
-              "pattern": "\\S"
+              "$ref": "common.schema.json#/$defs/nonempty"
             }
           ]
         },
@@ -84,47 +109,98 @@
             "strict",
             "adaptive"
           ],
-          "description": "strict preserves business-step sequence; adaptive may adjust UI route/order only within case intent and critical conditions, never skipping required steps. This is an operator execution contract, not automatically verified."
+          "description": "strict preserves business-step sequence; adaptive may adjust route/order only within intent and prerequisites."
         },
         "steps": {
           "type": "array",
           "minItems": 1,
           "items": {
             "$ref": "common.schema.json#/$defs/step"
-          },
-          "description": "Business-intent guidance and necessary test data, not executable code or compulsory UI click details. Step IDs must be unique within each case (enforced by helper). Frozen order, content, and omitted checkpoints are preserved in baseline and report."
+          }
         },
         "clarificationQuestions": {
           "type": "array",
           "items": {
             "$ref": "common.schema.json#/$defs/nonempty"
           },
-          "description": "Optional unresolved specification questions, frozen with the baseline. A nonempty array prohibits pass/fail for this case and all attempts; use inconclusive, blocked, or not_run until a clarified case is approved in a new baseline."
+          "description": "When nonempty, both the final result and every attempt are prohibited from using pass or fail."
         }
       },
       "additionalProperties": false
     },
-    "evidencePath": {
-      "type": "string",
-      "pattern": "^evidence/(?!\\.\\.?(?:/|$))[^/\\\\:\\u0000]+(?:/(?!\\.\\.?(?:/|$))[^/\\\\:\\u0000]+)*$"
-    },
-    "attempt": {
+    "counts": {
       "type": "object",
       "required": [
+        "pass",
+        "fail",
+        "inconclusive",
+        "blocked",
+        "not_run"
+      ],
+      "properties": {
+        "pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fail": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inconclusive": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_run": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "attemptV3": {
+      "type": "object",
+      "required": [
+        "attemptId",
+        "operationId",
+        "revision",
+        "recordedAt",
+        "kind",
         "status",
         "observed",
         "rationale",
         "remainingQuestions",
-        "evidence"
+        "evidenceIds"
       ],
       "properties": {
+        "attemptId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recordedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "kind": {
+          "enum": [
+            "attempt",
+            "superseded_final"
+          ]
+        },
         "status": {
           "enum": [
             "pass",
             "fail",
             "inconclusive",
-            "blocked",
-            "not_run"
+            "blocked"
           ]
         },
         "observed": {
@@ -136,14 +212,14 @@
         "remainingQuestions": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "\\S"
+            "$ref": "common.schema.json#/$defs/nonempty"
           }
         },
-        "evidence": {
+        "evidenceIds": {
           "type": "array",
+          "uniqueItems": true,
           "items": {
-            "$ref": "common.schema.json#/$defs/evidencePath"
+            "$ref": "common.schema.json#/$defs/safeId"
           }
         },
         "cause": {
@@ -175,14 +251,12 @@
           "then": {
             "properties": {
               "observed": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               },
               "rationale": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               },
-              "evidence": {
+              "evidenceIds": {
                 "minItems": 1
               }
             }
@@ -205,15 +279,14 @@
           "then": {
             "properties": {
               "rationale": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               }
             }
           }
         }
       ]
     },
-    "result": {
+    "resultV3": {
       "type": "object",
       "required": [
         "id",
@@ -222,12 +295,12 @@
         "observed",
         "rationale",
         "remainingQuestions",
-        "evidence"
+        "evidenceIds",
+        "attempts"
       ],
       "properties": {
         "id": {
-          "type": "string",
-          "pattern": "\\S"
+          "$ref": "common.schema.json#/$defs/safeId"
         },
         "basis": {
           "$ref": "common.schema.json#/$defs/basis"
@@ -250,14 +323,14 @@
         "remainingQuestions": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "\\S"
+            "$ref": "common.schema.json#/$defs/nonempty"
           }
         },
-        "evidence": {
+        "evidenceIds": {
           "type": "array",
+          "uniqueItems": true,
           "items": {
-            "$ref": "common.schema.json#/$defs/evidencePath"
+            "$ref": "common.schema.json#/$defs/safeId"
           }
         },
         "cause": {
@@ -272,8 +345,18 @@
         "attempts": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/attempt"
+            "$ref": "common.schema.json#/$defs/attemptV3"
           }
+        },
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recordedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false,
@@ -295,14 +378,12 @@
           "then": {
             "properties": {
               "observed": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               },
               "rationale": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               },
-              "evidence": {
+              "evidenceIds": {
                 "minItems": 1
               }
             }
@@ -325,15 +406,327 @@
           "then": {
             "properties": {
               "rationale": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               }
             }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "operationId"
+            ]
+          },
+          "then": {
+            "required": [
+              "revision",
+              "recordedAt"
+            ]
           }
         }
       ]
     },
-    "reportCase": {
+    "resultOperationV3": {
+      "type": "object",
+      "required": [
+        "operationId",
+        "payloadSha256",
+        "revision",
+        "committedAt",
+        "caseId",
+        "mode",
+        "status"
+      ],
+      "properties": {
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "payloadSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "committedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "caseId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "mode": {
+          "enum": [
+            "final",
+            "attempt"
+          ]
+        },
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "inconclusive",
+            "blocked",
+            "not_run"
+          ]
+        },
+        "attemptId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "noOp": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidenceItemV3": {
+      "type": "object",
+      "required": [
+        "id",
+        "path",
+        "caseId",
+        "kind",
+        "collectedAt",
+        "source",
+        "description",
+        "sha256",
+        "bytes",
+        "operationId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^evidence/ev-[A-Za-z0-9-]+(?:\\.[A-Za-z0-9]{1,10})?$"
+        },
+        "caseId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "kind": {
+          "enum": [
+            "screenshot",
+            "dom",
+            "tool_receipt",
+            "log",
+            "other"
+          ]
+        },
+        "capturedAt": {
+          "allOf": [
+            {
+              "$ref": "common.schema.json#/$defs/timestamp"
+            }
+          ],
+          "description": "Optional UTC capture time supplied by the source/operator. It is not inferred."
+        },
+        "collectedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "source": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "description": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidenceOperationV3": {
+      "type": "object",
+      "required": [
+        "operationId",
+        "payloadSha256",
+        "revision",
+        "committedAt",
+        "caseId",
+        "evidenceId",
+        "path",
+        "sha256",
+        "bytes"
+      ],
+      "properties": {
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "payloadSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "committedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "caseId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "evidenceId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^evidence/ev-[A-Za-z0-9-]+(?:\\.[A-Za-z0-9]{1,10})?$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "progress": {
+      "type": "object",
+      "required": [
+        "completed",
+        "uncompleted",
+        "pendingClarification",
+        "attemptedCases"
+      ],
+      "properties": {
+        "completed": {
+          "type": "object",
+          "required": [
+            "count",
+            "caseIds",
+            "statusCounts"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "caseIds": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              }
+            },
+            "statusCounts": {
+              "type": "object",
+              "required": [
+                "pass",
+                "fail"
+              ],
+              "properties": {
+                "pass": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "fail": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "uncompleted": {
+          "type": "object",
+          "required": [
+            "count",
+            "caseIds",
+            "statusCounts"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "caseIds": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              }
+            },
+            "statusCounts": {
+              "type": "object",
+              "required": [
+                "not_run",
+                "blocked",
+                "inconclusive"
+              ],
+              "properties": {
+                "not_run": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "blocked": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "inconclusive": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "pendingClarification": {
+          "type": "object",
+          "required": [
+            "count",
+            "caseIds"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "caseIds": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "attemptedCases": {
+          "type": "object",
+          "required": [
+            "count",
+            "totalAttempts"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "totalAttempts": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "reportCaseV3": {
       "type": "object",
       "required": [
         "id",
@@ -346,18 +739,18 @@
         "observed",
         "rationale",
         "remainingQuestions",
-        "evidence",
+        "evidenceIds",
+        "cause",
+        "attempts",
         "stepOrder",
         "steps"
       ],
       "properties": {
         "id": {
-          "type": "string",
-          "pattern": "\\S"
+          "$ref": "common.schema.json#/$defs/safeId"
         },
         "title": {
-          "type": "string",
-          "pattern": "\\S"
+          "$ref": "common.schema.json#/$defs/nonempty"
         },
         "basis": {
           "$ref": "common.schema.json#/$defs/basis"
@@ -365,14 +758,11 @@
         "criticalConditions": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "\\S"
+            "$ref": "common.schema.json#/$defs/nonempty"
           }
         },
         "expected": {
-          "type": "string",
-          "pattern": "\\S",
-          "description": "Required overall observable expectation grounded in the stated basis source; the helper validates structure, not source truth."
+          "$ref": "common.schema.json#/$defs/nonempty"
         },
         "requiredPath": {
           "anyOf": [
@@ -380,8 +770,7 @@
               "type": "null"
             },
             {
-              "type": "string",
-              "pattern": "\\S"
+              "$ref": "common.schema.json#/$defs/nonempty"
             }
           ]
         },
@@ -403,14 +792,13 @@
         "remainingQuestions": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "\\S"
+            "$ref": "common.schema.json#/$defs/nonempty"
           }
         },
-        "evidence": {
+        "evidenceIds": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/evidencePath"
+            "$ref": "common.schema.json#/$defs/safeId"
           }
         },
         "cause": {
@@ -425,30 +813,37 @@
         "attempts": {
           "type": "array",
           "items": {
-            "$ref": "common.schema.json#/$defs/attempt"
+            "$ref": "common.schema.json#/$defs/attemptV3"
           }
+        },
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recordedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
         },
         "stepOrder": {
           "enum": [
             "strict",
             "adaptive"
-          ],
-          "description": "strict preserves business-step sequence; adaptive may adjust UI route/order only within case intent and critical conditions, never skipping required steps. This is an operator execution contract, not automatically verified."
+          ]
         },
         "steps": {
           "type": "array",
           "minItems": 1,
           "items": {
             "$ref": "common.schema.json#/$defs/step"
-          },
-          "description": "Business-intent guidance and necessary test data, not executable code or compulsory UI click details. Step IDs must be unique within each case (enforced by helper). Frozen order, content, and omitted checkpoints are preserved in baseline and report."
+          }
         },
         "clarificationQuestions": {
           "type": "array",
           "items": {
             "$ref": "common.schema.json#/$defs/nonempty"
-          },
-          "description": "Optional unresolved specification questions, frozen with the baseline. A nonempty array prohibits pass/fail for this case and all attempts; use inconclusive, blocked, or not_run until a clarified case is approved in a new baseline."
+          }
         }
       },
       "additionalProperties": false,
@@ -470,14 +865,12 @@
           "then": {
             "properties": {
               "observed": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               },
               "rationale": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               },
-              "evidence": {
+              "evidenceIds": {
                 "minItems": 1
               }
             }
@@ -500,10 +893,22 @@
           "then": {
             "properties": {
               "rationale": {
-                "type": "string",
-                "pattern": "\\S"
+                "$ref": "common.schema.json#/$defs/nonempty"
               }
             }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "operationId"
+            ]
+          },
+          "then": {
+            "required": [
+              "revision",
+              "recordedAt"
+            ]
           }
         },
         {
@@ -543,60 +948,6 @@
           }
         }
       ]
-    },
-    "counts": {
-      "type": "object",
-      "required": [
-        "pass",
-        "fail",
-        "inconclusive",
-        "blocked",
-        "not_run"
-      ],
-      "properties": {
-        "pass": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "fail": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "inconclusive": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "blocked": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "not_run": {
-          "type": "integer",
-          "minimum": 0
-        }
-      },
-      "additionalProperties": false
-    },
-    "step": {
-      "type": "object",
-      "required": [
-        "id",
-        "action"
-      ],
-      "properties": {
-        "id": {
-          "$ref": "common.schema.json#/$defs/nonempty"
-        },
-        "action": {
-          "$ref": "common.schema.json#/$defs/nonempty",
-          "description": "Business-intent action and necessary test data; detailed UI clicks are not required. The AI discovers the actual route within the case constraints."
-        },
-        "expected": {
-          "$ref": "common.schema.json#/$defs/nonempty",
-          "description": "Optional source-backed checkpoint. Omit when not specified; if supplied, use nonblank text, never null or empty placeholder text."
-        }
-      },
-      "additionalProperties": false
     }
   },
   "$id": "common.schema.json"

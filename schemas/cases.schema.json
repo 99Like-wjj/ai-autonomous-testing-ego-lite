@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Ego Lite case input and normalized baseline v2",
-  "description": "Canonical v2 case input and normalized baseline, for imported and AI-authored cases alike. Unknown fields are rejected. The helper additionally enforces unique case IDs and unique step IDs within each case; JSON Schema cannot express uniqueness by ID.",
+  "title": "Ego Lite case input and normalized baseline v3",
+  "description": "Canonical v3 case input and normalized baseline for external and Skill-authored cases. Unknown fields are rejected. Runtime additionally enforces safe, unique case and step IDs.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -10,7 +10,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 2
+      "const": 3
     },
     "project": {
       "type": "string",
