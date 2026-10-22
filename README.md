@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/images/hero.zh-CN.png" alt="基于 Ego Lite 的 AI 自主测试 Skill：面向新项目上线前和新功能首次交付的 Web 测试。由 AI 自主规划，按业务规则验证。" width="100%"></p>
 
-# 基于 Ego Lite 的 AI 自主测试 Skill
+<h1 align="center">基于 Ego Lite 的 AI 自主测试 Skill</h1>
 
 <p align="center"><a href="README.en.md">English</a> · <strong>简体中文</strong><br><a href="#windows-快速开始">快速开始</a> · <a href="docs/architecture.md">架构</a> · <a href="docs/asset-formats.md">格式与命令</a> · <a href="docs/privacy.md">隐私保护</a> · <a href="docs/testing.md">验证状态</a></p>
 

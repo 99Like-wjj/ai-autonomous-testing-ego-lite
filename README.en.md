@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/images/hero.png" alt="Ego Lite Test Skill for new web projects and first feature deliveries. AI plans tests against business rules." width="100%"></p>
 
-# AI-led Testing Skill Built on Ego Lite
+<h1 align="center">AI-led Testing Skill Built on Ego Lite</h1>
 
 <p align="center"><strong>English</strong> · <a href="README.md">简体中文</a><br><a href="#quick-start-on-windows">Quick start</a> · <a href="docs/architecture.en.md">Architecture</a> · <a href="docs/asset-formats.en.md">Format and commands</a> · <a href="docs/privacy.md">Privacy</a> · <a href="docs/testing.en.md">Validation</a></p>
 
