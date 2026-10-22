@@ -178,6 +178,16 @@ test('evidence source must be a regular, nonsymlink local file within a checked 
   const link = path.join(f.root, 'source-link.log');
   try { await fs.symlink(outside, link); } catch (error) { if (['EPERM', 'EACCES'].includes(error.code)) { t.skip('OS does not allow synthetic symlink creation'); return; } throw error; }
   await assert.rejects(addEvidence(f, { operationId: 'symlink', sourceFile: link }), /Symlink|ELOOP/);
+
+  const nestedDir = path.join(f.root, 'nested-source'); await fs.mkdir(nestedDir);
+  await fs.writeFile(path.join(nestedDir, 'source.log'), 'synthetic nested source');
+  const parentLink = path.join(f.root, 'source-parent-link');
+  try { await fs.symlink(nestedDir, parentLink, 'dir'); } catch (error) { if (['EPERM', 'EACCES'].includes(error.code)) { t.skip('OS does not allow synthetic directory symlink creation'); return; } throw error; }
+  const parentLinkRequest = {
+    ...directoryRequest, operationId: 'parent-symlink', caseId: 'one',
+    sourceFile: path.join(parentLink, 'source.log')
+  };
+  await assert.rejects(registerEvidence({ runDir: f.outputDir, request: parentLinkRequest }), /Symlink|ELOOP/);
 });
 
 test('evidence copy or catalog failure cleans only the operation-owned staged files', async t => {
@@ -261,14 +271,43 @@ test('concurrent writers do not overwrite a shared revision', async t => {
 test('stale or symlink run locks refuse writers; lock is removed after a normal operation', async t => {
   const f = await fixture(t);
   const lock = path.join(f.outputDir, '.run.lock');
-  await fs.writeFile(lock, JSON.stringify({ token: 'synthetic-stale', pid: 0, startedAt: '2026-01-01T00:00:00Z' }));
+  const staleLock = { token: 'synthetic-stale', pid: 0, startedAt: '2026-01-01T00:00:00Z' };
+  await fs.writeFile(lock, JSON.stringify(staleLock));
   await assert.rejects(progress(f.outputDir), /locked/);
+  assert.deepEqual(await readJson(lock), staleLock);
   await fs.unlink(lock);
   await progress(f.outputDir);
   await assert.rejects(fs.stat(lock), /ENOENT/);
   const target = path.join(f.root, 'lock-target'); await fs.writeFile(target, '{}');
   try { await fs.symlink(target, lock); } catch (error) { if (['EPERM', 'EACCES'].includes(error.code)) { t.skip('OS does not allow synthetic symlink creation'); return; } throw error; }
   await assert.rejects(progress(f.outputDir), /Symlink|locked/);
+});
+
+test('partial lock write failure removes the lock created by this operation', async t => {
+  const f = await fixture(t);
+  const lock = path.join(f.outputDir, '.run.lock');
+  const open = fs.open.bind(fs);
+  let injected = false;
+  fs.open = async (...args) => {
+    const handle = await open(...args);
+    if (path.resolve(String(args[0])) !== lock || injected) return handle;
+    injected = true;
+    return new Proxy(handle, {
+      get(target, property) {
+        if (property === 'writeFile') return async () => {
+          await target.writeFile('{"token":"partial');
+          const error = new Error('synthetic ENOSPC'); error.code = 'ENOSPC'; throw error;
+        };
+        const value = Reflect.get(target, property, target);
+        return typeof value === 'function' ? value.bind(target) : value;
+      }
+    });
+  };
+  try {
+    await assert.rejects(progress(f.outputDir), error => error.code === 'ENOSPC');
+  } finally { fs.open = open; }
+  assert.equal(injected, true);
+  await assert.rejects(fs.stat(lock), /ENOENT/);
 });
 
 test('pending baseline clarification prohibits pass or fail in final records and attempts', async t => {
@@ -381,6 +420,49 @@ test('baseline hash protects case intent, clarification questions, and optional 
   await assert.rejects(check(f.outputDir), /hash mismatch/);
 });
 
+test('frozen baseline edits and result-side overrides of case fields are rejected', async t => {
+  const f = await fixture(t, [caseOf('one', 'explicit', { clarificationQuestions: ['Synthetic question?'] })]);
+  const baselinePath = path.join(f.outputDir, 'baseline.json');
+  const originalBaseline = await readJson(baselinePath);
+  const baselineEdits = [
+    value => { value.project = 'Changed project'; },
+    value => { value.cases[0].id = 'changed-id'; },
+    value => { value.cases[0].title = 'Changed title'; },
+    value => { value.cases[0].basis.kind = 'interpretation'; },
+    value => { value.cases[0].basis.source = 'Changed source'; },
+    value => { value.cases[0].basis.text = 'Changed intent'; },
+    value => { value.cases[0].criticalConditions[0] = 'Changed condition'; },
+    value => { value.cases[0].expected = 'Changed overall expectation'; },
+    value => { value.cases[0].requiredPath = 'Changed path'; },
+    value => { value.cases[0].stepOrder = 'adaptive'; },
+    value => { value.cases[0].steps[0].id = 'changed-step'; },
+    value => { value.cases[0].steps[0].action = 'Changed action'; },
+    value => { value.cases[0].steps[0].expected = 'Changed checkpoint'; },
+    value => { value.cases[0].clarificationQuestions[0] = 'Changed question?'; }
+  ];
+  for (const edit of baselineEdits) {
+    const changed = structuredClone(originalBaseline); edit(changed); await writeJson(baselinePath, changed);
+    await assert.rejects(check(f.outputDir), /Baseline hash mismatch/);
+  }
+  await writeJson(baselinePath, originalBaseline);
+
+  const resultsPath = path.join(f.outputDir, 'results.json');
+  const originalResults = await readJson(resultsPath);
+  const resultOverrides = [
+    ['title', 'Changed title'], ['criticalConditions', ['Changed condition']],
+    ['expected', 'Changed expectation'], ['requiredPath', 'Changed path'],
+    ['stepOrder', 'adaptive'], ['steps', []],
+    ['clarificationQuestions', []], ['source', 'Changed source'], ['unexpected', true]
+  ];
+  for (const [key, value] of resultOverrides) {
+    const changed = structuredClone(originalResults); changed.cases[0][key] = value; await writeJson(resultsPath, changed);
+    await assert.rejects(check(f.outputDir), /Unexpected result key/);
+  }
+  const changedBasis = structuredClone(originalResults); changedBasis.cases[0].basis.text = 'Changed frozen basis';
+  await writeJson(resultsPath, changedBasis);
+  await assert.rejects(check(f.outputDir), /Basis changed/);
+});
+
 test('closed input format validates safe unique case and step IDs, source basis, and optional step expectations', () => {
   const base = { schemaVersion, project: 'Synthetic', cases: [caseOf()] };
   assert.deepEqual(normalizeCases(base), base);
@@ -393,6 +475,64 @@ test('closed input format validates safe unique case and step IDs, source basis,
   ]) {
     const input = structuredClone(base); change(input); assert.throws(() => normalizeCases(input));
   }
+});
+
+test('strict and adaptive cases keep their step order and do not share mutable input objects', () => {
+  const input = { schemaVersion, project: 'Synthetic', cases: [caseOf('strict-case'), caseOf('adaptive-case')] };
+  input.cases[1].stepOrder = 'adaptive';
+  const normalized = normalizeCases(input);
+  assert.deepEqual(normalized.cases.map(c => c.stepOrder), ['strict', 'adaptive']);
+  assert.deepEqual(normalized.cases.map(c => c.steps.map(step => step.id)), [
+    input.cases[0].steps.map(step => step.id), input.cases[1].steps.map(step => step.id)
+  ]);
+  assert.notStrictEqual(normalized.cases, input.cases);
+  assert.notStrictEqual(normalized.cases[0].steps, input.cases[0].steps);
+  input.cases[0].steps[0].action = 'Changed only in input.';
+  assert.equal(normalized.cases[0].steps[0].action, 'Find the synthetic settings feature.');
+  normalized.cases[1].steps[0].action = 'Changed only in normalized output.';
+  assert.equal(input.cases[1].steps[0].action, 'Find the synthetic settings feature.');
+});
+
+test('optional step expectations and clarifications preserve omissions and reject malformed values', () => {
+  const omitted = caseOf('omitted', 'explicit', { clarificationQuestions: undefined });
+  delete omitted.clarificationQuestions;
+  delete omitted.steps[1].expected;
+  const empty = caseOf('empty', 'explicit', { clarificationQuestions: [] });
+  const exact = caseOf('exact', 'explicit', { clarificationQuestions: [' Exact synthetic question? '] });
+  const normalized = normalizeCases({ schemaVersion, project: 'Synthetic', cases: [omitted, empty, exact] });
+  assert.equal(Object.hasOwn(normalized.cases[0].steps[1], 'expected'), false);
+  assert.equal(Object.hasOwn(normalized.cases[0], 'clarificationQuestions'), false);
+  assert.deepEqual(normalized.cases[1].clarificationQuestions, []);
+  assert.deepEqual(normalized.cases[2].clarificationQuestions, [' Exact synthetic question? ']);
+
+  for (const value of [null, 'question', {}, 42]) {
+    const invalid = structuredClone(omitted); invalid.clarificationQuestions = value;
+    assert.throws(() => normalizeCases({ schemaVersion, project: 'Synthetic', cases: [invalid] }));
+  }
+  for (const questions of [[' '], [''], [null], [42], ['Question?', false]]) {
+    const invalid = structuredClone(omitted); invalid.clarificationQuestions = questions;
+    assert.throws(() => normalizeCases({ schemaVersion, project: 'Synthetic', cases: [invalid] }));
+  }
+  for (const value of [null, '', ' \t\n ', 1, false, [], {}]) {
+    const invalid = structuredClone(omitted); invalid.steps[0].expected = value;
+    assert.throws(() => normalizeCases({ schemaVersion, project: 'Synthetic', cases: [invalid] }));
+  }
+});
+
+test('empty clarification lists allow pass and fail records without changing frozen basis kind', async t => {
+  const f = await fixture(t, [caseOf('explicit', 'explicit', { clarificationQuestions: [] }), caseOf('interpretation', 'interpretation', { clarificationQuestions: [] }), caseOf('hypothesis', 'hypothesis', { clarificationQuestions: [] })]);
+  const evidence = [];
+  for (const caseId of ['explicit', 'interpretation', 'hypothesis']) evidence.push((await committedEvidence(f, { operationId: `evidence-${caseId}`, expectedRevision: evidence.length, caseId })).receipt.evidenceId);
+  for (const [index, caseId] of ['explicit', 'interpretation', 'hypothesis'].entries()) {
+    const status = caseId === 'hypothesis' ? 'fail' : 'pass';
+    const request = recordRequest({ operationId: `empty-clarification-${caseId}`, expectedRevision: index, caseId, status,
+      observed: `Synthetic ${status} observation.`, rationale: `Synthetic ${status} rationale.`, evidenceIds: [evidence[index]] });
+    await recordResult({ runDir: f.outputDir, request });
+  }
+  const checked = await check(f.outputDir);
+  assert.equal(checked.cases.every(item => item.status !== 'not_run'), true);
+  assert.deepEqual(checked.recordedExplicitOutcomes, { pass: 1, fail: 0 });
+  assert.deepEqual(checked.cases.map(item => item.basis.kind), ['explicit', 'interpretation', 'hypothesis']);
 });
 
 test('validator is read-only and rejects bad cases before creating a run', async t => {
@@ -431,6 +571,25 @@ test('malformed and tampered catalogs, ledgers, and case records are rejected', 
   }
 });
 
+test('evidence catalogs reject duplicate identity or path and missing provenance fields', async t => {
+  const f = await fixture(t);
+  await committedEvidence(f);
+  const catalogPath = path.join(f.outputDir, 'evidence.json');
+  const original = await readJson(catalogPath);
+  const mutations = [
+    catalog => { catalog.items.push({ ...catalog.items[0], path: 'evidence/other.log' }); },
+    catalog => { catalog.items.push({ ...catalog.items[0], id: 'ev-00000000-0000-4000-8000-000000000000' }); },
+    catalog => { delete catalog.items[0].source; },
+    catalog => { delete catalog.items[0].collectedAt; },
+    catalog => { delete catalog.items[0].sha256; }
+  ];
+  for (const mutate of mutations) {
+    const catalog = structuredClone(original); mutate(catalog); await writeJson(catalogPath, catalog);
+    await assert.rejects(check(f.outputDir));
+  }
+  await writeJson(catalogPath, original);
+});
+
 test('symlink evidence paths and run directories are refused', async t => {
   const f = await fixture(t);
   const target = path.join(f.root, 'outside.txt'); await fs.writeFile(target, 'synthetic');
@@ -443,6 +602,26 @@ test('symlink evidence paths and run directories are refused', async t => {
   await assert.rejects(safePath('relative', { external: true }), /absolute/);
   await assert.rejects(safePath(path.parse(f.root).root, { external: true }), /filesystem root/);
   await assert.rejects(safePath(path.join(SOURCE_ROOT, 'runs'), { external: true }), /source repository/);
+});
+
+test('evidence catalog paths reject traversal, absolute paths, separators, and stream syntax', async t => {
+  const f = await fixture(t);
+  const { receipt } = await committedEvidence(f);
+  const catalogPath = path.join(f.outputDir, 'evidence.json');
+  const unsafePaths = [
+    '../outside.txt', 'evidence/../outside.txt', '/tmp/outside.txt',
+    'C:/outside.txt', 'C:\\outside.txt', '\\\\?\\C:\\outside.txt',
+    'evidence\\outside.txt', 'evidence//item.txt', 'evidence:item.txt',
+    'evidence/item.txt:alternate-stream'
+  ];
+  for (const unsafePath of unsafePaths) {
+    const catalog = await readJson(catalogPath);
+    catalog.items[0].path = unsafePath;
+    await writeJson(catalogPath, catalog);
+    await assert.rejects(check(f.outputDir), /Evidence must use relative slash-separated paths/);
+    catalog.items[0].path = receipt.path;
+    await writeJson(catalogPath, catalog);
+  }
 });
 
 test('command parser rejects unknown or duplicate flags and handles paths with spaces', async t => {

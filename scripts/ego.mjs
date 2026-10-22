@@ -144,12 +144,21 @@ async function acquireLock(root) {
     await handle.sync();
     await syncDirectory(root);
   } catch (error) {
-    if (handle) { try { await handle.close(); } catch {} handle = undefined; }
     if (error.code === 'EEXIST') fail('Run is locked by another operation. Retry after its owner exits.');
-    try {
-      const current = await readJSON(filename);
-      if (current.token === token) await removeRegularIfPresent(filename);
-    } catch (cleanupError) { if (cleanupError.code !== 'ENOENT') error.cleanupError = cleanupError.message; }
+    if (handle) {
+      try {
+        // A partial write may leave invalid JSON. Remove only the path still linked to our open file.
+        const opened = await handle.stat({ bigint: true });
+        const current = await fs.lstat(filename, { bigint: true });
+        const sameFile = opened.isFile() && current.isFile() && opened.ino > 0n && opened.dev === current.dev && opened.ino === current.ino;
+        if (sameFile) {
+          await fs.unlink(filename);
+          await syncDirectory(root);
+        }
+      } catch (cleanupError) {
+        if (cleanupError.code !== 'ENOENT') error.cleanupError = cleanupError.message;
+      }
+    }
     throw error;
   } finally { if (handle) await handle.close(); }
   return async () => {
