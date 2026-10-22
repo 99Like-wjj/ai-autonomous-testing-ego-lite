@@ -4,7 +4,7 @@
 
 ## 版本策略
 
-v0.1.3-dev 的用例、运行 JSON、请求与 `report.json` 使用 `schemaVersion: 3`。`report.html` 是从通过校验的 v3 记录生成的离线呈现文件，不定义新的输入 schema。相较 v0.1.2 的 schemaVersion 2，本版增加 revision 化结果/证据 catalog、操作回执、证据 ID 关联和本地写入入口；结果及证据资产不再支持直接手工维护。旧运行目录和旧用例文件不会自动转换，也不提供迁移层。要使用 v3，请依据原始需求和来源重新整理用例并创建新运行；不要只改版本号，也不要改写历史基线来伪装新格式。
+v0.1.3 的用例、运行 JSON、请求与 `report.json` 使用 `schemaVersion: 3`。`report.html` 是从通过校验的 v3 记录生成的离线呈现文件，不定义新的输入 schema。相较 v0.1.2 的 schemaVersion 2，本版增加 revision 化结果/证据 catalog、操作回执、证据 ID 关联和本地写入入口；结果及证据资产不再支持直接手工维护。旧运行目录和旧用例文件不会自动转换，也不提供迁移层。要使用 v3，请依据原始需求和来源重新整理用例并创建新运行；不要只改版本号，也不要改写历史基线来伪装新格式。
 
 所有对象均为封闭格式，未知字段会被拒绝。ID 只允许 1–128 个 ASCII 字母、数字、点、下划线或连字符，首字符必须为字母或数字；`__proto__`、`prototype`、`constructor` 等危险属性名禁止使用。工具没有第三方运行依赖，需要 Node.js 22 或更新版本。
 
@@ -156,4 +156,4 @@ node scripts/ego.mjs report --run-dir ABS
 
 可选 `context` 遵循 [report-context.schema.json](../schemas/report-context.schema.json)，自身 schemaVersion=1、kind=retrospective，包含 summary、非空 limitations、sources（label/file/sha256）、supplementalCaseIds 与逐目标 reviews（caseId/status/rationale）。来源必须是当前存在的普通文件且 hash 匹配；reviews 必须覆盖每个源用例一次，状态为 verified/violation/inconclusive/not_tested。状态及理由由 AI 提供，工具只校验结构与引用。原用例与新增发现、原记录与本次复核分别展示；事后保存基线不能证明执行前冻结。
 
-以上只扩展派生报告，不改变 cases / run / requests 的 schemaVersion 3，不自动迁移或删除历史。使用已确认根下的绝对脚本路径；`tool-info` 核对 0.1.3-dev、revision、schema、路径和安装清单，独立安装资源不依赖仓库外相对链接。
+以上只扩展派生报告，不改变 cases / run / requests 的 schemaVersion 3，不自动迁移或删除历史。使用已确认根下的绝对脚本路径；`tool-info` 核对 0.1.3、revision、schema、路径和安装清单，独立安装资源不依赖仓库外相对链接。

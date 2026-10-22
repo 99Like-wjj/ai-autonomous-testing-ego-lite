@@ -9,7 +9,7 @@
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.3-dev --expect-revision html-report-delivery-1
+node $Tool tool-info --expect-version 0.1.3 --expect-revision html-report-delivery-1
 ```
 
 核对回执中的 toolRoot、skillFile、schemaVersion 3、版本与 revision；独立安装的 installationIntegrity 必须为 verified，源码模式为 source-layout。指纹只用于文件一致性，不认证发布者。每次 CLI 操作也检查安装清单，缺失、混用或改动会拒绝；先报告差异，不擅自覆盖不明用户修改。随后读取此根目录的 `docs/asset-formats.md` 和所需 schema。所有命令显式传入同一绝对脚本路径。

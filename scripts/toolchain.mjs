@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-export const TOOL_VERSION = '0.1.3-dev';
+export const TOOL_VERSION = '0.1.3';
 export const TOOL_REVISION = 'html-report-delivery-1';
 export const TOOL_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const runtimeFiles = [

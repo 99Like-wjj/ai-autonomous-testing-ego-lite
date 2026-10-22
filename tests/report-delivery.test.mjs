@@ -78,7 +78,7 @@ test('standalone package contains resolvable guides/scripts/schemas and runs fro
     }
   }
   const cli = async args => JSON.parse((await exec(process.execPath, [path.join(bundle, 'scripts/ego.mjs'), ...args], { cwd: root })).stdout);
-  assert.equal((await cli(['tool-info', '--expect-version', '0.1.3-dev', '--expect-revision', 'html-report-delivery-1'])).toolRoot, bundle);
+  assert.equal((await cli(['tool-info', '--expect-version', '0.1.3', '--expect-revision', 'html-report-delivery-1'])).toolRoot, bundle);
   const project = path.join(root, 'project'), run = path.join(root, 'run');
   await cli(['init', '--project-dir', project]);
   await cli(['start', '--project-dir', project, '--cases', path.join(project, 'cases.example.json'), '--output-dir', run]);

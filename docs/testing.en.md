@@ -1,5 +1,9 @@
 # Validation record and coverage limits
 
+## Release verification (2026-10-22, cloud)
+
+Version, Skill metadata and runtime checks are aligned at 0.1.3. The full Linux / Node v24.19.0 regression suite passed 64/64 with zero failures or skips. The four Windows symlink-permission skips remain recorded below; Linux results do not substitute for Windows coverage. The owner accepted local trial results and authorized finalization, merge and release without expanding the scope of verified claims.
+
 ## Report delivery repair validation (2026-10-22, Windows)
 
 - Windows / Node v24.19.0: complete `npm test` ran 64 tests, with 60 PASS, 0 FAIL and 4 SKIP due to unavailable synthetic symlink privileges. All 8 new delivery regressions passed, covering standalone assets, revision/integrity refusals, three-file readback, retained originals, retrospective scope/reviews, source hashes, drift and duplicate text registrations.
@@ -10,7 +14,7 @@
 - The retrospective report also opened and showed the 26 original goals, one supplemental finding, 24 current inconclusive reviews, 3 untested goals and zero screenshots. A subsequent change prefixes overview metrics as original records, verified by generated DOM tests. The final installed-tool copy was also opened in Ego: URL, all 27 cases, original-record labels, review scope and search passed. Its final screenshot again failed because the window remained minimized after a restore request; final full visual acceptance remains unverified. DOM checks are not visual acceptance.
 - SHA-256 comparison preserved 37 original report/run files. No real business operation was repeated, and no capture time or screenshot was invented. Historical claims and current evidence review are separate.
 
-Not run: four symlink scenarios, full mobile visual acceptance, and new-session acceptance of real business screenshot capture/default delivery. This remains 0.1.3-dev; no main merge, tag or release is authorized.
+Not run: four symlink scenarios, full mobile visual acceptance, and new-session acceptance of real business screenshot capture/default delivery. On 2026-10-22, the owner reported no major issues in local trial use, accepted the version, and authorized merging and release. This does not establish that the listed untested scopes passed.
 
 ## Historical checks before this repair
 
@@ -51,7 +55,7 @@ The implementation uses Node.js built-ins and platform path APIs; it does not de
 
 The local browser tool refused to open the `file://` report; no local server or alternate browser channel was used to bypass that restriction. Real-browser search, status filtering, image enlargement, and decode-error notices remain **NOT RUN** and require user acceptance. The synthetic report statuses are UI fixtures, not business outcomes.
 
-No Ego, real application, account, yiliai data, or business write operation was used. AI defect-finding accuracy, false positives, and model-upgrade effects were not measured. Tests support only limited claims about local structured-record and file behavior. A v0.1.3 Release is gated on the user's local capability acceptance; this task only updates the development branch and creates no tag or release.
+No Ego, real application, account, yiliai data, or business write operation was used. AI defect-finding accuracy, false positives, and model-upgrade effects were not measured. Tests support only limited claims about local structured-record and file behavior. This historical check does not represent later owner trial use or final release verification; see the newer sections above.
 
 ## Runtime and record limitations
 
@@ -63,7 +67,7 @@ No Ego, real application, account, yiliai data, or business write operation was 
 
 ## Historical versions
 
-The following are earlier version records, not v0.1.3-dev results:
+The following are earlier version records, not v0.1.3 results:
 
 - **v0.1.2:** 2026-10-21, Linux / Node v24.19.0, 137/137 synthetic tests passed; schemaVersion 2.
 - **v0.1.1:** Linux / Node v24.19.0, 90 synthetic tests passed; asset schemaVersion 2.

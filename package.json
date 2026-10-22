@@ -1,6 +1,6 @@
 {
   "name": "ego-lite-test-skill",
-  "version": "0.1.3-dev",
+  "version": "0.1.3",
   "egoLiteTest": { "toolRevision": "html-report-delivery-1", "schemaVersion": 3 },
   "description": "Unofficial AI-led Ego Lite testing skill with local evidence records and offline HTML reports.",
   "private": true,

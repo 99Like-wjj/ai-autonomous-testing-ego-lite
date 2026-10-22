@@ -27,7 +27,7 @@ basis.kind 三类严格区分：explicit 是原文明确规定；interpretation 
 
 ## 完整最小格式
 
-使用 UTF-8 JSON。v0.1.3-dev 使用 schemaVersion 3；v0.1.2 的 schemaVersion 2 用例不能直接使用，也没有迁移层。应从原始需求和来源重新整理用例并新建运行，不要只改版本字段。用例根对象只允许 schemaVersion、project、cases；project 非空白，cases 非空。
+使用 UTF-8 JSON。v0.1.3 使用 schemaVersion 3；v0.1.2 的 schemaVersion 2 用例不能直接使用，也没有迁移层。应从原始需求和来源重新整理用例并新建运行，不要只改版本字段。用例根对象只允许 schemaVersion、project、cases；project 非空白，cases 非空。
 
 每个用例包含以下字段，不允许其他字段（除标明可选外均必需）：
 

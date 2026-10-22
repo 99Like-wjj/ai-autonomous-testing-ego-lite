@@ -1,6 +1,6 @@
-<p align="center"><img src="docs/images/hero.zh-CN.png" alt="Ego Lite 自主测试 Skill：面向新项目上线前和新功能首次交付的 Web 测试。由 AI 自主规划，按业务规则验证。" width="100%"></p>
+<p align="center"><img src="docs/images/hero.zh-CN.png" alt="基于 Ego Lite 的 AI 自主测试 Skill：面向新项目上线前和新功能首次交付的 Web 测试。由 AI 自主规划，按业务规则验证。" width="100%"></p>
 
-# Ego Lite 自主测试 Skill
+# 基于 Ego Lite 的 AI 自主测试 Skill
 
 <p align="center"><a href="README.en.md">English</a> · <strong>简体中文</strong><br><a href="#windows-快速开始">快速开始</a> · <a href="docs/architecture.md">架构</a> · <a href="docs/asset-formats.md">格式与命令</a> · <a href="docs/privacy.md">隐私保护</a> · <a href="docs/testing.md">验证状态</a></p>
 
@@ -10,10 +10,10 @@
 
 这里的“首次上线”是重点使用场景，不代表可以从空白信息推断全部业务规则，也不承诺测试通过就能安全上线；缺失的要求需要澄清，证据不足的结论必须保留不确定性。它也可用于已有功能的回归验证。
 
-**开发版 0.1.3-dev。** 本项目独立开发，非 Ego 官方项目，未获 Ego 背书。v0.1.3-dev 使用 schemaVersion 3，替代 v0.1.2 的 schemaVersion 2；这是有意的格式变更，不提供迁移命令。历史合成验证与本次修复验证分开记录；工具文件校验不代表真实业务能力验收。详见[验证记录](docs/testing.md)。
+**版本 0.1.3。** 本项目独立开发，非 Ego 官方项目，未获 Ego 背书。v0.1.3 使用 schemaVersion 3，替代 v0.1.2 的 schemaVersion 2；这是有意的格式变更，不提供迁移命令。历史合成验证与本次修复验证分开记录；工具文件校验不代表真实业务能力验收。详见[验证记录](docs/testing.md)。
 
 
-## 0.1.3-dev 报告交付修复
+## 0.1.3 报告交付修复
 
 执行测试后的默认交付包含独立离线 HTML、JSON 和 Markdown，除非用户明确要求其他格式；聊天摘要不能替代文件。关键 UI 结果及缺陷须留存真实截图，DOM / 日志 / 摘要作补充；不要求每次点击截图。缺图必须展示并由 AI 复核结论，不能自动当产品失败，也不能继续宣称证据完整。
 
@@ -22,7 +22,7 @@
 ```powershell
 $InstallPackage = Join-Path $env:TEMP ('ego-lite-test-' + [guid]::NewGuid().ToString('N'))
 npm run build:skill -- --output-dir $InstallPackage
-node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.3-dev --expect-revision html-report-delivery-1
+node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.3 --expect-revision html-report-delivery-1
 ```
 
 将完整目录内容安装到现有 Skill 根目录。更新前核对旧文件是否来自已知版本，出现不明修改先报告，不能覆盖用户文件、创建同名重复安装或自动增加旧版备份。运行时以**实际加载的 SKILL.md 所在目录**为工具根；源码模式只用已确认的源码绝对根。`tool-info` 输出版本、revision、schemaVersion、实际路径和指纹；安装清单缺失、文件修改或版本混用会拒绝执行。指纹不认证发布者，构建清单只包含指定分发资源，不打包真实运行目录。
@@ -31,13 +31,13 @@ node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.
 
 已有报告不得覆盖。准备一个新的仓库外目录，使用 `report --run-dir ABS_RUN --output-dir ABS_EXISTING_NEW_DIR` 另存；事后补报告再传 `--context ABS_CONTEXT_JSON`，格式见 [报告整理上下文](schemas/report-context.schema.json)。它明确整理性质、限制、现有来源与 hash、补充用例及 AI 逐目标复核，原记录结论保留单独展示，不冒充执行前冻结。工具不补造截图、采集时间、步骤或业务结论，也不为了补报告重跑业务。
 
-本修复仍为 `0.1.3-dev`，工具 revision 为 `html-report-delivery-1`。输入用例和 run 仍为 schemaVersion 3；报告 JSON 增加截图覆盖与可选事后上下文，context 自身版本为 1。不迁移、不删除既有数据。验证范围和未执行项见[验证记录](docs/testing.md)。
+本版本为 `0.1.3`，工具 revision 为 `html-report-delivery-1`。输入用例和 run 仍为 schemaVersion 3；报告 JSON 增加截图覆盖与可选事后上下文，context 自身版本为 1。不迁移、不删除既有数据。验证范围和未执行项见[验证记录](docs/testing.md)。
 
 ## 用例与判断
 
 ![测试方式：接收或生成用例，由 AI 按业务目标自主执行，并如实说明所有测试结果。](docs/images/workflow.zh-CN.png)
 
-外部用例和 Skill 按需求整理的用例均可用于新功能与回归。用例以业务意图和必要输入描述步骤；当前 AI 根据实际页面选择被授权的执行路径。`strict` 保留业务步骤顺序，`adaptive` 只允许在不改变意图、前提与覆盖时调整路径或顺序。
+外部用例和 AI 按 Skill 指南整理的用例均可用于新功能与回归。用例以业务意图和必要输入描述步骤；当前 AI 根据实际页面选择被授权的执行路径。`strict` 保留业务步骤顺序，`adaptive` 只允许在不改变意图、前提与覆盖时调整路径或顺序。
 
 整体预期与需求依据必须保留。每步 `expected` 可省略；提供时必须有独立依据，省略不会被当作未执行或自动通过。验收存在未决问题时，在冻结基线中填写 `clarificationQuestions`；只要问题非空，该用例的最终结果和每条尝试都不得为 `pass` 或 `fail`。澄清后用修订用例重新开始，不改写旧基线。
 
@@ -111,7 +111,7 @@ node .\scripts\ego.mjs start --project-dir $Project --cases $Cases --output-dir 
 }
 ```
 
-请求中的 `operationId` 是幂等凭据：同一 ID 与相同内容重试会返回原回执，不会重复追加；同一 ID 改了内容会被拒绝。新请求若 `expectedRevision` 过期会冲突拒绝。并发写入采用运行目录独占锁，冲突直接拒绝，不自动重试。响应丢失后，可用完全相同的请求重试并读取原回执。
+请求中的 `operationId` 是幂等操作标识：同一 ID 与相同内容重试会返回原回执，不会重复追加；同一 ID 改了内容会被拒绝。新请求若 `expectedRevision` 过期会冲突拒绝。并发写入采用运行目录独占锁，冲突直接拒绝，不自动重试。响应丢失后，可用完全相同的请求重试并读取原回执。
 
 ### 查询进度并生成报告
 

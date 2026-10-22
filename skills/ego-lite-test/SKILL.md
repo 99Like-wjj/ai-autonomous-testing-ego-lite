@@ -2,7 +2,7 @@
 name: ego-lite-test
 description: 使用已安装的 Ego Browser 与当前 AI 会话，接收外部用例或按需求生成带业务步骤的标准用例，执行证据驱动的黑盒 Web 测试，区分产品异常、执行失败和证据不足。适用于新需求/新功能自动化测试、已有用例核验、角色权限与业务流程测试；不是固定流程自动化器或 Agent 能力评测框架。
 metadata:
-  version: "0.1.3-dev"
+  version: "0.1.3"
   tool-revision: "html-report-delivery-1"
 ---
 
@@ -12,11 +12,11 @@ metadata:
 
 完整安装包包含入口、references、scripts、schemas 和格式指南。**除非用户明确指定其他格式，执行测试后的默认交付必须包含可独立打开的 HTML、结构化 JSON 和 Markdown。** 聊天摘要不能替代文件交付。工具暂不可用时仍可保存事实，但须明确报告交付阻塞，不能静默退回 Markdown 并宣称完成。
 
-开始记录前读 [本地工具箱调用指南](references/local-toolbox.md)：以本次实际加载的 `SKILL.md` 所在绝对目录为工具根，运行 `scripts/ego.mjs tool-info`，核对路径、`0.1.3-dev`、`html-report-delivery-1`、schemaVersion 3 和安装文件校验结果。源码模式只能使用已明确确认的仓库根；不得向上猜目录、凭同名目录选旧工具，或在版本不符时继续。先确认报告资源可用，避免结束时才发现安装缺失；这不规定业务执行路线。
+开始记录前读 [本地工具箱调用指南](references/local-toolbox.md)：以本次实际加载的 `SKILL.md` 所在绝对目录为工具根，运行 `scripts/ego.mjs tool-info`，核对路径、`0.1.3`、`html-report-delivery-1`、schemaVersion 3 和安装文件校验结果。源码模式只能使用已明确确认的仓库根；不得向上猜目录、凭同名目录选旧工具，或在版本不符时继续。先确认报告资源可用，避免结束时才发现安装缺失；这不规定业务执行路线。
 
 ## 两种用例来源
 
-外部已编写用例与 Skill 自行生成用例，均可用于新功能验证或回归。**准备用例时必读 [用例接收与生成](references/case-authoring.md)**，统一生成/接收 schemaVersion 3，包括条件、业务步骤、可选步骤检查点、最终预期与顺序策略。v0.1.3-dev 不接受 v0.1.2 的 schemaVersion 2 文件，也不提供迁移命令；按原始来源整理后新建运行。外部用例不擅改意图；生成用例由当前模型完成，不是 CLI 自动生成。
+外部已编写用例与 AI 按 Skill 指南生成的用例，均可用于新功能验证或回归。**准备用例时必读 [用例接收与生成](references/case-authoring.md)**，统一生成/接收 schemaVersion 3，包括条件、业务步骤、可选步骤检查点、最终预期与顺序策略。v0.1.3 不接受 v0.1.2 的 schemaVersion 2 文件，也不提供迁移命令；按原始来源整理后新建运行。外部用例不擅改意图；生成用例由当前模型完成，不是 CLI 自动生成。
 
 两者均先校验并冻结，再执行。可只生成、不执行，此时无需 Ego 连接；交付用例与待确认问题，不声称通过。只询问影响判断的实质歧义、冲突、缺失前提或权限，不要求逐条审批用例。
 
