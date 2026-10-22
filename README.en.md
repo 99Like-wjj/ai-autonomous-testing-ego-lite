@@ -1,14 +1,20 @@
-<p align="center"><img src="docs/images/hero.png" alt="Ego Lite Test Skill: intent stays stable, the route can adapt. Experimental and unofficial; Windows and Ego validation pending." width="100%"></p>
+<p align="center"><img src="docs/images/hero.png" alt="Ego Lite Test Skill for new web projects and first feature deliveries. AI plans tests against business rules." width="100%"></p>
 
 # Ego Lite Test Skill
 
 <p align="center"><strong>English</strong> · <a href="README.md">简体中文</a><br><a href="#quick-start-on-windows">Quick start</a> · <a href="docs/architecture.en.md">Architecture</a> · <a href="docs/asset-formats.en.md">Format and commands</a> · <a href="docs/privacy.md">Privacy</a> · <a href="docs/testing.en.md">Validation</a></p>
 
-**The current AI session understands requirements and plans tests, using Ego's native browser capability to explore the application.** This project preserves requirement provenance, observations, uncertainty, and a local evidence index. It does not treat a successful click as proof of business correctness.
+**An AI-led Web testing Skill for new projects before their first launch and new features at their first delivery.** The current AI session analyzes requirements, plans tests, explores the application through Ego Lite, and checks outcomes against business rules and expectations. Observations and evidence make conclusions reviewable, rather than reducing them to a success/failure badge.
+
+An existing automated test suite is not required. Supply prepared cases, or provide requirements, business rules, and acceptance expectations so the AI can draft cases in the Skill format. The AI may adapt its actions, gather more evidence, and adjust execution order while preserving goals, expectations, dependencies, and permission boundaries.
+
+First launch is a target use case, not a promise to infer missing rules or guarantee release readiness. Missing requirements need clarification, and insufficient evidence must remain uncertain. Existing-feature regression is also supported.
 
 **Development version 0.1.3-dev.** This independent project is not affiliated with or endorsed by Ego. v0.1.3-dev uses schemaVersion 3 in place of v0.1.2's schemaVersion 2. This is an intentional format change; no migration command is provided. Linux synthetic checks passed 56/56; Windows synthetic checks passed 52 tests with zero failures and 4 skips caused by symlink permissions. Real-browser interactions, Ego, and business capabilities still await acceptance. See the [validation record](docs/testing.en.md).
 
 ## Cases and judgments
+
+![AI-led workflow: receive or draft cases, adapt execution, and account for every goal.](docs/images/workflow.png)
 
 External cases and cases drafted by the Skill can support new-feature testing and regression. Cases describe business intent and necessary input. The current AI chooses an authorized execution route from the page it observes. `strict` preserves business-step order. `adaptive` may adjust a route or order only when intent, prerequisites, and coverage remain intact.
 
@@ -98,6 +104,8 @@ Invoke-Item (Join-Path $Run 'report.html')
 Progress counts each frozen case's **current final status**. `blocked`, `inconclusive`, and `not_run` stay separate; pending clarifications have their own list. Historical attempts are not counted again as current pass/fail outcomes. `report` writes `report.json`, `report.md`, and a standalone offline `report.html` in the run directory; it refuses to overwrite any of them. The HTML shows frozen goals, critical conditions, required path, order policy, observations, rationale, requirement basis, unverified items, each attempt and its remaining questions, and evidence source/SHA-256 metadata. Hash/size-verified PNG, JPEG, and WebP screenshots are embedded; missing, unsupported, or browser-undecodable images are called out without substituting an image. You can copy `report.html` by itself for an authorized reviewer; it does not need the run directory or network access. See the [schema v3 format and runtime contract](docs/asset-formats.en.md).
 
 Business outcomes and file integrity are shown separately. A matching SHA-256 does not prove a screenshot is authentic or an outcome is correct. Before writing any report, the helper validates the run and every registered evidence file; a failed check writes no report. No image does not automatically mean failure; the AI decides whether more evidence or testing is needed under the user's authorization. A successful click or enabled button does not prove a submission succeeded; observe the actual result and persistence when required.
+
+![Illustrative report content, not an actual test report screenshot.](docs/images/result-specimen.png)
 
 ## Responsibilities and limits
 

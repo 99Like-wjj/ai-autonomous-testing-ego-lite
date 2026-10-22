@@ -1,14 +1,20 @@
-<p align="center"><img src="docs/images/hero.zh-CN.png" alt="Ego Lite 自主测试 Skill：目标稳定，路径可以自适应。实验版、非官方；Windows 与 Ego 实机验证待完成。" width="100%"></p>
+<p align="center"><img src="docs/images/hero.zh-CN.png" alt="Ego Lite 自主测试 Skill：面向新项目上线前和新功能首次交付的 Web 测试。由 AI 自主规划，按业务规则验证。" width="100%"></p>
 
 # Ego Lite 自主测试 Skill
 
 <p align="center"><a href="README.en.md">English</a> · <strong>简体中文</strong><br><a href="#windows-快速开始">快速开始</a> · <a href="docs/architecture.md">架构</a> · <a href="docs/asset-formats.md">格式与命令</a> · <a href="docs/privacy.md">隐私保护</a> · <a href="docs/testing.md">验证状态</a></p>
 
-**由当前 AI 会话理解需求并规划测试，通过 Ego 原生浏览器能力探索页面。** 本项目保留需求依据、观察、不确定性和本地证据索引；不会把“点击成功”直接判为业务正确。
+**面向新项目首次上线前、新功能首次交付时的 Web 自动化测试 Skill。** 由当前 AI 会话自主分析需求、规划测试，并通过 Ego Lite 浏览器探索页面、执行用例，对照业务规则和预期结果完成验证。保留实际观察与证据，让测试结论可以复核，而不只是给出“成功 / 失败”。
+
+不要求项目已经积累自动化测试脚本。你可以提供现成用例，也可以提供需求、业务规则和验收预期，由 AI 按本 Skill 的格式整理用例。AI 可以灵活选择操作方法、补充验证和调整执行顺序，但不能改写测试目标、降低预期或越过授权边界。
+
+这里的“首次上线”是重点使用场景，不代表可以从空白信息推断全部业务规则，也不承诺测试通过就能安全上线；缺失的要求需要澄清，证据不足的结论必须保留不确定性。它也可用于已有功能的回归验证。
 
 **开发版 0.1.3-dev。** 本项目独立开发，非 Ego 官方项目，未获 Ego 背书。v0.1.3-dev 使用 schemaVersion 3，替代 v0.1.2 的 schemaVersion 2；这是有意的格式变更，不提供迁移命令。Linux 合成测试 56/56 通过；Windows 本地合成测试 52 项通过、0 失败、4 项因符号链接权限跳过。真实浏览器交互、Ego 和业务能力仍待验收。详见[验证记录](docs/testing.md)。
 
 ## 用例与判断
+
+![测试方式：接收或生成用例，由 AI 按业务目标自主执行，并如实说明所有测试结果。](docs/images/workflow.zh-CN.png)
 
 外部用例和 Skill 按需求整理的用例均可用于新功能与回归。用例以业务意图和必要输入描述步骤；当前 AI 根据实际页面选择被授权的执行路径。`strict` 保留业务步骤顺序，`adaptive` 只允许在不改变意图、前提与覆盖时调整路径或顺序。
 
@@ -98,6 +104,8 @@ Invoke-Item (Join-Path $Run 'report.html')
 进度按冻结用例的**当前最终状态**统计；`blocked`、`inconclusive`、`not_run` 分开列出，pending clarification 单独列出。历史尝试不重复计入当前 pass/fail。`report` 会在 Run 目录写出 `report.json`、`report.md` 和可独立离线打开的 `report.html`；任一目标已存在都会拒绝覆盖。HTML 展示冻结目标、关键条件、必经路径、顺序策略、实际观察、判断理由、依据、未验证项、逐条尝试及其未决问题、证据来源和 SHA-256。经过 hash / 大小核验的 PNG、JPEG、WebP 截图内嵌显示；缺图、不支持格式或浏览器无法解码会明确提示，不生成替代图片。可把 `report.html` 单独复制给获准查看报告的人，不需要连同 Run 或联网打开。完整内容见[格式与运行约定](docs/asset-formats.md)。
 
 报告会分开显示业务结论和文件完整性；SHA-256 匹配不证明截图真实或结果正确。HTML 生成前会完整校验 run 与所有登记证据；若校验失败，不写出任何报告。没有图片不会自动变成失败；业务覆盖、判断以及是否需要补证仍由 AI 根据授权与事实决定。点击成功或按钮变为 enabled 不足以证明提交成功，需观察实际后果和必要的持久化状态。
+
+![报告内容示意：说明预期、实际观察、证据与未覆盖范围；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
 
 ## 责任与限制
 
