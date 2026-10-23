@@ -10,22 +10,22 @@ An existing automated test suite is not required. Supply prepared cases, or prov
 
 First launch is a target use case, not a promise to infer missing rules or guarantee release readiness. Missing requirements need clarification, and insufficient evidence must remain uncertain. Existing-feature regression is also supported.
 
-**Version 0.1.3.** This independent project is not affiliated with or endorsed by Ego. v0.1.3 uses schemaVersion 3 in place of v0.1.2's schemaVersion 2. This is an intentional format change; no migration command is provided. Historical synthetic checks and this repair are documented separately; file checks do not establish real business acceptance. See the [validation record](docs/testing.en.md).
+**Development version `0.1.4-dev.1`, not released.** Maintained programs are authored in TypeScript; installations contain compiled Node.js code. Users configure case concurrency, and the host AI chooses independent work and native workers. The stable v0.1.3 baseline and its immutable tag remain unchanged. Existing diagrams illustrate that baseline, not acceptance of this development build. See the [TS and parallel design](docs/v0.1.4-design.md).
 
 
-## 0.1.3 report delivery fix
+## 0.1.4 development: parallel execution and delivery
 
 Unless the user explicitly requests another format, completed test execution delivers standalone offline HTML, JSON, and Markdown. Chat summaries are insufficient. Key UI outcomes and defects require real screenshots; DOM, logs and summaries supplement them. The AI chooses capture moments, without a screenshot or expectation for every step. Missing screenshots must be visible and trigger conclusion review, not automatic product failure.
 
 Build a complete standalone directory from the source repository with `npm run build:skill -- --output-dir ABS_NEW_EXTERNAL_SKILL_DIR`. The package contains the Skill, guides, scripts, schemas, synthetic examples and `runtime-manifest.json`. Copying only the source Skill instructions is incomplete. Before updating an existing installation, compare known source files and report unknown edits instead of overwriting them, creating duplicate installations or adding old-version backups.
 
-Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.3 --expect-revision html-report-delivery-1`. Check paths, schemaVersion 3 and installationIntegrity. Every CLI command verifies installed files. Source mode uses an explicitly confirmed repository root. Fingerprints check consistency, not publisher identity.
+Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4-dev.1 --expect-revision ts-parallel-1`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity.
 
 `report` reads back all three outputs. `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` compares the files with current records, retained evidence and context sources. Receipts include paths, sizes, hashes and `browserOpen: not_checked`; actual browser opening is separate. Report access restrictions honestly without routing around them.
 
 To retain an existing report, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Post-execution assembly also passes `--context ABS_CONTEXT_JSON`, defined by [the context schema](schemas/report-context.schema.json). It records limitations, existing source files and hashes, supplemental case IDs and AI-supplied reviews for every goal. Original claims remain separate; no pre-execution freeze, screenshot, timestamp or execution step is invented. No business actions run to fill a report.
 
-This release is `0.1.3`, tool revision `html-report-delivery-1`. Cases and runs keep schemaVersion 3. Reports add screenshot coverage and optional retrospective context (context version 1); existing data is neither migrated nor deleted. See [validation](docs/testing.en.md).
+This development build uses tool revision `ts-parallel-1`. Cases/results/evidence remain v3; new manifests/reports are v4, execution/configuration/worker packets v1. Existing v3 runs remain usable without in-place migration; v2 remains unsupported. The installation requires Node.js >=22, not a TS compiler.
 
 ## Cases and judgments
 
@@ -147,3 +147,7 @@ Evidence registration does not redact data. Screenshots, logs, URLs, and descrip
 ## License
 
 Original code and documentation in this repository are licensed under the [MIT License](LICENSE), copyright 2026 99Like-wjj. This license does not cover Ego, Ego's official browser, or other third-party software; their own licenses and official terms continue to apply. This is an independent project, not affiliated with or endorsed by Ego. The repository remains a private development repository; the license notice does not change repository visibility or mean a public release was created.
+
+## Configurable concurrency
+
+Set `start --max-parallel-cases N` or project execution-config.json. N is a positive safe integer with no fixed 2/4/8 product ceiling; 2 is only the default. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ego-lite-test/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.

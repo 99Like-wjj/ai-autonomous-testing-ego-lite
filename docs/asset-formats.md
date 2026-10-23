@@ -1,4 +1,6 @@
-# 本地资产格式与运行约定（schemaVersion 3）
+# 本地资产格式与运行约定（v3 业务核心、v4 执行）
+
+当前 `0.1.4-dev.1`：cases/baseline/results/evidence 仍为 v3；新 manifest/report 为 v4；配置、执行台账、worker 交付包为 v1。`schemas/manifest.schema.json`、`report.schema.json` 显式区分 v3/v4。以下 v3 字段语义继续适用，不代表所有新运行仍为 v3。并行调用见工具根的 `references/parallel-testing.md`，源码位于 `skills/ego-lite-test/references/parallel-testing.md`。
 
 本指南定义用例、运行目录、证据登记请求、结果请求与进度/报告语义。Schema 文件放在 [`schemas/`](../schemas/)，均为 JSON Schema Draft 2020-12，并通过本地相对引用共享定义。运行代码会做额外的业务约束校验，例如证据归属、哈希核验、revision 和冻结澄清 veto。
 
@@ -31,10 +33,12 @@ run/
   manifest.json       # runId、基线 hash 与 schema 版本
   results.json        # 当前最终状态、历史尝试、结果操作账本
   evidence.json       # 证据 catalog 与证据操作账本
-  evidence/           # evidence-add 复制进来的文件
+  evidence/           # evidence-add / import 留存文件
+  execution.json      # v4 run 的配置、分派、事件和导入进度
+  workers/            # 分派回执、独立原始证据和封存包
 ```
 
-真实项目、来源文件、运行、截图与报告应放在源码仓库之外。目录中的绝对项目路径只作为上下文元数据，不会被工具访问。
+真实项目、来源文件、运行、截图与报告应放在源码仓库之外。项目根用于读取明确的 execution-config.json；不遍历其他项目资料，显式传入的用例／证据按各自授权读取。
 
 ## 证据登记
 
@@ -157,3 +161,9 @@ node scripts/ego.mjs report --run-dir ABS
 可选 `context` 遵循 [report-context.schema.json](../schemas/report-context.schema.json)，自身 schemaVersion=1、kind=retrospective，包含 summary、非空 limitations、sources（label/file/sha256）、supplementalCaseIds 与逐目标 reviews（caseId/status/rationale）。来源必须是当前存在的普通文件且 hash 匹配；reviews 必须覆盖每个源用例一次，状态为 verified/violation/inconclusive/not_tested。状态及理由由 AI 提供，工具只校验结构与引用。原用例与新增发现、原记录与本次复核分别展示；事后保存基线不能证明执行前冻结。
 
 以上只扩展派生报告，不改变 cases / run / requests 的 schemaVersion 3，不自动迁移或删除历史。使用已确认根下的绝对脚本路径；`tool-info` 核对 0.1.3、revision、schema、路径和安装清单，独立安装资源不依赖仓库外相对链接。
+
+## v4 执行与逐目标评估
+
+新运行的 execution.json 按独占锁和 revision 保存用户配置、显式宿主信息、不可变初始 Space 清单、名额、分派、实际 Space 历史、原始 packet、AI review 和导入检查点。worker-draft/worker-packet/execution-request/execution Schema 定义新增对象；封存只计算与核对文件，不提交结论。导入保留原请求进行幂等恢复；未执行的 revision 冲突须显式新事务 rebase，不重试业务动作。
+
+v4 report 保留业务结果与证据，另展示执行台账、配置与区间统计。逐目标评估来自明确的 AI 交付和复核，不从计划或工具成功倒推通过。名额峰值与 worker 提供、引用证据的区间峰值分别标注。既有 v3 报告通过当前内容或冻结 v0.1.3 框架指纹验证，历史文件不改写。

@@ -34,7 +34,7 @@ export async function checkPublication(root: string, { development = false, inst
       if (entry.isDirectory()) { await walk(name); continue; }
       if (!entry.isFile()) { errors.push(`${name}: not a regular file`); continue; }
       const extension = path.extname(name).toLowerCase();
-      if (!rootFiles.has(name) && !textExtensions.has(extension) && !(name.startsWith('docs/images/') && extension === '.png')) { errors.push(`${name}: unsupported publication file type`); continue; }
+      if (!rootFiles.has(name) && !textExtensions.has(extension) && name !== 'tests/fixtures/legacy-report-frame.html' && !(name.startsWith('docs/images/') && extension === '.png')) { errors.push(`${name}: unsupported publication file type`); continue; }
       const bytes = await fs.readFile(path.join(root, name));
       if (bytes.length > 10 * 1024 * 1024) errors.push(`${name}: exceeds per-file review size`);
       if (extension === '.png') {

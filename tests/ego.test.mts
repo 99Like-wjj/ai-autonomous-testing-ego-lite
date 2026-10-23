@@ -103,7 +103,7 @@ async function fixture(t: TestContext, cases: unknown[] = [caseOf(), caseOf('two
     const casesFile = path.join(projectDir, 'cases.json');
     const outputDir = path.join(root, 'run with spaces');
     await writeJson(casesFile, { schemaVersion, project: 'Synthetic only', cases });
-    await start({ projectDir, casesFile, outputDir });
+    await start({ projectDir, casesFile, outputDir, runSchemaVersion: 3 });
     return { root, projectDir, casesFile, outputDir };
 }
 async function addEvidence(f: Fixture, { operationId = 'evidence-op-1', expectedRevision = 0, caseId = 'one', sourceFile = path.join(f.root, 'source.log'), kind = 'log', source = 'Synthetic tool receipt', description = 'Synthetic observation only', capturedAt }: EvidenceOptions = {}, hooks: TestHooks = {}) {
@@ -884,7 +884,7 @@ test('CLI evidence-add and record requests use documented local files', async (t
     assert.equal(path.basename(reportPaths.reportHtml), 'report.html');
     assert.equal(await fs.readFile(reportPaths.reportHtml, 'utf8').then(value => value.includes('<!doctype html>')), true);
 });
-test('JSON schemas and synthetic examples use a consistent v3 contract and local references', async () => {
+test('JSON schemas retain v3 business contracts and explicitly version v4 execution assets', async () => {
     const schemaDir = path.join(SOURCE_ROOT, 'schemas');
     const schemas = new Map<string, SchemaNode>();
     for (const name of await fs.readdir(schemaDir)) {
@@ -893,13 +893,15 @@ test('JSON schemas and synthetic examples use a consistent v3 contract and local
     }
     assert.deepEqual([...schemas.keys()].sort(), [
         'cases.schema.json', 'common.schema.json', 'evidence-request.schema.json', 'evidence.schema.json',
-        'manifest.schema.json', 'record-request.schema.json', 'report-context.schema.json', 'report.schema.json', 'results.schema.json'
+        'execution-config.schema.json', 'execution-request.schema.json', 'execution.schema.json',
+        'manifest-v3.schema.json', 'manifest-v4.schema.json', 'manifest.schema.json', 'record-request.schema.json', 'report-context.schema.json',
+        'report-v3.schema.json', 'report-v4.schema.json', 'report.schema.json', 'results.schema.json', 'worker-draft.schema.json', 'worker-packet.schema.json'
     ]);
     for (const [filename, schema] of schemas) {
         if (filename === 'common.schema.json')
             continue;
         if (schema.properties?.schemaVersion)
-            assert.equal(schema.properties.schemaVersion.const, filename === 'report-context.schema.json' ? 1 : 3, filename);
+            assert.equal(schema.properties.schemaVersion.const, filename.includes('-v4.') ? 4 : /^(?:execution|worker-|report-context)/.test(filename) ? 1 : 3, filename);
         const inspectRefs = (value: unknown): void => {
             if (!value || typeof value !== 'object')
                 return;

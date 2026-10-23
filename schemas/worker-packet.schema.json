@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "worker-packet.schema.json",
+  "title": "Ego Lite worker packet v1",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "runId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "baselineSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "caseId": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "assignmentId": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "attemptId": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "packetId": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "mode": {
+      "enum": [
+        "attempt",
+        "final"
+      ]
+    },
+    "record": {
+      "$ref": "#/$defs/record"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "goalAssessments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/goal"
+      },
+      "minItems": 1
+    },
+    "executionWindow": {
+      "$ref": "#/$defs/window"
+    },
+    "spaceUsage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "spaceId",
+          "reason",
+          "evidenceKeys"
+        ],
+        "properties": {
+          "spaceId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidenceKeys": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "common.schema.json#/$defs/safeId"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "runId",
+    "baselineSha256",
+    "caseId",
+    "assignmentId",
+    "attemptId",
+    "packetId",
+    "mode",
+    "record",
+    "evidence",
+    "goalAssessments",
+    "spaceUsage"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "record": {
+      "title": "Packet record",
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "inconclusive",
+            "blocked",
+            "not_run"
+          ]
+        },
+        "observed": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "remainingQuestions": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "uniqueItems": true
+        },
+        "evidenceKeys": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "cause": {
+          "enum": [
+            "product_candidate",
+            "agent",
+            "environment",
+            "spec",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "observed",
+        "rationale",
+        "remainingQuestions",
+        "evidenceKeys"
+      ],
+      "additionalProperties": false
+    },
+    "evidence": {
+      "title": "Packet evidence",
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "path": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "kind": {
+          "enum": [
+            "screenshot",
+            "dom",
+            "tool_receipt",
+            "log",
+            "other"
+          ]
+        },
+        "source": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "description": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "capturedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        }
+      },
+      "required": [
+        "key",
+        "path",
+        "kind",
+        "source",
+        "description",
+        "sha256",
+        "bytes"
+      ],
+      "additionalProperties": false
+    },
+    "goal": {
+      "title": "Goal assessment",
+      "type": "object",
+      "properties": {
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "status": {
+          "enum": [
+            "verified",
+            "violation",
+            "inconclusive",
+            "not_tested"
+          ]
+        },
+        "observed": {
+          "type": "string"
+        },
+        "rationale": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "evidenceKeys": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "targets",
+        "status",
+        "observed",
+        "rationale",
+        "evidenceKeys"
+      ],
+      "additionalProperties": false
+    },
+    "window": {
+      "title": "Execution window",
+      "type": "object",
+      "properties": {
+        "startedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "endedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "evidenceKeys": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "startedAt",
+        "endedAt",
+        "evidenceKeys"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
+

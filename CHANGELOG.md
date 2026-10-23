@@ -1,5 +1,16 @@
 # 更新记录 / Changelog
 
+## 0.1.4-dev.1 — 开发中 · TypeScript 与可配置并发
+
+- 所有维护程序统一为严格 TypeScript：CLI、文件事务、报告及浏览器交互、测试、构建检查和图片生成；安装包交付编译后的 Node ESM，无新增运行依赖。开发需要先构建，Node 基线仍为 22。
+- 新增可配置 `maxParallelCases`（默认 2，任意可准确表示的正整数），显式覆盖与配置快照、名额登记、宿主已知容量、Space 关联与偏差、停止／续接记录。宿主额度未知时保留未知，不主动探测客户端上限或修改全局配置。
+- 原生 AI worker 分例执行及独立封包，协调者明确复核后串行导入；保留原包、首次错误、尝试、部分入账与幂等恢复。工具处理数据事务，不自动选择业务路线、重试业务或判定产品通过。
+- 新 run manifest／并发 report 为 v4，执行记录／配置／worker 包为 v1；业务 cases、results、evidence 继续 v3。既有 v3 运行原格式核验、记录与报告，历史资产不原地升级；v2 不支持。
+- 报告增加逐目标四态、配置／容量、名额与有来源的执行区间、未完成项、Space 偏差及 Skill 问题。Space 不代表账号或后端数据隔离；用户上限不保证宿主能同时跑满。
+- 验证进展与限制见 [验证记录](docs/testing.md)。这是开发版；尚未发布，不表示真实业务或所有故障场景验收通过。
+
+English: Strict TypeScript source, compiled dependency-free runtime, configurable case concurrency, native workers, immutable packets and coordinator-reviewed imports. New parallel runs/reports use v4; business records remain v3 and existing v3 runs are retained. Development build only; see validation limits.
+
 ## 0.1.3 — 2026-10-22 · 本地证据与图文报告交付
 
 ### 报告交付修复与定版

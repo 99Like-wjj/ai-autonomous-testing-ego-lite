@@ -5,6 +5,7 @@ import { assertClosed, directory, errorInfo, fail, hash, json, object, readJSON,
 import { arrayValue, oneOf, sha256Value, strings, textValue } from '../core/validation.mjs';
 import { checkUnlocked, recoverEvidence } from '../core/records.mjs';
 import { markdown, htmlReport, htmlReportPayload } from './render.mjs';
+import { verifyLegacyContent } from './legacy.mjs';
 
 export async function validateReportContext(input: unknown, result: Report): Promise<ReportContext> {
   assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'reviews'], 'report context');
@@ -34,14 +35,17 @@ export async function verifyReportFiles(root: string, reportDir: string, result:
   const expected = [json(result), markdown(result), htmlReport(await htmlReportPayload(root, result))];
   const names = ['report.json', 'report.md', 'report.html'];
   const artifacts: { path: string; bytes: number; sha256: string }[] = [];
+  const contents: Buffer[] = []; let matches = true;
   for (const [i, name] of names.entries()) {
     const filename = await safePath(path.join(reportDir, name), { existing: true });
     if (!(await fs.lstat(filename)).isFile()) fail('Report output is not a regular file.');
     const bytes = await fs.readFile(filename), wanted = expected[i];
-    if (wanted === undefined || !bytes.equals(Buffer.from(wanted, 'utf8'))) fail('Report file does not match the checked records: ' + name);
+    if (wanted === undefined || !bytes.equals(Buffer.from(wanted, 'utf8'))) matches = false;
+    contents.push(bytes);
     artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
   }
-  return { filesVerified: true, artifacts, browserOpen: 'not_checked' };
+  if (!matches) await verifyLegacyContent(root, result, contents);
+  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: matches ? 'current' : 'v0.1.3-compatible' };
 }
 export async function verifyReport(runDir: unknown, reportDir: unknown = runDir) {
   return withRunLock(runDir, async root => {

@@ -1,3 +1,6 @@
+import type { Manifest } from '../contracts/model.mjs';
+import { resolveConfiguration } from '../execution/config.mjs';
+import { initialExecution } from '../execution/ledger.mjs';
 import type { Baseline, Case } from '../contracts/model.mjs';
 import { arrayValue, oneOf, parseBasis, strings, textValue } from './validation.mjs';
 import { errorInfo } from './common.mjs';
@@ -47,31 +50,42 @@ export async function init(projectDir: unknown) {
   } catch (caughterror) { const error = errorInfo(caughterror); try { await fs.rmdir(target); } catch {} throw error; }
   return { projectDir: target };
 }
-export async function start({ projectDir, casesFile, outputDir }: { projectDir: unknown; casesFile: unknown; outputDir: unknown }) {
+export async function start({ projectDir, casesFile, outputDir, configFile, maxParallelCases, runSchemaVersion = 4 }: { projectDir: unknown; casesFile: unknown; outputDir: unknown; configFile?: string | undefined; maxParallelCases?: number | undefined; runSchemaVersion?: 3 | 4 }) {
   const project = await directory(projectDir);
   const target = await safePath(outputDir, { external: true });
   const baseline = normalizeCases(await readJSON(await safePath(casesFile, { existing: true })));
   newSafeCases(baseline);
+  if (runSchemaVersion !== 3 && runSchemaVersion !== 4) fail('Unsupported new-run manifest version.');
+  if (runSchemaVersion === 3 && (configFile !== undefined || maxParallelCases !== undefined)) fail('Legacy runs cannot accept parallel configuration.');
+  const configuration = runSchemaVersion === 4 ? await resolveConfiguration({ projectDir: project, configFile, maxParallelCases }) : undefined;
   const bytes = json(baseline);
+  const identity = { baselineSchemaVersion: 3 as const, runId: crypto.randomUUID(), projectDir: project, baselineSha256: hash(bytes) };
+  const manifest: Manifest = runSchemaVersion === 4 ? { ...identity, schemaVersion: 4, executionFile: 'execution.json' } : { ...identity, schemaVersion: 3 };
   await fs.mkdir(target, { mode: 0o700 });
   const createdFiles = [];
-  let evidenceDirectoryCreated = false;
+  let evidenceDirectoryCreated = false, workersDirectoryCreated = false;
   try {
     const baselinePath = path.join(target, 'baseline.json');
     await writeNew(baselinePath, bytes); createdFiles.push(baselinePath);
     const manifestPath = path.join(target, 'manifest.json');
-    await writeNew(manifestPath, json({ schemaVersion: 3, baselineSchemaVersion: 3, runId: crypto.randomUUID(), projectDir: project, baselineSha256: hash(bytes) })); createdFiles.push(manifestPath);
+    await writeNew(manifestPath, json(manifest)); createdFiles.push(manifestPath);
     const resultsPath = path.join(target, 'results.json');
     await writeNew(resultsPath, json({ schemaVersion: 3, revision: 0, cases: baseline.cases.map(c => ({ id: c.id, basis: c.basis, status: 'not_run', observed: '', rationale: '', remainingQuestions: [], evidenceIds: [], cause: 'unknown', attempts: [] })), operations: [] })); createdFiles.push(resultsPath);
     const evidencePath = path.join(target, 'evidence.json');
     await writeNew(evidencePath, json({ schemaVersion: 3, revision: 0, items: [], operations: [] })); createdFiles.push(evidencePath);
     await fs.mkdir(path.join(target, 'evidence'), { mode: 0o700 });
     evidenceDirectoryCreated = true;
+    if (configuration) {
+      const executionPath = path.join(target, 'execution.json');
+      await writeNew(executionPath, json(initialExecution(manifest, configuration))); createdFiles.push(executionPath);
+      await fs.mkdir(path.join(target, 'workers'), { mode: 0o700 }); workersDirectoryCreated = true;
+    }
   } catch (caughterror) { const error = errorInfo(caughterror);
+    if (workersDirectoryCreated) { try { await fs.rmdir(path.join(target, 'workers')); } catch {} }
     for (const filename of createdFiles.reverse()) { try { await removeRegularIfPresent(filename); } catch {} }
     if (evidenceDirectoryCreated) { try { await fs.rmdir(path.join(target, 'evidence')); } catch {} }
     try { await fs.rmdir(target); } catch {}
     throw error;
   }
-  return { runDir: target, cases: baseline.cases.length, runSchemaVersion: 3, baselineSchemaVersion: 3 };
+  return { runDir: target, cases: baseline.cases.length, runSchemaVersion, baselineSchemaVersion: 3 };
 }

@@ -28,7 +28,7 @@ if (outputName === 'precleanup-report') {
   })) };
   const casesFile = path.join(root, 'project', 'cases.json');
   await writeNew(casesFile, cases);
-  await start({ projectDir: path.join(root, 'project'), casesFile, outputDir: runDir });
+  await start({ projectDir: path.join(root, 'project'), casesFile, outputDir: runDir, runSchemaVersion: 3 });
 }
 const evidenceIds = new Map<string, string[]>();
 for (const c of assessment.cases) {

@@ -1,0 +1,762 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "execution.schema.json",
+  "title": "Ego Lite execution ledger v1",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "runId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "baselineSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "configuration": {
+      "title": "Execution configuration snapshot",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "default",
+            "project",
+            "file",
+            "override"
+          ]
+        },
+        "initialMaxParallelCases": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "requestedMaxParallelCases": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "configuration": {
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "maxParallelCases": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "maxParallelCases"
+          ],
+          "additionalProperties": false
+        },
+        "configFile": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "configSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "kind",
+        "initialMaxParallelCases",
+        "requestedMaxParallelCases",
+        "configuration"
+      ],
+      "additionalProperties": false
+    },
+    "knownAvailableWorkers": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "capacityReason": {
+      "type": "string"
+    },
+    "protectedSpaceIds": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "uniqueItems": true
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "peakReservations": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "assignments": {
+      "type": "array",
+      "items": {
+        "title": "Execution assignment",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "caseId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "attemptId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "state": {
+            "enum": [
+              "reserved",
+              "running",
+              "paused",
+              "stop_requested",
+              "stopped",
+              "completed",
+              "failed",
+              "lost"
+            ]
+          },
+          "workerDirectory": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "uniqueItems": true
+          },
+          "createdAt": {
+            "$ref": "common.schema.json#/$defs/timestamp"
+          },
+          "updatedAt": {
+            "$ref": "common.schema.json#/$defs/timestamp"
+          },
+          "workerId": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "model": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "reasoning": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "defaultSpaceId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "spaceHistory": {
+            "type": "array",
+            "items": {
+              "title": "Space use",
+              "type": "object",
+              "properties": {
+                "spaceId": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "kind": {
+                  "enum": [
+                    "default",
+                    "recovery",
+                    "deviation",
+                    "cleaned"
+                  ]
+                },
+                "at": {
+                  "$ref": "common.schema.json#/$defs/timestamp"
+                },
+                "reason": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                }
+              },
+              "required": [
+                "spaceId",
+                "kind",
+                "at",
+                "reason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "ownedSpaces": {
+            "type": "array",
+            "items": {
+              "title": "Owned space",
+              "type": "object",
+              "properties": {
+                "spaceId": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "name": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                },
+                "createdAt": {
+                  "$ref": "common.schema.json#/$defs/timestamp"
+                },
+                "receipt": {
+                  "title": "Retained file reference",
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "$ref": "common.schema.json#/$defs/nonempty"
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "bytes": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "sha256",
+                    "bytes"
+                  ],
+                  "additionalProperties": false
+                },
+                "closedAt": {
+                  "$ref": "common.schema.json#/$defs/timestamp"
+                }
+              },
+              "required": [
+                "spaceId",
+                "name",
+                "createdAt",
+                "receipt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "goalAssessments": {
+            "type": "array",
+            "items": {
+              "title": "Committed goal assessment",
+              "type": "object",
+              "properties": {
+                "targets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/nonempty"
+                  },
+                  "uniqueItems": true,
+                  "minItems": 1
+                },
+                "status": {
+                  "enum": [
+                    "verified",
+                    "violation",
+                    "inconclusive",
+                    "not_tested"
+                  ]
+                },
+                "observed": {
+                  "type": "string"
+                },
+                "rationale": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                },
+                "evidenceIds": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "targets",
+                "status",
+                "observed",
+                "rationale",
+                "evidenceIds"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "executionWindow": {
+            "title": "Execution window",
+            "type": "object",
+            "properties": {
+              "startedAt": {
+                "$ref": "common.schema.json#/$defs/timestamp"
+              },
+              "endedAt": {
+                "$ref": "common.schema.json#/$defs/timestamp"
+              },
+              "evidenceKeys": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              }
+            },
+            "required": [
+              "startedAt",
+              "endedAt",
+              "evidenceKeys"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "caseId",
+          "attemptId",
+          "state",
+          "workerDirectory",
+          "resources",
+          "createdAt",
+          "updatedAt",
+          "defaultSpaceId",
+          "spaceHistory",
+          "ownedSpaces",
+          "goalAssessments"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "imports": {
+      "type": "array",
+      "items": {
+        "title": "Packet import",
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "assignmentId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "packetId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "packetSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "packetFile": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "originalPacket": {
+            "$ref": "worker-packet.schema.json"
+          },
+          "review": {
+            "title": "Packet review",
+            "type": "object",
+            "properties": {
+              "decision": {
+                "enum": [
+                  "accept",
+                  "revise"
+                ]
+              },
+              "reviewer": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "rationale": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "record": {
+                "$ref": "worker-packet.schema.json#/$defs/record"
+              },
+              "goalAssessments": {
+                "type": "array",
+                "items": {
+                  "$ref": "worker-packet.schema.json#/$defs/goal"
+                },
+                "minItems": 1
+              },
+              "mode": {
+                "enum": [
+                  "attempt",
+                  "final"
+                ]
+              }
+            },
+            "required": [
+              "decision",
+              "reviewer",
+              "rationale"
+            ],
+            "additionalProperties": false
+          },
+          "evidenceJobs": {
+            "type": "array",
+            "items": {
+              "title": "Evidence import job",
+              "type": "object",
+              "properties": {
+                "key": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "request": {
+                  "$ref": "evidence-request.schema.json"
+                },
+                "receipt": {
+                  "title": "Imported evidence receipt",
+                  "type": "object",
+                  "properties": {
+                    "operationId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "caseId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    },
+                    "evidenceId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    },
+                    "path": {
+                      "$ref": "common.schema.json#/$defs/nonempty"
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "bytes": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "collectedAt": {
+                      "$ref": "common.schema.json#/$defs/timestamp"
+                    },
+                    "replayed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "operationId",
+                    "revision",
+                    "caseId",
+                    "evidenceId",
+                    "path",
+                    "sha256",
+                    "bytes",
+                    "collectedAt",
+                    "replayed"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "key"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "resultRequest": {
+            "$ref": "record-request.schema.json"
+          },
+          "resultReceipt": {
+            "title": "Imported result receipt",
+            "type": "object",
+            "properties": {
+              "operationId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "mode": {
+                "enum": [
+                  "attempt",
+                  "final"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "pass",
+                  "fail",
+                  "inconclusive",
+                  "blocked",
+                  "not_run"
+                ]
+              },
+              "attemptId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "noOp": {
+                "type": "boolean"
+              },
+              "replayed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "operationId",
+              "revision",
+              "caseId",
+              "mode",
+              "status",
+              "replayed"
+            ],
+            "additionalProperties": false
+          },
+          "phase": {
+            "enum": [
+              "prepared",
+              "evidence",
+              "result",
+              "complete",
+              "superseded"
+            ]
+          },
+          "startedAt": {
+            "$ref": "common.schema.json#/$defs/timestamp"
+          },
+          "completedAt": {
+            "$ref": "common.schema.json#/$defs/timestamp"
+          },
+          "supersededBy": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          }
+        },
+        "required": [
+          "operationId",
+          "assignmentId",
+          "packetId",
+          "packetSha256",
+          "packetFile",
+          "originalPacket",
+          "review",
+          "evidenceJobs",
+          "phase",
+          "startedAt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "title": "Execution operation",
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "payloadSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "request": {
+            "$ref": "execution-request.schema.json"
+          },
+          "startedAt": {
+            "$ref": "common.schema.json#/$defs/timestamp"
+          },
+          "receipt": {
+            "title": "Execution receipt",
+            "type": "object",
+            "properties": {
+              "operationId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "kind": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "assignmentId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "packetId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "workerDirectory": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "evidenceIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "uniqueItems": true
+              },
+              "state": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "maxParallelCases": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "availableWorkers": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "resultOperationId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              }
+            },
+            "required": [
+              "operationId",
+              "kind",
+              "revision"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "operationId",
+          "payloadSha256",
+          "request",
+          "startedAt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "title": "Execution event",
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "operationId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "at": {
+            "$ref": "common.schema.json#/$defs/timestamp"
+          },
+          "kind": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "reason": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "assignmentId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "evidenceFiles": {
+            "type": "array",
+            "items": {
+              "title": "Retained file reference",
+              "type": "object",
+              "properties": {
+                "path": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "path",
+                "sha256",
+                "bytes"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "revision",
+          "operationId",
+          "at",
+          "kind",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "runId",
+    "baselineSha256",
+    "revision",
+    "configuration",
+    "knownAvailableWorkers",
+    "capacityReason",
+    "protectedSpaceIds",
+    "peakReservations",
+    "assignments",
+    "imports",
+    "operations",
+    "events"
+  ],
+  "additionalProperties": false
+}
+

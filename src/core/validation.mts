@@ -60,9 +60,12 @@ export function parseEvidenceRequest(value: unknown): EvidenceRequest {
   };
 }
 export function parseManifest(value: unknown): Manifest {
-  assertClosed(value, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256'], 'manifest');
-  if (value.schemaVersion !== 3 || value.baselineSchemaVersion !== 3) fail('Unsupported run schema version. Start a new v3 run from the schemaVersion 3 cases file; old run directories are not migrated.');
-  return { schemaVersion: 3, baselineSchemaVersion: 3, runId: textValue(value.runId, 'run ID'), projectDir: textValue(value.projectDir, 'project directory'), baselineSha256: sha256Value(value.baselineSha256, 'baseline hash') };
+  assertClosed(value, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256', 'executionFile'], 'manifest');
+  if (![3, 4].includes(Number(value.schemaVersion)) || value.baselineSchemaVersion !== 3) fail('Unsupported run schema version. Only v3 and v4 manifests with v3 cases are supported; existing runs are not migrated.');
+  const base = { baselineSchemaVersion: 3 as const, runId: textValue(value.runId, 'run ID'), projectDir: textValue(value.projectDir, 'project directory'), baselineSha256: sha256Value(value.baselineSha256, 'baseline hash') };
+  if (value.schemaVersion === 4) { if (value.executionFile !== 'execution.json') fail('Invalid v4 execution reference.'); return { ...base, schemaVersion: 4, executionFile: 'execution.json' }; }
+  if (value.schemaVersion !== 3 || Object.hasOwn(value, 'executionFile')) fail('Invalid v3 manifest.');
+  return { ...base, schemaVersion: 3 };
 }
 function operationBase(value: Record<string, unknown>) {
   return { operationId: safeIdentifier(value.operationId, 'operation id'), payloadSha256: sha256Value(value.payloadSha256, 'operation payload hash'), revision: integer(value.revision, 'operation revision'), committedAt: timeValue(value.committedAt, 'committedAt'), caseId: safeIdentifier(value.caseId, 'operation case id') };

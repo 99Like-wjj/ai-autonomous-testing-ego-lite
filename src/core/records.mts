@@ -1,3 +1,4 @@
+import { readExecution, summarize, verifyExecutionFiles } from '../execution/ledger.mjs';
 import type { Attempt, Baseline, Case, CheckedCase, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceReceipt, EvidenceRequest, Manifest, PendingEvidence, RecordPayload, RecordRequest, Report, ResultOperation, ResultReceipt, ResultRecord, Results, Status, TestHooks } from '../contracts/model.mjs';
 import { normalizeCases } from './cases.mjs';
 import { parseCatalog, parseResults, parseManifest, parsePendingEvidence, parseRecordRequest, parseEvidenceRequest } from './validation.mjs';
@@ -122,8 +123,8 @@ export async function validateV3Record(record: ResultRecord, label: string, evid
   }
 }
 export async function checkV3(root: string, manifest: Manifest): Promise<Report> {
-  assertClosed(manifest, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256'], 'manifest');
-  if (manifest.schemaVersion !== 3 || manifest.baselineSchemaVersion !== 3 || !nonempty(manifest.projectDir) || !path.isAbsolute(manifest.projectDir) || !nonempty(manifest.runId) || !/^[a-f0-9]{64}$/.test(manifest.baselineSha256)) fail('Invalid v3 manifest.');
+  assertClosed(manifest, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256', ...(manifest.schemaVersion === 4 ? ['executionFile'] : [])], 'manifest');
+  if (![3, 4].includes(manifest.schemaVersion) || manifest.baselineSchemaVersion !== 3 || !nonempty(manifest.projectDir) || !path.isAbsolute(manifest.projectDir) || !nonempty(manifest.runId) || !/^[a-f0-9]{64}$/.test(manifest.baselineSha256)) fail('Invalid v3 manifest.');
   const { baseline } = await readAndValidateBaseline(root, manifest);
   const byId = new Map(baseline.cases.map(c => [c.id, c]));
   const evidenceCatalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
@@ -186,8 +187,10 @@ export async function checkV3(root: string, manifest: Manifest): Promise<Report>
   }
   const ordered: CheckedCase[] = baseline.cases.map(c => { const record = results.cases.find(r => r.id === c.id); if (!record) fail('Missing original case.'); return { ...c, ...record, cause: record.cause ?? 'unknown' }; });
   const counts = countsFor(ordered), progressSummary = progressFor(ordered);
+  const execution = manifest.schemaVersion === 4 ? await readExecution(root, manifest, baseline) : undefined;
+  if (execution) await verifyExecutionFiles(root, execution);
   return {
-    schemaVersion: 3, runId: manifest.runId, project: baseline.project, structurallyValid: true,
+    schemaVersion: manifest.schemaVersion, ...(execution ? { execution, executionSummary: summarize(execution, baseline) } : {}), runId: manifest.runId, project: baseline.project, structurallyValid: true,
     revision: results.revision, evidenceRevision: evidenceCatalog.revision,
     hasUnexecutedCases: ordered.some(c => c.status === 'not_run' && c.attempts.length === 0), counts, progress: progressSummary,
     recordedExplicitOutcomes: { pass: ordered.filter(c => c.basis.kind === 'explicit' && c.status === 'pass').length, fail: ordered.filter(c => c.basis.kind === 'explicit' && c.status === 'fail').length },
@@ -203,8 +206,8 @@ export async function checkV3(root: string, manifest: Manifest): Promise<Report>
 }
 export async function checkUnlocked(root: string): Promise<Report> {
   const manifest = parseManifest(await readJSON(path.join(root, 'manifest.json')));
-  assertClosed(manifest, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256'], 'manifest');
-  if (manifest.schemaVersion !== 3) fail('Unsupported run schema version. Start a new v3 run from the schemaVersion 3 cases file; old run directories are not migrated.');
+  assertClosed(manifest, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256', ...(manifest.schemaVersion === 4 ? ['executionFile'] : [])], 'manifest');
+  if (![3, 4].includes(manifest.schemaVersion)) fail('Unsupported run schema version.');
   return checkV3(root, manifest);
 }
 export async function markerExists(root: string): Promise<string | null> {
@@ -264,11 +267,10 @@ export function resultOperationReceipt(op: ResultOperation, replayed = false): R
 export function evidenceOperationReceipt(op: EvidenceOperation, replayed = false): EvidenceReceipt {
   return { operationId: op.operationId, revision: op.revision, caseId: op.caseId, evidenceId: op.evidenceId, path: op.path, sha256: op.sha256, bytes: op.bytes, collectedAt: op.committedAt, replayed };
 }
-export async function recordResult({ runDir, request }: { runDir: unknown; request: unknown }, testHooks: TestHooks = {}): Promise<ResultReceipt> {
-  return withRunLock(runDir, async root => {
+export async function recordResultUnlocked(root: string, request: unknown, testHooks: TestHooks = {}): Promise<ResultReceipt> {
     await recoverEvidence(root);
     const checked = await checkUnlocked(root);
-    if (checked.schemaVersion !== 3) fail('Run schemaVersion 3 is required; start a new run from the schemaVersion 3 cases file. Existing run directories are not migrated.');
+    if (![3, 4].includes(checked.schemaVersion)) fail('Run manifest v3 or v4 is required.');
     validateRecordRequest(request);
     const resultsPath = path.join(root, 'results.json'), results = parseResults(await readJSON(resultsPath));
     const payloadSha256 = canonicalHash(request);
@@ -326,7 +328,10 @@ export async function recordResult({ runDir, request }: { runDir: unknown; reque
     await atomicReplace(resultsPath, json(next));
     if (typeof testHooks.afterCommit === 'function') await testHooks.afterCommit();
     return resultOperationReceipt(operation, false);
-  });
+
+}
+export async function recordResult({ runDir, request }: { runDir: unknown; request: unknown }, testHooks: TestHooks = {}): Promise<ResultReceipt> {
+  return withRunLock(runDir, root => recordResultUnlocked(root, request, testHooks));
 }
 export async function copyAndHashSource(source: string, stage: string) {
   await safePath(stage);
@@ -362,7 +367,7 @@ export function validateEvidenceRequest(request: unknown): asserts request is Ev
 export async function registerEvidenceUnlocked(root: string, request: unknown, testHooks: TestHooks = {}): Promise<EvidenceReceipt> {
   await recoverEvidence(root);
   const checked = await checkUnlocked(root);
-  if (checked.schemaVersion !== 3) fail('Run schemaVersion 3 is required; start a new run from the schemaVersion 3 cases file. Existing run directories are not migrated.');
+  if (![3, 4].includes(checked.schemaVersion)) fail('Run manifest v3 or v4 is required.');
   validateEvidenceRequest(request);
   const catalogPath = path.join(root, 'evidence.json'), catalog = parseCatalog(await readJSON(catalogPath));
   const payloadSha256 = canonicalHash(request);

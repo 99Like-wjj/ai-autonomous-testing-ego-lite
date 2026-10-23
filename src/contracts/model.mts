@@ -4,8 +4,9 @@ import type { EgoLiteRecordedResultsV3, ResultV3, AttemptV3, ResultOperationV3 }
 import type { EgoLiteEvidenceCatalogV3, EvidenceItemV3, EvidenceOperationV3 } from './generated/evidence.mjs';
 import type { ResultOrAttemptRequestV3 } from './generated/record-request.mjs';
 import type { EvidenceRegistrationRequestV3 } from './generated/evidence-request.mjs';
-import type { EgoLiteRunManifestV3 } from './generated/manifest.mjs';
-import type { EgoLiteGeneratedReportV3 } from './generated/report.mjs';
+import type { EgoLiteRunManifest } from './generated/manifest.mjs';
+import type { EgoLiteGeneratedReportV3 } from './generated/report-v3.mjs';
+import type { ExecutionLedger, ExecutionSummary } from './execution-model.mjs';
 import type { RetrospectiveReportContextV1NoBusinessExecution } from './generated/report-context.mjs';
 export type Baseline = EgoLiteCaseInputAndNormalizedBaselineV3;
 export type { Case, Basis, Step };
@@ -22,10 +23,13 @@ export type Status = RecordPayload['status'];
 export type Cause = NonNullable<RecordPayload['cause']>;
 export type EvidenceKind = EvidenceItem['kind'];
 export type EvidenceRequest = EvidenceRegistrationRequestV3;
-export type Manifest = EgoLiteRunManifestV3;
+export type Manifest = EgoLiteRunManifest;
 export type ReportContext = RetrospectiveReportContextV1NoBusinessExecution;
 export type CheckedCase = Case & ResultRecord & { cause: Cause };
-export type Report = Omit<EgoLiteGeneratedReportV3, 'cases' | 'evidenceCoverage'> & {
+export type Report = Omit<EgoLiteGeneratedReportV3, 'cases' | 'evidenceCoverage' | 'schemaVersion'> & {
+  schemaVersion: 3 | 4;
+  execution?: ExecutionLedger;
+  executionSummary?: ExecutionSummary;
   cases: CheckedCase[];
   evidenceCoverage: NonNullable<EgoLiteGeneratedReportV3['evidenceCoverage']>;
 };
@@ -37,6 +41,7 @@ export interface PendingEvidence {
   sha256?: string; bytes?: number;
 }
 export interface Preview { preview: string | null; previewNote: string }
-export interface HtmlPayload { htmlPayloadVersion: 1; report: Report; previews: Record<string, Preview> }
+export interface GoalView { target: string; text: string; status: 'verified' | 'violation' | 'inconclusive' | 'not_tested'; observed: string; rationale: string; evidenceIds: string[]; source: string }
+export interface HtmlPayload { htmlPayloadVersion: 1; report: Report; previews: Record<string, Preview>; goalViews?: Record<string, GoalView[]> }
 export type EvidenceReceipt = Pick<EvidenceOperation, 'operationId' | 'revision' | 'caseId' | 'evidenceId' | 'path' | 'sha256' | 'bytes'> & { collectedAt: string; replayed: boolean };
 export type ResultReceipt = Pick<ResultOperation, 'operationId' | 'revision' | 'caseId' | 'mode' | 'status' | 'attemptId' | 'noOp'> & { replayed: boolean };

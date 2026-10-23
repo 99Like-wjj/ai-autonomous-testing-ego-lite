@@ -39,7 +39,7 @@ async function fixture(t: TestContext) {
     await init(project);
     const input = path.join(project, 'cases.json');
     await write(input, cases());
-    await start({ projectDir: project, casesFile: input, outputDir: run });
+    await start({ projectDir: project, casesFile: input, outputDir: run, runSchemaVersion: 3 });
     const source = path.join(root, 'source.txt');
     await fs.writeFile(source, 'Synthetic observation, not a screenshot.');
     const ev = await registerEvidence({ runDir: run, request: {

@@ -1,4 +1,5 @@
 import type { Report, HtmlPayload, Preview } from '../contracts/model.mjs';
+import { caseGoals, goalViews } from './execution-view.mjs';
 import fs from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import path from 'node:path';
@@ -10,6 +11,12 @@ import { evidenceFile } from '../core/records.mjs';
 export const escape = (value: unknown): string => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\\*_{}\[\]()#+.!|~-]/g, '\\$&').split(String.fromCharCode(96)).join('\\' + String.fromCharCode(96)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, character => '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')).replace(/\r?\n/g, '  \n');
 export function markdown(report: Report): string {
   let output = '# Local evidence report\n\n' + escape(report.project) + '\n\n' + report.caveat + '\n\n';
+  if (report.execution && report.executionSummary) {
+    const s = report.executionSummary, e = report.execution;
+    output += '## 并发与执行记录\n\n用户并发上限：' + s.configuredMaxParallelCases + '；初始上限：' + e.configuration.initialMaxParallelCases + '；配置来源：' + e.configuration.kind + '。\n\n已知宿主可用容量：' + (s.knownAvailableWorkers ?? '未知') + '；依据：' + escape(e.capacityReason || '宿主未明确提供；本工具不主动探测。') + '\n\n当前占用：' + s.activeReservations + '；名额峰值：' + s.peakReservations + '；已入账执行区间的报告峰值：' + (s.reportedExecutionPeak ?? '未知') + '。名额不等于实测重叠；区间由 worker 提供，引用证据文件，不认证其真实性。\n\n等待收敛：' + s.draining + '；未完成分派：' + escape(s.unfinishedAssignmentIds.join(', ') || '(none)') + '；待导入：' + escape(s.pendingImportIds.join(', ') || '(none)') + '；缺少逐目标评估的用例：' + escape(s.unassessedCaseIds.join(', ') || '(none)') + '\n\n';
+    for (const a of e.assignments) output += '- ' + escape(a.caseId) + ' / ' + escape(a.id) + '：' + a.state + '；worker ' + escape(a.workerId ?? '未绑定') + '；model ' + escape(a.model ?? '未记录') + ' / ' + escape(a.reasoning ?? '未记录') + '；默认 Space ' + (a.defaultSpaceId ?? '未知') + '；实际偏差／恢复：' + escape(a.spaceHistory.filter(s => s.kind !== 'default').map(s => s.kind + ':' + (s.spaceId ?? '未知') + ' ' + s.reason).join('; ') || '(none recorded)') + '\n';
+    output += '\n'; for (const event of e.events.filter(event => event.kind.startsWith('note:'))) output += '- ' + escape(event.kind) + '：' + escape(event.reason) + (event.assignmentId ? ' / ' + escape(event.assignmentId) : '') + '\n'; output += '\n';
+  }
   if (report.evidenceCoverage) output += 'Screenshot evidence: ' + report.evidenceCoverage.registeredScreenshots + ' registered; distinct retained contents: ' + report.evidenceCoverage.distinctRetainedContents + '.\n\nFinal records without screenshot evidence: ' + (report.evidenceCoverage.finalCasesWithoutScreenshots.join(', ') || '(none)') + '. Key UI conclusions require real screenshots; missing evidence needs AI review, not an automatic product failure.\n\n';
   if (report.context) {
     output += '## 事后整理与本次复核（未重新执行）\n\n' + escape(report.context.summary) + '\n\n';
@@ -17,7 +24,7 @@ export function markdown(report: Report): string {
     output += 'Supplemental cases: ' + (report.context.supplementalCaseIds.map(escape).join(', ') || '(none)') + '\n\n';
     output += report.context.sources.map(source => '- Source: ' + escape(source.label) + '; file: ' + escape(source.file) + '; SHA-256: ' + source.sha256).join('\n') + '\n\n';
   }
-  if (report.schemaVersion === 3) {
+  if (report.schemaVersion === 3 || report.schemaVersion === 4) {
     output += 'Run revision: ' + report.revision + '; evidence revision: ' + report.evidenceRevision + '\n\n';
     output += 'Evidence entries with matching SHA-256 at check: ' + report.evidenceIntegrity.hashVerifiedItems + '\n\n';
     output += 'Progress: ' + report.progress.completed.count + ' completed; ' + report.progress.uncompleted.count + ' uncompleted; ' + report.progress.pendingClarification.count + ' pending clarification; ' + report.progress.attemptedCases.totalAttempts + ' historical attempts.\n\n';
@@ -38,6 +45,7 @@ export function markdown(report: Report): string {
       'Step order: ' + c.stepOrder + ' (' + (c.stepOrder === 'strict' ? 'preserve the business-step sequence' : 'UI route/order may adapt only within intent and preconditions; do not skip steps') + ')\n\n' +
       (report.context ? 'Source planned steps (retrospective assembly, not proof of a pre-execution freeze):\n\n' : 'Planned steps (frozen baseline, not execution proof):\n\n') +
       c.steps.map((step, index) => (index + 1) + '. ' + escape(step.id) + ': ' + escape(step.action) + '\n   Expected checkpoint: ' + (Object.hasOwn(step, 'expected') ? escape(step.expected) : '(not specified; no checkpoint verdict)') + '\n').join('') +
+      (report.schemaVersion === 4 ? '逐目标评估：\n\n' + caseGoals(report, c).map(goal => '- ' + escape(goal.target) + ' / ' + ({ verified: '已验证', violation: '发现违反', inconclusive: '无法判断', not_tested: '未测试' }[goal.status]) + '：' + escape(goal.text) + '\n  观察：' + escape(goal.observed || '(none)') + '\n  依据：' + escape(goal.rationale) + '\n  证据：' + escape(goal.evidenceIds.join(', ') || '(none)') + '\n').join('') + '\n' : '') +
       'Recorded status: ' + c.status + '\n\nObserved: ' + escape(c.observed) + '\n\nRationale: ' + escape(c.rationale) + '\n\n' +
       'Remaining questions: ' + ((c.remainingQuestions ?? []).map(escape).join('; ') || '(none supplied)') + '\n\n' +
       'Cause: ' + (c.cause ?? 'unknown') + '\n\n' +
@@ -79,7 +87,7 @@ export async function htmlReportPayload(root: string, reportData: Report): Promi
     }
     previews[item.id] = { preview, previewNote };
   }
-  return { htmlPayloadVersion: 1, report: reportData, previews };
+  return { htmlPayloadVersion: 1, report: reportData, previews, ...(reportData.schemaVersion === 4 ? { goalViews: goalViews(reportData) } : {}) };
 }
 export function htmlReport(reportData: HtmlPayload): string {
   const embedded = safeJsonForHtml(reportData);
@@ -93,6 +101,7 @@ export function htmlReport(reportData: HtmlPayload): string {
 <header><h1>测试结果与证据</h1><p id="project-line"></p></header><main class="wrap">
 <div class="notice"><strong>解读：</strong>状态是记录的业务判断；下方文件完整性只表示报告生成时证据字节与 catalog 中的 SHA-256 / 大小匹配。匹配不证明来源真实或业务结论正确。此文件可离线打开，截图以安全识别的 PNG/JPEG/WebP 数据内嵌。</div>
 <div class="summary" id="summary" aria-label="结果概览"></div>
+<section id="execution-summary" class="notice" hidden aria-label="并发与执行记录"></section>
 <section id="report-context" class="notice" hidden aria-label="事后整理与复核"></section>
 <p id="evidence-coverage" class="notice" role="status"></p>
 <p class="integrity" id="integrity"></p>
