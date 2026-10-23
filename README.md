@@ -161,9 +161,11 @@ SHA-256 用于检测留存文件是否与 catalog 一致，不证明证据真实
 - 作者：[99Like-wjj](https://github.com/99Like-wjj)
 - 邮箱：[wjj990517@gmail.com](mailto:wjj990517@gmail.com)
 - 微信：A2326543144
+
+  <img src="docs/images/wechat-contact-qr.png" alt="作者的微信联系二维码" width="240">
 - QQ：2326543144
 - X：[@99Like_ovo](https://x.com/99Like_ovo)
 
 ## 许可证
 
-本仓库原创代码和文档按 [MIT License](LICENSE) 授权，版权声明为 2026 99Like-wjj。此许可不覆盖 Ego、Ego 官方浏览器或其他第三方软件；它们仍受各自许可和官方条款约束。本项目非 Ego 官方项目，未获其背书。仓库仍为私有开发仓库；许可证声明不会改变仓库可见性，也不代表已创建公开发布。
+本仓库原创代码和文档按 [MIT License](LICENSE) 授权，版权声明为 2026 99Like-wjj。此许可不覆盖 Ego、Ego 官方浏览器或其他第三方软件；它们仍受各自许可和官方条款约束。本项目非 Ego 官方项目，未获其背书。源码按 MIT 许可开放；项目仍在持续开发，具体版本能力与验证范围以对应版本说明为准。

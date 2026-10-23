@@ -155,9 +155,11 @@ Report bugs or suggest improvements through [GitHub Issues](https://github.com/9
 - Author: [99Like-wjj](https://github.com/99Like-wjj)
 - Email: [wjj990517@gmail.com](mailto:wjj990517@gmail.com)
 - WeChat: A2326543144
+
+  <img src="docs/images/wechat-contact-qr.png" alt="Author's WeChat contact QR code" width="240">
 - QQ: 2326543144
 - X: [@99Like_ovo](https://x.com/99Like_ovo)
 
 ## License
 
-Original code and documentation in this repository are licensed under the [MIT License](LICENSE), copyright 2026 99Like-wjj. This license does not cover Ego, Ego's official browser, or other third-party software; their own licenses and official terms continue to apply. This is an independent project, not affiliated with or endorsed by Ego. The repository remains a private development repository; the license notice does not change repository visibility or mean a public release was created.
+Original code and documentation in this repository are licensed under the [MIT License](LICENSE), copyright 2026 99Like-wjj. This license does not cover Ego, Ego's official browser, or other third-party software; their own licenses and official terms continue to apply. This is an independent project, not affiliated with or endorsed by Ego. The source is available under the MIT License. Development is ongoing; refer to each release's notes for its capabilities and validation scope.
