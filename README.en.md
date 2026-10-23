@@ -10,6 +10,10 @@ An existing automated test suite is not required. Supply prepared cases, or prov
 
 First launch is a target use case, not a promise to infer missing rules or guarantee release readiness. Missing requirements need clarification, and insufficient evidence must remain uncertain. Existing-feature regression is also supported.
 
+## Project status
+
+This Skill is under active development. v0.1.3 is available, and ongoing work will address bugs, add features, and improve the design. Feedback from real use is welcome. Validation coverage remains limited: review AI-generated conclusions against business rules and supporting evidence, and do not use them as the sole basis for a launch decision. See the [validation records](docs/testing.en.md) and [changelog](CHANGELOG.md) for capabilities, tested scope, and known limitations.
+
 **Version 0.1.3.** This independent project is not affiliated with or endorsed by Ego. v0.1.3 uses schemaVersion 3 in place of v0.1.2's schemaVersion 2. This is an intentional format change; no migration command is provided. Historical synthetic checks and this repair are documented separately; file checks do not establish real business acceptance. See the [validation record](docs/testing.en.md).
 
 
@@ -143,6 +147,16 @@ Evidence registration does not redact data. Screenshots, logs, URLs, and descrip
 - [v0.1.4 research backlog (Chinese)](docs/requirements.md): parallel cases and Space binding (not implemented)
 - [Synthetic cases](examples/cases.example.json), [evidence request](examples/evidence-request.example.json), [result request](examples/record-request.example.json)
 - [Validation status](docs/testing.en.md), [privacy](docs/privacy.md), [changelog](CHANGELOG.md)
+
+## Feedback and contact
+
+Report bugs or suggest improvements through [GitHub Issues](https://github.com/99Like-wjj/ego-lite-test-skill/issues) or the contacts below. Include the version, reproduction steps, and redacted errors or screenshots. Do not submit passwords, tokens, keys, or confidential company information.
+
+- Author: [99Like-wjj](https://github.com/99Like-wjj)
+- Email: [wjj990517@gmail.com](mailto:wjj990517@gmail.com)
+- WeChat: A2326543144
+- QQ: 2326543144
+- X: [@99Like_ovo](https://x.com/99Like_ovo)
 
 ## License
 

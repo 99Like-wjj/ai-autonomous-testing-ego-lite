@@ -10,6 +10,10 @@
 
 这里的“首次上线”是重点使用场景，不代表可以从空白信息推断全部业务规则，也不承诺测试通过就能安全上线；缺失的要求需要澄清，证据不足的结论必须保留不确定性。它也可用于已有功能的回归验证。
 
+## 项目现状
+
+本 Skill 仍在持续开发和完善中。当前已发布 v0.1.3，后续将持续修复问题、增加功能并优化设计。欢迎试用并反馈实际使用中遇到的问题。现阶段的验证覆盖有限，AI 的测试结论仍需结合业务规则和证据复核，不应作为上线决策的唯一依据。具体能力、验证范围与已知限制请参阅[验证记录](docs/testing.md)和[版本说明](CHANGELOG.md)。
+
 **版本 0.1.3。** 本项目独立开发，非 Ego 官方项目，未获 Ego 背书。v0.1.3 使用 schemaVersion 3，替代 v0.1.2 的 schemaVersion 2；这是有意的格式变更，不提供迁移命令。历史合成验证与本次修复验证分开记录；工具文件校验不代表真实业务能力验收。详见[验证记录](docs/testing.md)。
 
 
@@ -149,6 +153,16 @@ SHA-256 用于检测留存文件是否与 catalog 一致，不证明证据真实
 - [后续版本需求与调研记录](docs/requirements.md)：v0.1.4 并行用例/Space 绑定（未实现）
 - [合成用例](examples/cases.example.json)、[合成证据请求](examples/evidence-request.example.json)、[合成结果请求](examples/record-request.example.json)
 - [验证状态](docs/testing.md)、[隐私保护](docs/privacy.md)、[变更记录](CHANGELOG.md)
+
+## 问题反馈与联系
+
+欢迎通过 [GitHub Issues](https://github.com/99Like-wjj/ego-lite-test-skill/issues) 或以下联系方式反馈问题、提出建议。请附上版本号、复现步骤和脱敏后的报错或截图，不要提交密码、令牌、密钥或公司内部资料。
+
+- 作者：[99Like-wjj](https://github.com/99Like-wjj)
+- 邮箱：[wjj990517@gmail.com](mailto:wjj990517@gmail.com)
+- 微信：A2326543144
+- QQ：2326543144
+- X：[@99Like_ovo](https://x.com/99Like_ovo)
 
 ## 许可证
 
