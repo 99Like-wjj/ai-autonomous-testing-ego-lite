@@ -32,6 +32,7 @@ profiles/
 *.mp4
 # Development byproducts
 node_modules/
+.build/
 coverage/
 .DS_Store
 Thumbs.db

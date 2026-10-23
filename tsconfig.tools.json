@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "rootDir": ".", "outDir": ".build/bootstrap" },
+  "include": ["tools/generate-contracts.mts", "tools/public-check.mts"]
+}

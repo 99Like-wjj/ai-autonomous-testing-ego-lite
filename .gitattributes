@@ -1,6 +1,8 @@
 * text=auto
 *.md text eol=lf
 *.mjs text eol=lf
+*.mts text eol=lf
+*.ts text eol=lf
 *.json text eol=lf
 *.svg text eol=lf
 *.png binary

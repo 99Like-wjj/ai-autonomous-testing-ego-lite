@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "rootDir": ".", "outDir": ".build/node" },
+  "include": ["src/**/*.mts", "tools/**/*.mts", "tests/**/*.mts", "docs/images/render.mts"]
+}
