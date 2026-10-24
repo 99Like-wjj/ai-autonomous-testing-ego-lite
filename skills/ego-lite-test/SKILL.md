@@ -2,8 +2,8 @@
 name: ego-lite-test
 description: 使用已安装的 Ego Browser 与当前 AI 会话，接收外部用例或按需求生成带业务步骤的标准用例，执行证据驱动的黑盒 Web 测试，区分产品异常、执行失败和证据不足。适用于新需求/新功能自动化测试、已有用例核验、角色权限与业务流程测试；不是固定流程自动化器或 Agent 能力评测框架。
 metadata:
-  version: "0.1.4-dev.1"
-  tool-revision: "ts-parallel-1"
+  version: "0.1.4-dev.3"
+  tool-revision: "ts-parallel-3"
 ---
 
 # Ego Lite Test
@@ -12,7 +12,7 @@ metadata:
 
 完整安装包包含入口、references、scripts、schemas 和格式指南。**除非用户明确指定其他格式，执行测试后的默认交付必须包含可独立打开的 HTML、结构化 JSON 和 Markdown。** 聊天摘要不能替代文件交付。工具暂不可用时仍可保存事实，但须明确报告交付阻塞，不能静默退回 Markdown 并宣称完成。
 
-开始记录前读 [本地工具箱调用指南](references/local-toolbox.md)：以本次实际加载的安装／构建包 `SKILL.md` 所在绝对目录为工具根，运行 `scripts/ego.mjs tool-info`，核对路径、`0.1.4-dev.1`、`ts-parallel-1`、`formatVersions` 与安装文件校验结果。源码开发先在明确的唯一仓库构建，使用其 `.build/runtime` 或本次指定的独立编译包；不要将源码 Skill 子目录当作安装根，不向上猜目录、选择旧安装或覆盖用户安装。先确认报告资源可用；这不规定业务执行路线。
+开始记录前读 [本地工具箱调用指南](references/local-toolbox.md)：以本次实际加载的安装／构建包 `SKILL.md` 所在绝对目录为工具根，运行 `scripts/ego.mjs tool-info`，核对路径、`0.1.4-dev.3`、`ts-parallel-3`、`formatVersions` 与安装文件校验结果。源码开发先在明确的唯一仓库构建，使用其 `.build/runtime` 或本次指定的独立编译包；不要将源码 Skill 子目录当作安装根，不向上猜目录、选择旧安装或覆盖用户安装。先确认报告资源可用；这不规定业务执行路线。
 
 ## 两种用例来源
 
@@ -24,7 +24,9 @@ metadata:
 
 ## 多用例与并发
 
-多例执行时读 [并发与 worker 交付](references/parallel-testing.md)。`maxParallelCases` 由用户配置，未配置建议默认 2，1 表示串行；不设置 2／4／8 等固定产品上限。AI 判断独立性、共享状态和批次，使用宿主原生子代理；模型与推理强度遵从用户选择，未指定时继承会话，不另建模型服务。宿主明确提供容量时使用，否则记为未知，不主动探测客户端上限或修改全局设置。
+`maxParallelCases` 默认 **1，逐条执行**。用户未要求并发且未明确配置时，不因用例独立或宿主空闲而自行提高。用户可配置任意可准确表示的正整数，不设置 2／4／8 等固定产品上限；配置是上限，不要求始终跑满。
+
+需要分派、Space 关联或独立交付时读 [并发与 worker 交付](references/parallel-testing.md)。AI 判断独立性、共享状态和批次，决定何时调用工具、由当前会话执行还是使用宿主原生子代理；串行不强制创建子代理，也不要求每例新建 worker。模型与推理强度遵从用户选择，未指定时继承会话，不另建模型服务。宿主明确提供容量时使用，否则记为未知，不主动探测客户端上限或修改全局设置。
 
 默认单用例复用一个 numeric Space ID；这是执行原则，允许 Agent 出错或在授权内记录恢复。偏差、首次错误与影响必须保留，不能自动判成产品缺陷。原有用户／其他任务 Space 仍受保护，不接管或按名称猜测清理；只处理本次明确拥有的精确 ID。
 

@@ -1,42 +1,16 @@
 import type { Manifest } from '../contracts/model.mjs';
 import { resolveConfiguration } from '../execution/config.mjs';
 import { initialExecution } from '../execution/ledger.mjs';
-import type { Baseline, Case } from '../contracts/model.mjs';
-import { arrayValue, oneOf, parseBasis, strings, textValue } from './validation.mjs';
+
+
 import { errorInfo } from './common.mjs';
 import fs from 'node:fs/promises';
-import { constants as fsConstants } from 'node:fs';
+
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { SOURCE_ROOT, statuses, causes, evidenceKinds, reservedIds, idPattern, fail, hash, json, inside, object, nonempty, timestampPattern, now, randomId, assertClosed, safeIdentifier, validTimestamp, assertTimestamp, canonical, canonicalHash, canonicalRecord, sameRecord, safePath, directory, readJSON, syncDirectory, writeNew, removeOwnedFileIfPresent, removeRegularIfPresent, atomicReplace, acquireLock, withRunLock } from './common.mjs';
-export function newSafeCases(baseline: Baseline) {
-  for (const c of baseline.cases) {
-    safeIdentifier(c.id, 'case id');
-    for (const step of c.steps) safeIdentifier(step.id, 'step id');
-  }
-}
-export function normalizeCases(input: unknown): Baseline {
-  if (!object(input) || Object.keys(input).some(k => !['schemaVersion', 'project', 'cases'].includes(k)) || input.schemaVersion !== 3 || !nonempty(input.project) || !Array.isArray(input.cases) || !input.cases.length) fail('Cases require schemaVersion 3, project, and a nonempty cases array.');
-  const ids = new Set<string>();
-  const cases: Case[] = arrayValue(input.cases, 'cases').map(c => {
-    assertClosed(c, ['id', 'title', 'basis', 'criticalConditions', 'expected', 'requiredPath', 'stepOrder', 'steps', 'clarificationQuestions'], 'case');
-    const id = safeIdentifier(c.id, 'case id'), title = textValue(c.title, 'title'), expected = textValue(c.expected, 'expected');
-    if (ids.has(id)) fail('Duplicate case id: ' + id); ids.add(id);
-    const rawSteps = arrayValue(c.steps, 'steps');
-    if (!rawSteps.length) fail('A nonempty steps array is required: ' + id);
-    const stepIds = new Set<string>();
-    const steps = rawSteps.map(step => {
-      assertClosed(step, ['id', 'action', 'expected'], 'step');
-      const stepId = safeIdentifier(step.id, 'step id');
-      if (stepIds.has(stepId)) fail('Duplicate step id: ' + id + '/' + stepId); stepIds.add(stepId);
-      return { id: stepId, action: textValue(step.action, 'step action'), ...(Object.hasOwn(step, 'expected') ? { expected: textValue(step.expected, 'step expected') } : {}) };
-    });
-    return { id, title, basis: parseBasis(c.basis), criticalConditions: strings(c.criticalConditions, 'criticalConditions'), expected,
-      requiredPath: c.requiredPath === null ? null : textValue(c.requiredPath, 'requiredPath'), stepOrder: oneOf(c.stepOrder, ['strict', 'adaptive'], 'stepOrder'), steps,
-      ...(Object.hasOwn(c, 'clarificationQuestions') ? { clarificationQuestions: strings(c.clarificationQuestions, 'clarificationQuestions') } : {}) };
-  });
-  return { schemaVersion: 3, project: input.project, cases };
-}
+import { fail, hash, json, safePath, directory, readJSON, writeNew, removeRegularIfPresent } from './common.mjs';
+import { newSafeCases, normalizeCases } from './baseline.mjs';
+export { newSafeCases, normalizeCases } from './baseline.mjs';
 export async function validateCases(casesFile: unknown) {
   const baseline = normalizeCases(await readJSON(await safePath(casesFile, { existing: true })));
   newSafeCases(baseline);

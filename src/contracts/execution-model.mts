@@ -2,6 +2,7 @@ import type { EgoLiteExecutionLedgerV1, ExecutionAssignment, ExecutionConfigurat
 import type { EgoLiteExecutionRequestV1, PacketReview } from './generated/execution-request.mjs';
 import type { EgoLiteWorkerPacketV1, PacketRecord, GoalAssessment, ExecutionWindow } from './generated/worker-packet.mjs';
 import type { ExecutionSummary as GeneratedSummary } from './generated/report-v4.mjs';
+import type { EgoLiteExecutionReadViewV2 } from './generated/execution-read.mjs';
 export type ExecutionLedger = EgoLiteExecutionLedgerV1;
 export type Assignment = ExecutionAssignment;
 export type ConfigurationSnapshot = ExecutionConfigurationSnapshot;
@@ -15,5 +16,6 @@ export type Event = ExecutionEvent;
 export type { OwnedSpace, PacketReview, PacketRecord, GoalAssessment, ExecutionWindow };
 export type WorkerPacket = EgoLiteWorkerPacketV1;
 export type ExecutionSummary = GeneratedSummary;
+export type ExecutionReadView = EgoLiteExecutionReadViewV2;
 export type AssignmentState = Assignment['state'];
 export const activeStates: readonly AssignmentState[] = ['reserved', 'running', 'stop_requested', 'lost'];

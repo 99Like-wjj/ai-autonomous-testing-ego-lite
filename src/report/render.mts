@@ -1,13 +1,13 @@
 import type { Report, HtmlPayload, Preview } from '../contracts/model.mjs';
 import { caseGoals, goalViews } from './execution-view.mjs';
 import fs from 'node:fs/promises';
-import { constants as fsConstants } from 'node:fs';
+
 import path from 'node:path';
-import crypto from 'node:crypto';
+
 import { readFileSync } from 'node:fs';
 import { TOOL_ROOT } from '../scripts/toolchain.mjs';
-import { SOURCE_ROOT, statuses, causes, evidenceKinds, reservedIds, idPattern, fail, hash, json, inside, object, nonempty, timestampPattern, now, randomId, assertClosed, safeIdentifier, validTimestamp, assertTimestamp, canonical, canonicalHash, canonicalRecord, sameRecord, safePath, directory, readJSON, syncDirectory, writeNew, removeOwnedFileIfPresent, removeRegularIfPresent, atomicReplace, acquireLock, withRunLock } from '../core/common.mjs';
-import { evidenceFile } from '../core/records.mjs';
+import { fail, hash } from '../core/common.mjs';
+import { evidenceFile } from '../core/file-integrity.mjs';
 export const escape = (value: unknown): string => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\\*_{}\[\]()#+.!|~-]/g, '\\$&').split(String.fromCharCode(96)).join('\\' + String.fromCharCode(96)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, character => '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')).replace(/\r?\n/g, '  \n');
 export function markdown(report: Report): string {
   let output = '# Local evidence report\n\n' + escape(report.project) + '\n\n' + report.caveat + '\n\n';

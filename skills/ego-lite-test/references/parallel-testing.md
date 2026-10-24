@@ -4,7 +4,9 @@
 
 ## 用户配置与宿主限制
 
-`start --max-parallel-cases N` 覆盖 `--execution-config ABS_FILE`，再覆盖项目 `execution-config.json`，最后默认 2。JSON 示例：`{"schemaVersion":1,"maxParallelCases":6}`。N 为可精确表示的正整数；1 为串行，没有固定的 2／4／8 路产品上限。配置很大也不预先创建 N 个 Space 或线程。
+`start --max-parallel-cases N` 覆盖 `--execution-config ABS_FILE`，再覆盖项目 `execution-config.json`，最后默认 **1（串行）**。用户未要求并发且未明确配置时按 1 执行，不能因存在多例或可用宿主额度而自行提高。用户明确配置并发的 JSON 示例：`{"schemaVersion":1,"maxParallelCases":6}`。N 为可精确表示的正整数，没有固定的 2／4／8 路产品上限。配置是活动用例上限，不要求跑满，也不预先创建 N 个 Space 或线程。
+
+AI 决定何时调用这些能力、哪些独立用例同时执行、何时补测／暂停，以及由当前会话还是 worker 执行；串行可以由当前 AI 逐例使用相同数据接口，不强制每例创建子代理。文件工具只校验请求、名额、所有权和证据，不调用宿主分派或 Ego，也不自动选择后续业务动作。使用交付包时仍须保留完整目标与显式复核；必要的文件写入顺序不是业务执行路线。
 
 宿主限制只使用其明确提供的信息，不主动探测最大子代理数，不读取或更改全局客户端配置。未知时保持未知，分派被拒绝后记录事实；最大额度与当前可用名额不能混为一谈。模型／推理强度由宿主原生工具按用户要求选择，未指定时继承会话。
 
@@ -14,8 +16,15 @@
 
 ```text
 node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS_RUN
+node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS_RUN --view assignment --assignment-id ID
+node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS_RUN --integrity full
+node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS_RUN --view full
 node ABS_TOOL_ROOT/scripts/ego.mjs execution ACTION --run-dir ABS_RUN --request ABS_REQUEST_JSON
 ```
+
+`read` 默认 `summary`，返回身份、revision、配置与计数，以及最多 20 个未完成分派、20 项待导入和最近 5 条 note 的摘要；`total`／`truncated` 明示列表省略，长原因提供带截断标志的预览。显示数量不限制用户并发。按需读 `assignment` 查看一个分派、Space 历史与相关交付引用；`full` 保留原完整输出。摘要的 `viewVersion:2` 与完整执行台账结构不同，不将摘要当作全量记录。
+
+默认 summary／assignment 使用 metadata 检查：核对基线与执行台账，不重读 results／evidence 记录和历史证据文件；`integrity` 明示 `recordedResults/evidenceFiles:not_checked`。有待恢复标记只提示，不自动恢复。需要完整核验后仍只看摘要时加 `--integrity full`；`--view full` 保留原完整输出和严格检查，不能与 `--integrity metadata` 组合。严格路径沿用现有证据事务恢复规则。两种模式都不重新确认业务结论或宿主 worker 实时状态。AI 自主选择查询时机、视图和检查深度，不固定轮询或每次写前强制查询。
 
 ACTION 为 `inventory / capacity / reserve / attach-space / note / set-limit / reconcile / import`。每个写请求包含：
 
@@ -23,7 +32,7 @@ ACTION 为 `inventory / capacity / reserve / attach-space / note / set-limit / r
 {"schemaVersion":1,"operationId":"unique-request-id","expectedRevision":0,"kind":"inventory","reason":"本次只读初始 Space 清单","spaceIds":[],"evidenceFiles":["coordinator/inventory.json"]}
 ```
 
-`expectedRevision` 取本次 `execution read` 的 `revision`；先保留请求文件，响应丢失时原样重放，不修改同一 ID 的内容。`evidenceFiles` 必须位于本 run 内且已完整写入；空列表仅用于没有文件事实的普通数据记录，不能冒充实机保护证据。
+`expectedRevision` 可取最近查询或已确认写回执的 `revision`；可复用回执，减少重复查询。遇到冲突后由 AI 按需读取并判断，不自动重试业务操作。先保留请求文件，响应丢失时原样重放，不修改同一 ID 的内容。`evidenceFiles` 必须位于本 run 内且已完整写入；空列表仅用于没有文件事实的普通数据记录，不能冒充实机保护证据。
 
 | ACTION | 额外参数与语义 |
 | --- | --- |

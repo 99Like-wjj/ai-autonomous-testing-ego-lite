@@ -1,12 +1,13 @@
+import { referencePath, retainReference, workerEvidencePath } from '../core/file-integrity.mjs';
 /** Deterministic execution data and file transactions. No scheduling or browser actions. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Baseline, Manifest } from '../contracts/model.mjs';
-import type { Assignment, AssignmentState, ConfigurationSnapshot, ExecutionLedger, ExecutionRequest, ExecutionSummary, FileReference, ImportState, Receipt, Event, CommittedGoal } from '../contracts/execution-model.mjs';
+import type { Assignment, AssignmentState, ConfigurationSnapshot, ExecutionLedger, ExecutionSummary, FileReference, ImportState, Receipt, Event, CommittedGoal } from '../contracts/execution-model.mjs';
 import { activeStates } from '../contracts/execution-model.mjs';
 import { assignmentId } from '../contracts/ids.mjs';
 import type { AssignmentId } from '../contracts/ids.mjs';
-import { assertClosed, atomicReplace, canonicalHash, errorInfo, fail, hash, inside, json, now, readJSON, safeIdentifier, safePath, writeNew } from '../core/common.mjs';
+import { assertClosed, atomicReplace, canonicalHash, errorInfo, fail, json, now, readJSON, safeIdentifier, safePath, writeNew } from '../core/common.mjs';
 import { arrayValue, integer, oneOf, parseEvidenceRequest, parseRecordRequest, sha256Value, textValue, timeValue } from '../core/validation.mjs';
 import { executionWindow, goals, numbers, parsePacket, parseRequest, parseReview, uniqueStrings } from './parse.mjs';
 import { parallelLimit } from './config.mjs';
@@ -112,20 +113,23 @@ export async function readExecution(root: string, manifest: Manifest, baseline: 
   if (manifest.schemaVersion !== 4 || manifest.executionFile !== 'execution.json') fail('This command requires a v4 run.');
   const ledger = parseLedger(await readJSON(path.join(root, 'execution.json')));
   if (ledger.runId !== manifest.runId || ledger.baselineSha256 !== manifest.baselineSha256 || ledger.assignments.some(a => !baseline.cases.some(c => c.id === a.caseId))) fail('Execution ledger does not match the frozen run.');
+  validateExecutionReferencePaths(root, ledger);
   return ledger;
 }
-export function referencePath(root: string, input: string): string {
-  const absolute = path.isAbsolute(input) ? path.resolve(input) : path.resolve(root, input);
-  if (!inside(root, absolute) || absolute === root) fail('Execution file escapes its run directory.');
-  const relative = path.relative(root, absolute).replaceAll('\\', '/');
-  if (relative.includes(':') || relative.includes('\0') || relative.split('/').some(part => !part || part === '.' || part === '..')) fail('Unsafe execution file reference.');
-  return relative;
+/** Lexical checks only; neither opens nor follows historical references. Shared by all readers. */
+export function validateExecutionReferencePaths(root: string, ledger: ExecutionLedger): void {
+  for (const a of ledger.assignments) for (const space of a.ownedSpaces) {
+    if (!referencePath(root, space.receipt.path).startsWith(a.workerDirectory + '/')) fail('Space receipt belongs to a different assignment directory.');
+  }
+  for (const event of ledger.events) for (const file of event.evidenceFiles ?? []) referencePath(root, file.path);
+  for (const imp of ledger.imports) {
+    const a = assignment(ledger, assignmentId(imp.assignmentId));
+    if (!referencePath(root, imp.packetFile).startsWith(a.workerDirectory + '/')) fail('Packet file belongs to a different assignment directory.');
+    if (imp.originalPacket.runId !== ledger.runId || imp.originalPacket.baselineSha256 !== ledger.baselineSha256) fail('Saved packet does not match its frozen run.');
+    for (const item of imp.originalPacket.evidence) workerEvidencePath(path.join(root, ...a.workerDirectory.split('/')), item.path);
+  }
 }
-export async function retainReference(root: string, input: string): Promise<FileReference> {
-  const relative = referencePath(root, input), filename = await safePath(path.join(root, ...relative.split('/')), { existing: true });
-  if (!(await fs.lstat(filename)).isFile()) fail('Execution reference is not a regular file.');
-  const bytes = await fs.readFile(filename); return { path: relative, sha256: hash(bytes), bytes: bytes.length };
-}
+export { referencePath, retainReference } from '../core/file-integrity.mjs';
 export async function verifyExecutionFiles(root: string, ledger: ExecutionLedger): Promise<void> {
   const references = [...ledger.events.flatMap(event => event.evidenceFiles ?? []), ...ledger.assignments.flatMap(a => a.ownedSpaces.map(space => space.receipt))];
   for (const expected of references) { const actual = await retainReference(root, expected.path); if (actual.sha256 !== expected.sha256 || actual.bytes !== expected.bytes) fail('Execution reference changed: ' + expected.path); }

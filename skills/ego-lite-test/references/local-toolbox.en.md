@@ -1,12 +1,14 @@
 # Local toolbox calling guide (0.1.4 development)
 
+In `0.1.4-dev.3`, `execution read` defaults to a bounded summary. Use `--view assignment --assignment-id ID` for one assignment, or `--view full` for the previous complete structure. Summary/assignment default to metadata checks and explicitly mark historical evidence as not_checked. Add --integrity full for a strictly checked compact view; the full view always retains strict checks. A confirmed write receipt supplies the next expectedRevision; an intervening query is optional. Report labels describe recorded observations, separately from execution state and business outcomes. See [parallel-testing](parallel-testing.md).
+
 The helper performs local data transactions and rendering. Unless the user explicitly requests another format, delivery after test execution includes standalone HTML, JSON, and Markdown. Missing tools block delivery; Markdown notes alone do not complete it.
 
 ## Confirm the loaded installation
 
 Use the absolute directory containing the actually loaded `SKILL.md` as the installed tool root. A complete installation includes scripts, schemas, docs, examples, and `runtime-manifest.json`. For source development run npm ci and npm run build at the confirmed root, then use .build/runtime; never infer it by walking up from an installed Skill or choosing a similarly named preview directory.
 
-Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4-dev.1 --expect-revision ts-parallel-1`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
+Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4-dev.3 --expect-revision ts-parallel-3`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
 
 ## Boundaries
 
@@ -65,7 +67,7 @@ Read the current results `revision` from `results.json`. Example:
 
 `mode: final` updates the current outcome. `mode: attempt` appends an observation while leaving the current final outcome unchanged. The attempts array excludes the current final observation; it includes explicit attempts and prior final snapshots not already preserved in history. For a deliberate new observation with the same status and content, use a new operation ID. To retry a request, reuse the original ID and payload.
 
-`pass` / `fail` require actual observations, rationale, and registered evidence IDs associated with the same case. `inconclusive` / `blocked` require rationale. `not_run` is valid only in final mode and means no final outcome; it can coexist with attempts. Only `not_run` with an empty attempts array means never attempted. A frozen baseline with pending `clarificationQuestions` prohibits `pass` / `fail` for both final outcomes and attempts. Requests cannot change basis, steps, expectations, or frozen questions.
+`pass` / `fail` require actual observations, rationale, and registered evidence IDs associated with the same case. `inconclusive` / `blocked` require rationale. `not_run` is valid only in final mode and means no final outcome; it can coexist with attempts. `not_run` with an empty attempts array means no recorded result/attempt; it does not establish that execution never started. A frozen baseline with pending `clarificationQuestions` prohibits `pass` / `fail` for both final outcomes and attempts. Requests cannot change basis, steps, expectations, or frozen questions.
 
 ## Idempotency, conflicts, and lost responses
 
@@ -95,4 +97,4 @@ For a new report without overwriting an old one, prepare a new external director
 
 ## v4 parallel execution
 
-New manifests/reports use v4; cases/results/evidence keep v3. Users configure maxParallelCases (positive safe integer; 2 is only the default). Host capacity is used only when explicitly known, not probed or globally configured. Read [parallel-testing](parallel-testing.md): workers write only their own files and packet-seal; the coordinator reviews and execution import commits. Goals, errors, original proposals and revisions are preserved. Legacy v3 runs/reports remain readable/verifiable, with no in-place upgrade.
+New manifests/reports use v4; cases/results/evidence keep v3. Users configure maxParallelCases (positive safe integer; default 1, serial). Without a user request for concurrency or an explicit setting, do not increase it based on spare capacity or independent cases. The AI chooses when to call tools and whether to use native workers; serial execution does not require a separate agent. Host capacity is used only when explicitly known, not probed or globally configured. Read [parallel-testing](parallel-testing.md): workers write only their own files and packet-seal; the coordinator reviews and execution import commits. Goals, errors, original proposals and revisions are preserved. Legacy v3 runs/reports remain readable/verifiable, with no in-place upgrade.

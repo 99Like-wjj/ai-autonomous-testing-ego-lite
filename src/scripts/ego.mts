@@ -7,7 +7,7 @@ import { errorInfo, fail, json, readJSON, safePath } from '../core/common.mjs';
 import { validateCases, init, start } from '../core/cases.mjs';
 import { check, recordResult, registerEvidence, progress } from '../core/records.mjs';
 import { report, verifyReport } from '../report/delivery.mjs';
-import { readExecutionView, executeRequest } from '../execution/commands.mjs';
+import { readExecutionQuery, executeRequest } from '../execution/commands.mjs';
 import { sealPacket } from '../execution/packets.mjs';
 import { requestKinds, parseRequest } from '../execution/parse.mjs';
 import { cliParallelLimit } from '../execution/config.mjs';
@@ -16,7 +16,7 @@ export { normalizeCases, validateCases, init, start } from '../core/cases.mjs';
 export { check, recordResult, registerEvidence, progress } from '../core/records.mjs';
 export { report, verifyReport } from '../report/delivery.mjs';
 export { markdown, htmlReport } from '../report/render.mjs';
-export { readExecutionView, executeRequest } from '../execution/commands.mjs';
+export { readExecutionView, readExecutionQuery, executeRequest } from '../execution/commands.mjs';
 export { sealPacket } from '../execution/packets.mjs';
 
 interface Responses {
@@ -26,7 +26,7 @@ interface Responses {
   'evidence-add': Awaited<ReturnType<typeof registerEvidence>>; record: Awaited<ReturnType<typeof recordResult>>;
   progress: Awaited<ReturnType<typeof progress>>; check: Awaited<ReturnType<typeof check>>;
   report: Awaited<ReturnType<typeof report>>; 'verify-report': Awaited<ReturnType<typeof verifyReport>>;
-  execution: Awaited<ReturnType<typeof readExecutionView>> | Awaited<ReturnType<typeof executeRequest>>;
+  execution: Awaited<ReturnType<typeof readExecutionQuery>> | Awaited<ReturnType<typeof executeRequest>>;
   'packet-seal': Awaited<ReturnType<typeof sealPacket>>;
 }
 export function parseFlags(args: readonly string[], allowed: readonly string[], required: readonly string[]): Record<string, string> {
@@ -53,10 +53,11 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs check --run-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS --report-dir ABS
-       node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS
+       node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS [--view summary|assignment|full] [--assignment-id ID] [--integrity metadata|full]
        node ABS_TOOL_ROOT/scripts/ego.mjs execution ACTION --run-dir ABS --request ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs packet-seal --run-dir ABS --assignment-id ID --draft ABS_JSON
 Execution ACTION: inventory, capacity, reserve, attach-space, note, set-limit, reconcile, import.
+execution read defaults to a bounded metadata summary; assignment requires --assignment-id. Use --integrity full for a strictly checked compact view. --view full keeps the previous complete output and requires full checks. Metadata reads do not recover evidence or recheck historical files.
 max-parallel-cases is a positive safe integer; no fixed product ceiling. Host limits are used only when explicitly supplied, never probed or globally configured.
 New runs/reports use v4; frozen cases/results/evidence and old record requests stay v3. Existing v3 runs remain v3.
 packet-seal writes an immutable worker-local packet; it does not commit a verdict. Coordinator import requires an explicit AI review.
@@ -70,8 +71,8 @@ No network, model, browser, or Ego actions.`;
   if (command === 'execution') {
     const [action, ...options] = rest;
     if (!action || (action !== 'read' && !requestKinds.some(kind => kind === action))) fail('Unknown execution action.');
-    const flags = parseFlags(options, action === 'read' ? ['run-dir'] : ['run-dir', 'request'], action === 'read' ? ['run-dir'] : ['run-dir', 'request']); await toolInfo();
-    if (action === 'read') return readExecutionView(flags['run-dir']);
+    const flags = parseFlags(options, action === 'read' ? ['run-dir', 'view', 'assignment-id', 'integrity'] : ['run-dir', 'request'], action === 'read' ? ['run-dir'] : ['run-dir', 'request']); await toolInfo();
+    if (action === 'read') return readExecutionQuery(flags['run-dir'], flags.view, flags['assignment-id'], flags.integrity);
     const request = await readJSON(await safePath(flags.request, { existing: true }));
     if (parseRequest(request).kind !== action) fail('Execution action and request kind disagree.');
     return executeRequest({ runDir: flags['run-dir'], request });

@@ -10,7 +10,7 @@ An existing automated test suite is not required. Supply prepared cases, or prov
 
 First launch is a target use case, not a promise to infer missing rules or guarantee release readiness. Missing requirements need clarification, and insufficient evidence must remain uncertain. Existing-feature regression is also supported.
 
-**Development version `0.1.4-dev.1`, not released.** Maintained programs are authored in TypeScript; installations contain compiled Node.js code. Users configure case concurrency, and the host AI chooses independent work and native workers. The stable v0.1.3 baseline and its immutable tag remain unchanged. Existing diagrams illustrate that baseline, not acceptance of this development build. See the [TS and parallel design](docs/v0.1.4-design.md).
+**Development version `0.1.4-dev.3`, not released.** Maintained programs are authored in TypeScript; installations contain compiled Node.js code. Users configure case concurrency, and the host AI chooses independent work and native workers. The stable v0.1.3 baseline and its immutable tag remain unchanged. Existing diagrams illustrate that baseline, not acceptance of this development build. See the [TS and parallel design](docs/v0.1.4-design.md).
 
 
 ## 0.1.4 development: parallel execution and delivery
@@ -19,13 +19,13 @@ Unless the user explicitly requests another format, completed test execution del
 
 Build a complete standalone directory from the source repository with `npm run build:skill -- --output-dir ABS_NEW_EXTERNAL_SKILL_DIR`. The package contains the Skill, guides, scripts, schemas, synthetic examples and `runtime-manifest.json`. Copying only the source Skill instructions is incomplete. Before updating an existing installation, compare known source files and report unknown edits instead of overwriting them, creating duplicate installations or adding old-version backups.
 
-Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4-dev.1 --expect-revision ts-parallel-1`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity.
+Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4-dev.3 --expect-revision ts-parallel-3`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity.
 
 `report` reads back all three outputs. `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` compares the files with current records, retained evidence and context sources. Receipts include paths, sizes, hashes and `browserOpen: not_checked`; actual browser opening is separate. Report access restrictions honestly without routing around them.
 
 To retain an existing report, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Post-execution assembly also passes `--context ABS_CONTEXT_JSON`, defined by [the context schema](schemas/report-context.schema.json). It records limitations, existing source files and hashes, supplemental case IDs and AI-supplied reviews for every goal. Original claims remain separate; no pre-execution freeze, screenshot, timestamp or execution step is invented. No business actions run to fill a report.
 
-This development build uses tool revision `ts-parallel-1`. Cases/results/evidence remain v3; new manifests/reports are v4, execution/configuration/worker packets v1. Existing v3 runs remain usable without in-place migration; v2 remains unsupported. The installation requires Node.js >=22, not a TS compiler.
+This development build uses tool revision `ts-parallel-3`. Cases/results/evidence remain v3; new manifests/reports are v4, execution/configuration/worker packets v1. Existing v3 runs remain usable without in-place migration; v2 remains unsupported. The installation requires Node.js >=22, not a TS compiler.
 
 ## Cases and judgments
 
@@ -35,7 +35,7 @@ External cases and cases drafted by the AI following the Skill guidelines can su
 
 Keep the overall expected outcome and requirement basis. A step-level `expected` is optional; when supplied, it needs an independent source. Omitting it does not mean the step was skipped or passed automatically. When acceptance questions remain, put them in the frozen case's `clarificationQuestions`. While this list is nonempty, neither the final result nor any attempt may be `pass` or `fail`. After clarification, freeze a revised case rather than editing the old baseline.
 
-Statuses remain distinct: `pass`, `fail`, `inconclusive`, `blocked`, and `not_run`. `not_run` means no final outcome is recorded and may coexist with exploratory attempts; the report distinguishes never-attempted cases from attempted cases without a final outcome. The helper validates local structures, revisions, and evidence-file hashes. It does not diagnose defects, select routes, retry business actions, or decide whether evidence supports a conclusion.
+Statuses remain distinct: `pass`, `fail`, `inconclusive`, `blocked`, and `not_run`. `not_run` means no final outcome is recorded and may coexist with exploratory attempts; the report distinguishes missing recorded observations from recorded attempts without a final outcome, separately from execution state. The helper validates local structures, revisions, and evidence-file hashes. It does not diagnose defects, select routes, retry business actions, or decide whether evidence supports a conclusion.
 
 ## Quick start on Windows
 
@@ -140,7 +140,7 @@ Evidence registration does not redact data. Screenshots, logs, URLs, and descrip
 
 - [Skill workflow](skills/ego-lite-test/SKILL.md) and [local toolbox calling guide](skills/ego-lite-test/references/local-toolbox.en.md)
 - [Architecture](docs/architecture.en.md), [schema v3 format and commands](docs/asset-formats.en.md)
-- [v0.1.4 research backlog (Chinese)](docs/requirements.md): parallel cases and Space binding (not implemented)
+- [v0.1.4 requirements and decision history (Chinese)](docs/requirements.md): configurable concurrency and Space associations
 - [Synthetic cases](examples/cases.example.json), [evidence request](examples/evidence-request.example.json), [result request](examples/record-request.example.json)
 - [Validation status](docs/testing.en.md), [privacy](docs/privacy.md), [changelog](CHANGELOG.md)
 
@@ -150,4 +150,4 @@ Original code and documentation in this repository are licensed under the [MIT L
 
 ## Configurable concurrency
 
-Set `start --max-parallel-cases N` or project execution-config.json. N is a positive safe integer with no fixed 2/4/8 product ceiling; 2 is only the default. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ego-lite-test/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.
+The default is **1 (serial)**. Without a user request for concurrency or an explicit setting, execute cases one at a time. Set `start --max-parallel-cases N` or project execution-config.json to opt in; N is a positive safe integer with no fixed 2/4/8 product ceiling. The AI chooses tool calls, batches and worker use within that limit; it need not fill all slots. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ego-lite-test/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.

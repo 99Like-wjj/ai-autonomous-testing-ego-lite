@@ -541,12 +541,12 @@ test('offline HTML report embeds verified raster evidence, exposes frozen contex
     assert.match(at(caseText, 1), /尚未记录最终结论/);
     assert.match(at(caseText, 1), /Synthetic observed attempt, final status intentionally not recorded\./);
     assert.match(at(caseText, 1), /Synthetic final persistence remains unverified\./);
-    assert.doesNotMatch(at(caseText, 1), /没有记录尝试观察，尚未开始尝试/);
-    assert.match(at(caseText, 2), /没有记录尝试观察，尚未开始尝试/);
+    assert.doesNotMatch(at(caseText, 1), /尚无已入账的结果／尝试观察，不能据此断言尚未执行/);
+    assert.match(at(caseText, 2), /尚无已入账的结果／尝试观察，不能据此断言尚未执行/);
     assert.match(at(caseText, 2), /未指定必经路径/);
     const metricText = elements.summary.children.map(flattenText).join(' ');
-    assert.match(metricText, /从未尝试/);
-    assert.match(metricText, /已尝试但无最终结论/);
+    assert.match(metricText, /尚无结果／尝试记录/);
+    assert.match(metricText, /已有尝试记录，尚无最终结论/);
     elements.search.value = 'attempted-no-final';
     elements.search.dispatch('input');
     assert.deepEqual(caseNodes.map(card => card.hidden), [true, false, true]);
@@ -575,7 +575,7 @@ test('offline HTML report embeds verified raster evidence, exposes frozen contex
     assert.equal(thumbnailParent.children.some(node => node.className === 'image-error'), true);
     assert.equal(thumbnailParent.children.some(node => node.tagName === 'IMG'), false);
     assert.doesNotMatch(html, new RegExp(f.root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-    assert.match(html, /从未尝试/);
+    assert.match(html, /尚无结果／尝试记录/);
     assert.match(html, /未记录最终结论/);
     // Verify the rendered business counters rather than compiler-dependent source formatting.
     assert.deepEqual(elements.summary.children.map(node => at(node.children).textContent), ['3', '1', '0', '0', '0', '1', '0', '1', '2']);
@@ -893,7 +893,7 @@ test('JSON schemas retain v3 business contracts and explicitly version v4 execut
     }
     assert.deepEqual([...schemas.keys()].sort(), [
         'cases.schema.json', 'common.schema.json', 'evidence-request.schema.json', 'evidence.schema.json',
-        'execution-config.schema.json', 'execution-request.schema.json', 'execution.schema.json',
+        'execution-config.schema.json', 'execution-read.schema.json', 'execution-request.schema.json', 'execution.schema.json',
         'manifest-v3.schema.json', 'manifest-v4.schema.json', 'manifest.schema.json', 'record-request.schema.json', 'report-context.schema.json',
         'report-v3.schema.json', 'report-v4.schema.json', 'report.schema.json', 'results.schema.json', 'worker-draft.schema.json', 'worker-packet.schema.json'
     ]);

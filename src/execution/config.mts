@@ -10,7 +10,7 @@ export function cliParallelLimit(value: string): number {
   return parallelLimit(Number(value));
 }
 export async function resolveConfiguration({ projectDir, configFile, maxParallelCases }: { projectDir: string; configFile?: string | undefined; maxParallelCases?: number | undefined }): Promise<ConfigurationSnapshot> {
-  let configuration = { schemaVersion: 1 as const, maxParallelCases: 2 };
+  let configuration = { schemaVersion: 1 as const, maxParallelCases: 1 };
   let kind: ConfigurationSnapshot['kind'] = 'default';
   let file: string | undefined, sha256: string | undefined;
   const candidate = configFile ?? path.join(projectDir, 'execution-config.json');

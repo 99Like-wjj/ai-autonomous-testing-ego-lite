@@ -1,8 +1,8 @@
 {
   "name": "ego-lite-test-skill",
-  "version": "0.1.4-dev.1",
+  "version": "0.1.4-dev.3",
   "egoLiteTest": {
-    "toolRevision": "ts-parallel-1",
+    "toolRevision": "ts-parallel-3",
     "formatVersions": {
       "cases": 3,
       "manifest": 4,
@@ -11,7 +11,8 @@
       "report": 4,
       "execution": 1,
       "configuration": 1,
-      "workerPacket": 1
+      "workerPacket": 1,
+      "executionRead": 2
     }
   },
   "description": "Unofficial AI-led Ego Lite testing skill with local evidence records and offline HTML reports.",

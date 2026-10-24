@@ -1,6 +1,8 @@
 # Asset formats (v3 business data, v4 execution)
 
-Current 0.1.4-dev.1 retains v3 cases/baseline/results/evidence, uses v4 for new manifests/reports and v1 for configuration/execution/worker packets. Root schemas dispatch v3/v4 explicitly. The v3 field semantics below remain valid. Parallel calls are documented with the installed Skill references.
+Current 0.1.4-dev.3 retains v3 cases/baseline/results/evidence, uses v4 for new manifests/reports and v1 for configuration/execution/worker packets. Root schemas dispatch v3/v4 explicitly. The v3 field semantics below remain valid. Parallel calls are documented with the installed Skill references.
+
+`execution read` now defaults to the viewVersion 2 response in execution-read.schema.json; use `--view assignment --assignment-id ID` for one assignment or `--view full` for the previous complete structure. The internal readExecutionView API remains complete. Views do not change stored run formats. Summary/assignment default to metadata validation, with explicit not_checked result/evidence fields and recovery-marker visibility. Use --integrity full for a strictly checked compact response; the full view always remains strict. Metadata queries do not recover transactions. New report wording distinguishes missing recorded observations from actual execution state; historical v0.1.3 descriptions below retain their context.
 
 This guide defines cases, run directories, evidence-registration requests, result requests, progress, and reports. Schemas live in [`schemas/`](../schemas/) and use JSON Schema Draft 2020-12 with local relative references. The runtime adds checks for evidence ownership, hashes, revisions, and the frozen clarification veto.
 

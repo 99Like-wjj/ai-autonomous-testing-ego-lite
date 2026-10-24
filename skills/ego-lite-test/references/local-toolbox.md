@@ -1,5 +1,7 @@
 # 本地工具箱调用指南（v0.1.4 开发版）
 
+`0.1.4-dev.3` 的 `execution read` 默认只给摘要；单分派用 `--view assignment --assignment-id ID`，需要旧完整结构时显式 `--view full`。默认摘要／单例只检查元数据并明示历史证据未复核；`--integrity full` 可完整检查后仍返回摘要，完整视图始终严格检查，详见[并发指南](parallel-testing.md)。报告“尚无结果／尝试记录”只描述入账情况，不能由此断言用例未执行；执行状态和业务结论分别查看。
+
 工具只做本地数据事务与报告渲染。默认测试交付需要 HTML、JSON、Markdown；工具不可用应报告阻塞，不能以 Markdown 退回冒充完成。
 
 ## 确认实际根目录与版本
@@ -9,7 +11,7 @@
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.4-dev.1 --expect-revision ts-parallel-1
+node $Tool tool-info --expect-version 0.1.4-dev.3 --expect-revision ts-parallel-3
 ```
 
 核对 toolRoot、skillFile、版本、revision 与 `formatVersions`（cases/results/evidence 为 3，manifest/report 为 4，execution/configuration/workerPacket 为 1）。构建包与独立安装均须 `installationIntegrity: verified`。指纹对应实际交付的编译 JS 与资源，不认证发布者。每次 CLI 也检查安装清单，缺失、混用或改动先报告，不覆盖不明用户修改。读取此根目录的格式指南和所需 Schema，命令始终指向同一绝对脚本路径。
@@ -91,7 +93,7 @@ node "ABS_TOOL_ROOT/scripts/ego.mjs" report --run-dir ABS_RUN_DIR
 node "ABS_TOOL_ROOT/scripts/ego.mjs" verify-report --run-dir ABS_RUN_DIR --report-dir ABS_RUN_DIR
 ```
 
-进度只按每个基线用例的当前 final 状态统计；历史失败不重复计入当前失败。`not_run` 表示尚无最终结论，可与 attempt 并存；`not_run` 且没有 attempt 才表示从未尝试。`blocked`、`inconclusive` 和待澄清分别保留。`report` 会创建 `report.json`、`report.md` 和自包含 `report.html`；任一目标已存在就拒绝覆盖。可单独复制 `report.html` 并在无网络的浏览器中打开，不引用 Run 路径或外链。HTML 显示冻结目标、关键条件、必经路径、顺序策略、观察、理由、依据、未验证项、逐条历史尝试剩余问题和证据来源/hash 元数据；只预览 hash / 大小校验通过的 PNG/JPEG/WebP。缺图会说明但不自动判失败；可识别图片头但浏览器无法解码时会显示错误提示，不使用替代图。哈希错误、悬空引用或结构无效时会拒绝生成报告，不生成带缺口的可信通过外观。
+进度只按每个基线用例的当前 final 状态统计；历史失败不重复计入当前失败。`not_run` 表示尚无最终结论，可与 attempt 并存；`not_run` 且没有 attempt 表示尚无结果／尝试记录，不能据此断言实际未执行。`blocked`、`inconclusive` 和待澄清分别保留。`report` 会创建 `report.json`、`report.md` 和自包含 `report.html`；任一目标已存在就拒绝覆盖。可单独复制 `report.html` 并在无网络的浏览器中打开，不引用 Run 路径或外链。HTML 显示冻结目标、关键条件、必经路径、顺序策略、观察、理由、依据、未验证项、逐条历史尝试剩余问题和证据来源/hash 元数据；只预览 hash / 大小校验通过的 PNG/JPEG/WebP。缺图会说明但不自动判失败；可识别图片头但浏览器无法解码时会显示错误提示，不使用替代图。哈希错误、悬空引用或结构无效时会拒绝生成报告，不生成带缺口的可信通过外观。
 
 报告只是结构有效的 AI 记录与文件一致性结果，不是独立验证的结论。v4 展示显式逐目标评估、并发配置／区间、分派、Space 历史和执行异常；计划步骤本身不证明已执行，缺少评估不能从摘要倒推通过。旧 v3 只保留原有用例／attempt 口径。已有 v0.1.3 报告可用冻结框架指纹和当前数据核验，不改写历史文件；未知框架或内容变更会拒绝。不要自动上传原始报告。
 

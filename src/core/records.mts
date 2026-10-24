@@ -1,37 +1,15 @@
 import { readExecution, summarize, verifyExecutionFiles } from '../execution/ledger.mjs';
-import type { Attempt, Baseline, Case, CheckedCase, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceReceipt, EvidenceRequest, Manifest, PendingEvidence, RecordPayload, RecordRequest, Report, ResultOperation, ResultReceipt, ResultRecord, Results, Status, TestHooks } from '../contracts/model.mjs';
-import { normalizeCases } from './cases.mjs';
+import type { Attempt, Case, CheckedCase, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceReceipt, EvidenceRequest, Manifest, PendingEvidence, RecordPayload, RecordRequest, Report, ResultOperation, ResultReceipt, ResultRecord, Status, TestHooks } from '../contracts/model.mjs';
+import { readAndValidateBaseline } from './baseline.mjs';
 import { parseCatalog, parseResults, parseManifest, parsePendingEvidence, parseRecordRequest, parseEvidenceRequest } from './validation.mjs';
 import { errorInfo } from './common.mjs';
 import fs from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { SOURCE_ROOT, statuses, causes, evidenceKinds, reservedIds, idPattern, fail, hash, json, inside, object, nonempty, timestampPattern, now, randomId, assertClosed, safeIdentifier, validTimestamp, assertTimestamp, canonical, canonicalHash, canonicalRecord, sameRecord, safePath, directory, readJSON, syncDirectory, writeNew, removeOwnedFileIfPresent, removeRegularIfPresent, atomicReplace, acquireLock, withRunLock } from './common.mjs';
-export function evidenceReference(ref: unknown): asserts ref is string {
-  if (!nonempty(ref) || ref.includes('\\') || ref.includes('\0') || ref.includes(':') || path.posix.isAbsolute(ref) || /^[A-Za-z]:/.test(ref) || ref.split('/').some(c => c === '..' || c === '.' || c === '')) fail('Evidence must use relative slash-separated paths without traversal.');
-  if (!ref.startsWith('evidence/')) fail('Evidence files must be under the run evidence/ directory.');
-}
-export async function evidenceFile(runDir: string, ref: unknown): Promise<string> {
-  evidenceReference(ref);
-  const filename = path.resolve(runDir, ...ref.split('/'));
-  if (!inside(runDir, filename)) fail('Evidence escapes run directory.');
-  await safePath(filename, { existing: true });
-  if (!(await fs.lstat(filename)).isFile()) fail('Evidence is not a regular file: ' + ref);
-  return filename;
-}
-export async function hashFile(filename: string): Promise<{ sha256: string; bytes: number }> {
-  const flags = fsConstants.O_RDONLY | (fsConstants.O_NOFOLLOW ?? 0);
-  const handle = await fs.open(filename, flags);
-  try {
-    if (!(await handle.stat()).isFile()) fail('Expected a regular file.');
-    const digest = crypto.createHash('sha256');
-    let bytes = 0;
-    for await (const chunk of handle.createReadStream({ autoClose: false })) { digest.update(chunk); bytes += chunk.length; }
-    return { sha256: digest.digest('hex'), bytes };
-  } finally { await handle.close(); }
-}
-
+import { statuses, causes, evidenceKinds, fail, json, object, nonempty, now, randomId, assertClosed, safeIdentifier, validTimestamp, assertTimestamp, canonicalHash, canonicalRecord, sameRecord, safePath, readJSON, writeNew, removeRegularIfPresent, atomicReplace, withRunLock } from './common.mjs';
+import { evidenceReference, evidenceFile, hashFile } from './file-integrity.mjs';
+export { evidenceReference, evidenceFile, hashFile } from './file-integrity.mjs';
 export function countsFor(cases: readonly { status: Status }[]): Report['counts'] {
   return { pass: cases.filter(c => c.status === 'pass').length, fail: cases.filter(c => c.status === 'fail').length, inconclusive: cases.filter(c => c.status === 'inconclusive').length, blocked: cases.filter(c => c.status === 'blocked').length, not_run: cases.filter(c => c.status === 'not_run').length };
 }
@@ -46,12 +24,7 @@ export function progressFor(cases: readonly Pick<CheckedCase, 'id' | 'status' | 
     attemptedCases: { count: cases.filter(c => (c.attempts ?? []).length > 0).length, totalAttempts: cases.reduce((sum, c) => sum + (c.attempts ?? []).length, 0) }
   };
 }
-export async function readAndValidateBaseline(root: string, manifest: Manifest) {
-  const baselinePath = path.join(root, 'baseline.json');
-  const bytes = await fs.readFile(await safePath(baselinePath, { existing: true }));
-  if (hash(bytes) !== manifest.baselineSha256) fail('Baseline hash mismatch. This integrity check is not tamper-proof.');
-  return { baseline: normalizeCases(JSON.parse(bytes.toString('utf8'))), bytes };
-}
+export { readAndValidateBaseline } from './baseline.mjs';
 export function validateV3Operation(operation: EvidenceOperation | ResultOperation, allowed: string[], label: string, revision: number) {
   assertClosed(operation, allowed, label);
   safeIdentifier(operation.operationId, label + ' operation id');

@@ -1,12 +1,15 @@
+import { retainReference } from '../core/file-integrity.mjs';
 import type { Case } from '../contracts/model.mjs';
-import type { Assignment, ExecutionLedger, ExecutionRequest, FileReference, Receipt, Operation } from '../contracts/execution-model.mjs';
+import type { Assignment, ExecutionLedger, FileReference, Receipt, Operation } from '../contracts/execution-model.mjs';
 import { assignmentId, caseId } from '../contracts/ids.mjs';
 import { canonicalHash, fail, now, withRunLock } from '../core/common.mjs';
 import { checkUnlocked, recoverEvidence } from '../core/records.mjs';
 import { parseRequest } from './parse.mjs';
-import { activeCount, assignment, checkpoint, checkSlot, ensureWorkerDirectory, isActive, retainReference, summarize } from './ledger.mjs';
+import { activeCount, assignment, checkpoint, checkSlot, ensureWorkerDirectory, isActive, summarize } from './ledger.mjs';
 import { importPacket } from './commit.mjs';
 import type { ImportHooks } from './commit.mjs';
+import { projectExecutionRead, readOptions } from './views.mjs';
+import { readExecutionMetadataUnlocked } from './read-context.mjs';
 
 async function context(root: string): Promise<{ ledger: ExecutionLedger; cases: Case[]; project: string }> {
   await recoverEvidence(root); const checked = await checkUnlocked(root);
@@ -15,6 +18,13 @@ async function context(root: string): Promise<{ ledger: ExecutionLedger; cases: 
 }
 export async function readExecutionView(runDir: unknown) {
   return withRunLock(runDir, async root => { const { ledger, cases, project } = await context(root); return { ...ledger, project, summary: summarize(ledger, { schemaVersion: 3, project, cases }) }; });
+}
+export async function readExecutionQuery(runDir: unknown, view = 'summary', assignmentId?: string, integrity?: string) {
+  const options = readOptions(view, assignmentId, integrity);
+  if (options.view === 'full') return readExecutionView(runDir);
+  if (options.integrity === 'full') return projectExecutionRead(await readExecutionView(runDir), { ...options, view: options.view, evidenceMarker: 'absent' });
+  const { ledger, baseline, evidenceMarker } = await withRunLock(runDir, readExecutionMetadataUnlocked);
+  return projectExecutionRead({ ...ledger, project: baseline.project, summary: summarize(ledger, baseline) }, { ...options, view: options.view, evidenceMarker });
 }
 export async function executeRequest({ runDir, request: input }: { runDir: unknown; request: unknown }, hooks: ImportHooks = {}): Promise<Receipt & { replayed: boolean }> {
   const request = parseRequest(input), payloadSha256 = canonicalHash(input);

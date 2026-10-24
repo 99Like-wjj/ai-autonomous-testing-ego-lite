@@ -1,6 +1,8 @@
 # 本地资产格式与运行约定（v3 业务核心、v4 执行）
 
-当前 `0.1.4-dev.1`：cases/baseline/results/evidence 仍为 v3；新 manifest/report 为 v4；配置、执行台账、worker 交付包为 v1。`schemas/manifest.schema.json`、`report.schema.json` 显式区分 v3/v4。以下 v3 字段语义继续适用，不代表所有新运行仍为 v3。并行调用见工具根的 `references/parallel-testing.md`，源码位于 `skills/ego-lite-test/references/parallel-testing.md`。
+当前 `0.1.4-dev.3`：cases/baseline/results/evidence 仍为 v3；新 manifest/report 为 v4；配置、执行台账、worker 交付包为 v1。`schemas/manifest.schema.json`、`report.schema.json` 显式区分 v3/v4。以下 v3 字段语义继续适用，不代表所有新运行仍为 v3。并行调用见工具根的 `references/parallel-testing.md`，源码位于 `skills/ego-lite-test/references/parallel-testing.md`。
+
+`execution read` 默认返回 `schemas/execution-read.schema.json` 定义的摘要视图（`viewVersion:2`），支持单分派视图及显式 `--view full` 原完整输出；内部 `readExecutionView` 完整读取接口保持不变。摘要不写入 run，也不改变上述存档格式。摘要／单例默认只校验元数据，integrity 对象明示结果与证据未复核；加 `--integrity full` 可完整检查后仍返回紧凑内容，完整视图始终严格检查。轻量查询发现恢复标记只提示，不自动恢复。新报告使用“尚无结果／尝试记录”“已有尝试记录，尚无最终结论”，不从入账情况推断实际是否执行；下文 v0.1.3 展示说明保留其历史语义。
 
 本指南定义用例、运行目录、证据登记请求、结果请求与进度/报告语义。Schema 文件放在 [`schemas/`](../schemas/)，均为 JSON Schema Draft 2020-12，并通过本地相对引用共享定义。运行代码会做额外的业务约束校验，例如证据归属、哈希核验、revision 和冻结澄清 veto。
 

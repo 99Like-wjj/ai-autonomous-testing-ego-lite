@@ -1,0 +1,464 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "execution-read.schema.json",
+  "title": "Ego Lite execution read view v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "viewVersion",
+    "view",
+    "runId",
+    "baselineSha256",
+    "revision",
+    "project",
+    "configuration",
+    "knownAvailableWorkers",
+    "capacityReason",
+    "integrity",
+    "counts",
+    "assignments",
+    "assignment",
+    "imports",
+    "noteCounts",
+    "notes",
+    "caveat",
+    "recovery"
+  ],
+  "properties": {
+    "viewVersion": {
+      "const": 2
+    },
+    "view": {
+      "enum": [
+        "summary",
+        "assignment"
+      ]
+    },
+    "runId": {
+      "type": "string"
+    },
+    "baselineSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "project": {
+      "type": "string"
+    },
+    "configuration": {
+      "$ref": "execution.schema.json#/properties/configuration"
+    },
+    "knownAvailableWorkers": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "capacityReason": {
+      "$ref": "#/$defs/preview"
+    },
+    "integrity": {
+      "oneOf": [
+        {
+          "title": "Execution metadata integrity",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope",
+            "baselineHash",
+            "executionLedger",
+            "recordedResults",
+            "evidenceFiles"
+          ],
+          "properties": {
+            "scope": {
+              "const": "metadata"
+            },
+            "baselineHash": {
+              "const": "matched"
+            },
+            "executionLedger": {
+              "const": "validated"
+            },
+            "recordedResults": {
+              "const": "not_checked"
+            },
+            "evidenceFiles": {
+              "const": "not_checked"
+            }
+          }
+        },
+        {
+          "title": "Execution full integrity",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope",
+            "baselineHash",
+            "executionLedger",
+            "recordedResults",
+            "evidenceFiles"
+          ],
+          "properties": {
+            "scope": {
+              "const": "full"
+            },
+            "baselineHash": {
+              "const": "matched"
+            },
+            "executionLedger": {
+              "const": "validated"
+            },
+            "recordedResults": {
+              "const": "checked"
+            },
+            "evidenceFiles": {
+              "const": "verified"
+            }
+          }
+        }
+      ]
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activeReservations",
+        "peakReservations",
+        "reportedExecutionPeak",
+        "draining",
+        "totalAssignments",
+        "unfinishedAssignments",
+        "failedAssignments",
+        "pendingImports",
+        "unassessedCases",
+        "operations",
+        "events",
+        "protectedSpaces"
+      ],
+      "properties": {
+        "activeReservations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "peakReservations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reportedExecutionPeak": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "draining": {
+          "type": "boolean"
+        },
+        "totalAssignments": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unfinishedAssignments": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failedAssignments": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pendingImports": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unassessedCases": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "operations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "protectedSpaces": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "assignments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "truncated",
+        "items"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/assignmentSummary"
+          }
+        }
+      }
+    },
+    "assignment": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "execution.schema.json#/properties/assignments/items"
+        }
+      ]
+    },
+    "imports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "truncated",
+        "items"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/importReference"
+          }
+        }
+      }
+    },
+    "noteCounts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "notes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "truncated",
+        "items"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/note"
+          }
+        }
+      }
+    },
+    "caveat": {
+      "type": "string"
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceMarker",
+        "pendingImports"
+      ],
+      "properties": {
+        "evidenceMarker": {
+          "enum": [
+            "present",
+            "absent"
+          ]
+        },
+        "pendingImports": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "preview": {
+      "title": "Execution text preview",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "truncated"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "assignmentSummary": {
+      "title": "Execution assignment summary",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "caseId",
+        "state",
+        "workerDirectory",
+        "workerId",
+        "model",
+        "reasoning",
+        "defaultSpaceId",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "caseId": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "execution.schema.json#/properties/assignments/items/properties/state"
+        },
+        "workerDirectory": {
+          "type": "string"
+        },
+        "workerId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasoning": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "defaultSpaceId": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "importReference": {
+      "title": "Execution import reference",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operationId",
+        "assignmentId",
+        "packetId",
+        "packetFile",
+        "packetSha256",
+        "phase",
+        "resultOperationId"
+      ],
+      "properties": {
+        "operationId": {
+          "type": "string"
+        },
+        "assignmentId": {
+          "type": "string"
+        },
+        "packetId": {
+          "type": "string"
+        },
+        "packetFile": {
+          "type": "string"
+        },
+        "packetSha256": {
+          "type": "string"
+        },
+        "phase": {
+          "$ref": "execution.schema.json#/properties/imports/items/properties/phase"
+        },
+        "resultOperationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "note": {
+      "title": "Execution note preview",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operationId",
+        "kind",
+        "assignmentId",
+        "at",
+        "reason"
+      ],
+      "properties": {
+        "operationId": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "assignmentId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "at": {
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/preview"
+        }
+      }
+    }
+  }
+}

@@ -10,7 +10,7 @@
 
 这里的“首次上线”是重点使用场景，不代表可以从空白信息推断全部业务规则，也不承诺测试通过就能安全上线；缺失的要求需要澄清，证据不足的结论必须保留不确定性。它也可用于已有功能的回归验证。
 
-**当前开发版 `0.1.4-dev.1`，尚未发布。** 本项目独立开发，非 Ego 官方项目。维护程序已统一 TypeScript，安装包交付编译后的 Node.js；用例并发由用户配置，AI 判断独立性并使用宿主原生子代理。稳定基线仍为 v0.1.3，不移动既有 Tag。配图沿用该版本的合成示意，不代表本开发版或真实业务验收。当前方案见[并发与 TS 设计](docs/v0.1.4-design.md)，历史验证见[记录](docs/testing.md)。
+**当前开发版 `0.1.4-dev.3`，尚未发布。** 本项目独立开发，非 Ego 官方项目。维护程序已统一 TypeScript，安装包交付编译后的 Node.js；用例并发由用户配置，AI 判断独立性并使用宿主原生子代理。稳定基线仍为 v0.1.3，不移动既有 Tag。配图沿用该版本的合成示意，不代表本开发版或真实业务验收。当前方案见[并发与 TS 设计](docs/v0.1.4-design.md)，历史验证见[记录](docs/testing.md)。
 
 
 ## 0.1.4 开发版：并发与交付
@@ -24,7 +24,7 @@ $InstallPackage = Join-Path $env:TEMP ('ego-lite-test-' + [guid]::NewGuid().ToSt
 npm ci
 npm run typecheck
 npm run build:skill -- --output-dir $InstallPackage
-node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.4-dev.1 --expect-revision ts-parallel-1
+node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.4-dev.3 --expect-revision ts-parallel-3
 ```
 
 将完整目录内容安装到现有 Skill 根目录。更新前核对旧文件是否来自已知版本，出现不明修改先报告，不能覆盖用户文件、创建同名重复安装或自动增加旧版备份。运行时以**实际加载的 SKILL.md 所在目录**为工具根；源码开发先在已确认根目录构建，使用明确的 `.build/runtime` 工具根。`tool-info` 输出版本、revision、formatVersions、实际路径和编译产物指纹；安装清单缺失、文件修改或版本混用会拒绝执行。指纹不认证发布者，构建清单只包含指定分发资源，不打包真实运行目录。
@@ -33,7 +33,7 @@ node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.
 
 已有报告不得覆盖。准备一个新的仓库外目录，使用 `report --run-dir ABS_RUN --output-dir ABS_EXISTING_NEW_DIR` 另存；事后补报告再传 `--context ABS_CONTEXT_JSON`，格式见 [报告整理上下文](schemas/report-context.schema.json)。它明确整理性质、限制、现有来源与 hash、补充用例及 AI 逐目标复核，原记录结论保留单独展示，不冒充执行前冻结。工具不补造截图、采集时间、步骤或业务结论，也不为了补报告重跑业务。
 
-本开发版工具 revision 为 `ts-parallel-1`。用例、结果与证据保留 v3；新 manifest/report 为 v4，执行台账、配置和交付包为 v1。既有 v3 run 可继续使用，不原地升级或删除；v2 仍不支持。安装包不需要 TypeScript 编译器。单例单 Space 是默认原则，偏差保留并由 AI 复核，用户原有 Space 始终受保护。
+本开发版工具 revision 为 `ts-parallel-3`。用例、结果与证据保留 v3；新 manifest/report 为 v4，执行台账、配置和交付包为 v1。既有 v3 run 可继续使用，不原地升级或删除；v2 仍不支持。安装包不需要 TypeScript 编译器。单例单 Space 是默认原则，偏差保留并由 AI 复核，用户原有 Space 始终受保护。
 
 ## 用例与判断
 
@@ -43,7 +43,7 @@ node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.
 
 整体预期与需求依据必须保留。每步 `expected` 可省略；提供时必须有独立依据，省略不会被当作未执行或自动通过。验收存在未决问题时，在冻结基线中填写 `clarificationQuestions`；只要问题非空，该用例的最终结果和每条尝试都不得为 `pass` 或 `fail`。澄清后用修订用例重新开始，不改写旧基线。
 
-状态区分 `pass`、`fail`、`inconclusive`、`blocked`、`not_run`。`not_run` 表示尚未记录最终结论，可能已有探索尝试；报告会单独区分从未尝试和尝试过但无最终结论。工具只校验本地数据结构、revision 和证据文件哈希，不自动诊断缺陷、选择路径、重试业务操作或判断证据是否支持结论。
+状态区分 `pass`、`fail`、`inconclusive`、`blocked`、`not_run`。`not_run` 表示尚未记录最终结论，可能已有探索尝试；报告分别显示尚无结果／尝试记录和已有尝试记录但无最终结论，执行状态另行展示。工具只校验本地数据结构、revision 和证据文件哈希，不自动诊断缺陷、选择路径、重试业务操作或判断证据是否支持结论。
 
 ## Windows 快速开始
 
@@ -158,7 +158,7 @@ SHA-256 用于检测留存文件是否与 catalog 一致，不证明证据真实
 
 ## 并发配置与开发
 
-`maxParallelCases` 为正整数，默认 2 仅为缺省值，不是上限；支持命令行覆盖和项目配置。宿主明确提供的限制单独记录，未知则保持未知，不主动探测客户端最大子代理数或修改全局配置。
+`maxParallelCases` 默认为 **1（逐条执行）**；用户未要求并发且未明确配置时保持串行。用户可用命令行或项目配置指定任意可准确表示的正整数，无固定产品上限。AI 决定工具调用、批次与 worker 使用，配置不要求跑满。宿主明确提供的限制单独记录，未知则保持未知，不主动探测客户端最大子代理数或修改全局配置。
 
 ```text
 node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN --max-parallel-cases 3

@@ -7,7 +7,8 @@ import { assignmentId } from '../contracts/ids.mjs';
 import { canonicalHash, fail, hash, inside, now, readJSON, safePath } from '../core/common.mjs';
 import { parseCatalog, parseResults } from '../core/validation.mjs';
 import { registerEvidenceUnlocked, recordResultUnlocked, evidenceOperationReceipt } from '../core/records.mjs';
-import { assignment, checkpoint, referencePath } from './ledger.mjs';
+import { assignment, checkpoint } from './ledger.mjs';
+import { referencePath } from '../core/file-integrity.mjs';
 import { parsePacket } from './parse.mjs';
 import { validateAssessment, verifyPacketFiles } from './packets.mjs';
 export interface ImportHooks { afterEvidenceCommit?: () => Promise<void>; afterResultCommit?: () => Promise<void>; afterPreparation?: () => Promise<void>; beforeResultCommit?: () => Promise<void> }
