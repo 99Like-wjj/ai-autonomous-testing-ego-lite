@@ -10,7 +10,7 @@
 
 这里的“首次上线”是重点使用场景，不代表可以从空白信息推断全部业务规则，也不承诺测试通过就能安全上线；缺失的要求需要澄清，证据不足的结论必须保留不确定性。它也可用于已有功能的回归验证。
 
-**当前开发版 `0.1.4-dev.3`，尚未发布。** 本项目独立开发，非 Ego 官方项目。维护程序已统一 TypeScript，安装包交付编译后的 Node.js；用例并发由用户配置，AI 判断独立性并使用宿主原生子代理。稳定基线仍为 v0.1.3，不移动既有 Tag。配图沿用该版本的合成示意，不代表本开发版或真实业务验收。当前方案见[并发与 TS 设计](docs/v0.1.4-design.md)，历史验证见[记录](docs/testing.md)。
+**当前版本 `0.1.4`，用户已完成本地试用，尚未创建对应的版本 Tag 或 GitHub Release。** 本项目独立开发，非 Ego 官方项目。维护程序已统一 TypeScript，安装包交付编译后的 Node.js；用例并发由用户配置，AI 判断独立性并使用宿主原生子代理。稳定基线仍为 v0.1.3，不移动既有 Tag。配图沿用该版本的合成示意，不代表本开发版或真实业务验收。当前方案见[并发与 TS 设计](docs/v0.1.4-design.md)，历史验证见[记录](docs/testing.md)。
 
 
 ## 0.1.4 开发版：并发与交付
@@ -24,7 +24,7 @@ $InstallPackage = Join-Path $env:TEMP ('ego-lite-test-' + [guid]::NewGuid().ToSt
 npm ci
 npm run typecheck
 npm run build:skill -- --output-dir $InstallPackage
-node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.4-dev.3 --expect-revision ts-parallel-3
+node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3
 ```
 
 将完整目录内容安装到现有 Skill 根目录。更新前核对旧文件是否来自已知版本，出现不明修改先报告，不能覆盖用户文件、创建同名重复安装或自动增加旧版备份。运行时以**实际加载的 SKILL.md 所在目录**为工具根；源码开发先在已确认根目录构建，使用明确的 `.build/runtime` 工具根。`tool-info` 输出版本、revision、formatVersions、实际路径和编译产物指纹；安装清单缺失、文件修改或版本混用会拒绝执行。指纹不认证发布者，构建清单只包含指定分发资源，不打包真实运行目录。

@@ -2,7 +2,7 @@
 
 ## v0.1.4 development architecture
 
-In `0.1.4-dev.3`, shared baseline/case parsing and file scope/integrity live in core/baseline.mts and core/file-integrity.mts. Startup, packet sealing, records and reporting reuse them. execution/read-context.mts loads metadata snapshots; views.mts only projects data. Default queries do not reread historical evidence or recover transactions. Use --integrity full for a strictly checked compact response; the original full reader remains strict. Explicit inspection scope does not revalidate business outcomes. See the [B/C record](v0.1.4-bc-validation.md).
+In `0.1.4`, shared baseline/case parsing and file scope/integrity live in core/baseline.mts and core/file-integrity.mts. Startup, packet sealing, records and reporting reuse them. execution/read-context.mts loads metadata snapshots; views.mts only projects data. Default queries do not reread historical evidence or recover transactions. Use --integrity full for a strictly checked compact response; the original full reader remains strict. Explicit inspection scope does not revalidate business outcomes. See the [B/C record](v0.1.4-bc-validation.md).
 
 All maintained programs use strict TypeScript. Node `.mts` compiles to ESM `.mjs`; report UI has a separate DOM compilation. Development runs `npm ci`, `npm run typecheck` and `npm test`, staging compiled assets in `.build/runtime`. Standalone users need Node 22+ but no compiler or development dependencies. Explicit resource manifests verify delivered bytes and protect the entire source directory.
 

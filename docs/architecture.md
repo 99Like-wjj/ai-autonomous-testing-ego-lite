@@ -2,7 +2,7 @@
 
 ## v0.1.4 开发架构
 
-`0.1.4-dev.3` 将稳定的数据能力集中到 `core/baseline.mts` 与 `core/file-integrity.mts`，初始化、封包、证据／结果和报告复用同一实现。`execution/read-context.mts` 只组装元数据快照，`views.mts` 只做投影。默认查询不重读历史证据或执行恢复；`--integrity full` 可严格检查后仍返回摘要，原 full 路径保持。查询结果显式标注检查范围，不从记录状态推断业务已重新验证；详见[B／C 验证](v0.1.4-bc-validation.md)。
+`0.1.4` 将稳定的数据能力集中到 `core/baseline.mts` 与 `core/file-integrity.mts`，初始化、封包、证据／结果和报告复用同一实现。`execution/read-context.mts` 只组装元数据快照，`views.mts` 只做投影。默认查询不重读历史证据或执行恢复；`--integrity full` 可严格检查后仍返回摘要，原 full 路径保持。查询结果显式标注检查范围，不从记录状态推断业务已重新验证；详见[B／C 验证](v0.1.4-bc-validation.md)。
 
 维护源码统一为严格 TypeScript，Node `.mts` 编译为 ESM `.mjs`；`src/report-ui/main.ts` 单独使用 DOM 类型检查后嵌入报告。开发先运行 `npm ci`、`npm run typecheck`、`npm test`，编译资源暂存于 `.build/runtime`；用户安装包无需编译器或开发依赖。`src/scripts/toolchain.mts` 校验明确资源清单及实际安装指纹，开发上下文显式保护整个唯一源码目录。
 

@@ -10,7 +10,7 @@ An existing automated test suite is not required. Supply prepared cases, or prov
 
 First launch is a target use case, not a promise to infer missing rules or guarantee release readiness. Missing requirements need clarification, and insufficient evidence must remain uncertain. Existing-feature regression is also supported.
 
-**Development version `0.1.4-dev.3`, not released.** Maintained programs are authored in TypeScript; installations contain compiled Node.js code. Users configure case concurrency, and the host AI chooses independent work and native workers. The stable v0.1.3 baseline and its immutable tag remain unchanged. Existing diagrams illustrate that baseline, not acceptance of this development build. See the [TS and parallel design](docs/v0.1.4-design.md).
+**Current version `0.1.4`; owner local trial completed, with no corresponding version tag or GitHub Release created.** Maintained programs are authored in TypeScript; installations contain compiled Node.js code. Users configure case concurrency, and the host AI chooses independent work and native workers. The stable v0.1.3 baseline and its immutable tag remain unchanged. Existing diagrams illustrate that baseline, not acceptance of this development build. See the [TS and parallel design](docs/v0.1.4-design.md).
 
 
 ## 0.1.4 development: parallel execution and delivery
@@ -19,7 +19,7 @@ Unless the user explicitly requests another format, completed test execution del
 
 Build a complete standalone directory from the source repository with `npm run build:skill -- --output-dir ABS_NEW_EXTERNAL_SKILL_DIR`. The package contains the Skill, guides, scripts, schemas, synthetic examples and `runtime-manifest.json`. Copying only the source Skill instructions is incomplete. Before updating an existing installation, compare known source files and report unknown edits instead of overwriting them, creating duplicate installations or adding old-version backups.
 
-Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4-dev.3 --expect-revision ts-parallel-3`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity.
+Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity.
 
 `report` reads back all three outputs. `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` compares the files with current records, retained evidence and context sources. Receipts include paths, sizes, hashes and `browserOpen: not_checked`; actual browser opening is separate. Report access restrictions honestly without routing around them.
 

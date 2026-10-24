@@ -2,7 +2,7 @@
 name: ego-lite-test
 description: 使用已安装的 Ego Browser 与当前 AI 会话，接收外部用例或按需求生成带业务步骤的标准用例，执行证据驱动的黑盒 Web 测试，区分产品异常、执行失败和证据不足。适用于新需求/新功能自动化测试、已有用例核验、角色权限与业务流程测试；不是固定流程自动化器或 Agent 能力评测框架。
 metadata:
-  version: "0.1.4-dev.3"
+  version: "0.1.4"
   tool-revision: "ts-parallel-3"
 ---
 
@@ -12,7 +12,7 @@ metadata:
 
 完整安装包包含入口、references、scripts、schemas 和格式指南。**除非用户明确指定其他格式，执行测试后的默认交付必须包含可独立打开的 HTML、结构化 JSON 和 Markdown。** 聊天摘要不能替代文件交付。工具暂不可用时仍可保存事实，但须明确报告交付阻塞，不能静默退回 Markdown 并宣称完成。
 
-开始记录前读 [本地工具箱调用指南](references/local-toolbox.md)：以本次实际加载的安装／构建包 `SKILL.md` 所在绝对目录为工具根，运行 `scripts/ego.mjs tool-info`，核对路径、`0.1.4-dev.3`、`ts-parallel-3`、`formatVersions` 与安装文件校验结果。源码开发先在明确的唯一仓库构建，使用其 `.build/runtime` 或本次指定的独立编译包；不要将源码 Skill 子目录当作安装根，不向上猜目录、选择旧安装或覆盖用户安装。先确认报告资源可用；这不规定业务执行路线。
+开始记录前读 [本地工具箱调用指南](references/local-toolbox.md)：以本次实际加载的安装／构建包 `SKILL.md` 所在绝对目录为工具根，运行 `scripts/ego.mjs tool-info`，核对路径、`0.1.4`、`ts-parallel-3`、`formatVersions` 与安装文件校验结果。源码开发先在明确的唯一仓库构建，使用其 `.build/runtime` 或本次指定的独立编译包；不要将源码 Skill 子目录当作安装根，不向上猜目录、选择旧安装或覆盖用户安装。先确认报告资源可用；这不规定业务执行路线。
 
 ## 两种用例来源
 

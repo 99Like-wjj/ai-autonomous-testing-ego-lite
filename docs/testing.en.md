@@ -73,7 +73,7 @@ The implementation uses Node.js built-ins and platform path APIs; it does not de
 
 The local browser tool refused to open the `file://` report; no local server or alternate browser channel was used to bypass that restriction. Real-browser search, status filtering, image enlargement, and decode-error notices remain **NOT RUN** and require user acceptance. The synthetic report statuses are UI fixtures, not business outcomes.
 
-No Ego, real application, account, yiliai data, or business write operation was used. AI defect-finding accuracy, false positives, and model-upgrade effects were not measured. Tests support only limited claims about local structured-record and file behavior. This historical check does not represent later owner trial use or final release verification; see the newer sections above.
+No Ego, real application, account, real business data, or business write operation was used. AI defect-finding accuracy, false positives, and model-upgrade effects were not measured. Tests support only limited claims about local structured-record and file behavior. This historical check does not represent later owner trial use or final release verification; see the newer sections above.
 
 ## Runtime and record limitations
 

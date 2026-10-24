@@ -1,5 +1,10 @@
 # 更新记录 / Changelog
 
+## 0.1.4 — 本地试用确认 · 版本号统一
+
+- 用户在独立 Codex 会话本地试用后反馈无明显问题，按要求将当前源码、工具、安装入口与指南的版本号统一为 `0.1.4`，去掉当前版本号中的开发后缀。功能与数据格式沿用此前验收构建，tool revision 仍为 `ts-parallel-3`。
+- 历史开发版的验证记录、报告和证据保持原样；用户本地试用反馈不替代其中的未测试或无法判断项。本次版本同步不操作真实业务，不创建版本 Tag 或 GitHub Release。
+
 ## 0.1.4-dev.3 — 开发中 · 公共数据能力与轻量查询
 
 - 集中封装基线／用例解析、文件归属与流式哈希、worker 路径校验；启动、运行检查、封包、导入、报告共用实现，保留原导出入口。
@@ -69,7 +74,7 @@ English summary: Added a local-only evidence/result toolbox with retained-copy S
 
 资产仍使用 `schemaVersion: 2`。这是结构放宽和可选元数据扩展，不另建迁移层；v0.1.1 中有效且完整的步骤仍可使用。软件版本与资产版本独立编号。
 
-验证：2026-10-21，Linux / Node v24.19.0，137/137 合成测试通过（辅助工具 125 项、发布检查器 12 项），零失败、零跳过。独立 Draft 2020-12 复核通过 6 份 Schema、18 个示例及生成 JSON 资产；待澄清最终结果与尝试状态反例、独立 Skill 的 9 条相对链接、当前文件隐私扫描和更新图解视觉检查均通过。上述检查仅验证辅助工具和合成资产，不代表 Windows / Ego / yiliai 的真实业务测试效果。
+验证：2026-10-21，Linux / Node v24.19.0，137/137 合成测试通过（辅助工具 125 项、发布检查器 12 项），零失败、零跳过。独立 Draft 2020-12 复核通过 6 份 Schema、18 个示例及生成 JSON 资产；待澄清最终结果与尝试状态反例、独立 Skill 的 9 条相对链接、当前文件隐私扫描和更新图解视觉检查均通过。上述检查仅验证辅助工具和合成资产，不代表 Windows / Ego 环境下的真实业务测试效果。
 
 English summary: Business-intent steps with optional source-backed checkpoints;
 required case-level acceptance remains. Optional clarification questions are

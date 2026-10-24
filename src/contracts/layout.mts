@@ -1,5 +1,5 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.4-dev.3';
+export const TOOL_VERSION = '0.1.4';
 export const TOOL_REVISION = 'ts-parallel-3';
 export const FORMAT_VERSIONS = { cases: 3, manifest: 4, results: 3, evidence: 3, report: 4, execution: 1, configuration: 1, workerPacket: 1, executionRead: 2 } as const;
 export const runtimeFiles = [
