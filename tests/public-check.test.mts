@@ -1,3 +1,5 @@
+import type { TestContext } from 'node:test';
+import { errorInfo } from '../src/core/common.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -7,12 +9,12 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const scanner = fileURLToPath(new URL('../tools/public-check.mjs', import.meta.url));
-async function fixture(t) {
+async function fixture(t: TestContext) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-public-check-'));
   t.after(() => fs.rm(dir, { recursive: true, force: true }));
   await fs.mkdir(path.join(dir, 'tools'));
   await fs.copyFile(scanner, path.join(dir, 'tools', 'public-check.mjs'));
-  const write = async (name, content) => {
+  const write = async (name: string, content: string | Buffer) => {
     await fs.mkdir(path.dirname(path.join(dir, name)), { recursive: true });
     await fs.writeFile(path.join(dir, name), content);
   };
@@ -78,7 +80,7 @@ test('publication checker rejects symlink publication entries', async t => {
   const f = await fixture(t);
   await f.write('docs/target.md', 'public');
   try { await fs.symlink(path.join(f.dir, 'docs/target.md'), path.join(f.dir, 'docs/link.md')); }
-  catch (e) { if (['EPERM', 'EACCES'].includes(e.code)) { t.skip('Symlink privilege unavailable'); return; } throw e; }
+  catch (caughte) { const e = errorInfo(caughte); if (['EPERM', 'EACCES'].includes(e.code ?? '')) { t.skip('Symlink privilege unavailable'); return; } throw e; }
   assert.match(f.run().stderr, /symlink is not publishable/);
 });
 test('publication checker rejects invalid text bytes', async t => {
@@ -96,5 +98,6 @@ test('publication checker explicitly does not scan Git history', async t => {
   await f.write('.git/config', 'Synthetic local git metadata');
   const r = f.run();
   assert.equal(r.status, 0, r.stderr);
-  assert.ok(JSON.parse(r.stdout).limitations.some(x => x.includes('Git history')));
+  const result: unknown = JSON.parse(r.stdout); assert.ok(result && typeof result === 'object' && 'limitations' in result && Array.isArray(result.limitations));
+  assert.ok(result.limitations.some((x: unknown) => typeof x === 'string' && x.includes('Git history')));
 });

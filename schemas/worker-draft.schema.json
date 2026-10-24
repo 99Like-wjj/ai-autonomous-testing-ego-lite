@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "worker-draft.schema.json",
+  "title": "Ego Lite worker draft v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "packetId",
+    "mode",
+    "record",
+    "evidence",
+    "goalAssessments",
+    "spaceUsage"
+  ],
+  "properties": {
+    "packetId": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "mode": {
+      "enum": [
+        "attempt",
+        "final"
+      ]
+    },
+    "record": {
+      "$ref": "worker-packet.schema.json#/$defs/record"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "title": "Packet evidence",
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "path": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "kind": {
+            "enum": [
+              "screenshot",
+              "dom",
+              "tool_receipt",
+              "log",
+              "other"
+            ]
+          },
+          "source": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "description": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "capturedAt": {
+            "$ref": "common.schema.json#/$defs/timestamp"
+          }
+        },
+        "required": [
+          "key",
+          "path",
+          "kind",
+          "source",
+          "description"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "goalAssessments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "worker-packet.schema.json#/$defs/goal"
+      }
+    },
+    "spaceUsage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "spaceId",
+          "reason",
+          "evidenceKeys"
+        ],
+        "properties": {
+          "spaceId": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "evidenceKeys": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "common.schema.json#/$defs/safeId"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "executionWindow": {
+      "$ref": "worker-packet.schema.json#/$defs/window"
+    }
+  }
+}

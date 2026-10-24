@@ -1,5 +1,21 @@
 # 架构与信任边界
 
+## v0.1.4 架构
+
+![可配置并发、独立分派与复核汇总的职责。](images/parallel.zh-CN.svg)
+
+`0.1.4` 将稳定的数据能力集中到 `core/baseline.mts` 与 `core/file-integrity.mts`，初始化、封包、证据／结果和报告复用同一实现。`execution/read-context.mts` 只组装元数据快照，`views.mts` 只做投影。默认查询不重读历史证据或执行恢复；`--integrity full` 可严格检查后仍返回摘要，原 full 路径保持。查询结果显式标注检查范围，不从记录状态推断业务已重新验证；详见[B／C 验证](v0.1.4-bc-validation.md)。
+
+维护源码统一为严格 TypeScript，Node `.mts` 编译为 ESM `.mjs`；`src/report-ui/main.ts` 单独使用 DOM 类型检查后嵌入报告。开发先运行 `npm ci`、`npm run typecheck`、`npm test`，编译资源暂存于 `.build/runtime`；用户安装包无需编译器或开发依赖。`src/scripts/toolchain.mts` 校验明确资源清单及实际安装指纹，开发上下文显式保护整个唯一源码目录。
+
+AI 自主决定工具调用、执行批次，以及由当前会话执行还是通过宿主原生工具分派 worker；默认并发 1，用户未要求并发且无明确配置时逐条执行，不强制每例新建子代理。`src/execution/` 只处理配置快照、名额与资源声明、Space 回执、不可变交付包和经 AI 复核的导入事务；没有常驻调度器、模型服务或浏览器代理。用户上限与已知宿主容量分别记录；额度未知不探测，无固定产品上限，也不要求跑满。允许记录 Space 偏差和授权内恢复，不宣称强权限沙箱或账号隔离。
+
+worker 仅写本分派目录，`packet-seal` 校验全部目标引用并计算证据哈希；协调者独立看原目标和证据后串行导入公共结果。导入记录准备请求、已提交证据／结果及回执，原样重放同一操作可恢复丢失响应。冲突的未执行事务只能经显式新操作重新准备；不重做页面业务。丢失／在途 worker 保留名额，不能仅因超时回收。
+
+新 manifest／report 为 v4，执行／配置／worker 包为 v1，cases／results／evidence 仍为 v3。既有 v3 运行保持原格式；报告可验证旧渲染框架而不运行旧版源码。v4 报告逐项显示 AI 提交的四态与证据，并区分名额峰值和有来源的执行区间。图示与以下 v0.1.3 说明保留为历史背景；完整并发协议见 [并发指南](../skills/ego-lite-test/references/parallel-testing.md)。
+
+## v0.1.3 架构背景（历史）
+
 报告交付约束：默认 HTML + JSON + Markdown，关键 UI 结果与缺陷保留真实截图；具体业务路径、取证节点及结论仍由 AI 决定。完整安装包携带工具与 schema，运行前核对实际工具根、版本和清单。文件校验与实际浏览器打开分开报告，事后整理不冒充执行前冻结。
 
 ![流程图：AI 会话规划和执行授权测试；本地工具仅维护证据及结果记录。](images/architecture.zh-CN.png)

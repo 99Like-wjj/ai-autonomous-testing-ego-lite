@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "report-v3.schema.json",
+  "title": "Ego Lite generated report v3",
+  "description": "The report summarizes current final statuses; historical attempts are preserved on each case and are not recounted as current outcomes.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "runId",
+    "project",
+    "structurallyValid",
+    "revision",
+    "evidenceRevision",
+    "hasUnexecutedCases",
+    "counts",
+    "progress",
+    "recordedExplicitOutcomes",
+    "evidenceIntegrity",
+    "caveat",
+    "evidenceCatalog",
+    "cases"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 3
+    },
+    "runId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "project": {
+      "$ref": "common.schema.json#/$defs/nonempty"
+    },
+    "structurallyValid": {
+      "const": true
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "evidenceRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "hasUnexecutedCases": {
+      "type": "boolean",
+      "description": "True only when at least one case has no final result and no recorded attempt. A not_run final status may coexist with attempts."
+    },
+    "counts": {
+      "$ref": "common.schema.json#/$defs/counts"
+    },
+    "progress": {
+      "$ref": "common.schema.json#/$defs/progress"
+    },
+    "recordedExplicitOutcomes": {
+      "type": "object",
+      "required": [
+        "pass",
+        "fail"
+      ],
+      "properties": {
+        "pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fail": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidenceIntegrity": {
+      "type": "object",
+      "required": [
+        "hashVerifiedItems"
+      ],
+      "properties": {
+        "hashVerifiedItems": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidenceCoverage": {
+      "type": "object",
+      "required": [
+        "registeredScreenshots",
+        "distinctRetainedContents",
+        "finalCasesWithoutScreenshots"
+      ],
+      "properties": {
+        "registeredScreenshots": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "distinctRetainedContents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "finalCasesWithoutScreenshots": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "$ref": "report-context.schema.json"
+    },
+    "caveat": {
+      "$ref": "common.schema.json#/$defs/nonempty"
+    },
+    "evidenceCatalog": {
+      "$ref": "evidence.schema.json"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/reportCaseV3"
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

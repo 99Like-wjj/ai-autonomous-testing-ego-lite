@@ -1,12 +1,14 @@
-# Local toolbox calling guide (schemaVersion 3)
+# Local toolbox calling guide (0.1.4)
+
+In `0.1.4`, `execution read` defaults to a bounded summary. Use `--view assignment --assignment-id ID` for one assignment, or `--view full` for the previous complete structure. Summary/assignment default to metadata checks and explicitly mark historical evidence as not_checked. Add --integrity full for a strictly checked compact view; the full view always retains strict checks. A confirmed write receipt supplies the next expectedRevision; an intervening query is optional. Report labels describe recorded observations, separately from execution state and business outcomes. See [parallel-testing](parallel-testing.md).
 
 The helper performs local data transactions and rendering. Unless the user explicitly requests another format, delivery after test execution includes standalone HTML, JSON, and Markdown. Missing tools block delivery; Markdown notes alone do not complete it.
 
 ## Confirm the loaded installation
 
-Use the absolute directory containing the actually loaded `SKILL.md` as the installed tool root. A complete installation includes scripts, schemas, docs, examples, and `runtime-manifest.json`. In source mode use the explicitly confirmed repository root; never infer it by walking up from an installed Skill or choosing a similarly named preview directory.
+Use the absolute directory containing the actually loaded `SKILL.md` as the installed tool root. A complete installation includes scripts, schemas, docs, examples, and `runtime-manifest.json`. For source development run npm ci and npm run build at the confirmed root, then use .build/runtime; never infer it by walking up from an installed Skill or choosing a similarly named preview directory.
 
-Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.3 --expect-revision html-report-delivery-1`. Check toolRoot, skillFile, schemaVersion 3 and installationIntegrity (`verified` for installations, `source-layout` for source). Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
+Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
 
 ## Boundaries
 
@@ -65,7 +67,7 @@ Read the current results `revision` from `results.json`. Example:
 
 `mode: final` updates the current outcome. `mode: attempt` appends an observation while leaving the current final outcome unchanged. The attempts array excludes the current final observation; it includes explicit attempts and prior final snapshots not already preserved in history. For a deliberate new observation with the same status and content, use a new operation ID. To retry a request, reuse the original ID and payload.
 
-`pass` / `fail` require actual observations, rationale, and registered evidence IDs associated with the same case. `inconclusive` / `blocked` require rationale. `not_run` is valid only in final mode and means no final outcome; it can coexist with attempts. Only `not_run` with an empty attempts array means never attempted. A frozen baseline with pending `clarificationQuestions` prohibits `pass` / `fail` for both final outcomes and attempts. Requests cannot change basis, steps, expectations, or frozen questions.
+`pass` / `fail` require actual observations, rationale, and registered evidence IDs associated with the same case. `inconclusive` / `blocked` require rationale. `not_run` is valid only in final mode and means no final outcome; it can coexist with attempts. `not_run` with an empty attempts array means no recorded result/attempt; it does not establish that execution never started. A frozen baseline with pending `clarificationQuestions` prohibits `pass` / `fail` for both final outcomes and attempts. Requests cannot change basis, steps, expectations, or frozen questions.
 
 ## Idempotency, conflicts, and lost responses
 
@@ -92,3 +94,7 @@ The report summarizes caller-provided results and local file integrity; it is no
 Use `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` to read back all three artifacts and compare them with the current records, retained evidence and context sources. Receipts include absolute paths, byte counts, hashes and `browserOpen: not_checked`; actual browser opening remains separate. Deliver all three paths. Key UI outcomes and defects require real screenshots, selected by the AI rather than one screenshot per step. Missing screenshots are evidence gaps that need conclusion review, not automatic product failures.
 
 For a new report without overwriting an old one, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Retrospective assembly additionally uses `--context ABS_CONTEXT_JSON`, defined by `schemas/report-context.schema.json`. This report-only v1 context records limitations, existing source files and hashes, supplemental case IDs, and AI-supplied reviews for every goal. Original recorded statuses remain separate. Never present post-execution assembly as a pre-execution freeze, invent capture times, or rerun business actions just to fill a report.
+
+## v4 parallel execution
+
+New manifests/reports use v4; cases/results/evidence keep v3. Users configure maxParallelCases (positive safe integer; default 1, serial). Without a user request for concurrency or an explicit setting, do not increase it based on spare capacity or independent cases. The AI chooses when to call tools and whether to use native workers; serial execution does not require a separate agent. Host capacity is used only when explicitly known, not probed or globally configured. Read [parallel-testing](parallel-testing.md): workers write only their own files and packet-seal; the coordinator reviews and execution import commits. Goals, errors, original proposals and revisions are preserved. Legacy v3 runs/reports remain readable/verifiable, with no in-place upgrade.

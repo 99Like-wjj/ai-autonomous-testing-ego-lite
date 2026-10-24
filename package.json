@@ -1,15 +1,40 @@
 {
   "name": "ego-lite-test-skill",
-  "version": "0.1.3",
-  "egoLiteTest": { "toolRevision": "html-report-delivery-1", "schemaVersion": 3 },
+  "version": "0.1.4",
+  "egoLiteTest": {
+    "toolRevision": "ts-parallel-3",
+    "formatVersions": {
+      "cases": 3,
+      "manifest": 4,
+      "results": 3,
+      "evidence": 3,
+      "report": 4,
+      "execution": 1,
+      "configuration": 1,
+      "workerPacket": 1,
+      "executionRead": 2
+    }
+  },
   "description": "Unofficial AI-led Ego Lite testing skill with local evidence records and offline HTML reports.",
   "private": true,
   "type": "module",
   "license": "MIT",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "node --test",
-    "check:public": "node tools/public-check.mjs",
-    "build:skill": "node tools/build-skill.mjs"
+    "build:bootstrap": "tsc -p tsconfig.tools.json",
+    "contracts:write": "npm run build:bootstrap && node .build/bootstrap/tools/generate-contracts.mjs --write",
+    "check:contracts": "npm run build:bootstrap && node .build/bootstrap/tools/generate-contracts.mjs --check",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.browser.json",
+    "build": "npm run check:contracts && tsc -p tsconfig.node.json && tsc -p tsconfig.browser.json && node .build/node/tools/stage-runtime.mjs --source-root .",
+    "test": "npm run build && node --test .build/node/tests/*.test.mjs",
+    "check:public": "npm run build:bootstrap && node .build/bootstrap/tools/public-check.mjs --root . --development",
+    "build:skill": "npm run build && node .build/node/tools/build-skill.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "json-schema-to-typescript": "16.0.0",
+    "typescript": "6.0.3"
   }
 }

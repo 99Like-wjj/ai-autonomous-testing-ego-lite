@@ -1,18 +1,20 @@
-# 本地工具箱调用指南（schemaVersion 3）
+# 本地工具箱调用指南（v0.1.4）
+
+`0.1.4` 的 `execution read` 默认只给摘要；单分派用 `--view assignment --assignment-id ID`，需要旧完整结构时显式 `--view full`。默认摘要／单例只检查元数据并明示历史证据未复核；`--integrity full` 可完整检查后仍返回摘要，完整视图始终严格检查，详见[并发指南](parallel-testing.md)。报告“尚无结果／尝试记录”只描述入账情况，不能由此断言用例未执行；执行状态和业务结论分别查看。
 
 工具只做本地数据事务与报告渲染。默认测试交付需要 HTML、JSON、Markdown；工具不可用应报告阻塞，不能以 Markdown 退回冒充完成。
 
 ## 确认实际根目录与版本
 
-独立安装时，`ToolRoot` 就是本次实际加载的 `SKILL.md` 所在绝对目录，包含 `scripts/`、`schemas/`、`docs/`、`examples/` 和 `runtime-manifest.json`。源码模式使用用户明确提供或已核实的仓库绝对根；不要从安装目录向上猜位置，也不要凭同名 preview 目录选择工具。
+独立安装／测试编译包的 `ToolRoot` 是本次实际加载的 `SKILL.md` 所在绝对目录，包含 `scripts/`、`schemas/`、`docs/`、`examples/` 和 `runtime-manifest.json`。源码采用 TS；先在已确认仓库执行 `npm ci`、`npm run build`，工具根为该仓库的 `.build/runtime`。安装用户只需 Node.js >=22，无需编译器。不要把源码 `skills/ego-lite-test` 子目录当作工具根，不向上猜目录，也不自动更新用户安装。
 
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.3 --expect-revision html-report-delivery-1
+node $Tool tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3
 ```
 
-核对回执中的 toolRoot、skillFile、schemaVersion 3、版本与 revision；独立安装的 installationIntegrity 必须为 verified，源码模式为 source-layout。指纹只用于文件一致性，不认证发布者。每次 CLI 操作也检查安装清单，缺失、混用或改动会拒绝；先报告差异，不擅自覆盖不明用户修改。随后读取此根目录的 `docs/asset-formats.md` 和所需 schema。所有命令显式传入同一绝对脚本路径。
+核对 toolRoot、skillFile、版本、revision 与 `formatVersions`（cases/results/evidence 为 3，manifest/report 为 4，execution/configuration/workerPacket 为 1）。构建包与独立安装均须 `installationIntegrity: verified`。指纹对应实际交付的编译 JS 与资源，不认证发布者。每次 CLI 也检查安装清单，缺失、混用或改动先报告，不覆盖不明用户修改。读取此根目录的格式指南和所需 Schema，命令始终指向同一绝对脚本路径。
 
 ## 边界
 
@@ -20,7 +22,7 @@ node $Tool tool-info --expect-version 0.1.3 --expect-revision html-report-delive
 - 工具将指定普通文件复制到 run 的 `evidence/`。登记前先按用户要求缩小范围并检查敏感内容；工具不会脱敏。
 - `capturedAt` 仅来自来源提供的采集时间。未知时省略；`collectedAt` 由工具独立登记。
 - SHA-256 只校验留存字节与 catalog 值一致，不能证明真实性、来源身份或结论正确。
-- 使用 v3 新格式。v0.1.2 schemaVersion 2 文件不能直接使用；依据原始需求重建用例并新建 run，不改版本号冒充兼容。
+- 业务用例／结果／证据沿用 v3，新建执行的 manifest/report 为 v4，新增配置／执行台账／交付包为 v1。已有 v3 run 不原地升级，可继续核验／记录并另存报告；v0.1.2 的 v2 仍不支持，不改版本号冒充兼容。
 
 ## 创建和检查运行
 
@@ -28,10 +30,10 @@ node $Tool tool-info --expect-version 0.1.3 --expect-revision html-report-delive
 
 ```text
 node "ABS_TOOL_ROOT/scripts/ego.mjs" validate-cases --cases ABS_CASES_JSON
-node "ABS_TOOL_ROOT/scripts/ego.mjs" start --project-dir ABS_PROJECT_DIR --cases ABS_CASES_JSON --output-dir ABS_RUN_DIR
+node "ABS_TOOL_ROOT/scripts/ego.mjs" start --project-dir ABS_PROJECT_DIR --cases ABS_CASES_JSON --output-dir ABS_RUN_DIR --max-parallel-cases 3
 ```
 
-`start` 只冻结基线并创建初始 `not_run` 结果和空 evidence catalog。执行浏览器操作仍需用户授权及本机 Ego 官方 Skill。
+`start` 只冻结基线、创建初始 `not_run`、证据索引和执行台账，不执行浏览器操作。并发配置和 worker 交付见 [并发指南](parallel-testing.md)；新运行优先用独立交付和协调者导入，workers 不并发调用下述共享写命令。
 
 ## 登记证据
 
@@ -91,9 +93,9 @@ node "ABS_TOOL_ROOT/scripts/ego.mjs" report --run-dir ABS_RUN_DIR
 node "ABS_TOOL_ROOT/scripts/ego.mjs" verify-report --run-dir ABS_RUN_DIR --report-dir ABS_RUN_DIR
 ```
 
-进度只按每个基线用例的当前 final 状态统计；历史失败不重复计入当前失败。`not_run` 表示尚无最终结论，可与 attempt 并存；`not_run` 且没有 attempt 才表示从未尝试。`blocked`、`inconclusive` 和待澄清分别保留。`report` 会创建 `report.json`、`report.md` 和自包含 `report.html`；任一目标已存在就拒绝覆盖。可单独复制 `report.html` 并在无网络的浏览器中打开，不引用 Run 路径或外链。HTML 显示冻结目标、关键条件、必经路径、顺序策略、观察、理由、依据、未验证项、逐条历史尝试剩余问题和证据来源/hash 元数据；只预览 hash / 大小校验通过的 PNG/JPEG/WebP。缺图会说明但不自动判失败；可识别图片头但浏览器无法解码时会显示错误提示，不使用替代图。哈希错误、悬空引用或结构无效时会拒绝生成报告，不生成带缺口的可信通过外观。
+进度只按每个基线用例的当前 final 状态统计；历史失败不重复计入当前失败。`not_run` 表示尚无最终结论，可与 attempt 并存；`not_run` 且没有 attempt 表示尚无结果／尝试记录，不能据此断言实际未执行。`blocked`、`inconclusive` 和待澄清分别保留。`report` 会创建 `report.json`、`report.md` 和自包含 `report.html`；任一目标已存在就拒绝覆盖。可单独复制 `report.html` 并在无网络的浏览器中打开，不引用 Run 路径或外链。HTML 显示冻结目标、关键条件、必经路径、顺序策略、观察、理由、依据、未验证项、逐条历史尝试剩余问题和证据来源/hash 元数据；只预览 hash / 大小校验通过的 PNG/JPEG/WebP。缺图会说明但不自动判失败；可识别图片头但浏览器无法解码时会显示错误提示，不使用替代图。哈希错误、悬空引用或结构无效时会拒绝生成报告，不生成带缺口的可信通过外观。
 
-报告只是结构有效的调用者记录与本地文件完整性结果，不是独立验证的测试结论。业务状态与文件完整性分开显示；SHA-256 不证明真实性或业务正确。报告只有用例级状态，没有单独的步骤 verdict，不会声称计划步骤已执行。不要自动上传原始报告；先按授权决定收件人和分享方式，并人工检查敏感内容。
+报告只是结构有效的 AI 记录与文件一致性结果，不是独立验证的结论。v4 展示显式逐目标评估、并发配置／区间、分派、Space 历史和执行异常；计划步骤本身不证明已执行，缺少评估不能从摘要倒推通过。旧 v3 只保留原有用例／attempt 口径。已有 v0.1.3 报告可用冻结框架指纹和当前数据核验，不改写历史文件；未知框架或内容变更会拒绝。不要自动上传原始报告。
 
 
 默认交付三个文件的实际绝对路径。生成回执包含文件读回校验、字节数与 SHA-256；`browserOpen: not_checked` 表示尚未验证浏览器打开，不能改称已验证打开。关键 UI 结果及缺陷须有关联真实截图；取证节点由 AI 决定，不强制逐步截图。摘要不能替代截图，缺图须复核结论并展示缺口。

@@ -1,5 +1,19 @@
 # Architecture and trust boundaries
 
+## v0.1.4 architecture
+
+![Configurable concurrency, independent assignments and reviewed aggregation.](images/parallel.svg)
+
+In `0.1.4`, shared baseline/case parsing and file scope/integrity live in core/baseline.mts and core/file-integrity.mts. Startup, packet sealing, records and reporting reuse them. execution/read-context.mts loads metadata snapshots; views.mts only projects data. Default queries do not reread historical evidence or recover transactions. Use --integrity full for a strictly checked compact response; the original full reader remains strict. Explicit inspection scope does not revalidate business outcomes. See the [B/C record](v0.1.4-bc-validation.md).
+
+All maintained programs use strict TypeScript. Node `.mts` compiles to ESM `.mjs`; report UI has a separate DOM compilation. Development runs `npm ci`, `npm run typecheck` and `npm test`, staging compiled assets in `.build/runtime`. Standalone users need Node 22+ but no compiler or development dependencies. Explicit resource manifests verify delivered bytes and protect the entire source directory.
+
+The AI chooses tool calls, batches and whether to execute directly or use native host workers. Default concurrency is 1 (serial) without a user concurrency request or explicit configuration; a separate worker per case is optional. `src/execution/` handles configuration, declared resource reservations, ownership receipts, immutable worker packets and explicitly reviewed imports. It does not schedule business actions, run model services or retry browser writes. Configured concurrency (no fixed product cap or requirement to fill all slots) and known host capacity are distinct; unknown host limits remain unknown. Space deviations and authorized recovery are recorded, without claiming a sandbox or account isolation.
+
+Workers write only their assignment directory. The coordinator reviews original goals and evidence before importing into shared records. Persisted requests/checkpoints support identical data-operation replay; a confirmed unapplied conflict requires an explicit new transaction. Unknown/in-flight workers keep their slot. New manifests/reports use v4; execution/configuration/packets use v1 and business cases/results/evidence remain v3. Existing v3 runs retain their format. Reports show per-goal assessments separately from execution state and distinguish reservation peaks from sourced execution intervals. See the [parallel protocol](../skills/ego-lite-test/references/parallel-testing.md).
+
+## Historical v0.1.3 architecture
+
 Delivery constraint: default HTML + JSON + Markdown, with real screenshots for key UI outcomes and defects. The AI still chooses business routes, capture moments and judgments. The standalone package includes tools and schemas, with explicit root/version/integrity checks. File checks are separate from browser opening; retrospective assembly is never a pre-execution freeze.
 
 ![Diagram: the AI session plans and runs authorized tests; local tools only maintain evidence and result records.](images/architecture.png)

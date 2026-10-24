@@ -12,24 +12,26 @@ First launch is a target use case, not a promise to infer missing rules or guara
 
 ## Project status
 
-This Skill is under active development. v0.1.3 is available, and ongoing work will address bugs, add features, and improve the design. Feedback from real use is welcome. Validation coverage remains limited: review AI-generated conclusions against business rules and supporting evidence, and do not use them as the sole basis for a launch decision. See the [validation records](docs/testing.en.md) and [changelog](CHANGELOG.md) for capabilities, tested scope, and known limitations.
+This Skill is under active development. The current version is **v0.1.4**; ongoing work will fix bugs, add features, and improve the design. Feedback is welcome. Review AI conclusions against business rules and evidence, and do not use them as the sole basis for launch decisions. See the [validation record](docs/testing.en.md) and [changelog](CHANGELOG.md).
 
-**Version 0.1.3.** This independent project is not affiliated with or endorsed by Ego. v0.1.3 uses schemaVersion 3 in place of v0.1.2's schemaVersion 2. This is an intentional format change; no migration command is provided. Historical synthetic checks and this repair are documented separately; file checks do not establish real business acceptance. See the [validation record](docs/testing.en.md).
+Maintained source uses strict TypeScript; installation packages contain compiled JavaScript and require no TypeScript compiler or development dependencies. Case concurrency is configurable and defaults to serial execution. The AI decides which cases are independent and uses native host subagents. Space association and deviation records are not a hard permission sandbox or a guarantee of account or backend-data isolation.
 
 
-## 0.1.3 report delivery fix
+## 0.1.4: parallel execution and delivery
+
+![AI assigns independent cases within user concurrency limits; workers use their own Spaces and seal evidence packets for coordinator review.](docs/images/parallel.svg)
 
 Unless the user explicitly requests another format, completed test execution delivers standalone offline HTML, JSON, and Markdown. Chat summaries are insufficient. Key UI outcomes and defects require real screenshots; DOM, logs and summaries supplement them. The AI chooses capture moments, without a screenshot or expectation for every step. Missing screenshots must be visible and trigger conclusion review, not automatic product failure.
 
 Build a complete standalone directory from the source repository with `npm run build:skill -- --output-dir ABS_NEW_EXTERNAL_SKILL_DIR`. The package contains the Skill, guides, scripts, schemas, synthetic examples and `runtime-manifest.json`. Copying only the source Skill instructions is incomplete. Before updating an existing installation, compare known source files and report unknown edits instead of overwriting them, creating duplicate installations or adding old-version backups.
 
-Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.3 --expect-revision html-report-delivery-1`. Check paths, schemaVersion 3 and installationIntegrity. Every CLI command verifies installed files. Source mode uses an explicitly confirmed repository root. Fingerprints check consistency, not publisher identity.
+Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity.
 
 `report` reads back all three outputs. `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` compares the files with current records, retained evidence and context sources. Receipts include paths, sizes, hashes and `browserOpen: not_checked`; actual browser opening is separate. Report access restrictions honestly without routing around them.
 
 To retain an existing report, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Post-execution assembly also passes `--context ABS_CONTEXT_JSON`, defined by [the context schema](schemas/report-context.schema.json). It records limitations, existing source files and hashes, supplemental case IDs and AI-supplied reviews for every goal. Original claims remain separate; no pre-execution freeze, screenshot, timestamp or execution step is invented. No business actions run to fill a report.
 
-This release is `0.1.3`, tool revision `html-report-delivery-1`. Cases and runs keep schemaVersion 3. Reports add screenshot coverage and optional retrospective context (context version 1); existing data is neither migrated nor deleted. See [validation](docs/testing.en.md).
+This version uses tool revision `ts-parallel-3`. Cases/results/evidence remain v3; new manifests/reports are v4, execution/configuration/worker packets v1. Existing v3 runs remain usable without in-place migration; v2 remains unsupported. The installation requires Node.js >=22, not a TS compiler.
 
 ## Cases and judgments
 
@@ -39,13 +41,15 @@ External cases and cases drafted by the AI following the Skill guidelines can su
 
 Keep the overall expected outcome and requirement basis. A step-level `expected` is optional; when supplied, it needs an independent source. Omitting it does not mean the step was skipped or passed automatically. When acceptance questions remain, put them in the frozen case's `clarificationQuestions`. While this list is nonempty, neither the final result nor any attempt may be `pass` or `fail`. After clarification, freeze a revised case rather than editing the old baseline.
 
-Statuses remain distinct: `pass`, `fail`, `inconclusive`, `blocked`, and `not_run`. `not_run` means no final outcome is recorded and may coexist with exploratory attempts; the report distinguishes never-attempted cases from attempted cases without a final outcome. The helper validates local structures, revisions, and evidence-file hashes. It does not diagnose defects, select routes, retry business actions, or decide whether evidence supports a conclusion.
+Statuses remain distinct: `pass`, `fail`, `inconclusive`, `blocked`, and `not_run`. `not_run` means no final outcome is recorded and may coexist with exploratory attempts; the report distinguishes missing recorded observations from recorded attempts without a final outcome, separately from execution state. The helper validates local structures, revisions, and evidence-file hashes. It does not diagnose defects, select routes, retry business actions, or decide whether evidence supports a conclusion.
 
 ## Quick start on Windows
 
 ### Prepare the runtime
 
 Follow the [official Ego Windows quick start](https://lite.ego.app/document/en/docs/windows/quick-start) to configure Ego and its official `ego-browser` Skill. This repository neither installs Ego nor replaces its official usage guide. The local report helper uses Node.js 22 or newer and has no third-party runtime package dependency.
+
+The commands below run from the source repository after `npm ci` and `npm run build`; the CLI is at `.build/runtime/scripts/ego.mjs`. For a downloaded standalone package, use `scripts/ego.mjs` within its installation root instead. Do not mix the two layouts.
 
 ### Keep private assets outside the source directory
 
@@ -56,7 +60,7 @@ $Source = (Get-Location).Path
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot 'demo-project'
-node .\scripts\ego.mjs init --project-dir $Project
+node .\.build\runtime\scripts\ego.mjs init --project-dir $Project
 ```
 
 Replace `$Project\cases.example.json` with cases checked against their sources. Validate, then freeze a new run:
@@ -64,8 +68,8 @@ Replace `$Project\cases.example.json` with cases checked against their sources. 
 ```powershell
 $Cases = Join-Path $Project 'cases.example.json'
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
-node .\scripts\ego.mjs validate-cases --cases $Cases
-node .\scripts\ego.mjs start --project-dir $Project --cases $Cases --output-dir $Run
+node .\.build\runtime\scripts\ego.mjs validate-cases --cases $Cases
+node .\.build\runtime\scripts\ego.mjs start --project-dir $Project --cases $Cases --output-dir $Run
 ```
 
 `start` creates local files only; it does not run a browser or business action. See the [Skill workflow](skills/ego-lite-test/SKILL.md) and its [local toolbox guide](skills/ego-lite-test/references/local-toolbox.en.md).
@@ -114,9 +118,9 @@ Put the returned evidence ID in a `record` request's `evidenceIds`. `mode: "fina
 ### Check progress and write a report
 
 ```powershell
-node .\scripts\ego.mjs progress --run-dir $Run
-node .\scripts\ego.mjs check --run-dir $Run
-node .\scripts\ego.mjs report --run-dir $Run
+node .\.build\runtime\scripts\ego.mjs progress --run-dir $Run
+node .\.build\runtime\scripts\ego.mjs check --run-dir $Run
+node .\.build\runtime\scripts\ego.mjs report --run-dir $Run
 Invoke-Item (Join-Path $Run 'report.html')
 ```
 
@@ -143,8 +147,8 @@ Evidence registration does not redact data. Screenshots, logs, URLs, and descrip
 ## Further reading
 
 - [Skill workflow](skills/ego-lite-test/SKILL.md) and [local toolbox calling guide](skills/ego-lite-test/references/local-toolbox.en.md)
-- [Architecture](docs/architecture.en.md), [schema v3 format and commands](docs/asset-formats.en.md)
-- [v0.1.4 research backlog (Chinese)](docs/requirements.md): parallel cases and Space binding (not implemented)
+- [Architecture](docs/architecture.en.md), [Asset formats and commands](docs/asset-formats.en.md)
+- [v0.1.4 requirements and decision history (Chinese)](docs/requirements.md): configurable concurrency and Space associations
 - [Synthetic cases](examples/cases.example.json), [evidence request](examples/evidence-request.example.json), [result request](examples/record-request.example.json)
 - [Validation status](docs/testing.en.md), [privacy](docs/privacy.md), [changelog](CHANGELOG.md)
 
@@ -163,3 +167,7 @@ Report bugs or suggest improvements through [GitHub Issues](https://github.com/9
 ## License
 
 Original code and documentation in this repository are licensed under the [MIT License](LICENSE), copyright 2026 99Like-wjj. This license does not cover Ego, Ego's official browser, or other third-party software; their own licenses and official terms continue to apply. This is an independent project, not affiliated with or endorsed by Ego. The source is available under the MIT License. Development is ongoing; refer to each release's notes for its capabilities and validation scope.
+
+## Configurable concurrency
+
+The default is **1 (serial)**. Without a user request for concurrency or an explicit setting, execute cases one at a time. Set `start --max-parallel-cases N` or project execution-config.json to opt in; N is a positive safe integer with no fixed 2/4/8 product ceiling. The AI chooses tool calls, batches and worker use within that limit; it need not fill all slots. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ego-lite-test/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.
