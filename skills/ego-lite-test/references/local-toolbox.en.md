@@ -1,4 +1,4 @@
-# Local toolbox calling guide (0.1.4)
+# Local toolbox calling guide (0.1.5-dev)
 
 In `0.1.4`, `execution read` defaults to a bounded summary. Use `--view assignment --assignment-id ID` for one assignment, or `--view full` for the previous complete structure. Summary/assignment default to metadata checks and explicitly mark historical evidence as not_checked. Add --integrity full for a strictly checked compact view; the full view always retains strict checks. A confirmed write receipt supplies the next expectedRevision; an intervening query is optional. Report labels describe recorded observations, separately from execution state and business outcomes. See [parallel-testing](parallel-testing.md).
 
@@ -8,7 +8,7 @@ The helper performs local data transactions and rendering. Unless the user expli
 
 Use the absolute directory containing the actually loaded `SKILL.md` as the installed tool root. A complete installation includes scripts, schemas, docs, examples, and `runtime-manifest.json`. For source development run npm ci and npm run build at the confirmed root, then use .build/runtime; never infer it by walking up from an installed Skill or choosing a similarly named preview directory.
 
-Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
+Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.5-dev --expect-revision resource-clarification-3`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
 
 ## Boundaries
 
@@ -17,6 +17,12 @@ Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4 --expec
 - `capturedAt` must come from a source-provided capture time. Omit it when unknown. The helper records `collectedAt` separately.
 - SHA-256 only checks whether retained bytes match the catalog value. It does not prove authenticity, source identity, or correctness.
 - Use the v3 format. v0.1.2 schemaVersion 2 files cannot be used directly. Rebuild cases from original requirements and create a new run; do not change only the version number.
+
+## Reuse existing records for resource gaps
+
+Use the [resource-readiness guide (Chinese)](resource-readiness.md). The AI determines prerequisites and affected goals; existing observed/rationale/remainingQuestions, evidence registration and explicit worker goal assessments retain the facts. Do not place recoverable resource gaps into frozen acceptance questions. Progress provides status and case IDs; pendingClarification only counts frozen acceptance questions. Use check when detailed current records are needed.
+
+Auxiliary notes are not automatically verified by verify-report. Put required facts in the existing result, goal and evidence chain. Add observations after resource verification, preserve blocked history, and revise the baseline if frozen semantics change. No new JSON format, automatic readiness decision or business retry is added.
 
 ## Create and validate a run
 

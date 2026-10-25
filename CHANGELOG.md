@@ -1,5 +1,18 @@
 # 更新记录 / Changelog
 
+## 0.1.5-dev — 2026-10-25 · 开发中，限定场景专项验收完成
+
+- 修订 resource-clarification-3：同一资源事实复用可追溯依据，派生摘要回读该来源并区分历史与当前；已提供但未核验不再写成未提供。复用现有证据、结果和报告，不增加资源状态机或业务判断代码。
+- 修订 resource-clarification-2：明确记录缺口不等于实际发问、部分答复只解决所覆盖条件，以及受阻原目标交付前的问答核对。资源指南优先讲行为，字段映射后置；保持 AI 自主判断。
+- 补强资源充分性与主动澄清：从目标推导必要条件，授权内先核验，主动询问实质缺口，只暂停依赖动作，补充后核实再恢复，执行中新依赖同样处理。
+- 分开处理验收歧义、资源可用性和操作授权。clarificationQuestions 既有含义与 pass/fail 限制保留；资源恢复符合原条件时不因此重新冻结，改变冻结语义仍须修订并保留历史。
+- 复用现有结果、证据、worker 包和报告；不新增资源 JSON、固定决策树、自动重试或独立模型服务。新增指南明确加入运行包与安装清单，辅助资源笔记不冒称已被 verify-report 校验。
+- 新增面向使用者的双语版本演变页、总览图、README 入口及本地验收步骤；区分正式/预发布/开发中和实际发布时间，历史开发记录保留。
+- 升级影响：软件 0.1.5-dev，toolRevision 为 resource-clarification-3；cases/results/evidence v3、manifest/report v4、execution/configuration/workerPacket v1、executionRead v2 保持。需完整包以包含新指南；不迁移、删除或覆盖历史。
+- 本版工程验证与限制见 [v0.1.5 本地验证记录](docs/v0.1.5-validation.md)。真实对话与业务验收分别记录，不由类型或合成测试代替。旧开发包已按用户授权更新至用户级安装；本次候选安装及逐次验证以回执为准，未合并 main 或发布。
+
+English: Goal-specific resource clarification, dependency-scoped pauses and verified resumption are guided by the AI using existing records and report tools. Added bilingual version history and acceptance instructions. Development build, unchanged JSON contracts; scoped behavioral acceptance is recorded; broader reliability remains unverified.
+
 ## 0.1.4 — 2026-10-24 · TypeScript 与可配置并发
 
 发布能力：严格 TypeScript 源码与编译后安装包；默认串行、按用户配置并发；原生 worker 分例交付；Space 关联与偏差记录；协调者复核导入；逐目标报告；有明确完整性范围的轻量查询。以下开发阶段记录保留其当时的验证口径，不代表当前未发布。

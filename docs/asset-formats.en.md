@@ -1,11 +1,13 @@
 # Asset formats (v3 business data, v4 execution)
 
-## Current v0.1.4 format overview
+## Current v0.1.5-dev format overview
+
+No resource JSON contract is added. Existing observed/rationale/remainingQuestions and explicit goal assessments/evidence retain resource gaps. clarificationQuestions still means unresolved acceptance; pendingClarification does not count all resource gaps. Unintegrated auxiliary notes are outside verify-report inputs.
 
 Cases, results and evidence remain v3; new run manifests and reports use v4; execution ledgers, configuration and worker packets use v1; query views use v2. Existing v3 runs retain their format and remain verifiable. The v0.1.3 sections below explain historical base record semantics, not the format of new runs. See the v0.1.4 section later in this guide for parallel commands and fields.
 
 
-Current 0.1.4 retains v3 cases/baseline/results/evidence, uses v4 for new manifests/reports and v1 for configuration/execution/worker packets. Root schemas dispatch v3/v4 explicitly. The v3 field semantics below remain valid. Parallel calls are documented with the installed Skill references.
+Current 0.1.5-dev keeps the v0.1.4 contracts and retains v3 cases/baseline/results/evidence, uses v4 for new manifests/reports and v1 for configuration/execution/worker packets. Root schemas dispatch v3/v4 explicitly. The v3 field semantics below remain valid. Parallel calls are documented with the installed Skill references.
 
 `execution read` now defaults to the viewVersion 2 response in execution-read.schema.json; use `--view assignment --assignment-id ID` for one assignment or `--view full` for the previous complete structure. The internal readExecutionView API remains complete. Views do not change stored run formats. Summary/assignment default to metadata validation, with explicit not_checked result/evidence fields and recovery-marker visibility. Use --integrity full for a strictly checked compact response; the full view always remains strict. Metadata queries do not recover transactions. New report wording distinguishes missing recorded observations from actual execution state; historical v0.1.3 descriptions below retain their context.
 

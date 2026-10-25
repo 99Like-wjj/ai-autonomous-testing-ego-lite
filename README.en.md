@@ -12,12 +12,20 @@ First launch is a target use case, not a promise to infer missing rules or guara
 
 ## Project status
 
-This Skill is under active development. The current version is **v0.1.4**; ongoing work will fix bugs, add features, and improve the design. Feedback is welcome. Review AI conclusions against business rules and evidence, and do not use them as the sole basis for launch decisions. See the [validation record](docs/testing.en.md) and [changelog](CHANGELOG.md).
+This Skill is under active development. Current source is **v0.1.5-dev, with scoped behavioral acceptance completed and no formal release yet**; the latest formal release is [v0.1.4](https://github.com/99Like-wjj/ego-lite-test-skill/releases/tag/v0.1.4). Feedback is welcome. Review AI conclusions against business rules and evidence, and do not use them as the sole basis for launch decisions. See [version history](docs/version-history.en.md), the [validation record](docs/testing.en.md) and [changelog](CHANGELOG.md).
 
 Maintained source uses strict TypeScript; installation packages contain compiled JavaScript and require no TypeScript compiler or development dependencies. Case concurrency is configurable and defaults to serial execution. The AI decides which cases are independent and uses native host subagents. Space association and deviation records are not a hard permission sandbox or a guarantee of account or backend-data isolation.
 
 
-## 0.1.4: parallel execution and delivery
+## 0.1.5 development: clarify missing resources
+
+The AI infers prerequisites from each goal, checks existing material and safely available facts within authorization, and asks about material gaps. It explains affected goals and how to supply what is missing, pauses dependent actions, and may continue independent authorized work. Supplied resources require verification before resuming, including new dependencies discovered during execution.
+
+Acceptance ambiguity, resource availability and permission to act stay separate. Existing tools retain observations, questions and history; no fixed resource checklist or business workflow is added. See the [resource guide (Chinese)](skills/ego-lite-test/references/resource-readiness.md) and [local acceptance steps (Chinese)](docs/v0.1.5-local-acceptance.md). Guidance and engineering checks do not replace behavioral acceptance.
+
+![Version history separates released capabilities from v0.1.5 development; illustration only.](docs/images/version-history.png)
+
+## Parallel execution and delivery (since v0.1.4)
 
 ![AI assigns independent cases within user concurrency limits; workers use their own Spaces and seal evidence packets for coordinator review.](docs/images/parallel.svg)
 
@@ -25,13 +33,13 @@ Unless the user explicitly requests another format, completed test execution del
 
 Build a complete standalone directory from the source repository with `npm run build:skill -- --output-dir ABS_NEW_EXTERNAL_SKILL_DIR`. The package contains the Skill, guides, scripts, schemas, synthetic examples and `runtime-manifest.json`. Copying only the source Skill instructions is incomplete. Before updating an existing installation, compare known source files and report unknown edits instead of overwriting them, creating duplicate installations or adding old-version backups.
 
-Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity.
+Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.5-dev --expect-revision resource-clarification-3`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity. Validate this development package separately before deciding whether to replace an existing installation; no new resource JSON format is introduced.
 
 `report` reads back all three outputs. `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` compares the files with current records, retained evidence and context sources. Receipts include paths, sizes, hashes and `browserOpen: not_checked`; actual browser opening is separate. Report access restrictions honestly without routing around them.
 
 To retain an existing report, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Post-execution assembly also passes `--context ABS_CONTEXT_JSON`, defined by [the context schema](schemas/report-context.schema.json). It records limitations, existing source files and hashes, supplemental case IDs and AI-supplied reviews for every goal. Original claims remain separate; no pre-execution freeze, screenshot, timestamp or execution step is invented. No business actions run to fill a report.
 
-This version uses tool revision `ts-parallel-3`. Cases/results/evidence remain v3; new manifests/reports are v4, execution/configuration/worker packets v1. Existing v3 runs remain usable without in-place migration; v2 remains unsupported. The installation requires Node.js >=22, not a TS compiler.
+This development version uses tool revision `resource-clarification-3`. Cases/results/evidence remain v3; new manifests/reports are v4, execution/configuration/worker packets v1. Existing v3 runs remain usable without in-place migration; v2 remains unsupported. The installation requires Node.js >=22, not a TS compiler.
 
 ## Cases and judgments
 

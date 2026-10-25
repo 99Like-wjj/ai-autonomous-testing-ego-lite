@@ -1,8 +1,8 @@
 {
   "name": "ego-lite-test-skill",
-  "version": "0.1.4",
+  "version": "0.1.5-dev",
   "egoLiteTest": {
-    "toolRevision": "ts-parallel-3",
+    "toolRevision": "resource-clarification-3",
     "formatVersions": {
       "cases": 3,
       "manifest": 4,

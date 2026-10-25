@@ -94,6 +94,12 @@ node ABS_TOOL_ROOT/scripts/ego.mjs packet-seal --run-dir ABS_RUN --assignment-id
 
 部分导入显示 pending。确认另一写入导致尚未执行的请求 revision 冲突时，可读取当前事实、创建**新的 operationId**，显式 `rebaseOf: 原导入operationId`。它保留原事务、复用已确认入账证据，创建新的未执行数据请求；若旧结果已提交，应先恢复原回执。不得修改旧 expectedRevision 后沿用旧 ID。
 
+## 资源缺口的协作
+
+按[资源充分性指南](resource-readiness.md)判断依赖和可继续范围。worker 发现新缺口时暂停依赖动作，通过现有 record/goalAssessments/证据包交回事实和问题；协调者合并重复提问并分发实际答复。不得让多个 worker 并发覆盖共享资源笔记，或各自扩权、代答。
+
+资源齐备不代表可并发，reserve 的 resources 只是互斥键。恢复前核实条件、在途调用和副作用；满足原条件才继续，改变冻结语义则修订基线。缺口不自动回收活动名额，也不自动重放业务。串行需要显式逐目标报告时可由当前 AI 使用既有封包/复核导入，无须创建子代理；未开展 UI 的包如实说明没有使用 Space（现有未知 ID 记录附原因），不为提问创建 Space。
+
 ## 报告、保护与清理
 
 协调者统一查询进度并生成 HTML／JSON／Markdown；worker 不高频轮询公共进度。报告分开呈现配置、已知容量、名额峰值、worker 提供的执行区间、逐目标状态、首次失败／尝试、Space 偏差、未完成／待导入项和 Skill 问题。文件校验与业务结论分别说明。

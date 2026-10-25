@@ -11,7 +11,7 @@ function escapeXml(value: string): string { return value.replace(/[&<>"']/g, c =
 function text(x: number, y: number, s: string, size = 24, color = 'text', weight = 400): string { return `<text x="${x}" y="${y}" font-size="${size}" fill="${(C[color] ?? color)}" font-weight="${weight}">${escapeXml(s)}</text>`; }
 function rect(x: number, y: number, w: number, h: number, fill = 'panel', stroke = 'line', r = 18): string { return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${(C[fill] ?? fill)}" stroke="${(C[stroke] ?? stroke)}"/>`; }
 function line(x1: number, y1: number, x2: number, y2: number, color = 'cyan'): string { return `<path d="M${x1},${y1} L${x2},${y2}" stroke="${(C[color] ?? color)}" stroke-width="2" fill="none" marker-end="url(#arrow)"/>`; }
-function start(title: string, h = 600): string[] { return [`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="${h}" viewBox="0 0 1200 ${h}" role="img" aria-label="${escapeXml(title)}"><title>${escapeXml(title)}</title><defs><linearGradient id="g"><stop stop-color="#61e6ed"/><stop offset="1" stop-color="#ae91ff"/></linearGradient><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#61e6ed"/></marker></defs><g font-family="DejaVu Sans, Noto Sans CJK SC, sans-serif">`, rect(0, 0, 1200, h, "bg", "bg", 0), "<path d=\"M0,2 H1200\" stroke=\"url(#g)\" stroke-width=\"4\"/>"]; }
+function start(title: string, h = 600, w = 1200): string[] { return [`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${escapeXml(title)}"><title>${escapeXml(title)}</title><defs><linearGradient id="g"><stop stop-color="#61e6ed"/><stop offset="1" stop-color="#ae91ff"/></linearGradient><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#61e6ed"/></marker></defs><g font-family="DejaVu Sans, Noto Sans CJK SC, sans-serif">`, rect(0, 0, w, h, "bg", "bg", 0), `<path d="M0,2 H${w}" stroke="url(#g)" stroke-width="4"/>`]; }
 async function save(outputDir: string, name: string, parts: readonly string[], png: boolean) {
   const svg = path.join(outputDir, name + '.svg');
   await fs.writeFile(svg, parts.join('') + '</g></svg>', { flag: 'wx' });
@@ -34,7 +34,7 @@ export async function generateImages(outputDir: string) {
     const t = (en: string, cn: string): string => zh ? cn : en;
     let p = start("Ego Lite Test Skill", 540);
     p.push(...[text(54, 64, t("AI TESTING / BUILT ON EGO LITE", "AI 自主测试 / 基于 EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test new features.", "新功能首次交付，"), 48, "text", 700), text(54, 198, t("Let AI plan the checks.", "让 AI 自主规划测试。"), 48, "text", 700), text(56, 246, t("New web projects and feature launches. Rules, actions, and evidence.", "面向新项目上线前、新功能交付时的 Web 业务验证"), 20, "muted")]);
-    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW", "03  核验与交付"), 16, "cyan", 700), text(835, 370, t("Evidence + verdict", "证据与结论"), 23), text(835, 403, t("Show gaps and evidence", "说明证据与未验证项"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.4  /  INDEPENDENT PROJECT  /  SEE VALIDATION SCOPE", "版本 0.1.4  /  独立项目  /  验证范围见文档"), 16, "muted")]);
+    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW", "03  核验与交付"), 16, "cyan", 700), text(835, 370, t("Evidence + verdict", "证据与结论"), 23), text(835, 403, t("Show gaps and evidence", "说明证据与未验证项"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.5-dev  /  SCOPED CHECKS VERIFIED", "开发版 0.1.5-dev  /  限定场景专项已验证"), 16, "muted")]);
     await save(outputDir, ("hero" + suffix), p, png);
     p = start(t("Who owns what?", "谁负责什么？"), 650);
     p.push(...[text(50, 65, t("AI decides. Ego operates. Tools keep records.", "AI 做判断，Ego 做操作，工具管记录。"), 35, "text", 700), text(50, 103, t("Use the current AI session and Ego. No extra model API service.", "复用当前 AI 会话和 Ego 浏览器，不另建模型 API 服务。"), 20, "muted")]);
@@ -58,7 +58,7 @@ export async function generateImages(outputDir: string) {
       }
     }
     p.push(...["<path d=\"M1027,324 V368 H173 V324\" fill=\"none\" stroke=\"#ae91ff\" stroke-width=\"2\"/>", text(345, 400, t("AI may gather more evidence or report uncertainty.", "证据不足时，由 AI 决定补充验证或说明无法判断。"), 21, "violet")]);
-    p.push(...[rect(50, 443, 1100, 172), text(78, 484, t("Account for every test goal", "每个测试目标，都要有交代"), 24, "cyan", 700), text(78, 524, t("Report passed, failed, blocked, uncertain, and untested items separately.", "分别说明通过、失败、执行受阻、无法判断和未测试的内容。"), 20), text(78, 558, t("Pause actions that need permission; do not expand the test scope silently.", "涉及未获授权的操作时，先暂停并确认，不擅自扩大测试范围。"), 18, "muted"), text(78, 590, t("If acceptance criteria are missing, ask or mark the outcome as uncertain.", "缺少明确预期时，先澄清或标记无法判断，不能凭现状判通过。"), 18, "muted")]);
+    p.push(...[rect(50, 443, 1100, 172), text(78, 484, t("Account for every test goal", "每个测试目标，都要有交代"), 24, "cyan", 700), text(78, 524, t("Report passed, failed, blocked, uncertain, and untested items separately.", "分别说明通过、失败、执行受阻、无法判断和未测试的内容。"), 20), text(78, 558, t("Clarify missing accounts, data or permission; independent goals may continue.", "缺少账号、数据或授权，主动澄清；独立目标可继续。"), 18, "muted"), text(78, 590, t("Verify supplied resources before resuming; keep acceptance questions separate.", "补充后核验再恢复；验收和资源问题分别处理。"), 18, "muted")]);
     p.push(...["</g>"]);
     await save(outputDir, ("workflow" + suffix), p, png);
     p = start(t("Illustrative evidence specimen, not a real run", "证据展示示意，非真实运行结果"), 620);
@@ -85,8 +85,32 @@ export async function generateImages(outputDir: string) {
     p.push(text(50, 542, t("v0.1.4  /  Design illustration, not execution evidence", "v0.1.4  /  设计示意，非实际测试证据"), 16, "muted"));
     await save(outputDir, ("parallel" + suffix), p, png);
 
+    p = start(t("Version history — capability illustration", "版本演变 — 能力示意，非测试截图"), 1110, 840);
+    p.push(text(48, 72, t("How the Skill evolves", "每次更新，解决什么问题？"), 38, "text", 700));
+    p.push(text(48, 111, t("Released history · Times in Asia/Shanghai", "已发布历史 · 发布时间为北京时间"), 23, "muted"));
+    const versions = [
+      { y: 148, version: "v0.1.2", state: t("PRERELEASE · 10-22", "预发布 · 10-22"), title: t("Business-intent steps", "业务步骤与验收澄清"), rows: [t("Actions describe the business goal.", "步骤表达业务意图"), t("Unclear acceptance stays unresolved.", "验收不清，保留待确认")] },
+      { y: 357, version: "v0.1.3", state: t("RELEASED · 10-23", "正式版 · 10-23"), title: t("Evidence-rich delivery", "证据与报告完整交付"), rows: [t("Keep evidence and earlier attempts.", "留存证据与历史观察"), t("HTML / JSON / Markdown", "HTML / JSON / Markdown")] },
+      { y: 566, version: "v0.1.4", state: t("RELEASED · 10-24", "正式版 · 10-24"), title: t("Configurable concurrency", "可配置并发与协调复核"), rows: [t("Workers deliver; AI reviews goals.", "分例交付，逐目标复核"), t("Serial by default. Spaces are not isolation.", "默认串行，Space 不保证隔离")] }
+    ];
+    p.push(line(67, 186, 67, 735));
+    for (const v of versions) {
+      p.push(`<circle cx="67" cy="${v.y + 37}" r="9" fill="#61e6ed"/>`, rect(100, v.y, 692, 186));
+      p.push(text(126, v.y + 38, v.version, 29, "cyan", 700), text(446, v.y + 36, v.state, 21, "muted"));
+      p.push(text(126, v.y + 82, v.title, 31, "text", 700));
+      p.push(...v.rows.map((row, i) => text(126, v.y + 123 + i * 34, row, 25, "muted")));
+    }
+    p.push(text(48, 805, t("IN DEVELOPMENT · NOT RELEASED", "开发中 · 尚未发布"), 24, "violet", 700));
+    p.push(rect(48, 830, 744, 200, "panel", "violet").replace("/>", ' stroke-dasharray="8 6"/>'));
+    p.push(text(74, 874, "v0.1.5-dev", 32, "violet", 700));
+    p.push(text(74, 918, t("Clarify missing resources", "资源不足，主动澄清"), 32, "text", 700));
+    p.push(text(74, 960, t("Pause affected actions; verify before resuming.", "暂停依赖动作，补充后核验"), 25, "muted"));
+    p.push(text(74, 997, t("Scoped checks verified; broader use untested.", "限定场景已验证，广泛场景待验证"), 25, "muted"));
+    p.push(text(48, 1075, t("Illustration only. See version cards for limits.", "仅为能力示意；升级影响和验证限制见版本介绍"), 23, "muted"));
+    await save(outputDir, ("version-history" + suffix), p, png);
+
   }
-  return { outputDir, svgFiles: 10, pngFiles: png ? 10 : 0, pngExport: png ? 'exported' : 'not_available_inkscape_missing' };
+  return { outputDir, svgFiles: 12, pngFiles: png ? 12 : 0, pngExport: png ? 'exported' : 'not_available_inkscape_missing' };
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.length !== 4 || process.argv[2] !== '--output-dir' || !process.argv[3]) throw new Error('Use --output-dir ABS_NEW_IMAGE_DIRECTORY.');

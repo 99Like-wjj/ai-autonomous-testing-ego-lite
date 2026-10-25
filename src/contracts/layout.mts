@@ -1,6 +1,6 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.4';
-export const TOOL_REVISION = 'ts-parallel-3';
+export const TOOL_VERSION = '0.1.5-dev';
+export const TOOL_REVISION = 'resource-clarification-3';
 export const FORMAT_VERSIONS = { cases: 3, manifest: 4, results: 3, evidence: 3, report: 4, execution: 1, configuration: 1, workerPacket: 1, executionRead: 2 } as const;
 export const runtimeFiles = [
   'scripts/ego.mjs', 'scripts/toolchain.mjs', 'contracts/layout.mjs', 'contracts/ids.mjs', 'contracts/execution-model.mjs', 'contracts/targets.mjs',
@@ -14,8 +14,11 @@ export const runtimeFiles = [
   'schemas/execution-config.schema.json', 'schemas/execution-request.schema.json', 'schemas/execution.schema.json', 'schemas/worker-packet.schema.json', 'schemas/worker-draft.schema.json', 'schemas/execution-read.schema.json',
   'schemas/manifest-v3.schema.json', 'schemas/manifest-v4.schema.json', 'schemas/report-v3.schema.json', 'schemas/report-v4.schema.json',
   'docs/asset-formats.md', 'docs/asset-formats.en.md',
+  'docs/version-history.md', 'docs/version-history.en.md', 'docs/v0.1.5-local-acceptance.md',
+  'docs/images/version-history.svg', 'docs/images/version-history.zh-CN.svg',
+  'docs/images/version-history.png', 'docs/images/version-history.zh-CN.png',
   'examples/cases.example.json', 'examples/generated-cases.example.json',
   'examples/evidence-request.example.json', 'examples/record-request.example.json',
   'examples/project.example/brief.md', 'examples/project.example/feature-request.md', 'examples/project.example/usage.md'
 ];
-export const referenceNames = ['case-authoring', 'ego-usage-boundaries', 'evidence-and-report', 'judgment-and-diagnosis', 'local-toolbox', 'local-toolbox.en', 'test-strategy', 'parallel-testing'];
+export const referenceNames = ['case-authoring', 'ego-usage-boundaries', 'evidence-and-report', 'judgment-and-diagnosis', 'local-toolbox', 'local-toolbox.en', 'test-strategy', 'parallel-testing', 'resource-readiness'];

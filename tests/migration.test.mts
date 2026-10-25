@@ -8,13 +8,14 @@ import { SOURCE_ROOT, safePath } from '../src/scripts/ego.mjs';
 import { buildSkill } from '../tools/build-skill.mjs';
 import { checkPublication } from '../tools/public-check.mjs';
 
-test('TypeScript diagram generator reproduces all ten current SVGs and refuses overwrite', async t => {
+test('TypeScript diagram generator reproduces the complete bilingual SVG set and refuses overwrite', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-migration-'));
   t.after(async () => { assert.equal(path.dirname(root), path.resolve(os.tmpdir())); assert.ok(path.basename(root).startsWith('ego-migration-')); await fs.rm(root, { recursive: true, force: true }); });
   const target = path.join(root, 'images'), generated = await generateImages(target);
-  assert.equal(generated.svgFiles, 10);
+  const expectedNames = ['hero', 'architecture', 'workflow', 'result-specimen', 'parallel', 'version-history'].flatMap(name => [name + '.svg', name + '.zh-CN.svg']).sort();
+  assert.equal(generated.svgFiles, expectedNames.length);
   const names = (await fs.readdir(target)).filter(name => name.endsWith('.svg'));
-  assert.equal(names.length, 10);
+  assert.deepEqual(names.sort(), expectedNames);
   for (const name of names) assert.deepEqual(await fs.readFile(path.join(target, name)), await fs.readFile(path.join(SOURCE_ROOT, 'docs/images', name)), name);
   await assert.rejects(generateImages(target), { code: 'EEXIST' });
   for (const name of names) assert.deepEqual(await fs.readFile(path.join(target, name)), await fs.readFile(path.join(SOURCE_ROOT, 'docs/images', name)), name);

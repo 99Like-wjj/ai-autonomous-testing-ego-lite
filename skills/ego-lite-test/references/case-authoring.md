@@ -25,9 +25,13 @@
 
 basis.kind 三类严格区分：explicit 是原文明确规定；interpretation 是从明确来源推导但待确认的解释；hypothesis 是探索假设。模型信心高不构成 explicit。缺少业务判据时不从页面现状倒推预期。
 
+## 前提缺失与验收歧义分开
+
+根据[资源充分性指南](resource-readiness.md)识别实际账号、角色、项目、数据和观察条件是否适用；生成和接收用例都适用。`criticalConditions` 说明需要什么，不证明资源已具备或问题已问过。无法在原授权内确认或补齐的实质缺口，要实际向用户提问；草案说明和运行事实保留缺口，不混入仅表示整体验收未定的 `clarificationQuestions`。答复只解决其覆盖的条件。资源补齐满足原条件时不因此重写基线；变更固定身份、对象或输入则保存修订并重新冻结。缺口不阻止标明前提的草案，依赖它的实际动作仍须暂停。
+
 ## 完整最小格式
 
-使用 UTF-8 JSON。v0.1.3 / v0.1.4 的用例均使用 schemaVersion 3；v0.1.2 的 schemaVersion 2 用例不能直接使用，也没有迁移层。应从原始需求和来源重新整理用例并新建运行，不要只改版本字段。用例根对象只允许 schemaVersion、project、cases；project 非空白，cases 非空。
+使用 UTF-8 JSON。v0.1.3 / v0.1.4 / v0.1.5-dev 的用例均使用 schemaVersion 3；v0.1.2 的 schemaVersion 2 用例不能直接使用，也没有迁移层。应从原始需求和来源重新整理用例并新建运行，不要只改版本字段。用例根对象只允许 schemaVersion、project、cases；project 非空白，cases 非空。
 
 每个用例包含以下字段，不允许其他字段（除标明可选外均必需）：
 

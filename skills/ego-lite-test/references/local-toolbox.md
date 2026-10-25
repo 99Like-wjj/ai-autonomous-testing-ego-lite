@@ -1,6 +1,6 @@
-# 本地工具箱调用指南（v0.1.4）
+# 本地工具箱调用指南（v0.1.5-dev）
 
-`0.1.4` 的 `execution read` 默认只给摘要；单分派用 `--view assignment --assignment-id ID`，需要旧完整结构时显式 `--view full`。默认摘要／单例只检查元数据并明示历史证据未复核；`--integrity full` 可完整检查后仍返回摘要，完整视图始终严格检查，详见[并发指南](parallel-testing.md)。报告“尚无结果／尝试记录”只描述入账情况，不能由此断言用例未执行；执行状态和业务结论分别查看。
+`execution read` 默认只给摘要；单分派用 `--view assignment --assignment-id ID`，需要完整结构时显式 `--view full`。默认摘要／单例只检查元数据并明示历史证据未复核；`--integrity full` 可完整检查后仍返回摘要，完整视图始终严格检查，详见[并发指南](parallel-testing.md)。报告“尚无结果／尝试记录”只描述入账情况，不能由此断言用例未执行；执行状态和业务结论分别查看。
 
 工具只做本地数据事务与报告渲染。默认测试交付需要 HTML、JSON、Markdown；工具不可用应报告阻塞，不能以 Markdown 退回冒充完成。
 
@@ -11,7 +11,7 @@
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3
+node $Tool tool-info --expect-version 0.1.5-dev --expect-revision resource-clarification-3
 ```
 
 核对 toolRoot、skillFile、版本、revision 与 `formatVersions`（cases/results/evidence 为 3，manifest/report 为 4，execution/configuration/workerPacket 为 1）。构建包与独立安装均须 `installationIntegrity: verified`。指纹对应实际交付的编译 JS 与资源，不认证发布者。每次 CLI 也检查安装清单，缺失、混用或改动先报告，不覆盖不明用户修改。读取此根目录的格式指南和所需 Schema，命令始终指向同一绝对脚本路径。
@@ -23,6 +23,14 @@ node $Tool tool-info --expect-version 0.1.4 --expect-revision ts-parallel-3
 - `capturedAt` 仅来自来源提供的采集时间。未知时省略；`collectedAt` 由工具独立登记。
 - SHA-256 只校验留存字节与 catalog 值一致，不能证明真实性、来源身份或结论正确。
 - 业务用例／结果／证据沿用 v3，新建执行的 manifest/report 为 v4，新增配置／执行台账／交付包为 v1。已有 v3 run 不原地升级，可继续核验／记录并另存报告；v0.1.2 的 v2 仍不支持，不改版本号冒充兼容。
+
+## 复用工具记录资源缺口
+
+按[资源充分性指南](resource-readiness.md)由 AI 判断前提、缺口及可继续范围。用现有 `observed/rationale/remainingQuestions` 记录事实和问题，`evidence-add` 保存必要脱敏依据，或通过既有 worker 包和显式目标评估导入；不改冻结的验收问题。`progress` 只给状态与用例 ID，`pendingClarification` 只统计冻结验收疑问；要看当前缺口详情按需用 `check` 读完整 case 记录。
+
+辅助资源笔记不自动受 `verify-report` 校验，必要依据进入现有结果/目标评估/证据链。资源恢复后新增观察，保留原受阻记录；只有原冻结语义保持时才继续同一基线。工具不因收到回答自动判就绪或重试业务。
+
+同一问答或核验事实按需用 `evidence-add` 登记普通文本/JSON 副本，后续结果引用回执中的证据 ID；准备摘要复用相同来源或注明截至时点，不复制成另一份当前事实。沿用现有证据和结果修订保存变化，工具不解析文字来决定资源齐备或下一动作。
 
 ## 创建和检查运行
 

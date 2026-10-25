@@ -25,13 +25,14 @@ function renderOffline(html: string) {
   const text = (node: FakeElement): string => [node.textContent, ...node.children.map(text)].join(' ');
   return { nodes, text };
 }
-async function fixture(t: TestContext, options: { limit?: number; count?: number; projectConfig?: unknown; fileConfig?: unknown; explicitFile?: string } = {}) {
+async function fixture(t: TestContext, options: { limit?: number; count?: number; projectConfig?: unknown; fileConfig?: unknown; explicitFile?: string; firstCaseConditions?: string[]; firstCaseQuestions?: string[] } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-execution-'));
   t.after(async () => { assert.equal(path.dirname(root), path.resolve(os.tmpdir())); assert.ok(path.basename(root).startsWith('ego-execution-')); await fs.rm(root, { recursive: true, force: true }); });
   const project = path.join(root, 'project'), run = path.join(root, 'run'); await init(project);
   const baseline: Baseline = { schemaVersion: 3, project: 'Synthetic transaction testing only', cases: Array.from({ length: options.count ?? 14 }, (_, i) => ({
     id: 'case-' + i, title: 'Synthetic case ' + i, basis: { kind: 'explicit', source: 'Synthetic fixture, not a business system', text: 'Synthetic values are kept with their case.' },
-    criticalConditions: ['Use only the synthetic fixture.'], expected: 'The synthetic value is associated with this case.', requiredPath: 'Synthetic entry', stepOrder: 'strict',
+    criticalConditions: i === 0 ? options.firstCaseConditions ?? ['Use only the synthetic fixture.'] : ['Use only the synthetic fixture.'], expected: 'The synthetic value is associated with this case.', requiredPath: 'Synthetic entry', stepOrder: 'strict',
+    ...(i === 0 && options.firstCaseQuestions ? { clarificationQuestions: options.firstCaseQuestions } : {}),
     steps: [{ id: 'open', action: 'Open the synthetic fixture.' }, { id: 'inspect', action: 'Inspect this case value.' }]
   })) };
   const casesFile = path.join(project, 'cases.json'); await write(casesFile, baseline);
@@ -64,6 +65,82 @@ async function fixture(t: TestContext, options: { limit?: number; count?: number
   const importRequest = async (packetFile: string, operationId = 'import-' + ++sequence, extra: Record<string, unknown> = {}) => ({ schemaVersion: 1, operationId, expectedRevision: (await readExecutionView(run)).revision, reason: 'Synthetic reviewed import.', kind: 'import', packetFile, review: { decision: 'accept', reviewer: 'Synthetic coordinator', rationale: 'Synthetic evidence reviewed against the frozen goals.' }, ...extra });
   return { root, project, run, baseline, casesFile, request, inventory, reserve, attach, packet, importRequest };
 }
+
+async function resourceGap(f: Awaited<ReturnType<typeof fixture>>, assignmentId: string, packetId: string) {
+  const state = await readExecutionView(f.run), a = state.assignments.find(a => a.id === assignmentId); assert.ok(a);
+  const c = f.baseline.cases.find(c => c.id === a.caseId); assert.ok(c);
+  const draftFile = path.join(f.run, ...a.workerDirectory.split('/'), packetId + '-draft.json');
+  await write(draftFile, {
+    packetId, mode: 'final',
+    record: { status: 'blocked', observed: 'Synthetic reader session has not been supplied. No UI action was attempted.', rationale: 'A required synthetic session is missing; the product outcome is untested.', remainingQuestions: ['Provide the synthetic reader session.'], evidenceKeys: [], cause: 'environment' },
+    evidence: [],
+    goalAssessments: [{ targets: requiredTargets(c), status: 'not_tested', observed: '', rationale: 'No goal check was performed while the synthetic resource was missing.', evidenceKeys: [] }],
+    spaceUsage: [{ spaceId: null, reason: 'No browser was used or Space created; the existing ID field has no not-used variant.', evidenceKeys: [] }]
+  });
+  return sealPacket({ runDir: f.run, assignment: assignmentId, draftFile });
+}
+
+test('resource gaps reuse blocked records and explicit untested goals while an independent case completes', async t => {
+  const f = await fixture(t, { count: 2, limit: 2, firstCaseConditions: ['An authorized synthetic reader session is available.'] });
+  const baselineBefore = await fs.readFile(path.join(f.run, 'baseline.json'));
+  await f.inventory(); const affected = await f.reserve('case-0'), independent = await f.reserve('case-1');
+  const gap = await resourceGap(f, affected.id, 'missing-reader');
+  await executeRequest({ runDir: f.run, request: await f.importRequest(gap.packetFile) });
+  await f.request('reconcile', { assignmentId: affected.id, state: 'paused', inFlight: false });
+  const other = await f.packet(independent.id);
+  await executeRequest({ runDir: f.run, request: await f.importRequest(other.sealed.packetFile) });
+  await f.request('reconcile', { assignmentId: independent.id, state: 'completed', inFlight: false });
+  const checked = await check(f.run), blocked = checked.cases.find(c => c.id === 'case-0'); assert.ok(blocked);
+  assert.deepEqual(checked.counts, { pass: 1, fail: 0, inconclusive: 0, blocked: 1, not_run: 0 });
+  assert.deepEqual(blocked.clarificationQuestions ?? [], []);
+  assert.deepEqual(blocked.remainingQuestions, ['Provide the synthetic reader session.']);
+  assert.equal(checked.progress.pendingClarification.count, 0);
+  assert.ok((await readExecutionView(f.run)).assignments.find(a => a.id === affected.id)?.goalAssessments.every(goal => goal.status === 'not_tested'));
+  assert.deepEqual(await fs.readFile(path.join(f.run, 'baseline.json')), baselineBefore);
+  const out = await report(f.run), rendered = renderOffline(await fs.readFile(out.reportHtml, 'utf8'));
+  const displayed = rendered.text(rendered.nodes['case-list']);
+  assert.match(displayed, /未测试/); assert.match(displayed, /Provide the synthetic reader session/);
+  assert.equal((await verifyReport(f.run)).filesVerified, true);
+});
+
+test('supplied resources can be recorded under the same baseline without losing blocked history or prior reports', async t => {
+  const f = await fixture(t, { count: 1, firstCaseConditions: ['An authorized synthetic reader session is available.'] });
+  const baselineBefore = await fs.readFile(path.join(f.run, 'baseline.json'));
+  await f.inventory(); const first = await f.reserve('case-0'), gap = await resourceGap(f, first.id, 'initial-gap');
+  await executeRequest({ runDir: f.run, request: await f.importRequest(gap.packetFile) });
+  await f.request('reconcile', { assignmentId: first.id, state: 'paused', inFlight: false });
+  const priorDir = path.join(f.root, 'before-resources'); await fs.mkdir(priorDir);
+  const prior = await report(f.run, { outputDir: priorDir }), reportBefore = await fs.readFile(prior.reportHtml), packetBefore = await fs.readFile(gap.packetFile);
+  const resumed = await f.reserve('case-0'), supplied = await f.packet(resumed.id, { packetId: 'verified-after-supply' });
+  await executeRequest({ runDir: f.run, request: await f.importRequest(supplied.sealed.packetFile) });
+  await f.request('reconcile', { assignmentId: resumed.id, state: 'completed', inFlight: false });
+  const checked = await check(f.run), current = at(checked.cases);
+  assert.equal(current.status, 'pass'); assert.equal(current.attempts.length, 1);
+  assert.equal(at(current.attempts).status, 'blocked');
+  assert.deepEqual(at(current.attempts).remainingQuestions, ['Provide the synthetic reader session.']);
+  assert.deepEqual(current.remainingQuestions, []);
+  assert.deepEqual(await fs.readFile(path.join(f.run, 'baseline.json')), baselineBefore);
+  assert.deepEqual(await fs.readFile(gap.packetFile), packetBefore);
+  assert.deepEqual(await fs.readFile(prior.reportHtml), reportBefore);
+  assert.equal((await readExecutionView(f.run)).imports.filter(i => i.phase === 'complete').length, 2);
+  const out = await report(f.run), rendered = renderOffline(await fs.readFile(out.reportHtml, 'utf8'));
+  assert.match(rendered.text(rendered.nodes['case-list']), /Provide the synthetic reader session/);
+  assert.equal((await verifyReport(f.run)).filesVerified, true);
+});
+
+test('resource recovery does not resolve frozen acceptance questions or permit pass/fail', async t => {
+  const f = await fixture(t, { count: 1, firstCaseQuestions: ['What synthetic behavior is accepted?'] });
+  const baselineBefore = await fs.readFile(path.join(f.run, 'baseline.json'));
+  await f.inventory(); const first = await f.reserve('case-0'), gap = await resourceGap(f, first.id, 'resource-and-spec-gap');
+  await executeRequest({ runDir: f.run, request: await f.importRequest(gap.packetFile) });
+  await f.request('reconcile', { assignmentId: first.id, state: 'paused', inFlight: false });
+  const resumed = await f.reserve('case-0');
+  await assert.rejects(f.packet(resumed.id, { packetId: 'resource-supplied-but-acceptance-pending' }), /Pending clarification/);
+  const checked = await check(f.run);
+  assert.equal(checked.counts.pass, 0); assert.equal(checked.counts.fail, 0);
+  assert.equal(checked.progress.pendingClarification.count, 1);
+  assert.deepEqual(await fs.readFile(path.join(f.run, 'baseline.json')), baselineBefore);
+});
 
 test('v4 run snapshots configuration; precedence and later project edits are explicit', async t => {
   const f = await fixture(t, { limit: 8, projectConfig: { schemaVersion: 1, maxParallelCases: 4 }, fileConfig: { schemaVersion: 1, maxParallelCases: 6 } });
