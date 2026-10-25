@@ -4,19 +4,19 @@
 
 The AI interprets goals and judges business outcomes, Ego operates the browser, and local tools retain evidence and deliver reports.
 
-![Evolution: v0.1.2 business steps and acceptance questions; v0.1.3 evidence-rich delivery; v0.1.4 configurable concurrency; v0.1.5 development guidance for resource clarification. Illustration, not execution evidence.](images/version-history.png)
+![Evolution: v0.1.2 business steps and acceptance questions; v0.1.3 evidence-rich delivery; v0.1.4 configurable concurrency; v0.1.5 guidance for resource clarification. Illustration, not execution evidence.](images/version-history.png)
 
-## In development: v0.1.5-dev
+## v0.1.5 · Resource clarification
 
-**Not formally released; scoped behavioral acceptance has been completed.** The source adds resource-readiness guidance, discoverable from the Skill entrypoint. The AI infers prerequisites from each goal, checks available facts within authorization, asks about material gaps, pauses dependent actions and may continue independent authorized work. Supplied resources require verification before resuming; new dependencies can emerge during execution.
+**Formal version: 2026-10-25.** [Release, package and checksums](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5). Scoped behavioral acceptance has been completed. The source adds resource-readiness guidance, discoverable from the Skill entrypoint. The AI infers prerequisites from each goal, checks available facts within authorization, asks about material gaps, pauses dependent actions and may continue independent authorized work. Supplied resources require verification before resuming; new dependencies can emerge during execution.
 
 Acceptance ambiguity, resource availability and permission to act remain separate. Existing evidence, result and worker-packet tools are reused; no new resource JSON contract or fixed business workflow is introduced. Cases/results/evidence v3 and manifest/report v4 remain unchanged. This page and bilingual overview images explain the history.
 
-The AI still judges sufficiency, questions and recovery. Auxiliary notes are not automatically covered by report verification. Engineering checks do not prove reliable behavior in real projects. Use a complete Node.js 22+ package for separate acceptance; installation replacement, merging and publishing require their respective authorization.
+The AI still judges sufficiency, questions and recovery. Auxiliary notes are not automatically covered by report verification. Engineering checks do not prove reliable behavior in real projects. The complete Node.js 22+ package and Codex Skill metadata report 0.1.5 without a dev suffix. Repository/Skill identifiers are ai-autonomous-testing-ego-lite; see the [rename guide](rename-upgrade.md) before an authorized installation migration. Formal release does not imply every scenario is verified.
 
 ## Released versions
 
-Times below are GitHub published_at converted to Asia/Shanghai. Development dates in the historical changelog retain their original meaning.
+Earlier release times below are GitHub published_at converted to Asia/Shanghai; use the v0.1.5 Release for its exact publication time. Development dates in the historical changelog retain their original meaning.
 
 ### v0.1.4 · Configurable concurrency
 

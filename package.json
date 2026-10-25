@@ -1,6 +1,6 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.5-dev",
+  "version": "0.1.5",
   "egoLiteTest": {
     "toolRevision": "branding-rename-1",
     "formatVersions": {

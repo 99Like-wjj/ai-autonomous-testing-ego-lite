@@ -1,13 +1,13 @@
 # 本地资产格式与运行约定（v3 业务核心、v4 执行）
 
-## v0.1.5-dev 当前格式总览
+## v0.1.5 当前格式总览
 
-本开发版没有新增资源 JSON 契约。资源缺口复用 observed/rationale/remainingQuestions 和显式目标评估/证据，clarificationQuestions 继续只表示验收待澄清。pendingClarification 不统计全部资源缺口；辅助笔记未集成时不属于 verify-report 的核验输入。
+本版没有新增资源 JSON 契约。资源缺口复用 observed/rationale/remainingQuestions 和显式目标评估/证据，clarificationQuestions 继续只表示验收待澄清。pendingClarification 不统计全部资源缺口；辅助笔记未集成时不属于 verify-report 的核验输入。
 
 用例、结果、证据继续使用 v3；新运行 manifest 与报告使用 v4；执行台账、配置、worker 交付包使用 v1；查询视图使用 v2。既有 v3 运行保留原格式且可继续核验；下方 v0.1.3 段落是基础记录语义的历史背景，不表示新运行仍是 v3。并发字段与命令详见本文后部的 v0.1.4 章节。
 
 
-当前 `0.1.5-dev`（沿用 v0.1.4 契约）：cases/baseline/results/evidence 仍为 v3；新 manifest/report 为 v4；配置、执行台账、worker 交付包为 v1。`schemas/manifest.schema.json`、`report.schema.json` 显式区分 v3/v4。以下 v3 字段语义继续适用，不代表所有新运行仍为 v3。并行调用见工具根的 `references/parallel-testing.md`，源码位于 `skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md`。
+当前 `0.1.5`（沿用 v0.1.4 契约）：cases/baseline/results/evidence 仍为 v3；新 manifest/report 为 v4；配置、执行台账、worker 交付包为 v1。`schemas/manifest.schema.json`、`report.schema.json` 显式区分 v3/v4。以下 v3 字段语义继续适用，不代表所有新运行仍为 v3。并行调用见工具根的 `references/parallel-testing.md`，源码位于 `skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md`。
 
 `execution read` 默认返回 `schemas/execution-read.schema.json` 定义的摘要视图（`viewVersion:2`），支持单分派视图及显式 `--view full` 原完整输出；内部 `readExecutionView` 完整读取接口保持不变。摘要不写入 run，也不改变上述存档格式。摘要／单例默认只校验元数据，integrity 对象明示结果与证据未复核；加 `--integrity full` 可完整检查后仍返回紧凑内容，完整视图始终严格检查。轻量查询发现恢复标记只提示，不自动恢复。新报告使用“尚无结果／尝试记录”“已有尝试记录，尚无最终结论”，不从入账情况推断实际是否执行；下文 v0.1.3 展示说明保留其历史语义。
 

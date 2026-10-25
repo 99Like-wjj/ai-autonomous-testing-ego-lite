@@ -1,4 +1,4 @@
-# 本地工具箱调用指南（v0.1.5-dev）
+# 本地工具箱调用指南（v0.1.5）
 
 `execution read` 默认只给摘要；单分派用 `--view assignment --assignment-id ID`，需要完整结构时显式 `--view full`。默认摘要／单例只检查元数据并明示历史证据未复核；`--integrity full` 可完整检查后仍返回摘要，完整视图始终严格检查，详见[并发指南](parallel-testing.md)。报告“尚无结果／尝试记录”只描述入账情况，不能由此断言用例未执行；执行状态和业务结论分别查看。
 
@@ -11,7 +11,7 @@
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.5-dev --expect-revision branding-rename-1
+node $Tool tool-info --expect-version 0.1.5 --expect-revision branding-rename-1
 ```
 
 核对 toolRoot、skillFile、版本、revision 与 `formatVersions`（cases/results/evidence 为 3，manifest/report 为 4，execution/configuration/workerPacket 为 1）。构建包与独立安装均须 `installationIntegrity: verified`。指纹对应实际交付的编译 JS 与资源，不认证发布者。每次 CLI 也检查安装清单，缺失、混用或改动先报告，不覆盖不明用户修改。读取此根目录的格式指南和所需 Schema，命令始终指向同一绝对脚本路径。

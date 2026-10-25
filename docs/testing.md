@@ -1,5 +1,11 @@
 # 验证记录与覆盖边界
 
+## v0.1.5 正式版本收尾（2026-10-25，云端）
+
+按用户确认开发完成及合并/发布要求，将 package、工具常量、Skill 元数据、调用校验和完整包统一为 0.1.5；Codex 展示配置不带 dev 标识。正式版本再次完成 Linux / Node v24.22.1 严格类型、契约/编译、100/100 合成测试（0 FAIL、0 SKIP）、Skill 与源码/安装包公开检查。独立包包含 agents/openai.yaml，tool-info 输出 0.1.5 / branding-rename-1 且 installationIntegrity=verified。版本/名称同步不改变业务代码和数据格式。
+
+Windows、真实 Codex 注册/展示与业务验收未在本次云端收尾重跑，用户电脑上的旧安装没有被自动替换。下面保留各开发 revision 的原始范围，不将其结果扩大为全面验证。
+
 ## 名称变更复核（2026-10-25，云端）
 
 基线 c754141c（resource-clarification-3）在 Linux / Node v24.22.1 通过 99/99 合成测试。更名候选 0.1.5-dev / branding-rename-1 通过严格类型、契约/编译、100/100 合成测试（0 FAIL、0 SKIP）、Skill 格式校验与当前源码公开检查。新增检查覆盖新包/Skill identity、Codex 展示配置分发及篡改拒绝；完整包从异目录执行 tool-info、init/start/report/verify-report 的回归通过。中英文头图已检查，无溢出。

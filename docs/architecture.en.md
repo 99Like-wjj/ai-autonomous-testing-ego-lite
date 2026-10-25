@@ -1,6 +1,6 @@
 # Architecture and trust boundaries
 
-## Current v0.1.5-dev architecture
+## Current v0.1.5 architecture
 
 The AI infers resource needs from goals and facts, using guidance loaded from the entrypoint and existing evidence/result/packet/report tools. Acceptance ambiguity, resource availability and authorization stay separate. No new resource state machine, scheduler or fixed business route is added; supplied resources require verification and auxiliary notes are not automatically report-verified. See the [resource guide (Chinese)](../skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md).
 

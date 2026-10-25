@@ -1,5 +1,11 @@
 # Validation record and coverage limits
 
+## v0.1.5 formal-version closeout (2026-10-25, cloud)
+
+Following user confirmation and merge/release authorization, package, tool constants, Skill metadata and invocation checks now use 0.1.5 without a dev suffix. The formal version passed strict types, contracts/build, 100/100 synthetic tests (0 failures/skips), Skill validation and source/installed-package publication checks on Linux / Node v24.22.1. The standalone package ships agents/openai.yaml and tool-info reports 0.1.5 / branding-rename-1 with verified integrity. Business code and data formats are unchanged.
+
+Windows, live Codex registration/UI and business acceptance were not rerun during cloud closeout; existing user installations were not replaced. Earlier development evidence retains its original scope.
+
 ## Naming review (2026-10-25, cloud)
 
 Baseline c754141c (resource-clarification-3) passed 99/99 synthetic tests on Linux / Node v24.22.1. Candidate 0.1.5-dev / branding-rename-1 passed strict types, schema/build checks, 100/100 synthetic tests (0 failures/skips), Skill validation and source publication checks. Coverage includes renamed identity, shipped Codex metadata, tamper refusal and standalone tool-info/init/start/report/verify-report from an unrelated cwd. Both hero images were visually checked.

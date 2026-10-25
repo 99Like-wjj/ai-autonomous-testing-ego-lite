@@ -34,7 +34,7 @@ export async function generateImages(outputDir: string) {
     const t = (en: string, cn: string): string => zh ? cn : en;
     let p = start(t("AI Autonomous Testing · Ego Lite", "AI 自主自动化测试 · Ego Lite"), 540);
     p.push(...[text(54, 64, t("AI AUTONOMOUS TESTING / EGO LITE", "AI 自主自动化测试 / EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test new features.", "新功能首次交付，"), 48, "text", 700), text(54, 198, t("Let AI plan the checks.", "让 AI 自主规划测试。"), 48, "text", 700), text(56, 246, t("New web projects and feature launches. Rules, actions, and evidence.", "面向新项目上线前、新功能交付时的 Web 业务验证"), 20, "muted")]);
-    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW", "03  核验与交付"), 16, "cyan", 700), text(835, 370, t("Evidence + verdict", "证据与结论"), 23), text(835, 403, t("Show gaps and evidence", "说明证据与未验证项"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.5-dev  /  SCOPED CHECKS VERIFIED", "开发版 0.1.5-dev  /  限定场景专项已验证"), 16, "muted")]);
+    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW", "03  核验与交付"), 16, "cyan", 700), text(835, 370, t("Evidence + verdict", "证据与结论"), 23), text(835, 403, t("Show gaps and evidence", "说明证据与未验证项"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.5  /  SCOPED CHECKS VERIFIED", "版本 0.1.5  /  限定场景专项已验证"), 16, "muted")]);
     await save(outputDir, ("hero" + suffix), p, png);
     p = start(t("Who owns what?", "谁负责什么？"), 650);
     p.push(...[text(50, 65, t("AI decides. Ego operates. Tools keep records.", "AI 做判断，Ego 做操作，工具管记录。"), 35, "text", 700), text(50, 103, t("Use the current AI session and Ego. No extra model API service.", "复用当前 AI 会话和 Ego 浏览器，不另建模型 API 服务。"), 20, "muted")]);
@@ -100,9 +100,9 @@ export async function generateImages(outputDir: string) {
       p.push(text(126, v.y + 82, v.title, 31, "text", 700));
       p.push(...v.rows.map((row, i) => text(126, v.y + 123 + i * 34, row, 25, "muted")));
     }
-    p.push(text(48, 805, t("IN DEVELOPMENT · NOT RELEASED", "开发中 · 尚未发布"), 24, "violet", 700));
+    p.push(text(48, 805, t("v0.1.5 · RELEASE", "v0.1.5 · 正式版本"), 24, "violet", 700));
     p.push(rect(48, 830, 744, 200, "panel", "violet").replace("/>", ' stroke-dasharray="8 6"/>'));
-    p.push(text(74, 874, "v0.1.5-dev", 32, "violet", 700));
+    p.push(text(74, 874, "v0.1.5", 32, "violet", 700));
     p.push(text(74, 918, t("Clarify missing resources", "资源不足，主动澄清"), 32, "text", 700));
     p.push(text(74, 960, t("Pause affected actions; verify before resuming.", "暂停依赖动作，补充后核验"), 25, "muted"));
     p.push(text(74, 997, t("Scoped checks verified; broader use untested.", "限定场景已验证，广泛场景待验证"), 25, "muted"));
