@@ -1,8 +1,14 @@
 # 验证记录与覆盖边界
 
+## 名称变更复核（2026-10-25，云端）
+
+基线 c754141c（resource-clarification-3）在 Linux / Node v24.22.1 通过 99/99 合成测试。更名候选 0.1.5-dev / branding-rename-1 通过严格类型、契约/编译、100/100 合成测试（0 FAIL、0 SKIP）、Skill 格式校验与当前源码公开检查。新增检查覆盖新包/Skill identity、Codex 展示配置分发及篡改拒绝；完整包从异目录执行 tool-info、init/start/report/verify-report 的回归通过。中英文头图已检查，无溢出。
+
+仅更名、包装与指引同步；README 中文标题、数据契约、历史报告框架、官方 Ego API 保持。用户级安装与真实 Codex 展示/发现、Windows 和真实业务未在本轮重测；既有专项结果仍属于下列历史 revision，不扩大解释。更名不是合并 main 或正式发布。
+
 ## 澄清漏问修订（2026-10-25）
 
-当前候选 revision 为 resource-clarification-3。修订及实际验证见[v0.1.5 验证记录](v0.1.5-validation.md)，真实行为按[本地验收步骤](v0.1.5-local-acceptance.md)观察；下面保留旧 revision 的当时结果，不代表本轮行为已通过。
+更名前的候选 revision 为 resource-clarification-3。修订及实际验证见[v0.1.5 验证记录](v0.1.5-validation.md)，真实行为按[本地验收步骤](v0.1.5-local-acceptance.md)观察；下面保留旧 revision 的当时结果，不代表本轮行为已通过。
 
 ## v0.1.5 开发验证（2026-10-24，Windows）
 

@@ -1,8 +1,8 @@
 {
-  "name": "ego-lite-test-skill",
+  "name": "ai-autonomous-testing-ego-lite",
   "version": "0.1.5-dev",
   "egoLiteTest": {
-    "toolRevision": "resource-clarification-3",
+    "toolRevision": "branding-rename-1",
     "formatVersions": {
       "cases": 3,
       "manifest": 4,
@@ -15,7 +15,7 @@
       "executionRead": 2
     }
   },
-  "description": "Unofficial AI-led Ego Lite testing skill with local evidence records and offline HTML reports.",
+  "description": "AI autonomous Web test automation with Ego Lite: evidence-driven planning, execution and offline HTML reports.",
   "private": true,
   "type": "module",
   "license": "MIT",

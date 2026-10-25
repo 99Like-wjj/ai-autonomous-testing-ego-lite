@@ -1,8 +1,14 @@
 # Validation record and coverage limits
 
+## Naming review (2026-10-25, cloud)
+
+Baseline c754141c (resource-clarification-3) passed 99/99 synthetic tests on Linux / Node v24.22.1. Candidate 0.1.5-dev / branding-rename-1 passed strict types, schema/build checks, 100/100 synthetic tests (0 failures/skips), Skill validation and source publication checks. Coverage includes renamed identity, shipped Codex metadata, tamper refusal and standalone tool-info/init/start/report/verify-report from an unrelated cwd. Both hero images were visually checked.
+
+This is a naming/packaging update, not a main merge or formal release. The Chinese README heading, data contracts, historical report framework and official Ego API remain unchanged. User installation, live Codex discovery/UI, Windows and real business behavior were not retested; earlier behavioral results retain their original revision scope.
+
 ## Clarification repair (2026-10-25)
 
-The current candidate is resource-clarification-3. See the [validation record](v0.1.5-validation.md) and [conversation acceptance steps](v0.1.5-local-acceptance.md). Earlier revision results below are historical and do not establish this candidate's behavioral outcome.
+The pre-rename candidate was resource-clarification-3. See the [validation record](v0.1.5-validation.md) and [conversation acceptance steps](v0.1.5-local-acceptance.md). Earlier revision results below are historical and do not establish this candidate's behavioral outcome.
 
 ## v0.1.5 development validation (2026-10-24, Windows)
 

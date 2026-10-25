@@ -8,7 +8,7 @@ The helper performs local data transactions and rendering. Unless the user expli
 
 Use the absolute directory containing the actually loaded `SKILL.md` as the installed tool root. A complete installation includes scripts, schemas, docs, examples, and `runtime-manifest.json`. For source development run npm ci and npm run build at the confirmed root, then use .build/runtime; never infer it by walking up from an installed Skill or choosing a similarly named preview directory.
 
-Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.5-dev --expect-revision resource-clarification-3`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
+Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.5-dev --expect-revision branding-rename-1`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
 
 ## Boundaries
 

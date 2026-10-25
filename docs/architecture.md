@@ -2,7 +2,7 @@
 
 ## v0.1.5-dev 当前架构
 
-本版资源充分性分析由 AI 根据目标及事实完成，入口加载资源指南，复用已有记录/证据/交付包/报告。验收歧义、资源可用性与操作授权分别表达；没有新增资源状态机、调度器或固定业务路径。资源补充后仍须核实，辅助笔记不自动纳入报告校验，详见[资源指南](../skills/ego-lite-test/references/resource-readiness.md)。
+本版资源充分性分析由 AI 根据目标及事实完成，入口加载资源指南，复用已有记录/证据/交付包/报告。验收歧义、资源可用性与操作授权分别表达；没有新增资源状态机、调度器或固定业务路径。资源补充后仍须核实，辅助笔记不自动纳入报告校验，详见[资源指南](../skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md)。
 
 ![可配置并发、独立分派与复核汇总的职责。](images/parallel.zh-CN.svg)
 
@@ -14,7 +14,7 @@ AI 自主决定工具调用、执行批次，以及由当前会话执行还是�
 
 worker 仅写本分派目录，`packet-seal` 校验全部目标引用并计算证据哈希；协调者独立看原目标和证据后串行导入公共结果。导入记录准备请求、已提交证据／结果及回执，原样重放同一操作可恢复丢失响应。冲突的未执行事务只能经显式新操作重新准备；不重做页面业务。丢失／在途 worker 保留名额，不能仅因超时回收。
 
-新 manifest／report 为 v4，执行／配置／worker 包为 v1，cases／results／evidence 仍为 v3。既有 v3 运行保持原格式；报告可验证旧渲染框架而不运行旧版源码。v4 报告逐项显示 AI 提交的四态与证据，并区分名额峰值和有来源的执行区间。图示与以下 v0.1.3 说明保留为历史背景；完整并发协议见 [并发指南](../skills/ego-lite-test/references/parallel-testing.md)。
+新 manifest／report 为 v4，执行／配置／worker 包为 v1，cases／results／evidence 仍为 v3。既有 v3 运行保持原格式；报告可验证旧渲染框架而不运行旧版源码。v4 报告逐项显示 AI 提交的四态与证据，并区分名额峰值和有来源的执行区间。图示与以下 v0.1.3 说明保留为历史背景；完整并发协议见 [并发指南](../skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md)。
 
 ## v0.1.3 架构背景（历史）
 

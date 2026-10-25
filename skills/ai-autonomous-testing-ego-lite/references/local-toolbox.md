@@ -6,12 +6,12 @@
 
 ## 确认实际根目录与版本
 
-独立安装／测试编译包的 `ToolRoot` 是本次实际加载的 `SKILL.md` 所在绝对目录，包含 `scripts/`、`schemas/`、`docs/`、`examples/` 和 `runtime-manifest.json`。源码采用 TS；先在已确认仓库执行 `npm ci`、`npm run build`，工具根为该仓库的 `.build/runtime`。安装用户只需 Node.js >=22，无需编译器。不要把源码 `skills/ego-lite-test` 子目录当作工具根，不向上猜目录，也不自动更新用户安装。
+独立安装／测试编译包的 `ToolRoot` 是本次实际加载的 `SKILL.md` 所在绝对目录，包含 `scripts/`、`schemas/`、`docs/`、`examples/` 和 `runtime-manifest.json`。源码采用 TS；先在已确认仓库执行 `npm ci`、`npm run build`，工具根为该仓库的 `.build/runtime`。安装用户只需 Node.js >=22，无需编译器。不要把源码 `skills/ai-autonomous-testing-ego-lite` 子目录当作工具根，不向上猜目录，也不自动更新用户安装。
 
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.5-dev --expect-revision resource-clarification-3
+node $Tool tool-info --expect-version 0.1.5-dev --expect-revision branding-rename-1
 ```
 
 核对 toolRoot、skillFile、版本、revision 与 `formatVersions`（cases/results/evidence 为 3，manifest/report 为 4，execution/configuration/workerPacket 为 1）。构建包与独立安装均须 `installationIntegrity: verified`。指纹对应实际交付的编译 JS 与资源，不认证发布者。每次 CLI 也检查安装清单，缺失、混用或改动先报告，不覆盖不明用户修改。读取此根目录的格式指南和所需 Schema，命令始终指向同一绝对脚本路径。

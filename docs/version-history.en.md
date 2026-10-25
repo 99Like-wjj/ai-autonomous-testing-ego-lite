@@ -20,7 +20,7 @@ Times below are GitHub published_at converted to Asia/Shanghai. Development date
 
 ### v0.1.4 · Configurable concurrency
 
-**Formal release, 2026-10-24 19:56.** [Release, package and checksums](https://github.com/99Like-wjj/ego-lite-test-skill/releases/tag/v0.1.4)
+**Formal release, 2026-10-24 19:56.** [Release, package and checksums](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.4)
 
 Independent cases may run within explicit user limits; the default is serial. Native workers seal evidence for coordinator review. Execution records track Spaces, deviations, unfinished work and explicit per-goal assessments. Maintained TypeScript is distributed as compiled JavaScript.
 
@@ -28,7 +28,7 @@ New manifests/reports use v4; business records remain v3. Execution/configuratio
 
 ### v0.1.3 · Evidence and complete delivery
 
-**Formal release, 2026-10-23 00:05.** [Release, package and checksums](https://github.com/99Like-wjj/ego-lite-test-skill/releases/tag/v0.1.3)
+**Formal release, 2026-10-23 00:05.** [Release, package and checksums](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.3)
 
 Evidence registration, revisioned results, retained attempts, progress and integrity checks make conclusions reviewable. Default delivery includes offline HTML, JSON and Markdown, with real screenshots required for key UI conclusions. Complete packages and report readback address missing-tool and delivery gaps; retrospective assembly preserves original records.
 
@@ -36,7 +36,7 @@ Assets moved to v3. Rebuild v2 cases from original sources into a new run; do no
 
 ### v0.1.2 · Business-intent steps
 
-**Experimental prerelease, 2026-10-22 17:11.** [Prerelease, package and checksums](https://github.com/99Like-wjj/ego-lite-test-skill/releases/tag/v0.1.2)
+**Experimental prerelease, 2026-10-22 17:11.** [Prerelease, package and checksums](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.2)
 
 Business-intent actions and optional step checkpoints avoid inventing UI details. Overall expectations and sources remain required. Acceptance questions prevent pass/fail until resolved. External and AI-authored cases share the format and can be drafted without execution.
 

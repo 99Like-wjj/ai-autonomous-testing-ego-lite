@@ -2,7 +2,7 @@
 
 ## Current v0.1.5-dev architecture
 
-The AI infers resource needs from goals and facts, using guidance loaded from the entrypoint and existing evidence/result/packet/report tools. Acceptance ambiguity, resource availability and authorization stay separate. No new resource state machine, scheduler or fixed business route is added; supplied resources require verification and auxiliary notes are not automatically report-verified. See the [resource guide (Chinese)](../skills/ego-lite-test/references/resource-readiness.md).
+The AI infers resource needs from goals and facts, using guidance loaded from the entrypoint and existing evidence/result/packet/report tools. Acceptance ambiguity, resource availability and authorization stay separate. No new resource state machine, scheduler or fixed business route is added; supplied resources require verification and auxiliary notes are not automatically report-verified. See the [resource guide (Chinese)](../skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md).
 
 ![Configurable concurrency, independent assignments and reviewed aggregation.](images/parallel.svg)
 
@@ -12,7 +12,7 @@ All maintained programs use strict TypeScript. Node `.mts` compiles to ESM `.mjs
 
 The AI chooses tool calls, batches and whether to execute directly or use native host workers. Default concurrency is 1 (serial) without a user concurrency request or explicit configuration; a separate worker per case is optional. `src/execution/` handles configuration, declared resource reservations, ownership receipts, immutable worker packets and explicitly reviewed imports. It does not schedule business actions, run model services or retry browser writes. Configured concurrency (no fixed product cap or requirement to fill all slots) and known host capacity are distinct; unknown host limits remain unknown. Space deviations and authorized recovery are recorded, without claiming a sandbox or account isolation.
 
-Workers write only their assignment directory. The coordinator reviews original goals and evidence before importing into shared records. Persisted requests/checkpoints support identical data-operation replay; a confirmed unapplied conflict requires an explicit new transaction. Unknown/in-flight workers keep their slot. New manifests/reports use v4; execution/configuration/packets use v1 and business cases/results/evidence remain v3. Existing v3 runs retain their format. Reports show per-goal assessments separately from execution state and distinguish reservation peaks from sourced execution intervals. See the [parallel protocol](../skills/ego-lite-test/references/parallel-testing.md).
+Workers write only their assignment directory. The coordinator reviews original goals and evidence before importing into shared records. Persisted requests/checkpoints support identical data-operation replay; a confirmed unapplied conflict requires an explicit new transaction. Unknown/in-flight workers keep their slot. New manifests/reports use v4; execution/configuration/packets use v1 and business cases/results/evidence remain v3. Existing v3 runs retain their format. Reports show per-goal assessments separately from execution state and distinguish reservation peaks from sourced execution intervals. See the [parallel protocol](../skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md).
 
 ## Historical v0.1.3 architecture
 

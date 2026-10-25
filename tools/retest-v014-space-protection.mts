@@ -85,7 +85,7 @@ async function prepare() {
     await start({ projectDir: path.join(root, 'project'), casesFile, outputDir: path.join(root, 'record-run'), runSchemaVersion: 3 });
     await save('source-before.json', await hashes(source));
     const home = textValue(process.env.USERPROFILE, 'USERPROFILE');
-    const protectedPaths = [path.join(home, '.agents', 'skills', 'ego-lite-test'), path.join(home, '.agents', 'skills', 'ego-browser'), path.join(home, '.codex', 'skills', 'ego-lite-test'), path.join(home, '.codex', 'config.toml')];
+    const protectedPaths = [path.join(home, '.agents', 'skills', 'ego-lite-test'), path.join(home, '.agents', 'skills', 'ai-autonomous-testing-ego-lite'), path.join(home, '.agents', 'skills', 'ego-browser'), path.join(home, '.codex', 'skills', 'ego-lite-test'), path.join(home, '.codex', 'skills', 'ai-autonomous-testing-ego-lite'), path.join(home, '.codex', 'config.toml')];
     const installed: Record<string, TreeHashes> = {};
     for (const p of protectedPaths)
         installed[p] = await hashes(p);

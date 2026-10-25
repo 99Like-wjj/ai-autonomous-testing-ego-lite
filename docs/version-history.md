@@ -25,7 +25,7 @@
 
 ### v0.1.4 · 可配置并发与协调复核
 
-**正式发布：2026-10-24 19:56。** [Release、安装包与校验值](https://github.com/99Like-wjj/ego-lite-test-skill/releases/tag/v0.1.4)
+**正式发布：2026-10-24 19:56。** [Release、安装包与校验值](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.4)
 
 - **解决的问题：** 多用例测试需要在用户设置的并发范围内分工，同时保留各用例证据、共享资源限制与复核责任。
 - **主要变化：** 默认串行，用户可配置并发；原生 worker 独立封包，由协调者按原目标复核后导入。增加执行台账、Space 关联/偏差、逐目标四态和轻量查询。维护源码迁为 TypeScript，用户使用编译后的 JavaScript。
@@ -35,7 +35,7 @@
 
 ### v0.1.3 · 图文证据与完整交付
 
-**正式发布：2026-10-23 00:05。** [Release、安装包与校验值](https://github.com/99Like-wjj/ego-lite-test-skill/releases/tag/v0.1.3)
+**正式发布：2026-10-23 00:05。** [Release、安装包与校验值](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.3)
 
 - **解决的问题：** 聊天摘要和零散文件不便复核，单独复制说明文件也可能漏掉实际工具。
 - **主要变化：** 增加证据登记、revision 化结果、历史尝试、进度及完整性检查。默认交付离线 HTML、JSON、Markdown；关键 UI 结果/缺陷要求真实截图。完整安装包附工具、schema 和文件清单；支持报告读回及明确标识的事后整理。
@@ -45,7 +45,7 @@
 
 ### v0.1.2 · 业务意图步骤与验收澄清
 
-**实验性预发布：2026-10-22 17:11。** [预发布说明、完整工具包与校验值](https://github.com/99Like-wjj/ego-lite-test-skill/releases/tag/v0.1.2)
+**实验性预发布：2026-10-22 17:11。** [预发布说明、完整工具包与校验值](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.2)
 
 - **解决的问题：** 不完整需求不应被编造成按钮级操作和无依据的逐步预期。
 - **主要变化：** 步骤表达业务意图与必要输入；步骤检查点可选，整体 expected 和 basis 保留。clarificationQuestions 表示验收待澄清，未解决时不判 pass/fail。

@@ -10,9 +10,13 @@
 
 这里的“首次上线”是重点使用场景，不代表可以从空白信息推断全部业务规则，也不承诺测试通过就能安全上线；缺失的要求需要澄清，证据不足的结论必须保留不确定性。它也可用于已有功能的回归验证。
 
+## 名称与调用（0.1.5）
+
+仓库与 Skill 标识统一为 **ai-autonomous-testing-ego-lite**；Codex 展示名为 **AI 自主自动化测试 · Ego Lite**，显式调用 `$ai-autonomous-testing-ego-lite`。本页中文标题保持不变。旧仓库/Skill 用户请先看[更名与升级说明](docs/rename-upgrade.md)，更新原目录的 remote 并核对完整安装包；不要留下两个可被发现的旧/新 Skill 入口。
+
 ## 项目现状
 
-本 Skill 仍在持续开发和完善中。当前源码为 **v0.1.5-dev 开发版，限定场景专项验收已完成，尚未正式发布**，最新正式发布为 [v0.1.4](https://github.com/99Like-wjj/ego-lite-test-skill/releases/tag/v0.1.4)。欢迎试用并反馈。AI 的测试结论仍需结合业务规则和证据复核，不应作为上线决策的唯一依据。详见[版本演变](docs/version-history.md)、[验证记录](docs/testing.md)与[更新说明](CHANGELOG.md)。
+本 Skill 仍在持续开发和完善中。当前源码为 **v0.1.5-dev 开发版，限定场景专项验收已完成，尚未正式发布**，最新正式发布为 [v0.1.4](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.4)。欢迎试用并反馈。AI 的测试结论仍需结合业务规则和证据复核，不应作为上线决策的唯一依据。详见[版本演变](docs/version-history.md)、[验证记录](docs/testing.md)与[更新说明](CHANGELOG.md)。
 
 维护源码使用严格 TypeScript，安装包提供编译后的 JavaScript，无需安装 TypeScript 或开发依赖。支持用户配置用例并发，默认串行；AI 自主判断用例独立性并调用宿主原生子代理。Space 关联与偏差记录不是强权限沙箱，也不保证账号或后端数据隔离。
 
@@ -21,7 +25,7 @@
 
 AI 按测试目标推导所需身份、权限、环境、数据和观察条件，先查已有资料及授权内事实。仍有实质缺口时，说明缺什么、影响哪些目标和怎样补充；暂停依赖动作，独立且获授权的目标可以继续。用户补充后核实再恢复，执行中发现新依赖同样适用。
 
-验收规则不明确、资源不足、操作授权分别处理，复用现有记录和报告工具；不要求统一资源表或固定业务路线。参阅[资源指南](skills/ego-lite-test/references/resource-readiness.md)和[本地验收步骤](docs/v0.1.5-local-acceptance.md)。指南和工程检查不能替代实际使用验收。
+验收规则不明确、资源不足、操作授权分别处理，复用现有记录和报告工具；不要求统一资源表或固定业务路线。参阅[资源指南](skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md)和[本地验收步骤](docs/v0.1.5-local-acceptance.md)。指南和工程检查不能替代实际使用验收。
 
 ![版本演变总览：已发布历史与 v0.1.5 开发版分开显示，图为能力示意。](docs/images/version-history.zh-CN.png)
 
@@ -31,23 +35,23 @@ AI 按测试目标推导所需身份、权限、环境、数据和观察条件�
 
 执行测试后的默认交付包含独立离线 HTML、JSON 和 Markdown，除非用户明确要求其他格式；聊天摘要不能替代文件。关键 UI 结果及缺陷须留存真实截图，DOM / 日志 / 摘要作补充；不要求每次点击截图。缺图必须展示并由 AI 复核结论，不能自动当产品失败，也不能继续宣称证据完整。
 
-独立安装须使用完整目录包，不能只复制 `skills/ego-lite-test` 的说明文件。以下命令从源码仓库构建**新的、仓库外**安装目录，携带 Skill、指南、脚本、schema、示例和文件校验清单，不创建 Tag 或 Release：
+独立安装须使用完整目录包，不能只复制 `skills/ai-autonomous-testing-ego-lite` 的说明文件。以下命令从源码仓库构建**新的、仓库外**安装目录，携带 Skill、指南、脚本、schema、示例和文件校验清单，不创建 Tag 或 Release：
 
 ```powershell
-$InstallPackage = Join-Path $env:TEMP ('ego-lite-test-' + [guid]::NewGuid().ToString('N'))
+$InstallPackage = Join-Path $env:TEMP ('ai-autonomous-testing-ego-lite-' + [guid]::NewGuid().ToString('N'))
 npm ci
 npm run typecheck
 npm run build:skill -- --output-dir $InstallPackage
-node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.5-dev --expect-revision resource-clarification-3
+node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.5-dev --expect-revision branding-rename-1
 ```
 
-将完整目录内容安装到现有 Skill 根目录。更新前核对旧文件是否来自已知版本，出现不明修改先报告，不能覆盖用户文件、创建同名重复安装或自动增加旧版备份。运行时以**实际加载的 SKILL.md 所在目录**为工具根；源码开发先在已确认根目录构建，使用明确的 `.build/runtime` 工具根。`tool-info` 输出版本、revision、formatVersions、实际路径和编译产物指纹；安装清单缺失、文件修改或版本混用会拒绝执行。指纹不认证发布者，构建清单只包含指定分发资源，不打包真实运行目录。
+经授权并按更名升级说明迁移到 Skill 根下的 `ai-autonomous-testing-ego-lite` 目录；不要继续装入旧名目录。更新前核对旧文件是否来自已知版本，出现不明修改先报告，不能覆盖用户文件、创建同名重复安装或自动增加旧版备份。运行时以**实际加载的 SKILL.md 所在目录**为工具根；源码开发先在已确认根目录构建，使用明确的 `.build/runtime` 工具根。`tool-info` 输出版本、revision、formatVersions、实际路径和编译产物指纹；安装清单缺失、文件修改或版本混用会拒绝执行。指纹不认证发布者，构建清单只包含指定分发资源，不打包真实运行目录。
 
 `report` 生成后会读回三种文件，`verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` 可再次核对内容与当前运行、证据及整理来源的一致性。回执给出路径、大小和 SHA-256，`browserOpen: not_checked` 表示浏览器尚未检查；文件校验不能冒充实际打开。访问受限时记录具体阻塞，不换通道绕过。
 
 已有报告不得覆盖。准备一个新的仓库外目录，使用 `report --run-dir ABS_RUN --output-dir ABS_EXISTING_NEW_DIR` 另存；事后补报告再传 `--context ABS_CONTEXT_JSON`，格式见 [报告整理上下文](schemas/report-context.schema.json)。它明确整理性质、限制、现有来源与 hash、补充用例及 AI 逐目标复核，原记录结论保留单独展示，不冒充执行前冻结。工具不补造截图、采集时间、步骤或业务结论，也不为了补报告重跑业务。
 
-本开发版工具 revision 为 `resource-clarification-3`。用例、结果与证据保留 v3；新 manifest/report 为 v4，执行台账、配置和交付包为 v1，executionRead 为 v2；没有新增资源 JSON 契约。既有 v3 run 可继续使用，不原地升级或删除；v2 仍不支持。安装包不需要 TypeScript 编译器。单例单 Space 是默认原则，偏差保留并由 AI 复核，必须保护用户原有 Space；这些规则和记录不构成宿主级强隔离保证。独立验收包先按本地验收说明使用，是否更新当前安装由用户决定。
+本开发版工具 revision 为 `branding-rename-1`。用例、结果与证据保留 v3；新 manifest/report 为 v4，执行台账、配置和交付包为 v1，executionRead 为 v2；没有新增资源 JSON 契约。既有 v3 run 可继续使用，不原地升级或删除；v2 仍不支持。安装包不需要 TypeScript 编译器。单例单 Space 是默认原则，偏差保留并由 AI 复核，必须保护用户原有 Space；这些规则和记录不构成宿主级强隔离保证。独立验收包先按本地验收说明使用，是否更新当前安装由用户决定。
 
 ## 用例与判断
 
@@ -88,7 +92,7 @@ node .\.build\runtime\scripts\ego.mjs validate-cases --cases $Cases
 node .\.build\runtime\scripts\ego.mjs start --project-dir $Project --cases $Cases --output-dir $Run
 ```
 
-`start` 只创建本地文件，不执行浏览器或业务操作。Skill 的工作流和边界见 [SKILL.md](skills/ego-lite-test/SKILL.md)；辅助工具调用步骤见[本地工具箱指南](skills/ego-lite-test/references/local-toolbox.md)。
+`start` 只创建本地文件，不执行浏览器或业务操作。Skill 的工作流和边界见 [SKILL.md](skills/ai-autonomous-testing-ego-lite/SKILL.md)；辅助工具调用步骤见[本地工具箱指南](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.md)。
 
 ### 登记证据与记录结果
 
@@ -162,7 +166,7 @@ SHA-256 用于检测留存文件是否与 catalog 一致，不证明证据真实
 
 ## 继续阅读
 
-- [Skill 工作流](skills/ego-lite-test/SKILL.md) 与[本地工具箱调用指南](skills/ego-lite-test/references/local-toolbox.md)
+- [Skill 工作流](skills/ai-autonomous-testing-ego-lite/SKILL.md) 与[本地工具箱调用指南](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.md)
 - [架构](docs/architecture.md)、[资产格式与命令](docs/asset-formats.md)
 - [版本演变](docs/version-history.md)：各版解决的问题、使用变化、发布状态与升级影响
 - [后续版本需求与调研记录](docs/requirements.md)：v0.1.4 并发与 Space 关联的需求演变及设计边界
@@ -171,7 +175,7 @@ SHA-256 用于检测留存文件是否与 catalog 一致，不证明证据真实
 
 ## 问题反馈与联系
 
-欢迎通过 [GitHub Issues](https://github.com/99Like-wjj/ego-lite-test-skill/issues) 或以下联系方式反馈问题、提出建议。请附上版本号、复现步骤和脱敏后的报错或截图，不要提交密码、令牌、密钥或公司内部资料。
+欢迎通过 [GitHub Issues](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/issues) 或以下联系方式反馈问题、提出建议。请附上版本号、复现步骤和脱敏后的报错或截图，不要提交密码、令牌、密钥或公司内部资料。
 
 - 作者：[99Like-wjj](https://github.com/99Like-wjj)
 - 邮箱：[wjj990517@gmail.com](mailto:wjj990517@gmail.com)
@@ -193,4 +197,4 @@ SHA-256 用于检测留存文件是否与 catalog 一致，不证明证据真实
 node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN --max-parallel-cases 3
 ```
 
-AI workers 独立留证、封存包，协调者显式复核并导入。完整调用和恢复语义见[并发指南](skills/ego-lite-test/references/parallel-testing.md)。所有继续维护的 CLI、报告交互、测试、构建／检查、历史验证工具和图片生成程序以 TS 维护；`.build` 是忽略的编译产物。`npm test` 先构建再测试实际 JS；`npm run check:public` 检查源文件，独立包仍使用严格资源清单。本仓库的构建、测试不注册或更新用户级 Skill，也不推送、创建 Tag 或 Release。
+AI workers 独立留证、封存包，协调者显式复核并导入。完整调用和恢复语义见[并发指南](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md)。所有继续维护的 CLI、报告交互、测试、构建／检查、历史验证工具和图片生成程序以 TS 维护；`.build` 是忽略的编译产物。`npm test` 先构建再测试实际 JS；`npm run check:public` 检查源文件，独立包仍使用严格资源清单。本仓库的构建、测试不注册或更新用户级 Skill，也不推送、创建 Tag 或 Release。

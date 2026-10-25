@@ -68,11 +68,18 @@ test('standalone package contains resolvable guides/scripts/schemas and runs fro
     const root = await temporary(t), bundle = path.join(root, 'standalone skill');
     const built = await buildSkill(bundle), identity = await toolInfo(bundle);
     assert.equal(identity.installationIntegrity, 'verified');
+    assert.equal(identity.name, 'ai-autonomous-testing-ego-lite');
+    const skillText = await fs.readFile(path.join(bundle, 'SKILL.md'), 'utf8');
+    assert.ok(skillText.startsWith('---\nname: ai-autonomous-testing-ego-lite\n'));
+    const ui = await fs.readFile(path.join(bundle, 'agents/openai.yaml'), 'utf8');
+    assert.ok(ui.includes('display_name: "AI 自主自动化测试 · Ego Lite"'));
+    assert.ok(ui.includes('$ai-autonomous-testing-ego-lite'));
+    assert.equal((await read(path.join(bundle, 'package.json'))).name, identity.name);
     assert.equal(identity.fingerprint, built.fingerprint);
     assert.deepEqual(await fs.readFile(path.join(bundle, 'scripts/ego.mjs')), await fs.readFile(path.join(TOOL_ROOT, 'scripts/ego.mjs')));
     const manifest = await read(path.join(bundle, 'runtime-manifest.json'));
     const manifestFiles = objectValue(manifest.files);
-    for (const name of ['references/resource-readiness.md', 'docs/version-history.md', 'docs/version-history.en.md', 'docs/v0.1.5-local-acceptance.md', 'docs/images/version-history.svg', 'docs/images/version-history.zh-CN.svg', 'docs/images/version-history.png', 'docs/images/version-history.zh-CN.png']) {
+    for (const name of ['agents/openai.yaml', 'docs/rename-upgrade.md', 'references/resource-readiness.md', 'docs/version-history.md', 'docs/version-history.en.md', 'docs/v0.1.5-local-acceptance.md', 'docs/images/version-history.svg', 'docs/images/version-history.zh-CN.svg', 'docs/images/version-history.png', 'docs/images/version-history.zh-CN.png']) {
         assert.ok(Object.hasOwn(manifestFiles, name), 'Required readiness/history asset must be shipped: ' + name);
         assert.deepEqual(await fs.readFile(path.join(bundle, name)), await fs.readFile(path.join(TOOL_ROOT, name)));
     }
@@ -121,6 +128,18 @@ test('runtime rejects missing assets, changed installed files and wrong requeste
     await fs.unlink(path.join(bundle, 'schemas/cases.schema.json'));
     await assert.rejects(toolInfo(bundle), { code: 'ENOENT' });
 });
+test('renamed package rejects legacy Skill identity and changed Codex metadata', async t => {
+    const root = await temporary(t), bundle = path.join(root, 'ai-autonomous-testing-ego-lite');
+    await buildSkill(bundle);
+    const skillPath = path.join(bundle, 'SKILL.md'), skill = await fs.readFile(skillPath, 'utf8');
+    await fs.writeFile(skillPath, skill.replace('name: ai-autonomous-testing-ego-lite', 'name: ego-lite-test'));
+    await assert.rejects(toolInfo(bundle), /version or revision mismatch/);
+    await fs.writeFile(skillPath, skill);
+    assert.equal((await toolInfo(bundle)).installationIntegrity, 'verified');
+    await fs.appendFile(path.join(bundle, 'agents/openai.yaml'), '\n# unexpected local metadata change\n');
+    await assert.rejects(toolInfo(bundle), /manifest mismatch/);
+});
+
 test('report and verifier read back all three files without claiming browser opening or inferring verdicts', async (t) => {
     const f = await fixture(t), out = await report(f.run), data = await check(f.run); assert.deepEqual(await read(out.reportJson), data);
     assert.equal(out.filesVerified, true);
