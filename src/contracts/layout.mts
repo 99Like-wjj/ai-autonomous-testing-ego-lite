@@ -15,10 +15,12 @@ export const runtimeFiles = [
   'schemas/manifest-v3.schema.json', 'schemas/manifest-v4.schema.json', 'schemas/report-v3.schema.json', 'schemas/report-v4.schema.json',
   'docs/rename-upgrade.md', 'docs/asset-formats.md', 'docs/asset-formats.en.md',
   'docs/version-history.md', 'docs/version-history.en.md', 'docs/v0.1.5-local-acceptance.md',
+  'docs/images/readme-version-history.svg', 'docs/images/readme-version-history.zh-CN.svg',
+  'docs/images/readme-version-history.png', 'docs/images/readme-version-history.zh-CN.png',
   'docs/images/version-history.svg', 'docs/images/version-history.zh-CN.svg',
   'docs/images/version-history.png', 'docs/images/version-history.zh-CN.png',
   'examples/cases.example.json', 'examples/generated-cases.example.json',
   'examples/evidence-request.example.json', 'examples/record-request.example.json',
   'examples/project.example/brief.md', 'examples/project.example/feature-request.md', 'examples/project.example/usage.md'
 ];
-export const referenceNames = ['case-authoring', 'ego-usage-boundaries', 'evidence-and-report', 'judgment-and-diagnosis', 'local-toolbox', 'local-toolbox.en', 'test-strategy', 'parallel-testing', 'resource-readiness'];
+export const referenceNames = ['case-authoring', 'case-design-guide', 'case-design-methods', 'experience-guide', 'experience-data-safety', 'experience-execution', 'ego-usage-boundaries', 'evidence-and-report', 'judgment-and-diagnosis', 'local-toolbox', 'local-toolbox.en', 'test-strategy', 'parallel-testing', 'resource-readiness'];

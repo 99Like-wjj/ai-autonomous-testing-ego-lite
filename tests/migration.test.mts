@@ -12,7 +12,7 @@ test('TypeScript diagram generator reproduces the complete bilingual SVG set and
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-migration-'));
   t.after(async () => { assert.equal(path.dirname(root), path.resolve(os.tmpdir())); assert.ok(path.basename(root).startsWith('ego-migration-')); await fs.rm(root, { recursive: true, force: true }); });
   const target = path.join(root, 'images'), generated = await generateImages(target);
-  const expectedNames = ['hero', 'architecture', 'workflow', 'result-specimen', 'parallel', 'version-history'].flatMap(name => [name + '.svg', name + '.zh-CN.svg']).sort();
+  const expectedNames = ['hero', 'architecture', 'workflow', 'result-specimen', 'parallel', 'version-history', 'readme-version-history'].flatMap(name => [name + '.svg', name + '.zh-CN.svg']).sort();
   assert.equal(generated.svgFiles, expectedNames.length);
   const names = (await fs.readdir(target)).filter(name => name.endsWith('.svg'));
   assert.deepEqual(names.sort(), expectedNames);

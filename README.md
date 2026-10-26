@@ -27,7 +27,7 @@ AI 按测试目标推导所需身份、权限、环境、数据和观察条件�
 
 验收规则不明确、资源不足、操作授权分别处理，复用现有记录和报告工具；不要求统一资源表或固定业务路线。参阅[资源指南](skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md)和[本地验收步骤](docs/v0.1.5-local-acceptance.md)。指南和工程检查不能替代实际使用验收。
 
-![版本演变总览：展示各版本能力与 v0.1.5 更新，图为能力示意。](docs/images/version-history.zh-CN.png)
+![最近四版：v0.1.3 至 v0.1.6；v0.1.6 开发中，未发布。仅 README 图限制为四版，完整历史见版本演变文档。](docs/images/readme-version-history.zh-CN.png)
 
 ## 并发与交付（自 v0.1.4）
 

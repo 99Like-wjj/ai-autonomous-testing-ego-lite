@@ -27,7 +27,7 @@ The AI infers prerequisites from each goal, checks existing material and safely 
 
 Acceptance ambiguity, resource availability and permission to act stay separate. Existing tools retain observations, questions and history; no fixed resource checklist or business workflow is added. See the [resource guide (Chinese)](skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md) and [local acceptance steps (Chinese)](docs/v0.1.5-local-acceptance.md). Guidance and engineering checks do not replace behavioral acceptance.
 
-![Version history presents released capabilities and v0.1.5 updates; illustration only.](docs/images/version-history.png)
+![Latest four versions: v0.1.3 through v0.1.6; v0.1.6 is in development, not released. Full history is preserved separately.](docs/images/readme-version-history.png)
 
 ## Parallel execution and delivery (since v0.1.4)
 

@@ -17,6 +17,8 @@ async function save(outputDir: string, name: string, parts: readonly string[], p
   await fs.writeFile(svg, parts.join('') + '</g></svg>', { flag: 'wx' });
   if (png) await exec('inkscape', [svg, '--export-type=png', '--export-filename=' + path.join(outputDir, name + '.png')], { windowsHide: true });
 }
+/** README-only rolling window. Full history illustrations and documents are untouched. */
+export function readmeVersionWindow<T>(versions: readonly T[]): T[] { return versions.slice(-4); }
 export async function generateImages(outputDir: string) {
   if (!path.isAbsolute(outputDir)) throw new Error('Use an absolute new output directory. Existing illustrations are never overwritten.');
   let cursor = path.parse(outputDir).root;
@@ -109,8 +111,28 @@ export async function generateImages(outputDir: string) {
     p.push(text(48, 1075, t("Illustration only. See version cards for limits.", "仅为能力示意；升级影响和验证限制见版本介绍"), 23, "muted"));
     await save(outputDir, ("version-history" + suffix), p, png);
 
+    // Chronological source; append future versions here, never trim the full history.
+    const readmeVersions = readmeVersionWindow([
+      { version: 'v0.1.2', state: t('PRERELEASE', '预发布'), title: t('Business-intent steps', '业务步骤与验收澄清') },
+      { version: 'v0.1.3', state: t('RELEASED', '正式版'), title: t('Evidence-rich delivery', '证据与报告完整交付') },
+      { version: 'v0.1.4', state: t('RELEASED', '正式版'), title: t('Configurable concurrency', '可配置并发与协调复核') },
+      { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
+      { version: 'v0.1.6', state: t('IN DEVELOPMENT', '开发中，未发布'), title: t('Scoped testing experience', '分阶段测试经验与短索引') }
+    ]);
+    p = start(t('Latest four versions — README overview', '最近四个版本 — README 概览'), 650, 840);
+    p.push(text(48, 65, t('Latest + three previous versions', '最新版本与前三个历史版本'), 32, 'text', 700));
+    for (const [i, v] of readmeVersions.entries()) {
+      const y = 100 + i * 122, color = i === readmeVersions.length - 1 ? 'violet' : 'cyan';
+      p.push(rect(48, y, 744, 106, 'panel', color));
+      p.push(text(72, y + 34, v.version, 25, color, 700), text(430, y + 33, v.state, 19, 'muted'));
+      p.push(text(72, y + 78, v.title, 27, 'text', 700));
+    }
+    p.push(text(48, 623, t('Full history is preserved in the version-history documents.', '完整历史保留在版本演变文档中；图为能力示意。'), 19, 'muted'));
+    await save(outputDir, ('readme-version-history' + suffix), p, png);
+
+
   }
-  return { outputDir, svgFiles: 12, pngFiles: png ? 12 : 0, pngExport: png ? 'exported' : 'not_available_inkscape_missing' };
+  return { outputDir, svgFiles: 14, pngFiles: png ? 14 : 0, pngExport: png ? 'exported' : 'not_available_inkscape_missing' };
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.length !== 4 || process.argv[2] !== '--output-dir' || !process.argv[3]) throw new Error('Use --output-dir ABS_NEW_IMAGE_DIRECTORY.');
