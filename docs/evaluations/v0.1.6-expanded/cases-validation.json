@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "structurallyValid": true,
+  "project": "synthetic-label-experience-review",
+  "caseCount": 10,
+  "stepCount": 18,
+  "stepOrderCounts": {
+    "strict": 10,
+    "adaptive": 0
+  }
+}
