@@ -1,6 +1,8 @@
 # 架构与信任边界
 
-## v0.1.5 当前架构
+## 当前修复候选版架构
+
+`0.1.6-rc.cross-host.1` 沿用已提交测试经验分支的架构与数据格式。新增跨宿主交接指南，CLI 主模块按真实路径识别链接入口；不引入宿主调度器或权限沙箱。其他分支的 v5 目标评估与接口监控不属于该基线。参阅[跨宿主指南](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。
 
 本版资源充分性分析由 AI 根据目标及事实完成，入口加载资源指南，复用已有记录/证据/交付包/报告。验收歧义、资源可用性与操作授权分别表达；没有新增资源状态机、调度器或固定业务路径。资源补充后仍须核实，辅助笔记不自动纳入报告校验，详见[资源指南](../skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md)。
 

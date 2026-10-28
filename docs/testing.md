@@ -1,5 +1,9 @@
 # 验证记录与覆盖边界
 
+## 跨宿主修复候选（2026-10-28，Windows）
+
+`0.1.6-rc.cross-host.1 / cross-host-parallel-1` 从测试经验分支已提交的 d350cc5 独立修复，不包含原目录未提交的 v5 目标评估与接口监控。修复前新增入口回归复现 2 项失败，修复后专项 4/4 通过；完整回归 113 项，109 PASS、0 FAIL、4 因 Windows 符号链接权限跳过。类型、契约、Skill 和源码/候选包检查通过。完整多 Agent 真实终端链路未验证，用户安装未更新，详见[修复验证记录](v0.1.6-cross-host-validation.md)。
+
 ## v0.1.5 正式版本收尾（2026-10-25，云端）
 
 按用户确认开发完成及合并/发布要求，将 package、工具常量、Skill 元数据、调用校验和完整包统一为 0.1.5；Codex 展示配置不带 dev 标识。正式版本再次完成 Linux / Node v24.22.1 严格类型、契约/编译、100/100 合成测试（0 FAIL、0 SKIP）、Skill 与源码/安装包公开检查。独立包包含 agents/openai.yaml，tool-info 输出 0.1.5 / branding-rename-1 且 installationIntegrity=verified。版本/名称同步不改变业务代码和数据格式。

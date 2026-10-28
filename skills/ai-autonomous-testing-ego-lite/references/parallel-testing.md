@@ -2,6 +2,8 @@
 
 适用：多用例执行、worker 分派、Space 关联、暂停续接和结果汇总。这里描述可组合的数据能力；AI 决定执行路径、批次、重试／补测和结论，不要求按固定业务 DAG 行动。
 
+跨终端使用前读[宿主条件与交接](host-compatibility.md)：本项目记录分派和交付，真实子 Agent 的创建、上下文、工具权限、等待与收尾由宿主提供。不能把 Skill 加载、名额登记或文件校验当成该宿主并行能力已验证。
+
 ## 用户配置与宿主限制
 
 `start --max-parallel-cases N` 覆盖 `--execution-config ABS_FILE`，再覆盖项目 `execution-config.json`，最后默认 **1（串行）**。用户未要求并发且未明确配置时按 1 执行，不能因存在多例或可用宿主额度而自行提高。用户明确配置并发的 JSON 示例：`{"schemaVersion":1,"maxParallelCases":6}`。N 为可精确表示的正整数，没有固定的 2／4／8 路产品上限。配置是活动用例上限，不要求跑满，也不预先创建 N 个 Space 或线程。
@@ -11,6 +13,8 @@ AI 决定何时调用这些能力、哪些独立用例同时执行、何时补�
 宿主限制只使用其明确提供的信息，不主动探测最大子代理数，不读取或更改全局客户端配置。未知时保持未知，分派被拒绝后记录事实；最大额度与当前可用名额不能混为一谈。模型／推理强度由宿主原生工具按用户要求选择，未指定时继承会话。
 
 例如配置 8、本轮已知可用 3：保留配置 8，实际分批最多 3，并说明原因。若用户明确要求同时 8，不能以分批替代该目标。依赖或共享写冲突由 AI 判断；互不冲突的写用例可以并行。Space 不等于 cookie、账号或后端数据隔离，避免并行登录／退出或修改同一对象。
+
+`capacity.availableWorkers` 保存**本 run 可占用的总活动分派上限，包含它已经占用的名额**。代码将它与配置上限取小，再与当前活动分派数比较；`reserved`、`running`、`lost`、`stop_requested` 都占用名额。它不是“还能再开几个”。例如本 run 已占 2，宿主明确说另有 1 个空闲且三者口径一致，可记录总容量 3；不能直接写 1。还要分清宿主额度是否包含协调者、是否被其他任务共享、观察是否仍有效；无法换算时保持 null，reason 与证据保留原口径及已知限制，不能臆造可用量。
 
 ## 协调者：共享事务的唯一写入者
 
@@ -37,7 +41,7 @@ ACTION 为 `inventory / capacity / reserve / attach-space / note / set-limit / r
 | ACTION | 额外参数与语义 |
 | --- | --- |
 | inventory | `spaceIds` 是创建前全部现存 ID，仅首次登记，之后不清空／改写。只读列表，不读取既有 Space 页面内容。 |
-| capacity | `availableWorkers: 数字或null`、reason 和可用证据；按宿主口径换算为本轮可用容量，不假设常数，不探测。 |
+| capacity | `availableWorkers: 数字或null`、reason 和可用证据；数字是本 run 可占用的总活动分派上限（含已占用），不是剩余空闲量。未知保持 null，不假设常数，不探测。 |
 | reserve | `caseId`、当前 `baselineSha256`；可选 `resources`（AI 声明的互斥键）、`workerId/model/reasoning`。返回 assignment ID、独立目录，名额先登记再分派。 |
 | attach-space | `assignmentId/spaceId/name/receiptFile/created:true`；创建回执须在该分派目录内。不能 claim 初始 Space 或其他分派 Space。恢复更换默认 Space 须 `replaceDefault:true` 与原因，保留历史。 |
 | set-limit | `maxParallelCases`；提高不自动启动，降低停止新增并等待既有执行结束，不强杀。 |
@@ -51,6 +55,8 @@ ACTION 为 `inventory / capacity / reserve / attach-space / note / set-limit / r
 
 接收冻结用例、run ID／基线 hash、assignment／attempt ID、默认 numeric Space ID、权限与目录。操作前读当前官方 Ego 指南，每轮脚本使用该 ID；脚本和截图使用新文件名。只执行被分派用例，不自行修改其他 case、不递归创建测试 worker、不写公共 results/evidence/execution 文件。
 
+按[跨宿主交接约定](host-compatibility.md)补足当前 ToolRoot/版本、可读材料与实际用户答复，核对宿主实例及后台调用 handle；不能默认子 Agent 已继承父会话。assignment.json 是分派标记，不包含这些全部上下文。
+
 单用例默认一个 Space；允许 Agent 出错或在授权内恢复。保留实际 ID、错误、尝试和证据，未知写入先独立只读对账，不盲目重放。原 Space 不可用时，协调者可在已有授权内评估恢复，并记录前后关联；用户接管或权限未知时停下，不强行 claim。仅改变 Space 不自动构成产品缺陷，身份、数据、必要语义和证据影响须由 AI 复核。
 
 每个关键 UI 结论／缺陷保留真实截图；截图失败也保存错误，按实际证据决定无法判断，不伪造图。Windows 自有窗口出现零视口／最小化时，可依据当前官方 API 和授权检查并恢复自己的窗口；先读回副作用，保留首错。不要操作用户原有窗口、清全局 cookie 或换 profile。
@@ -59,9 +65,11 @@ ACTION 为 `inventory / capacity / reserve / attach-space / note / set-limit / r
 
 在 `workers/<assignmentId>/` 内写 UTF-8 草稿，结构见 `schemas/worker-draft.schema.json`：
 
+`packetId` 必须在**整个 run** 内唯一，不能仅在 worker 目录内唯一。协调者可把 assignment ID 作为命名空间交给 worker，例如 `<assignmentId>-observation-1`；具体命名由 AI 选择，但不同交付不得重名。封包是局部事务，其他 worker 重名可能直到导入才被发现。冲突时保留两份原包，从已有观察另存唯一 ID 的新草稿和包，说明关联；不覆盖已封存文件，也不为改包名重跑业务。
+
 ```json
 {
-  "packetId":"case-one-observation-1",
+  "packetId":"asg-example-one-observation-1",
   "mode":"final",
   "record":{"status":"inconclusive","observed":"实际观察","rationale":"尚有目标证据不足","remainingQuestions":["具体未验证项"],"evidenceKeys":["shot"],"cause":"unknown"},
   "evidence":[{"key":"shot","path":"captures/observation-1.png","kind":"screenshot","source":"本次 Ego 截图","description":"该用例的实际页面"}],

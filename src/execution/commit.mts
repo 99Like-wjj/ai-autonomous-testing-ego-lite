@@ -30,7 +30,7 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
     const old = ledger.imports.find(imp => imp.packetId === packet.packetId && imp.phase !== 'superseded');
     const evidenceJobs: ImportState['evidenceJobs'] = packet.evidence.map(item => ({ key: item.key }));
     if (old) {
-      if (request.rebaseOf !== old.operationId || old.phase === 'complete' || old.packetSha256 !== packetSha256) fail('Packet ID already belongs to an import; resume it or explicitly rebase an unapplied conflict.');
+      if (request.rebaseOf !== old.operationId || old.phase === 'complete' || old.packetSha256 !== packetSha256) fail('Packet ID already belongs to an import in this run; resume it or explicitly rebase an unapplied conflict. A different delivery needs a run-unique packet ID, for example one scoped by its assignment. Preserve the original packet.');
       const results = parseResults(await readJSON(path.join(root, 'results.json'))), catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
       if (old.resultRequest && results.operations.some(op => op.operationId === old.resultRequest?.operationId)) fail('The old result already committed. Resume the original import before revising it.');
       for (const job of old.evidenceJobs) {

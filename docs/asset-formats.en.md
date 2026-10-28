@@ -1,6 +1,8 @@
 # Asset formats (v3 business data, v4 execution)
 
-## Current v0.1.5 format overview
+## Current repair-candidate format overview
+
+`0.1.6-rc.cross-host.1` retains its committed baseline's formats and adds no historical compatibility path or migration. Another branch's v5 assets are outside this candidate. `availableWorkers` caps all active assignments for this run, including existing reservations; it is not the remaining free count. `packetId` is unique across the entire run, so independent workers should use distinct assignment-scoped namespaces. Local sealing alone cannot detect a duplicate in another worker directory.
 
 No resource JSON contract is added. Existing observed/rationale/remainingQuestions and explicit goal assessments/evidence retain resource gaps. clarificationQuestions still means unresolved acceptance; pendingClarification does not count all resource gaps. Unintegrated auxiliary notes are outside verify-report inputs.
 

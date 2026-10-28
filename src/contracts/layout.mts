@@ -1,6 +1,6 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.5';
-export const TOOL_REVISION = 'branding-rename-1';
+export const TOOL_VERSION = '0.1.6-rc.cross-host.1';
+export const TOOL_REVISION = 'cross-host-parallel-1';
 export const FORMAT_VERSIONS = { cases: 3, manifest: 4, results: 3, evidence: 3, report: 4, execution: 1, configuration: 1, workerPacket: 1, executionRead: 2 } as const;
 export const runtimeFiles = [
   'scripts/ego.mjs', 'scripts/toolchain.mjs', 'contracts/layout.mjs', 'contracts/ids.mjs', 'contracts/execution-model.mjs', 'contracts/targets.mjs',
@@ -23,4 +23,4 @@ export const runtimeFiles = [
   'examples/evidence-request.example.json', 'examples/record-request.example.json',
   'examples/project.example/brief.md', 'examples/project.example/feature-request.md', 'examples/project.example/usage.md'
 ];
-export const referenceNames = ['case-authoring', 'case-design-guide', 'case-design-methods', 'experience-guide', 'experience-data-safety', 'experience-execution', 'ego-usage-boundaries', 'evidence-and-report', 'judgment-and-diagnosis', 'local-toolbox', 'local-toolbox.en', 'test-strategy', 'parallel-testing', 'resource-readiness'];
+export const referenceNames = ['case-authoring', 'case-design-guide', 'case-design-methods', 'experience-guide', 'experience-data-safety', 'experience-execution', 'ego-usage-boundaries', 'evidence-and-report', 'judgment-and-diagnosis', 'local-toolbox', 'local-toolbox.en', 'test-strategy', 'parallel-testing', 'host-compatibility', 'resource-readiness'];

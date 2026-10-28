@@ -142,6 +142,7 @@ export async function checkpoint(root: string, ledger: ExecutionLedger, event: O
   ledger.revision++; ledger.events.push({ ...event, revision: ledger.revision, at: now() });
   parseLedger(ledger); await atomicReplace(path.join(root, 'execution.json'), json(ledger));
 }
+/** Total active-assignment cap available to this run, including its existing reservations; not a free-slot count. */
 export function availableLimit(ledger: ExecutionLedger): number { return Math.min(ledger.configuration.requestedMaxParallelCases, ledger.knownAvailableWorkers ?? Number.MAX_SAFE_INTEGER); }
 export function checkSlot(ledger: ExecutionLedger, caseId: string, resources: readonly string[], excludingId?: string): void {
   const active = ledger.assignments.filter(a => isActive(a.state) && a.id !== excludingId);

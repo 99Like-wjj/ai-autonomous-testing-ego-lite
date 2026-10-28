@@ -10,15 +10,17 @@ An existing automated test suite is not required. Supply prepared cases, or prov
 
 First launch is a target use case, not a promise to infer missing rules or guarantee release readiness. Missing requirements need clarification, and insufficient evidence must remain uncertain. Existing-feature regression is also supported.
 
-## Name and invocation (0.1.5)
+## Name and invocation
 
 The repository/package/Skill identifier is **ai-autonomous-testing-ego-lite**. Codex displays **AI 自主自动化测试 · Ego Lite**; invoke `$ai-autonomous-testing-ego-lite`. The Chinese README heading is unchanged. See the [rename and upgrade guide](docs/rename-upgrade.md) before updating the remote or migrating an existing installation; do not leave duplicate old/new discoverable Skills.
 
 ## Project status
 
-This Skill is under active development. Current version is **v0.1.5, with scoped behavioral acceptance completed**; the formal package and checksums are in [v0.1.5 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5). Feedback is welcome. Review AI conclusions against business rules and evidence, and do not use them as the sole basis for launch decisions. See [version history](docs/version-history.en.md), the [validation record](docs/testing.en.md) and [changelog](CHANGELOG.md).
+This branch is the **0.1.6-rc.cross-host.1 / cross-host-parallel-1 development candidate**, based on committed testing-experience revision `d350cc5`. It excludes the original checkout's uncommitted v5 goal-assessment and API-monitoring work. The formal release remains [v0.1.5](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5). This repair does not establish complete host compatibility or update user installations. See the [validation record](docs/testing.en.md) and [changelog](CHANGELOG.md).
 
 Maintained source uses strict TypeScript; installation packages contain compiled JavaScript and require no TypeScript compiler or development dependencies. Case concurrency is configurable and defaults to serial execution. The AI decides which cases are independent and uses native host subagents. Space association and deviation records are not a hard permission sandbox or a guarantee of account or backend-data isolation.
+
+Codex, Claude Code and ZCode supply their own subagent tools; this package does not dispatch through a hardcoded host API. Complete live workflows remain unverified. See [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Claude Code uses `/ai-autonomous-testing-ego-lite`; loading a Skill does not prove that workers can execute, return evidence and finish safely.
 
 
 ## 0.1.5: clarify missing resources
@@ -37,13 +39,13 @@ Unless the user explicitly requests another format, completed test execution del
 
 Build a complete standalone directory from the source repository with `npm run build:skill -- --output-dir ABS_NEW_EXTERNAL_SKILL_DIR`. The package contains the Skill, guides, scripts, schemas, synthetic examples and `runtime-manifest.json`. Copying only the source Skill instructions is incomplete. Before updating an existing installation, compare known source files and report unknown edits instead of overwriting them, creating duplicate installations or adding old-version backups.
 
-Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.5 --expect-revision branding-rename-1`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity. Validate this complete package separately before deciding whether to replace an existing installation; no new resource JSON format is introduced.
+Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.6-rc.cross-host.1 --expect-revision cross-host-parallel-1`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity. Validate this complete package separately before deciding whether to replace an existing installation; no new resource JSON format is introduced.
 
 `report` reads back all three outputs. `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` compares the files with current records, retained evidence and context sources. Receipts include paths, sizes, hashes and `browserOpen: not_checked`; actual browser opening is separate. Report access restrictions honestly without routing around them.
 
 To retain an existing report, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Post-execution assembly also passes `--context ABS_CONTEXT_JSON`, defined by [the context schema](schemas/report-context.schema.json). It records limitations, existing source files and hashes, supplemental case IDs and AI-supplied reviews for every goal. Original claims remain separate; no pre-execution freeze, screenshot, timestamp or execution step is invented. No business actions run to fill a report.
 
-This version uses tool revision `branding-rename-1`. Cases/results/evidence remain v3; new manifests/reports are v4, execution/configuration/worker packets v1. Existing v3 runs remain usable without in-place migration; v2 remains unsupported. The installation requires Node.js >=22, not a TS compiler.
+This candidate uses tool revision `cross-host-parallel-1` and retains its committed baseline's formats: cases/results/evidence v3, new manifests/reports v4, execution/configuration/worker packets v1, executionRead v2. No new legacy-format fallback is introduced. Historical data stays untouched; v2 and another branch's v5 are not inputs for this candidate. Installation requires Node.js >=22, not a TS compiler.
 
 ## Cases and judgments
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Local deterministic transactions only. The host AI owns browser actions and verdicts. */
 import path from 'node:path';
+import { realpath } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { toolInfo } from './toolchain.mjs';
 import { errorInfo, fail, json, readJSON, safePath } from '../core/common.mjs';
@@ -97,6 +98,13 @@ No network, model, browser, or Ego actions.`;
   if (command === 'verify-report') return verifyReport(flags['run-dir'], flags['report-dir']);
   return report(flags['run-dir'], { outputDir: flags['output-dir'] ?? flags['run-dir'], contextFile: flags.context });
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// A linked Skill path and Node's resolved module URL can name the same entrypoint.
+// Resolve only the executable identity; run/evidence path guards remain unchanged.
+const invokedPath = process.argv[1] ? await realpath(path.resolve(process.argv[1])).catch(caught => {
+  // With node -e, argv[1] may be an ordinary argument rather than a script filename.
+  if (['ENOENT', 'ENOTDIR'].includes(errorInfo(caught).code ?? '')) return undefined;
+  throw caught;
+}) : undefined;
+if (invokedPath && invokedPath === await realpath(fileURLToPath(import.meta.url))) {
   main(process.argv.slice(2)).then(result => process.stdout.write(typeof result === 'string' ? result + '\n' : json(result))).catch(caught => { process.stderr.write('Error: ' + errorInfo(caught).message + '\n'); process.exitCode = 1; });
 }

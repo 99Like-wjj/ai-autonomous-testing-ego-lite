@@ -1,5 +1,15 @@
 # 更新记录 / Changelog
 
+## 0.1.6-rc.cross-host.1 — 2026-10-28 · 未发布，跨宿主并行修复
+
+- 从测试经验分支已提交的 d350cc5 派生，独立于原目录中的 v5 目标评估与接口监控工作；toolRevision 为 cross-host-parallel-1，不代表正式发布。
+- 修复通过目录链接调用 scripts/ego.mjs 时因入口路径比较而静默退出的问题；仅解析可执行入口身份，运行/证据文件的路径保护保持。
+- 补齐跨宿主能力边界、可访问上下文与授权交接、真实执行者与在途 handle 关联、等待/异常/收尾，以及各终端真实验证范围。指南加入完整包清单，不引入调度适配层或固定业务流程。
+- 明确 availableWorkers 是本 run 总活动名额（含已占用），packetId 在全 run 内唯一；重名交付保留原包，导入错误提供纠正方向。
+- 数据格式沿用本分支基线，不新增历史兼容分支，不迁移或覆盖用例、运行和证据。用户级安装不自动更新；完整宿主并行验收仍未验证。验证范围见 docs/testing.md。
+
+English: Unreleased isolated repair candidate. Linked CLI entrypoints execute normally; host handoff, lifecycle, total capacity and run-wide packet naming are clarified. No host dispatcher, data migration, installation update or live-host compatibility claim is introduced.
+
 ## 0.1.5 — 2026-10-25 · 资源主动澄清与完整更名
 
 - 正式收尾：package、工具常量、Skill 元数据、调用校验与完整安装包统一为 0.1.5，不带 dev 后缀；Codex 展示/调用配置随包分发。历史开发验证记录保留原版本，版本收尾不扩大其验收范围。

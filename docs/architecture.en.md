@@ -1,6 +1,8 @@
 # Architecture and trust boundaries
 
-## Current v0.1.5 architecture
+## Current repair-candidate architecture
+
+`0.1.6-rc.cross-host.1` retains the committed testing-experience branch's architecture and formats. It adds host handoff guidance and resolves the CLI entrypoint by its real path; it adds no host scheduler or permission sandbox. Another branch's v5 goal assessment and API monitoring are outside this baseline. See [host guidance (Chinese)](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md).
 
 The AI infers resource needs from goals and facts, using guidance loaded from the entrypoint and existing evidence/result/packet/report tools. Acceptance ambiguity, resource availability and authorization stay separate. No new resource state machine, scheduler or fixed business route is added; supplied resources require verification and auxiliary notes are not automatically report-verified. See the [resource guide (Chinese)](../skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md).
 

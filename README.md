@@ -10,15 +10,17 @@
 
 这里的“首次上线”是重点使用场景，不代表可以从空白信息推断全部业务规则，也不承诺测试通过就能安全上线；缺失的要求需要澄清，证据不足的结论必须保留不确定性。它也可用于已有功能的回归验证。
 
-## 名称与调用（0.1.5）
+## 名称与调用
 
 仓库与 Skill 标识统一为 **ai-autonomous-testing-ego-lite**；Codex 展示名为 **AI 自主自动化测试 · Ego Lite**，显式调用 `$ai-autonomous-testing-ego-lite`。本页中文标题保持不变。旧仓库/Skill 用户请先看[更名与升级说明](docs/rename-upgrade.md)，更新原目录的 remote 并核对完整安装包；不要留下两个可被发现的旧/新 Skill 入口。
 
 ## 项目现状
 
-本 Skill 仍在持续开发和完善中。当前版本为 **v0.1.5，限定场景专项验收已完成**，正式安装包与校验值见 [v0.1.5 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5)。欢迎试用并反馈。AI 的测试结论仍需结合业务规则和证据复核，不应作为上线决策的唯一依据。详见[版本演变](docs/version-history.md)、[验证记录](docs/testing.md)与[更新说明](CHANGELOG.md)。
+本分支为 **0.1.6-rc.cross-host.1 / cross-host-parallel-1 开发候选版**，从测试经验分支已提交的 `d350cc5` 派生；不包含原目录尚未提交的 v5 目标评估或接口监控需求。正式版本仍见 [v0.1.5 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5)。本次修复不代表跨宿主完整并行测试已验收，也不自动更新用户安装。详见[验证记录](docs/testing.md)与[更新说明](CHANGELOG.md)。
 
 维护源码使用严格 TypeScript，安装包提供编译后的 JavaScript，无需安装 TypeScript 或开发依赖。支持用户配置用例并发，默认串行；AI 自主判断用例独立性并调用宿主原生子代理。Space 关联与偏差记录不是强权限沙箱，也不保证账号或后端数据隔离。
+
+Codex、Claude Code、ZCode 的子 Agent 与工具能力由各自宿主提供，本项目不硬编码宿主调度。真实完整链路均仍需按终端版本验收。入口、上下文、权限、等待、包交付与收尾见[跨宿主指南](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Claude Code 显式调用使用 `/ai-autonomous-testing-ego-lite`；完整包能被读取不等于测试可以并行完成。
 
 
 ## 0.1.5：资源不足时主动澄清
@@ -42,7 +44,7 @@ $InstallPackage = Join-Path $env:TEMP ('ai-autonomous-testing-ego-lite-' + [guid
 npm ci
 npm run typecheck
 npm run build:skill -- --output-dir $InstallPackage
-node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.5 --expect-revision branding-rename-1
+node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.1.6-rc.cross-host.1 --expect-revision cross-host-parallel-1
 ```
 
 经授权并按更名升级说明迁移到 Skill 根下的 `ai-autonomous-testing-ego-lite` 目录；不要继续装入旧名目录。更新前核对旧文件是否来自已知版本，出现不明修改先报告，不能覆盖用户文件、创建同名重复安装或自动增加旧版备份。运行时以**实际加载的 SKILL.md 所在目录**为工具根；源码开发先在已确认根目录构建，使用明确的 `.build/runtime` 工具根。`tool-info` 输出版本、revision、formatVersions、实际路径和编译产物指纹；安装清单缺失、文件修改或版本混用会拒绝执行。指纹不认证发布者，构建清单只包含指定分发资源，不打包真实运行目录。
@@ -51,7 +53,7 @@ node (Join-Path $InstallPackage 'scripts/ego.mjs') tool-info --expect-version 0.
 
 已有报告不得覆盖。准备一个新的仓库外目录，使用 `report --run-dir ABS_RUN --output-dir ABS_EXISTING_NEW_DIR` 另存；事后补报告再传 `--context ABS_CONTEXT_JSON`，格式见 [报告整理上下文](schemas/report-context.schema.json)。它明确整理性质、限制、现有来源与 hash、补充用例及 AI 逐目标复核，原记录结论保留单独展示，不冒充执行前冻结。工具不补造截图、采集时间、步骤或业务结论，也不为了补报告重跑业务。
 
-本版工具 revision 为 `branding-rename-1`。用例、结果与证据保留 v3；新 manifest/report 为 v4，执行台账、配置和交付包为 v1，executionRead 为 v2；没有新增资源 JSON 契约。既有 v3 run 可继续使用，不原地升级或删除；v2 仍不支持。安装包不需要 TypeScript 编译器。单例单 Space 是默认原则，偏差保留并由 AI 复核，必须保护用户原有 Space；这些规则和记录不构成宿主级强隔离保证。独立验收包先按本地验收说明使用，是否更新当前安装由用户决定。
+本版工具 revision 为 `cross-host-parallel-1`，数据格式沿用分支基线：用例、结果与证据 v3；新 manifest/report v4，执行台账、配置和交付包 v1，executionRead v2。本次没有新增历史格式兼容层，不迁移、删除或覆盖原 run；v2 与其他分支的 v5 均不作为本包输入。安装包不需要 TypeScript 编译器。单例单 Space 是默认原则，偏差保留并由 AI 复核，必须保护用户原有 Space；这些记录不构成宿主强隔离。候选包与当前安装分别验证，用户安装不自动替换。
 
 ## 用例与判断
 

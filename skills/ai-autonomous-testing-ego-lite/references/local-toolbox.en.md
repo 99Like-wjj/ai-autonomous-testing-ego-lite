@@ -1,4 +1,4 @@
-# Local toolbox calling guide (0.1.5)
+# Local toolbox calling guide (0.1.6-rc.cross-host.1)
 
 In `0.1.4`, `execution read` defaults to a bounded summary. Use `--view assignment --assignment-id ID` for one assignment, or `--view full` for the previous complete structure. Summary/assignment default to metadata checks and explicitly mark historical evidence as not_checked. Add --integrity full for a strictly checked compact view; the full view always retains strict checks. A confirmed write receipt supplies the next expectedRevision; an intervening query is optional. Report labels describe recorded observations, separately from execution state and business outcomes. See [parallel-testing](parallel-testing.md).
 
@@ -8,7 +8,9 @@ The helper performs local data transactions and rendering. Unless the user expli
 
 Use the absolute directory containing the actually loaded `SKILL.md` as the installed tool root. A complete installation includes scripts, schemas, docs, examples, and `runtime-manifest.json`. For source development run npm ci and npm run build at the confirmed root, then use .build/runtime; never infer it by walking up from an installed Skill or choosing a similarly named preview directory.
 
-Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.5 --expect-revision branding-rename-1`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
+Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.6-rc.cross-host.1 --expect-revision cross-host-parallel-1`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
+
+This isolated repair candidate retains its committed baseline's formats, not another branch's v5 format. With a linked installation, obtain a nonempty tool-info receipt and use its resolved toolRoot thereafter. Exit code zero alone is insufficient. See [host conditions and handoff (Chinese)](host-compatibility.md) for native host coordination, context, permissions and validation limits.
 
 ## Boundaries
 

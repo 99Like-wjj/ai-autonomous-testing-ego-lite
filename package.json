@@ -1,8 +1,8 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.5",
+  "version": "0.1.6-rc.cross-host.1",
   "egoLiteTest": {
-    "toolRevision": "branding-rename-1",
+    "toolRevision": "cross-host-parallel-1",
     "formatVersions": {
       "cases": 3,
       "manifest": 4,

@@ -1,5 +1,9 @@
 # Validation record and coverage limits
 
+## Cross-host repair candidate (2026-10-28, Windows)
+
+`0.1.6-rc.cross-host.1 / cross-host-parallel-1` branches from committed testing-experience revision d350cc5, excluding the original checkout's uncommitted v5 goal and API-monitoring work. Two new entrypoint regressions failed before repair; all four focused tests passed afterward. Full regression: 113 tests, 109 passed, 0 failed, 4 skipped for Windows symlink privileges. Type, contract, Skill and source/package checks passed. Complete live multi-agent host workflows remain unverified; user installation was not updated. See the [detailed validation record (Chinese)](v0.1.6-cross-host-validation.md).
+
 ## v0.1.5 formal-version closeout (2026-10-25, cloud)
 
 Following user confirmation and merge/release authorization, package, tool constants, Skill metadata and invocation checks now use 0.1.5 without a dev suffix. The formal version passed strict types, contracts/build, 100/100 synthetic tests (0 failures/skips), Skill validation and source/installed-package publication checks on Linux / Node v24.22.1. The standalone package ships agents/openai.yaml and tool-info reports 0.1.5 / branding-rename-1 with verified integrity. Business code and data formats are unchanged.
