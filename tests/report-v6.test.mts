@@ -15,7 +15,7 @@ import { TOOL_VERSION, TOOL_REVISION } from '../src/contracts/layout.mjs';
 
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aL10AAAAASUVORK5CYII=', 'base64');
 
-test('v7 report retains independent IDs but deduplicates bodies and measures raster bytes', async t => {
+test('v6 report retains independent IDs but deduplicates bodies and measures raster bytes', async t => {
   const f = await fixture(t), text = 'Synthetic </script><img src=x onerror=alert(1)> fact'; await fs.writeFile(f.sourceFile, text);
   const first = await addEvidence(f, { metadata: { contentState: 'summary', encoding: 'utf8', purpose: 'A synthetic retained summary' } });
   const second = await addEvidence(f, { operationId: 'evidence-2', expectedRevision: 1 });

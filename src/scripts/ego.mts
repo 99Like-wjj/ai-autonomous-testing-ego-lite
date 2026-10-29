@@ -70,7 +70,7 @@ export async function main(argv: readonly string[]): Promise<unknown> {
 Execution ACTION: inventory, capacity, reserve, attach-space, note, set-limit, reconcile, import.
 execution read defaults to a bounded metadata summary; assignment requires --assignment-id. Use --integrity full for a strictly checked compact view. --view full keeps the previous complete output and requires full checks. Metadata reads do not recover evidence or recheck historical files.
 max-parallel-cases is a positive safe integer; no fixed product ceiling. Host limits are used only when explicitly supplied, never probed or globally configured.
-All current data contracts use v7. Older formats are explicitly rejected; existing data is never migrated or overwritten.
+All current data contracts use v6. Older formats are explicitly rejected; existing data is never migrated or overwritten.
 record commits observations and explicit business-goal assessments through the same transaction as reviewed packet imports.
 Missing assessments are recording gaps, not inconclusive verdicts. Cases group goals and have no separate business verdict.
 packet-seal writes an immutable worker-local packet; it does not commit a verdict. Coordinator import requires an explicit AI review.

@@ -10,12 +10,12 @@ export { newSafeCases, normalizeCases } from './baseline.mjs';
 export async function validateCases(casesFile: unknown) {
   const baseline = normalizeCases(await readJSON(await safePath(casesFile, { existing: true })));
   newSafeCases(baseline);
-  return { schemaVersion: 7, structurallyValid: true, project: baseline.project, caseCount: baseline.cases.length, goalCount: baseline.cases.reduce((sum, c) => sum + c.goals.length, 0), stepCount: baseline.cases.reduce((sum, c) => sum + c.steps.length, 0), stepOrderCounts: { strict: baseline.cases.filter(c => c.stepOrder === 'strict').length, adaptive: baseline.cases.filter(c => c.stepOrder === 'adaptive').length } };
+  return { schemaVersion: 6, structurallyValid: true, project: baseline.project, caseCount: baseline.cases.length, goalCount: baseline.cases.reduce((sum, c) => sum + c.goals.length, 0), stepCount: baseline.cases.reduce((sum, c) => sum + c.steps.length, 0), stepOrderCounts: { strict: baseline.cases.filter(c => c.stepOrder === 'strict').length, adaptive: baseline.cases.filter(c => c.stepOrder === 'adaptive').length } };
 }
 export async function init(projectDir: unknown) {
   const target = await safePath(projectDir, { external: true }); await fs.mkdir(target, { mode: 0o700 });
   try {
-    await writeNew(path.join(target, 'cases.example.json'), json({ schemaVersion: 7, project: 'Synthetic example', cases: [{
+    await writeNew(path.join(target, 'cases.example.json'), json({ schemaVersion: 6, project: 'Synthetic example', cases: [{
       id: 'example-1', title: 'Create a synthetic configuration (replace before use)', criticalConditions: [], requiredPath: null, stepOrder: 'strict',
       steps: [{ id: 'step-1', action: 'Create an approved synthetic configuration, then independently retrieve its saved values.' }],
       goals: [{ id: 'saved-values', title: 'Read back the saved configuration', basis: { kind: 'hypothesis', source: 'Example only; replace before execution', text: 'An approved configuration can be retrieved with its saved values.' }, expected: 'The saved configuration is independently retrieved with the supplied values.', requiredRefs: ['step:step-1'] }]
@@ -23,18 +23,18 @@ export async function init(projectDir: unknown) {
   } catch (caught) { const error = errorInfo(caught); try { await fs.rmdir(target); } catch {} throw error; }
   return { projectDir: target };
 }
-export async function start({ projectDir, casesFile, outputDir, configFile, maxParallelCases, runSchemaVersion = 7 }: { projectDir: unknown; casesFile: unknown; outputDir: unknown; configFile?: string | undefined; maxParallelCases?: number | undefined; runSchemaVersion?: 7 }) {
+export async function start({ projectDir, casesFile, outputDir, configFile, maxParallelCases, runSchemaVersion = 6 }: { projectDir: unknown; casesFile: unknown; outputDir: unknown; configFile?: string | undefined; maxParallelCases?: number | undefined; runSchemaVersion?: 6 }) {
   const project = await directory(projectDir), target = await safePath(outputDir, { external: true });
   const baseline = normalizeCases(await readJSON(await safePath(casesFile, { existing: true }))); newSafeCases(baseline);
-  if (runSchemaVersion !== 7) fail('New runs require schemaVersion 7.');
+  if (runSchemaVersion !== 6) fail('New runs require schemaVersion 6.');
   const configuration = await resolveConfiguration({ projectDir: project, configFile, maxParallelCases }), bytes = json(baseline);
-  const manifest: Manifest = { schemaVersion: 7, baselineSchemaVersion: 7, runId: crypto.randomUUID(), projectDir: project, baselineSha256: hash(bytes), executionFile: 'execution.json' };
+  const manifest: Manifest = { schemaVersion: 6, baselineSchemaVersion: 6, runId: crypto.randomUUID(), projectDir: project, baselineSha256: hash(bytes), executionFile: 'execution.json' };
   await fs.mkdir(target, { mode: 0o700 });
   const createdFiles: string[] = []; let evidenceDirectoryCreated = false, workersDirectoryCreated = false;
   try {
     for (const [filename, content] of [
-      ['baseline.json', bytes], ['manifest.json', json(manifest)], ['results.json', json({ schemaVersion: 7, revision: 0, entries: [] })],
-      ['evidence.json', json({ schemaVersion: 7, revision: 0, items: [], operations: [] })], ['execution.json', json(initialExecution(manifest, configuration))]
+      ['baseline.json', bytes], ['manifest.json', json(manifest)], ['results.json', json({ schemaVersion: 6, revision: 0, entries: [] })],
+      ['evidence.json', json({ schemaVersion: 6, revision: 0, items: [], operations: [] })], ['execution.json', json(initialExecution(manifest, configuration))]
     ]) { const full = path.join(target, filename!); await writeNew(full, content!); createdFiles.push(full); }
     await fs.mkdir(path.join(target, 'evidence'), { mode: 0o700 }); evidenceDirectoryCreated = true;
     await fs.mkdir(path.join(target, 'workers'), { mode: 0o700 }); workersDirectoryCreated = true;
@@ -45,5 +45,5 @@ export async function start({ projectDir, casesFile, outputDir, configFile, maxP
     if (evidenceDirectoryCreated) { try { await fs.rmdir(path.join(target, 'evidence')); } catch {} }
     try { await fs.rmdir(target); } catch {} throw error;
   }
-  return { runDir: target, cases: baseline.cases.length, goals: baseline.cases.reduce((sum, c) => sum + c.goals.length, 0), runSchemaVersion: 7, baselineSchemaVersion: 7 };
+  return { runDir: target, cases: baseline.cases.length, goals: baseline.cases.reduce((sum, c) => sum + c.goals.length, 0), runSchemaVersion: 6, baselineSchemaVersion: 6 };
 }

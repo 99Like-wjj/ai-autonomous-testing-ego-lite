@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface EgoLiteCaseInputAndNormalizedBaselineV7 {
-  schemaVersion: 7;
+export interface EgoLiteCaseInputAndNormalizedBaselineV6 {
+  schemaVersion: 6;
   project: string;
   /**
    * @minItems 1

@@ -1,8 +1,8 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export type EgoLiteExecutionRequestV7 =
+export type EgoLiteExecutionRequestV6 =
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -11,7 +11,7 @@ export type EgoLiteExecutionRequestV7 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -20,7 +20,7 @@ export type EgoLiteExecutionRequestV7 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -33,7 +33,7 @@ export type EgoLiteExecutionRequestV7 =
       reasoning?: string;
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -46,7 +46,7 @@ export type EgoLiteExecutionRequestV7 =
       replaceDefault?: boolean;
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -58,7 +58,7 @@ export type EgoLiteExecutionRequestV7 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -66,7 +66,7 @@ export type EgoLiteExecutionRequestV7 =
       maxParallelCases: number;
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -80,7 +80,7 @@ export type EgoLiteExecutionRequestV7 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;

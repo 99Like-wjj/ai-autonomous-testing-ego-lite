@@ -21,9 +21,9 @@ export type ContextFact = {
   reason?: string;
   sourceEvidenceIds: string[];
 };
-export type EgoLiteExecutionRequestV7 =
+export type EgoLiteExecutionRequestV6 =
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -32,7 +32,7 @@ export type EgoLiteExecutionRequestV7 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -41,7 +41,7 @@ export type EgoLiteExecutionRequestV7 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -54,7 +54,7 @@ export type EgoLiteExecutionRequestV7 =
       reasoning?: string;
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -67,7 +67,7 @@ export type EgoLiteExecutionRequestV7 =
       replaceDefault?: boolean;
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -79,7 +79,7 @@ export type EgoLiteExecutionRequestV7 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -87,7 +87,7 @@ export type EgoLiteExecutionRequestV7 =
       maxParallelCases: number;
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -101,7 +101,7 @@ export type EgoLiteExecutionRequestV7 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 7;
+      schemaVersion: 6;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -111,8 +111,8 @@ export type EgoLiteExecutionRequestV7 =
       rebaseOf?: string;
     };
 
-export interface EgoLiteGeneratedReportV7 {
-  schemaVersion: 7;
+export interface EgoLiteGeneratedReportV6 {
+  schemaVersion: 6;
   runId: string;
   project: string;
   structurallyValid: true;
@@ -137,21 +137,21 @@ export interface EgoLiteGeneratedReportV7 {
       goalId: string;
     }[];
   };
-  context?: RetrospectiveReportContextV7NoBusinessExecution;
+  context?: RetrospectiveReportContextV6NoBusinessExecution;
   caveat: string;
-  evidenceCatalog: EgoLiteEvidenceCatalogV7;
+  evidenceCatalog: EgoLiteEvidenceCatalogV6;
   /**
    * @minItems 1
    */
   cases: CheckedCase[];
-  execution?: EgoLiteExecutionLedgerV7;
+  execution?: EgoLiteExecutionLedgerV6;
   executionSummary?: ExecutionSummary;
   caseCount: number;
   goalCount: number;
   assessmentComplete: boolean;
 }
-export interface RetrospectiveReportContextV7NoBusinessExecution {
-  schemaVersion: 7;
+export interface RetrospectiveReportContextV6NoBusinessExecution {
+  schemaVersion: 6;
   kind: 'retrospective';
   summary: string;
   /**
@@ -168,8 +168,8 @@ export interface RetrospectiveReportContextV7NoBusinessExecution {
   }[];
   supplementalCaseIds: string[];
 }
-export interface EgoLiteEvidenceCatalogV7 {
-  schemaVersion: 7;
+export interface EgoLiteEvidenceCatalogV6 {
+  schemaVersion: 6;
   revision: number;
   items: EvidenceItem[];
   operations: EvidenceOperation[];
@@ -365,8 +365,8 @@ export interface Finding {
   reviewState: 'proposed' | 'reviewed';
   scope: 'original' | 'additional';
 }
-export interface EgoLiteExecutionLedgerV7 {
-  schemaVersion: 7;
+export interface EgoLiteExecutionLedgerV6 {
+  schemaVersion: 6;
   runId: string;
   baselineSha256: string;
   revision: number;
@@ -385,7 +385,7 @@ export interface ExecutionConfigurationSnapshot {
   initialMaxParallelCases: number;
   requestedMaxParallelCases: number;
   configuration: {
-    schemaVersion: 7;
+    schemaVersion: 6;
     maxParallelCases: number;
   };
   configFile?: string;
@@ -440,18 +440,18 @@ export interface PacketImport {
   packetId: string;
   packetSha256: string;
   packetFile: string;
-  originalPacket: EgoLiteWorkerPacketV7;
+  originalPacket: EgoLiteWorkerPacketV6;
   review: PacketReview;
   evidenceJobs: EvidenceImportJob[];
-  resultRequest?: ResultOrAttemptRequestV7;
+  resultRequest?: ResultOrAttemptRequestV6;
   resultReceipt?: ImportedResultReceipt;
   phase: 'prepared' | 'evidence' | 'result' | 'complete' | 'superseded';
   startedAt: string;
   completedAt?: string;
   supersededBy?: string;
 }
-export interface EgoLiteWorkerPacketV7 {
-  schemaVersion: 7;
+export interface EgoLiteWorkerPacketV6 {
+  schemaVersion: 6;
   runId: string;
   baselineSha256: string;
   caseId: string;
@@ -499,11 +499,11 @@ export interface PacketReview {
 }
 export interface EvidenceImportJob {
   key: string;
-  request?: EvidenceRegistrationRequestV7;
+  request?: EvidenceRegistrationRequestV6;
   receipt?: ImportedEvidenceReceipt;
 }
-export interface EvidenceRegistrationRequestV7 {
-  schemaVersion: 7;
+export interface EvidenceRegistrationRequestV6 {
+  schemaVersion: 6;
   operationId: string;
   expectedRevision: number;
   caseId: string;
@@ -525,8 +525,8 @@ export interface ImportedEvidenceReceipt {
   collectedAt: string;
   replayed: boolean;
 }
-export interface ResultOrAttemptRequestV7 {
-  schemaVersion: 7;
+export interface ResultOrAttemptRequestV6 {
+  schemaVersion: 6;
   operationId: string;
   expectedRevision: number;
   caseId: string;
@@ -543,7 +543,7 @@ export interface ImportedResultReceipt {
 export interface ExecutionOperation {
   operationId: string;
   payloadSha256: string;
-  request: EgoLiteExecutionRequestV7;
+  request: EgoLiteExecutionRequestV6;
   startedAt: string;
   receipt?: ExecutionReceipt;
 }

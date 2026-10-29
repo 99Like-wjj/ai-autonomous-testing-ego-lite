@@ -7,8 +7,8 @@ export type ContextFact = {
   sourceEvidenceIds: string[];
 };
 
-export interface EgoLiteRecordedResultsV7 {
-  schemaVersion: 7;
+export interface EgoLiteRecordedResultsV6 {
+  schemaVersion: 6;
   revision: number;
   entries: ResultEntry[];
 }

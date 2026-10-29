@@ -10,9 +10,9 @@ import { TEXT_PREVIEW_LIMIT, type PayloadOptions } from './assets.mjs';
 
 export async function validateReportContext(input: unknown, result: Report): Promise<ReportContext> {
   assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds'], 'report context');
-  if (input.schemaVersion !== 7 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
+  if (input.schemaVersion !== 6 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
   const context: ReportContext = {
-    schemaVersion: 7, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
+    schemaVersion: 6, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
     supplementalCaseIds: strings(input.supplementalCaseIds, 'supplemental case IDs'),
     sources: arrayValue(input.sources, 'sources').map(value => { assertClosed(value, ['label', 'file', 'sha256'], 'report source'); return { label: textValue(value.label, 'source label'), file: textValue(value.file, 'source file'), sha256: sha256Value(value.sha256, 'source hash') }; }),
   };
@@ -93,12 +93,12 @@ export async function verifyReportFiles(root: string, reportDir: string, result:
     if (hash(bytes) !== attachment.sha256 || bytes.length !== attachment.bytes) fail('Report attachment hash or byte count mismatch: ' + attachment.path);
     artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
   }
-  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v7', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete };
+  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v6', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete };
 }
 export async function verifyReport(runDir: unknown, reportDir: unknown = runDir) {
   return withRunLock(runDir, async root => {
     const target = await directory(reportDir), saved = await readJSON(path.join(target, 'report.json'));
-    if (!object(saved) || saved.schemaVersion !== 7) fail('Unsupported saved report format; v7 is required. Historical files remain unchanged.');
+    if (!object(saved) || saved.schemaVersion !== 6) fail('Unsupported saved report format; v6 is required. Historical files remain unchanged.');
     const options = await readDeliveryOptions(target), result = await checkUnlocked(root, { allowMissingScreenshots: options.allowMissingScreenshots });
     if (saved.context !== undefined) result.context = await validateReportContext(saved.context, result);
     return verifyReportFiles(root, target, result, await htmlReportPayload(root, result, options));

@@ -7,7 +7,7 @@ import { fail } from '../core/common.mjs';
 import { reportShell } from './shell.mjs';
 export const escape = (value: unknown): string => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\\*_{}\[\]()#+.!|~-]/g, '\\$&').split(String.fromCharCode(96)).join('\\' + String.fromCharCode(96)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, character => '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')).replace(/\r?\n/g, '  \n');
 export function markdown(report: Report, payload?: HtmlPayload): string {
-  if (report.schemaVersion !== 7) fail('Unsupported report format; v7 is required.');
+  if (report.schemaVersion !== 6) fail('Unsupported report format; v6 is required.');
   const lines: string[] = ['# 本地测试报告', '', escape(report.project), '', escape(report.caveat), '',
     '业务目标总数：' + report.goalCount + '；用例／场景数：' + report.caseCount + '。', '',
     Object.entries(report.counts).map(([state, count]) => labels[state as keyof typeof labels] + '：' + count).join('；') + '。', '',

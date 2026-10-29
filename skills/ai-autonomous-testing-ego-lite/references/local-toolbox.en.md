@@ -1,6 +1,6 @@
 # Local toolbox guide (0.1.7-rc.1)
 
-This is an unpublished development candidate. v7 adds context/actions/evidence-purpose facts and scene-first HTML navigation with eight switchable themes. Each goal requires a business title. The reserved followUpOf.runId value self refers to another validated target inside the same run.
+This is an unpublished development candidate. v6 adds context/actions/evidence-purpose facts and scene-first HTML navigation with eight switchable themes. Each goal requires a business title. The reserved followUpOf.runId value self refers to another validated target inside the same run.
 
 Report options: `--delivery inline|bundle` (default inline) and explicit `--allow-missing-screenshots true|false` (default false). Bundle delivery includes attachments and report-delivery.json; verification checks all artifacts. Missing-image drafts remain incomplete; corrupt bytes, missing text and invalid references are still rejected.
 
@@ -8,7 +8,7 @@ Report options: `--delivery inline|bundle` (default inline) and explicit `--allo
 
 The toolbox performs deterministic local data transactions, validation and report rendering. The network commands also start a scoped native collector through the local Ego installation. Business UI actions and judgments remain AI-driven; the collector does not issue or replay business requests. Read docs/asset-formats.md from the actual complete tool root; in source, build first and use .build/runtime.
 
-For linked installations, obtain a nonempty tool-info receipt and use its resolved toolRoot. Exit code zero alone does not prove execution. See [host conditions and handoff (Chinese)](host-compatibility.md) for host entrypoints, context and lifecycle. This release uses v7 rather than the isolated repair branch formats.
+For linked installations, obtain a nonempty tool-info receipt and use its resolved toolRoot. Exit code zero alone does not prove execution. See [host conditions and handoff (Chinese)](host-compatibility.md) for host entrypoints, context and lifecycle. This release uses v6 rather than the isolated repair branch formats.
 
 ```text
 node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.7-rc.1 --expect-revision report-usability-1
@@ -22,7 +22,7 @@ node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS_RUN
 node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 ```
 
-All test-asset JSON contracts use schemaVersion 7 and execution query viewVersion 6. Old formats are explicitly rejected; no conversion or in-place update is provided. Preserve old files and prepare separate v7 assets from original sources. Do not auto-update the user's installed Skill.
+All test-asset JSON contracts use schemaVersion 6 and execution query viewVersion 6. Old formats are explicitly rejected; no conversion or in-place update is provided. Preserve old files and prepare separate v6 assets from original sources. Do not auto-update the user's installed Skill.
 
 start creates a frozen baseline and an empty result ledger, not synthetic not_tested results. Evidence requests register permitted regular files, return catalog IDs and verify retained bytes. Unknown capture times are omitted; registration time is not execution time. Files are not automatically redacted and hashes do not establish authenticity.
 

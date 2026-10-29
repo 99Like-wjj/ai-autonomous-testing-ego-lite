@@ -49,7 +49,7 @@ export function attachmentName(sha256: string, mediaType?: string): string {
   return 'attachments/' + sha256 + extension;
 }
 export async function htmlReportPayload(root: string, report: Report, options: PayloadOptions = {}): Promise<HtmlPayload> {
-  if (report.schemaVersion !== 7) fail('Unsupported report format; v7 is required. Historical files remain unchanged.');
+  if (report.schemaVersion !== 6) fail('Unsupported report format; v6 is required. Historical files remain unchanged.');
   const mode = options.mode ?? 'inline', textPreviewLimitBytes = options.textPreviewLimitBytes ?? TEXT_PREVIEW_LIMIT;
   if (!['inline', 'bundle'].includes(mode) || !Number.isSafeInteger(textPreviewLimitBytes) || textPreviewLimitBytes < 256 || textPreviewLimitBytes > 16 * 1024 * 1024) fail('Invalid report delivery options.');
   const previews: Record<string, Preview> = {}, assets: Record<string, ReportAsset> = {};
@@ -90,5 +90,5 @@ export async function htmlReportPayload(root: string, report: Report, options: P
     }
     if (mode === 'bundle') p.attachmentPath = attachmentName(item.sha256, p.mediaType);
   }
-  return { htmlPayloadVersion: 7, report, previews, assets, delivery: { mode, textPreviewLimitBytes, complete, allowMissingScreenshots: options.allowMissingScreenshots === true } };
+  return { htmlPayloadVersion: 6, report, previews, assets, delivery: { mode, textPreviewLimitBytes, complete, allowMissingScreenshots: options.allowMissingScreenshots === true } };
 }

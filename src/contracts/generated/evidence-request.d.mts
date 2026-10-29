@@ -16,8 +16,8 @@ export type EvidenceMetadata = {
   height?: number;
 };
 
-export interface EvidenceRegistrationRequestV7 {
-  schemaVersion: 7;
+export interface EvidenceRegistrationRequestV6 {
+  schemaVersion: 6;
   operationId: string;
   expectedRevision: number;
   caseId: string;

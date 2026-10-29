@@ -27,7 +27,7 @@ export function projectExecutionRead(state: ExecutionLedger & { project: string;
     ? { scope: 'full', baselineHash: 'matched', executionLedger: 'validated', recordedResults: 'checked', evidenceFiles: 'verified' }
     : { scope: 'metadata', baselineHash: 'matched', executionLedger: 'validated', recordedResults: 'not_checked', evidenceFiles: 'not_checked' };
   return {
-    viewVersion: 7, view: options.view, runId: state.runId, baselineSha256: state.baselineSha256, revision: state.revision, project: state.project,
+    viewVersion: 6, view: options.view, runId: state.runId, baselineSha256: state.baselineSha256, revision: state.revision, project: state.project,
     configuration: state.configuration, knownAvailableWorkers: state.knownAvailableWorkers, capacityReason: preview(state.capacityReason), integrity,
     recovery: { evidenceMarker: options.evidenceMarker, pendingImports: state.summary.pendingImportIds.length },
     counts: { activeReservations: state.summary.activeReservations, peakReservations: state.peakReservations, reportedExecutionPeak: state.summary.reportedExecutionPeak, draining: state.summary.draining, totalAssignments: state.assignments.length, unfinishedAssignments: state.summary.unfinishedAssignmentIds.length, failedAssignments: state.assignments.filter(a => a.state === 'failed').length, pendingImports: state.summary.pendingImportIds.length, operations: state.operations.length, events: state.events.length, protectedSpaces: state.protectedSpaceIds?.length ?? null },
