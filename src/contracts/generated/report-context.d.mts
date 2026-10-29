@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface RetrospectiveReportContextV1NoBusinessExecution {
-  schemaVersion: 1;
+export interface RetrospectiveReportContextV5NoBusinessExecution {
+  schemaVersion: 5;
   kind: 'retrospective';
   summary: string;
   /**
@@ -17,12 +17,4 @@ export interface RetrospectiveReportContextV1NoBusinessExecution {
     sha256: string;
   }[];
   supplementalCaseIds: string[];
-  /**
-   * @minItems 1
-   */
-  reviews: {
-    caseId: string;
-    status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
-    rationale: string;
-  }[];
 }

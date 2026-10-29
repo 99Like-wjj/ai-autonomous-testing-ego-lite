@@ -1,108 +1,34 @@
-# Local toolbox calling guide (0.1.6-rc.cross-host.1)
+# Local toolbox guide (0.1.6-rc.1)
 
-In `0.1.4`, `execution read` defaults to a bounded summary. Use `--view assignment --assignment-id ID` for one assignment, or `--view full` for the previous complete structure. Summary/assignment default to metadata checks and explicitly mark historical evidence as not_checked. Add --integrity full for a strictly checked compact view; the full view always retains strict checks. A confirmed write receipt supplies the next expectedRevision; an intervening query is optional. Report labels describe recorded observations, separately from execution state and business outcomes. See [parallel-testing](parallel-testing.md).
+The toolbox performs deterministic local data transactions, validation and report rendering. AI judgment and Ego browser actions remain outside it. Read docs/asset-formats.md from the actual complete tool root; in source, build first and use .build/runtime.
 
-The helper performs local data transactions and rendering. Unless the user explicitly requests another format, delivery after test execution includes standalone HTML, JSON, and Markdown. Missing tools block delivery; Markdown notes alone do not complete it.
-
-## Confirm the loaded installation
-
-Use the absolute directory containing the actually loaded `SKILL.md` as the installed tool root. A complete installation includes scripts, schemas, docs, examples, and `runtime-manifest.json`. For source development run npm ci and npm run build at the confirmed root, then use .build/runtime; never infer it by walking up from an installed Skill or choosing a similarly named preview directory.
-
-Run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.6-rc.cross-host.1 --expect-revision cross-host-parallel-1`. Check toolRoot, skillFile, formatVersions and installationIntegrity: verified for both built runtimes and installations. Every CLI command also checks the installed manifest. Report unknown edits rather than overwriting them. Read `docs/asset-formats.en.md` and schemas inside that verified root. A fingerprint proves byte consistency, not publisher identity.
-
-This isolated repair candidate retains its committed baseline's formats, not another branch's v5 format. With a linked installation, obtain a nonempty tool-info receipt and use its resolved toolRoot thereafter. Exit code zero alone is insufficient. See [host conditions and handoff (Chinese)](host-compatibility.md) for native host coordination, context, permissions and validation limits.
-
-## Boundaries
-
-- The helper only reads and writes user-specified local files. It does not use a network, model, or Ego; operate a browser; generate test data; decide bugs; choose execution routes; or retry business actions.
-- The helper copies a selected regular file into the run's `evidence/` directory. Narrow the scope and review sensitive content first; the helper does not redact.
-- `capturedAt` must come from a source-provided capture time. Omit it when unknown. The helper records `collectedAt` separately.
-- SHA-256 only checks whether retained bytes match the catalog value. It does not prove authenticity, source identity, or correctness.
-- Use the v3 format. v0.1.2 schemaVersion 2 files cannot be used directly. Rebuild cases from original requirements and create a new run; do not change only the version number.
-
-## Reuse existing records for resource gaps
-
-Use the [resource-readiness guide (Chinese)](resource-readiness.md). The AI determines prerequisites and affected goals; existing observed/rationale/remainingQuestions, evidence registration and explicit worker goal assessments retain the facts. Do not place recoverable resource gaps into frozen acceptance questions. Progress provides status and case IDs; pendingClarification only counts frozen acceptance questions. Use check when detailed current records are needed.
-
-Auxiliary notes are not automatically verified by verify-report. Put required facts in the existing result, goal and evidence chain. Add observations after resource verification, preserve blocked history, and revise the baseline if frozen semantics change. No new JSON format, automatic readiness decision or business retry is added.
-
-## Create and validate a run
-
-Cases must satisfy `schemas/cases.schema.json`. Keep project data and runs outside the source repository, and use absolute paths. The run destination must not exist.
+For linked installations, obtain a nonempty tool-info receipt and use its resolved toolRoot. Exit code zero alone does not prove execution. See [host conditions and handoff (Chinese)](host-compatibility.md) for host entrypoints, context and lifecycle. This integrated candidate uses v5 rather than the isolated repair branch formats.
 
 ```text
-node "ABS_TOOL_ROOT/scripts/ego.mjs" validate-cases --cases ABS_CASES_JSON
-node "ABS_TOOL_ROOT/scripts/ego.mjs" start --project-dir ABS_PROJECT_DIR --cases ABS_CASES_JSON --output-dir ABS_RUN_DIR
+node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.6-rc.1 --expect-revision native-network-observation-1
+node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS_CASES
+node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN
+node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS_RUN --request ABS_EVIDENCE_REQUEST
+node ABS_TOOL_ROOT/scripts/ego.mjs record --run-dir ABS_RUN --request ABS_RECORD_REQUEST
+node ABS_TOOL_ROOT/scripts/ego.mjs progress --run-dir ABS_RUN
+node ABS_TOOL_ROOT/scripts/ego.mjs check --run-dir ABS_RUN
+node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS_RUN
+node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 ```
 
-`start` freezes the baseline and creates an initial `not_run` results file and empty evidence catalog. Browser actions still require user authorization and the installed official Ego Skill.
+All test-asset JSON contracts use schemaVersion 5 and execution query viewVersion 5. Old formats are explicitly rejected; no conversion or in-place update is provided. Preserve old files and prepare separate v5 assets from original sources. Do not auto-update the user's installed Skill.
 
-## Register evidence
+start creates a frozen baseline and an empty result ledger, not synthetic not_tested results. Evidence requests register permitted regular files, return catalog IDs and verify retained bytes. Unknown capture times are omitted; registration time is not execution time. Files are not automatically redacted and hashes do not establish authenticity.
 
-1. Read the current `revision` from the run's `evidence.json`; use it as `expectedRevision`. This is read-only. Do not edit the catalog manually.
-2. Choose a new safe `operationId`. Specify a baseline `caseId`, a local regular `sourceFile`, `kind`, `source`, and `description`. Leave `capturedAt` out if unknown.
-3. Save a UTF-8 JSON request and run:
+record contains observations and assessments. Observations have id/summary/coveredRefs/evidenceIds; assessments have goalId/status/rationale/observationIds/gaps and optional diagnosis. Four statuses are verified/violation/inconclusive/not_tested. A missing assessment is a recording gap. final updates only explicitly submitted goals; attempt remains in history without changing current results. Current assessments are derived from entries, and original anomalies are preserved.
 
-```text
-node "ABS_TOOL_ROOT/scripts/ego.mjs" evidence-add --run-dir ABS_RUN_DIR --request ABS_REQUEST_JSON
-```
+Serial record needs no worker or Space assignment. Reviewed worker import writes the same structure, mapping packet-local evidence keys to catalog IDs. Default concurrency is 1; see [parallel guidance](parallel-testing.md) when needed. Resource facts and gaps never replace actual user clarification; see [resource readiness](resource-readiness.md).
 
-4. Use the returned `evidenceId` with a result or attempt for the same case. The receipt includes operation ID, revision, path, SHA-256, byte count, and collection time.
+Use unique operation IDs and current revisions. Identical request replay recovers a receipt, not a browser action. Changed payloads or stale new requests are rejected. Do not clear unknown locks or repeat unknown writes. Full format examples and rules are in the [Chinese toolbox guide](local-toolbox.md).
 
-Evidence requests are validated under a single-writer lock. Symlink paths, non-regular files, overwrites, mismatched case associations, invalid times, stale revisions, and ID conflicts are rejected. Do not put source paths, keys, or real business data in public examples.
-
-## Record a final outcome or attempt
-
-Read the current results `revision` from `results.json`. Example:
-
-```json
-{
-  "schemaVersion": 3,
-  "operationId": "CONFIG-01-final-observation",
-  "expectedRevision": 0,
-  "caseId": "CONFIG-01",
-  "mode": "final",
-  "record": {
-    "status": "inconclusive",
-    "observed": "Synthetic observation: the page does not establish the overall expectation.",
-    "rationale": "Available evidence does not confirm that the expectation was met or violated.",
-    "remainingQuestions": ["Must the value persist after refresh?"],
-    "evidenceIds": [],
-    "cause": "unknown"
-  }
-}
-```
-
-`mode: final` updates the current outcome. `mode: attempt` appends an observation while leaving the current final outcome unchanged. The attempts array excludes the current final observation; it includes explicit attempts and prior final snapshots not already preserved in history. For a deliberate new observation with the same status and content, use a new operation ID. To retry a request, reuse the original ID and payload.
-
-`pass` / `fail` require actual observations, rationale, and registered evidence IDs associated with the same case. `inconclusive` / `blocked` require rationale. `not_run` is valid only in final mode and means no final outcome; it can coexist with attempts. `not_run` with an empty attempts array means no recorded result/attempt; it does not establish that execution never started. A frozen baseline with pending `clarificationQuestions` prohibits `pass` / `fail` for both final outcomes and attempts. Requests cannot change basis, steps, expectations, or frozen questions.
-
-## Idempotency, conflicts, and lost responses
-
-- Every write request has a unique `operationId`; evidence and result writes share the same ID space.
-- Retrying the same ID with the same JSON content (object-key order does not matter) returns the original receipt without appending again.
-- Changed payload under the same ID is rejected. A new ID with an old revision is also rejected.
-- The helper obtains a run-level exclusive lock before reading revisions. Concurrent writers are not queued automatically.
-- If a response is lost after commit, check with `check` or `progress`; retrying the exact original ID and payload returns its receipt. Do not use a new ID to repeat an operation with an unknown outcome.
-- A stale lock blocks writes. Verify no associated process is running before inspecting a lock. Do not automatically remove an unknown lock.
-
-## Progress and reports
-
-```text
-node "ABS_TOOL_ROOT/scripts/ego.mjs" progress --run-dir ABS_RUN_DIR
-node "ABS_TOOL_ROOT/scripts/ego.mjs" check --run-dir ABS_RUN_DIR
-node "ABS_TOOL_ROOT/scripts/ego.mjs" report --run-dir ABS_RUN_DIR
-```
-
-Progress counts only each baseline case's current final status; historical failures are not counted again as current failures. `not_run`, `blocked`, `inconclusive`, and pending clarification remain separate. `report` creates `report.json`, `report.md`, and a self-contained `report.html`; it refuses to overwrite any existing output. You can copy `report.html` alone and open it in a browser without network access; it has no run-directory references or external links. The HTML shows frozen goals, critical conditions, required path and order policy, observations, rationale, basis, unverified items, each attempt's remaining questions, and evidence source/SHA-256 metadata. It previews only PNG/JPEG/WebP files whose hash and size match. Missing images are called out without automatically failing the case; if a browser cannot decode an otherwise recognized raster image, a clear error appears without a replacement image. Hash mismatches, dangling references, or invalid structure refuse report generation.
-
-The report summarizes caller-provided results and local file integrity; it is not an independently verified test conclusion. Business status and file integrity are shown separately. SHA-256 does not prove authenticity or business correctness. Reports have case-level outcomes, not per-step verdicts, and do not claim that planned steps were executed. Do not upload a raw report automatically; review its sensitive content and use only an authorized sharing path.
+Reports count business goals, show parent scenario distributions, and distinguish recording gaps from four-state outcomes. Key UI findings require real screenshots; timestamps, actions and screenshots are never invented. HTML/JSON/Markdown are the default deliverables. report refuses overwrite; use a new --output-dir to retain earlier artifacts. verify-report checks current files and records, while browserOpen:not_checked leaves actual opening unverified. Deliver absolute paths and known limitations. Source reconstruction must be explicitly retrospective; it is not a pre-execution freeze.
 
 
-Use `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` to read back all three artifacts and compare them with the current records, retained evidence and context sources. Receipts include absolute paths, byte counts, hashes and `browserOpen: not_checked`; actual browser opening remains separate. Deliver all three paths. Key UI outcomes and defects require real screenshots, selected by the AI rather than one screenshot per step. Missing screenshots are evidence gaps that need conclusion review, not automatic product failures.
+## Network observation
 
-For a new report without overwriting an old one, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Retrospective assembly additionally uses `--context ABS_CONTEXT_JSON`, defined by `schemas/report-context.schema.json`. This report-only v1 context records limitations, existing source files and hashes, supplemental case IDs, and AI-supplied reviews for every goal. Original recorded statuses remain separate. Never present post-execution assembly as a pre-execution freeze, invent capture times, or rerun business actions just to fill a report.
-
-## v4 parallel execution
-
-New manifests/reports use v4; cases/results/evidence keep v3. Users configure maxParallelCases (positive safe integer; default 1, serial). Without a user request for concurrency or an explicit setting, do not increase it based on spare capacity or independent cases. The AI chooses when to call tools and whether to use native workers; serial execution does not require a separate agent. Host capacity is used only when explicitly known, not probed or globally configured. Read [parallel-testing](parallel-testing.md): workers write only their own files and packet-seal; the coordinator reviews and execution import commits. Goals, errors, original proposals and revisions are preserved. Legacy v3 runs/reports remain readable/verifiable, with no in-place upgrade.
+Use network start/status/query/stop for scoped background recording, committed local queries and orderly shutdown. The AI decides when to query and how to assess UI plus interface evidence. Fetch/XHR, SSE and bidirectional text/binary WebSockets are included. See [configuration and lifecycle (Chinese)](network-observation.md). Network data uses independent version 1; experimental protocol-summary files are not read, converted or deleted.

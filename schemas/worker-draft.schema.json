@@ -1,18 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "worker-draft.schema.json",
-  "title": "Ego Lite worker draft v1",
+  "title": "Ego Lite worker draft v5",
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "schemaVersion",
     "packetId",
     "mode",
     "record",
     "evidence",
-    "goalAssessments",
     "spaceUsage"
   ],
   "properties": {
+    "schemaVersion": {
+      "const": 5
+    },
     "packetId": {
       "$ref": "common.schema.json#/$defs/safeId"
     },
@@ -64,13 +67,6 @@
           "description"
         ],
         "additionalProperties": false
-      }
-    },
-    "goalAssessments": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "worker-packet.schema.json#/$defs/goal"
       }
     },
     "spaceUsage": {

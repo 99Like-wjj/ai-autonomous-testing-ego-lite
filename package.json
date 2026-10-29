@@ -1,19 +1,20 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.6-rc.cross-host.1",
+  "version": "0.1.6-rc.1",
   "egoLiteTest": {
-    "toolRevision": "cross-host-parallel-1",
+    "toolRevision": "native-network-observation-1",
     "formatVersions": {
-      "cases": 3,
-      "manifest": 4,
-      "results": 3,
-      "evidence": 3,
-      "report": 4,
-      "execution": 1,
-      "configuration": 1,
-      "workerPacket": 1,
-      "executionRead": 2
-    }
+      "cases": 5,
+      "manifest": 5,
+      "results": 5,
+      "evidence": 5,
+      "report": 5,
+      "execution": 5,
+      "configuration": 5,
+      "workerPacket": 5,
+      "executionRead": 5
+    },
+    "networkFormatVersion": 1
   },
   "description": "AI autonomous Web test automation with Ego Lite: evidence-driven planning, execution and offline HTML reports.",
   "private": true,

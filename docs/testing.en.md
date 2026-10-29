@@ -1,8 +1,37 @@
 # Validation record and coverage limits
 
-## Cross-host repair candidate (2026-10-28, Windows)
 
-`0.1.6-rc.cross-host.1 / cross-host-parallel-1` branches from committed testing-experience revision d350cc5, excluding the original checkout's uncommitted v5 goal and API-monitoring work. Two new entrypoint regressions failed before repair; all four focused tests passed afterward. Full regression: 113 tests, 109 passed, 0 failed, 4 skipped for Windows symlink privileges. Type, contract, Skill and source/package checks passed. Complete live multi-agent host workflows remain unverified; user installation was not updated. See the [detailed validation record (Chinese)](v0.1.6-cross-host-validation.md).
+## Current network-observation candidate (2026-10-28)
+
+0.1.6-rc.1 / native-network-observation-1 implements the v3 design. Regression: 115 tests, 114 passed, 0 failed, 1 Windows file-symlink privilege skip; 34 network tests. See [network validation (Chinese)](v0.1.6-network-validation.md) for real Ego, loopback data, standalone packaging and limits. Older results below remain historical.
+
+## Previous integrated candidate (2026-10-28)
+
+0.1.6-rc.1 / goal-assessment-cross-host-1 retains v5 contracts, goal records and the API-monitoring design while integrating linked CLI execution and host handoff guidance from 8e6e2d9. See the [integration record (Chinese)](v0.1.6-cross-host-integration.md) for this workspace regression and standalone package checks. Historical 88-test and isolated 113-test results do not substitute for the integrated result.
+
+The isolated repair branch preserves first failures, its 4/4 entrypoint checks and 109 PASS/4 SKIP in the [original record (Chinese)](v0.1.6-cross-host-validation.md). Live host workflows, UAT and user installation were not executed in this integration.
+
+## Pre-integration goal-assessment changes (goal-assessment-1)
+
+Current validation scope is the unified v5 contracts, business-goal granularity, shared serial/parallel records, incremental updates/history, three-format report consistency, explicit legacy rejection and documentation examples. Meaningful checks include missing assessments staying separate from business outcomes, violations with unknown causes, required-semantics coverage, historical attempts not changing current results, evidence/reference integrity rejection and follow-up links preserving original claims.
+
+That validation used version/revision: 0.1.6-rc.1 / goal-assessment-1. Historical counts below apply only to their original versions; current commands, results and limitations must come from this delivery's validation record. Scoped isolated Ego observations are listed below; guidance or API names alone do not validate other capabilities. Synthetic checks do not substitute for UAT; builds do not update the user's installed Skill or constitute a formal release.
+
+
+Engineering regression on Windows / Node.js v24.19.0: **88 tests, 87 PASS, 0 FAIL, 1 SKIP** (file-symlink creation privilege unavailable). Strict compilation, contracts, standalone package and report tests passed. See the [detailed current validation record](v0.1.6-goal-assessment-validation.md) for first failures, independent case-design review and limitations.
+
+### P2 isolated Ego capability observations
+
+Ego 0.6.1.13 with official Skill 2.1.0 was exercised only against synthetic 127.0.0.1 pages. UAT was not rerun. These are scoped observations, not general browser or business acceptance:
+
+- Renaming used the supported save action and the correct card; independent readback and refresh retained the new title.
+- Real pointer down/up events reported isTrusted=true. A synthetic time bar moved two days, with independent readback and refresh retaining the dates.
+- Network/Runtime events exposed request/response facts and one synthetic console error. Network.getResponseBody returned the synthetic response; this does not justify capturing bodies by default.
+- Parent-page and stable-child-page downloads each produced a 65-byte file with the same content SHA-256, verified from actual files.
+- A transient target=_blank page pointing directly to an attachment was not covered by the tested observation path: the parent page's pre-armed download listener timed out after six seconds without obtaining a file, while the server recorded the GET with via=transient. This does not establish the Ego root cause, prove that no download occurred, or define six seconds as a product failure deadline. UI download verification was not replaced by fetch.
+- The first screenshot failed because the owned window was minimized and that failure was retained. Querying/restoring the owned window with the actual targetId from this task's tabs then worked. Direct page.targetId window lookup had failed with No web contents; later success does not erase that failed path. Existing user windows were not manipulated.
+
+Private capability artifacts preserve the observations and first errors. The protocol helper only summarizes captured events; it does not control the browser or infer business outcomes. Helper implementation and regression are validated separately.
 
 ## v0.1.5 formal-version closeout (2026-10-25, cloud)
 

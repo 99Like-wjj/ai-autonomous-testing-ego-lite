@@ -1,13 +1,36 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "manifest.schema.json",
-  "title": "Ego Lite run manifest",
-  "oneOf": [
-    {
-      "$ref": "manifest-v3.schema.json"
+  "title": "Ego Lite run manifest v5",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "baselineSchemaVersion",
+    "runId",
+    "projectDir",
+    "baselineSha256",
+    "executionFile"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 5
     },
-    {
-      "$ref": "manifest-v4.schema.json"
+    "baselineSchemaVersion": {
+      "const": 5
+    },
+    "runId": {
+      "$ref": "common.schema.json#/$defs/nonempty"
+    },
+    "projectDir": {
+      "$ref": "common.schema.json#/$defs/nonempty"
+    },
+    "baselineSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "executionFile": {
+      "const": "execution.json"
     }
-  ]
+  },
+  "additionalProperties": false
 }

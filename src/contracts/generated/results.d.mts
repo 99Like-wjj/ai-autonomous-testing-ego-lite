@@ -1,91 +1,41 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export type ResultV3 = {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  id: string;
-  basis: Basis;
-  /**
-   * Current final outcome. not_run means no final outcome is recorded and may coexist with historical attempts.
-   */
-  status: 'pass' | 'fail' | 'inconclusive' | 'blocked' | 'not_run';
-  observed: string;
-  rationale: string;
-  remainingQuestions: string[];
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  evidenceIds: string[];
-  cause?: 'product_candidate' | 'agent' | 'environment' | 'spec' | 'unknown';
-  attempts: AttemptV3[];
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  operationId?: string;
-  revision?: number;
-  recordedAt?: string;
-};
-export type AttemptV3 = {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  attemptId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  operationId: string;
+export interface EgoLiteRecordedResultsV5 {
+  schemaVersion: 5;
   revision: number;
-  recordedAt: string;
-  kind: 'attempt' | 'superseded_final';
-  status: 'pass' | 'fail' | 'inconclusive' | 'blocked';
-  observed: string;
-  rationale: string;
-  remainingQuestions: string[];
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  evidenceIds: string[];
-  cause?: 'product_candidate' | 'agent' | 'environment' | 'spec' | 'unknown';
-};
-
-/**
- * Revisioned final results, explicit attempts, and idempotency receipts. Runtime validation also enforces evidence ownership and the frozen-baseline clarification veto.
- */
-export interface EgoLiteRecordedResultsV3 {
-  schemaVersion: 3;
-  revision: number;
-  /**
-   * @minItems 1
-   */
-  cases: ResultV3[];
-  operations: ResultOperationV3[];
+  entries: ResultEntry[];
 }
-export interface Basis {
-  kind: 'explicit' | 'interpretation' | 'hypothesis';
-  source: string;
-  text: string;
-}
-export interface ResultOperationV3 {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
+export interface ResultEntry {
   operationId: string;
   payloadSha256: string;
+  expectedRevision: number;
   revision: number;
-  committedAt: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
+  recordedAt: string;
   caseId: string;
   mode: 'final' | 'attempt';
-  /**
-   * Current final outcome. not_run means no final outcome is recorded and may coexist with historical attempts.
-   */
-  status: 'pass' | 'fail' | 'inconclusive' | 'blocked' | 'not_run';
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  attemptId?: string;
-  noOp?: boolean;
+  record: RecordPayload;
+}
+export interface RecordPayload {
+  observations: Observation[];
+  assessments: Assessment[];
+}
+export interface Observation {
+  id: string;
+  summary: string;
+  coveredRefs: string[];
+  evidenceIds: string[];
+}
+export interface Assessment {
+  goalId: string;
+  status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
+  rationale: string;
+  observationIds: string[];
+  gaps: string[];
+  diagnosis?: Diagnosis;
+}
+export interface Diagnosis {
+  state: 'unknown' | 'hypothesis' | 'confirmed';
+  category: 'product' | 'agent' | 'environment' | 'spec' | 'unknown';
+  summary: string;
+  evidenceIds: string[];
 }

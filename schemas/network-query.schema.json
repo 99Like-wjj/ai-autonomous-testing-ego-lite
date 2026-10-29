@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Network query v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "networkVersion"
+  ],
+  "properties": {
+    "networkVersion": {
+      "const": 1
+    },
+    "captureIds": {
+      "type": "array",
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "page": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string"
+    },
+    "urlContains": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string",
+      "pattern": "^[A-Z]{1,20}$"
+    },
+    "status": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 599
+    },
+    "errorsOnly": {
+      "type": "boolean"
+    },
+    "requestKey": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "direction": {
+      "enum": [
+        "sent",
+        "received"
+      ]
+    },
+    "after": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC receivedAt inclusive lower bound."
+    },
+    "before": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC receivedAt inclusive upper bound."
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 200,
+      "default": 20
+    },
+    "scanLimit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50000,
+      "default": 5000
+    },
+    "includeBodies": {
+      "type": "boolean",
+      "default": false
+    },
+    "bodyOffset": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 16777216,
+      "default": 0,
+      "description": "Position in the stored encoded JavaScript string."
+    },
+    "bodyLimit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65536,
+      "default": 4096
+    },
+    "cursor": {
+      "type": "string",
+      "maxLength": 32768,
+      "description": "Opaque snapshot continuation, with identical query parameters."
+    }
+  }
+}

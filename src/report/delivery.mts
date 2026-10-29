@@ -2,29 +2,23 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { FileIdentity, Report, ReportContext } from '../contracts/model.mjs';
 import { assertClosed, directory, errorInfo, fail, hash, json, object, readJSON, removeOwnedFileIfPresent, safePath, withRunLock, writeNew } from '../core/common.mjs';
-import { arrayValue, oneOf, sha256Value, strings, textValue } from '../core/validation.mjs';
+import { arrayValue, sha256Value, strings, textValue } from '../core/validation.mjs';
 import { checkUnlocked, recoverEvidence } from '../core/records.mjs';
 import { markdown, htmlReport, htmlReportPayload } from './render.mjs';
-import { verifyLegacyContent } from './legacy.mjs';
 
 export async function validateReportContext(input: unknown, result: Report): Promise<ReportContext> {
-  assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'reviews'], 'report context');
-  if (input.schemaVersion !== 1 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
+  assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds'], 'report context');
+  if (input.schemaVersion !== 5 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
   const context: ReportContext = {
-    schemaVersion: 1, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
+    schemaVersion: 5, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
     supplementalCaseIds: strings(input.supplementalCaseIds, 'supplemental case IDs'),
     sources: arrayValue(input.sources, 'sources').map(value => { assertClosed(value, ['label', 'file', 'sha256'], 'report source'); return { label: textValue(value.label, 'source label'), file: textValue(value.file, 'source file'), sha256: sha256Value(value.sha256, 'source hash') }; }),
-    reviews: arrayValue(input.reviews, 'reviews').map(value => { assertClosed(value, ['caseId', 'status', 'rationale'], 'retrospective review'); return { caseId: textValue(value.caseId, 'review case ID'), status: oneOf(value.status, ['verified', 'violation', 'inconclusive', 'not_tested'], 'review status'), rationale: textValue(value.rationale, 'review rationale') }; })
   };
   if (!context.limitations.length || !context.sources.length) fail('Invalid retrospective report context.');
-  const ids = new Set(result.cases.map(c => c.id)), supplemental = new Set<string>(), reviewed = new Set<string>();
+  const ids = new Set(result.cases.map(c => c.id)), supplemental = new Set<string>();
   for (const id of context.supplementalCaseIds) {
     if (!ids.has(id) || supplemental.has(id)) fail('Unknown or duplicate supplemental case ID.'); supplemental.add(id);
   }
-  for (const review of context.reviews) {
-    if (!ids.has(review.caseId) || reviewed.has(review.caseId)) fail('Invalid retrospective case review.'); reviewed.add(review.caseId);
-  }
-  if (reviewed.size !== ids.size) fail('A retrospective report needs an AI-supplied review for every case.');
   for (const source of context.sources) {
     const filename = await safePath(source.file, { existing: true });
     if (!(await fs.lstat(filename)).isFile() || hash(await fs.readFile(filename)) !== source.sha256) fail('Report source hash mismatch or non-regular file.');
@@ -35,22 +29,22 @@ export async function verifyReportFiles(root: string, reportDir: string, result:
   const expected = [json(result), markdown(result), htmlReport(await htmlReportPayload(root, result))];
   const names = ['report.json', 'report.md', 'report.html'];
   const artifacts: { path: string; bytes: number; sha256: string }[] = [];
-  const contents: Buffer[] = []; let matches = true;
+  let matches = true;
   for (const [i, name] of names.entries()) {
     const filename = await safePath(path.join(reportDir, name), { existing: true });
     if (!(await fs.lstat(filename)).isFile()) fail('Report output is not a regular file.');
     const bytes = await fs.readFile(filename), wanted = expected[i];
     if (wanted === undefined || !bytes.equals(Buffer.from(wanted, 'utf8'))) matches = false;
-    contents.push(bytes);
     artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
   }
-  if (!matches) await verifyLegacyContent(root, result, contents);
-  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: matches ? 'current' : 'v0.1.3-compatible' };
+  if (!matches) fail('Report file does not match the checked records. Historical formats are unsupported and unchanged.');
+  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v5' };
 }
 export async function verifyReport(runDir: unknown, reportDir: unknown = runDir) {
   return withRunLock(runDir, async root => {
     const target = await directory(reportDir), saved = await readJSON(path.join(target, 'report.json'));
     if (!object(saved)) fail('Invalid saved report.');
+    if (saved.schemaVersion !== 5) fail('Unsupported saved report format; v5 is required. Historical files remain unchanged.');
     const result = await checkUnlocked(root);
     if (saved.context !== undefined) result.context = await validateReportContext(saved.context, result);
     return verifyReportFiles(root, target, result);

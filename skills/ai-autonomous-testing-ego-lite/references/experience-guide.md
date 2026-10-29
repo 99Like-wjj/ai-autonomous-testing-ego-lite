@@ -86,6 +86,13 @@
   - 正文位置：[时间与地域](experience-execution.md#e-time)
 
 
+- 标识：E-TARGETED-OBSERVATION
+  - 阶段：执行
+  - 主题：按需获取可区分解释的观察
+  - 触发线索：提交、拖动、上下文或下载结果未知
+  - 检索别名：请求、响应、动作回执、下载事件
+  - 正文位置：[按需获取可区分解释的观察](experience-execution.md#e-targeted-observation)
+
 ## 共用规范
 
 权限、资源和实际澄清见 [资源充分性](resource-readiness.md) 与 [Ego 边界](ego-usage-boundaries.md)；结论与替代解释见 [判断与归因](judgment-and-diagnosis.md)；截图、首次异常和未测范围见 [证据与报告](evidence-and-report.md)。只读是维护约定，不代表 OS 强制保护。没有新接口监控工具，也不为查经验调用额外模型。

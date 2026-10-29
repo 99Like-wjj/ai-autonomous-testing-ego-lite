@@ -6,8 +6,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { SOURCE_ROOT } from '../scripts/toolchain.mjs';
 export { SOURCE_ROOT };
-export const statuses = new Set(['pass', 'fail', 'inconclusive', 'blocked', 'not_run']);
-export const causes = new Set(['product_candidate', 'agent', 'environment', 'spec', 'unknown']);
+export const statuses = new Set(['verified', 'violation', 'inconclusive', 'not_tested']);
+export const causes = new Set(['product', 'agent', 'environment', 'spec', 'unknown']);
 export const evidenceKinds = new Set(['screenshot', 'dom', 'tool_receipt', 'log', 'other']);
 export const reservedIds = new Set(['__proto__', 'prototype', 'constructor']);
 export const idPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -48,11 +48,7 @@ export function canonical(value: unknown): string {
 }
 export function canonicalHash(value: unknown): string { return hash(Buffer.from(canonical(value), 'utf8')); }
 export function canonicalRecord(record: RecordPayload): Required<RecordPayload> {
-  return {
-    status: record.status, observed: record.observed, rationale: record.rationale,
-    remainingQuestions: record.remainingQuestions,
-    evidenceIds: record.evidenceIds ?? [], cause: record.cause ?? 'unknown'
-  };
+  return { observations: record.observations, assessments: record.assessments };
 }
 export function sameRecord(left: RecordPayload, right: RecordPayload): boolean { return canonical(canonicalRecord(left)) === canonical(canonicalRecord(right)); }
 

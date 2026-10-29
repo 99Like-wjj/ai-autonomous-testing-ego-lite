@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "execution.schema.json",
-  "title": "Ego Lite execution ledger v1",
+  "title": "Ego Lite execution ledger v5",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 1
+      "const": 5
     },
     "runId": {
       "type": "string",
@@ -46,7 +46,7 @@
           "type": "object",
           "properties": {
             "schemaVersion": {
-              "const": 1
+              "const": 5
             },
             "maxParallelCases": {
               "type": "integer",
@@ -272,52 +272,6 @@
               "additionalProperties": false
             }
           },
-          "goalAssessments": {
-            "type": "array",
-            "items": {
-              "title": "Committed goal assessment",
-              "type": "object",
-              "properties": {
-                "targets": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "common.schema.json#/$defs/nonempty"
-                  },
-                  "uniqueItems": true,
-                  "minItems": 1
-                },
-                "status": {
-                  "enum": [
-                    "verified",
-                    "violation",
-                    "inconclusive",
-                    "not_tested"
-                  ]
-                },
-                "observed": {
-                  "type": "string"
-                },
-                "rationale": {
-                  "$ref": "common.schema.json#/$defs/nonempty"
-                },
-                "evidenceIds": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "common.schema.json#/$defs/safeId"
-                  },
-                  "uniqueItems": true
-                }
-              },
-              "required": [
-                "targets",
-                "status",
-                "observed",
-                "rationale",
-                "evidenceIds"
-              ],
-              "additionalProperties": false
-            }
-          },
           "executionWindow": {
             "title": "Execution window",
             "type": "object",
@@ -356,8 +310,7 @@
           "updatedAt",
           "defaultSpaceId",
           "spaceHistory",
-          "ownedSpaces",
-          "goalAssessments"
+          "ownedSpaces"
         ],
         "additionalProperties": false
       }
@@ -405,13 +358,6 @@
               },
               "record": {
                 "$ref": "worker-packet.schema.json#/$defs/record"
-              },
-              "goalAssessments": {
-                "type": "array",
-                "items": {
-                  "$ref": "worker-packet.schema.json#/$defs/goal"
-                },
-                "minItems": 1
               },
               "mode": {
                 "enum": [
@@ -520,21 +466,6 @@
                   "final"
                 ]
               },
-              "status": {
-                "enum": [
-                  "pass",
-                  "fail",
-                  "inconclusive",
-                  "blocked",
-                  "not_run"
-                ]
-              },
-              "attemptId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "noOp": {
-                "type": "boolean"
-              },
               "replayed": {
                 "type": "boolean"
               }
@@ -544,7 +475,6 @@
               "revision",
               "caseId",
               "mode",
-              "status",
               "replayed"
             ],
             "additionalProperties": false
@@ -759,4 +689,3 @@
   ],
   "additionalProperties": false
 }
-

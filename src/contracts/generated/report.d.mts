@@ -1,91 +1,8 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export type EgoLiteGeneratedReport = EgoLiteGeneratedReportV3 | EgoLiteGeneratedReportV4;
-export type ReportCaseV3 = {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  id: string;
-  title: string;
-  basis: Basis;
-  criticalConditions: string[];
-  expected: string;
-  requiredPath: null | string;
-  status: 'pass' | 'fail' | 'inconclusive' | 'blocked' | 'not_run';
-  observed: string;
-  rationale: string;
-  remainingQuestions: string[];
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  evidenceIds: string[];
-  cause: 'product_candidate' | 'agent' | 'environment' | 'spec' | 'unknown';
-  attempts: AttemptV3[];
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  operationId?: string;
-  revision?: number;
-  recordedAt?: string;
-  stepOrder: 'strict' | 'adaptive';
-  /**
-   * @minItems 1
-   */
-  steps: Step[];
-  clarificationQuestions?: string[];
-};
-export type AttemptV3 = {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  attemptId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  operationId: string;
-  revision: number;
-  recordedAt: string;
-  kind: 'attempt' | 'superseded_final';
-  status: 'pass' | 'fail' | 'inconclusive' | 'blocked';
-  observed: string;
-  rationale: string;
-  remainingQuestions: string[];
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  evidenceIds: string[];
-  cause?: 'product_candidate' | 'agent' | 'environment' | 'spec' | 'unknown';
-};
-export type ResultOrAttemptRequestV3 = {
-  schemaVersion: 3;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  operationId: string;
-  expectedRevision: number;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  caseId: string;
-  mode: 'final' | 'attempt';
-  record: {
-    status: 'pass' | 'fail' | 'inconclusive' | 'blocked' | 'not_run';
-    observed: string;
-    rationale: string;
-    remainingQuestions: string[];
-    /**
-     * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-     */
-    evidenceIds: string[];
-    cause?: 'product_candidate' | 'agent' | 'environment' | 'spec' | 'unknown';
-  };
-};
-export type EgoLiteExecutionRequestV1 =
+export type EgoLiteExecutionRequestV5 =
   | {
-      schemaVersion: 1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
+      schemaVersion: 5;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -94,10 +11,7 @@ export type EgoLiteExecutionRequestV1 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
+      schemaVersion: 5;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -106,17 +20,11 @@ export type EgoLiteExecutionRequestV1 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
+      schemaVersion: 5;
       operationId: string;
       expectedRevision: number;
       reason: string;
       kind: 'reserve';
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
       caseId: string;
       baselineSha256: string;
       resources?: string[];
@@ -125,17 +33,11 @@ export type EgoLiteExecutionRequestV1 =
       reasoning?: string;
     }
   | {
-      schemaVersion: 1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
+      schemaVersion: 5;
       operationId: string;
       expectedRevision: number;
       reason: string;
       kind: 'attach-space';
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
       assignmentId: string;
       spaceId: number;
       name: string;
@@ -144,17 +46,11 @@ export type EgoLiteExecutionRequestV1 =
       replaceDefault?: boolean;
     }
   | {
-      schemaVersion: 1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
+      schemaVersion: 5;
       operationId: string;
       expectedRevision: number;
       reason: string;
       kind: 'note';
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
       assignmentId?: string;
       category: 'observation' | 'space-deviation' | 'skill-bug' | 'external-change' | 'cleanup';
       spaceIds?: (number | null)[];
@@ -162,10 +58,7 @@ export type EgoLiteExecutionRequestV1 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
+      schemaVersion: 5;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -173,17 +66,11 @@ export type EgoLiteExecutionRequestV1 =
       maxParallelCases: number;
     }
   | {
-      schemaVersion: 1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
+      schemaVersion: 5;
       operationId: string;
       expectedRevision: number;
       reason: string;
       kind: 'reconcile';
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
       assignmentId: string;
       state: 'running' | 'paused' | 'stop_requested' | 'stopped' | 'completed' | 'failed' | 'lost';
       inFlight: boolean;
@@ -193,103 +80,56 @@ export type EgoLiteExecutionRequestV1 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
+      schemaVersion: 5;
       operationId: string;
       expectedRevision: number;
       reason: string;
       kind: 'import';
       packetFile: string;
       review: PacketReview1;
-      /**
-       * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-       */
       rebaseOf?: string;
     };
 
-/**
- * The report summarizes current final statuses; historical attempts are preserved on each case and are not recounted as current outcomes.
- */
-export interface EgoLiteGeneratedReportV3 {
-  schemaVersion: 3;
+export interface EgoLiteGeneratedReportV5 {
+  schemaVersion: 5;
   runId: string;
   project: string;
   structurallyValid: true;
   revision: number;
   evidenceRevision: number;
-  /**
-   * True only when at least one case has no final result and no recorded attempt. A not_run final status may coexist with attempts.
-   */
-  hasUnexecutedCases: boolean;
-  counts: Counts;
-  progress: Progress;
-  recordedExplicitOutcomes: {
-    pass: number;
-    fail: number;
+  counts: {
+    verified: number;
+    violation: number;
+    inconclusive: number;
+    not_tested: number;
+    unassessed: number;
   };
   evidenceIntegrity: {
     hashVerifiedItems: number;
   };
-  evidenceCoverage?: {
+  evidenceCoverage: {
     registeredScreenshots: number;
     distinctRetainedContents: number;
-    finalCasesWithoutScreenshots: string[];
+    goalsWithoutScreenshots: {
+      caseId: string;
+      goalId: string;
+    }[];
   };
-  context?: RetrospectiveReportContextV1NoBusinessExecution;
+  context?: RetrospectiveReportContextV5NoBusinessExecution;
   caveat: string;
-  evidenceCatalog: EgoLiteEvidenceCatalogV3;
+  evidenceCatalog: EgoLiteEvidenceCatalogV5;
   /**
    * @minItems 1
    */
-  cases: ReportCaseV3[];
+  cases: CheckedCase[];
+  execution?: EgoLiteExecutionLedgerV5;
+  executionSummary?: ExecutionSummary;
+  caseCount: number;
+  goalCount: number;
+  assessmentComplete: boolean;
 }
-export interface Counts {
-  pass: number;
-  fail: number;
-  inconclusive: number;
-  blocked: number;
-  not_run: number;
-}
-export interface Progress {
-  completed: {
-    count: number;
-    /**
-     * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-     */
-    caseIds: string[];
-    statusCounts: {
-      pass: number;
-      fail: number;
-    };
-  };
-  uncompleted: {
-    count: number;
-    /**
-     * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-     */
-    caseIds: string[];
-    statusCounts: {
-      not_run: number;
-      blocked: number;
-      inconclusive: number;
-    };
-  };
-  pendingClarification: {
-    count: number;
-    /**
-     * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-     */
-    caseIds: string[];
-  };
-  attemptedCases: {
-    count: number;
-    totalAttempts: number;
-  };
-}
-export interface RetrospectiveReportContextV1NoBusinessExecution {
-  schemaVersion: 1;
+export interface RetrospectiveReportContextV5NoBusinessExecution {
+  schemaVersion: 5;
   kind: 'retrospective';
   summary: string;
   /**
@@ -305,125 +145,125 @@ export interface RetrospectiveReportContextV1NoBusinessExecution {
     sha256: string;
   }[];
   supplementalCaseIds: string[];
-  /**
-   * @minItems 1
-   */
-  reviews: {
-    caseId: string;
-    status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
-    rationale: string;
-  }[];
 }
-/**
- * New entries bind a local file copy to its associated case, source metadata, collectedAt, optional source-provided capturedAt, byte count, and SHA-256 of the retained bytes. A matching hash is not proof of authenticity.
- */
-export interface EgoLiteEvidenceCatalogV3 {
-  schemaVersion: 3;
+export interface EgoLiteEvidenceCatalogV5 {
+  schemaVersion: 5;
   revision: number;
-  items: EvidenceItemV3[];
-  operations: EvidenceOperationV3[];
+  items: EvidenceItem[];
+  operations: EvidenceOperation[];
 }
-export interface EvidenceItemV3 {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
+export interface EvidenceItem {
   id: string;
   path: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
   kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
-  /**
-   * Optional UTC capture time supplied by the source/operator. It is not inferred.
-   */
   capturedAt?: string;
   collectedAt: string;
   source: string;
   description: string;
   sha256: string;
   bytes: number;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   operationId: string;
 }
-export interface EvidenceOperationV3 {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
+export interface EvidenceOperation {
   operationId: string;
   payloadSha256: string;
   revision: number;
   committedAt: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   evidenceId: string;
   path: string;
   sha256: string;
   bytes: number;
+}
+export interface CheckedCase {
+  id: string;
+  title: string;
+  criticalConditions: string[];
+  requiredPath: string | null;
+  stepOrder: 'strict' | 'adaptive';
+  /**
+   * @minItems 1
+   */
+  steps: Step[];
+  /**
+   * @minItems 1
+   */
+  goals: Goal[];
+  assessments: CommittedAssessment[];
+  observations: Observation[];
+  entries: ResultEntry[];
+  missingGoalIds: string[];
+}
+export interface Step {
+  id: string;
+  action: string;
+}
+export interface Goal {
+  id: string;
+  basis: Basis;
+  expected: string;
+  requiredRefs: string[];
+  clarificationQuestions?: string[];
+  followUpOf?: {
+    runId: string;
+    caseId: string;
+    goalId: string;
+    reason: string;
+  };
 }
 export interface Basis {
   kind: 'explicit' | 'interpretation' | 'hypothesis';
   source: string;
   text: string;
 }
-export interface Step {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  id: string;
-  /**
-   * Business-intent guidance and necessary test data, not executable code or compulsory UI click details.
-   */
-  action: string;
-  /**
-   * Optional source-backed checkpoint. Omission means no checkpoint verdict is supplied.
-   */
-  expected?: string;
-}
-export interface EgoLiteGeneratedReportV4 {
-  schemaVersion: 4;
-  runId: string;
-  project: string;
-  structurallyValid: true;
+export interface CommittedAssessment {
+  goalId: string;
+  status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
+  rationale: string;
+  observationIds: string[];
+  gaps: string[];
+  diagnosis?: Diagnosis;
+  operationId: string;
   revision: number;
-  evidenceRevision: number;
-  /**
-   * True only when at least one case has no final result and no recorded attempt. A not_run final status may coexist with attempts.
-   */
-  hasUnexecutedCases: boolean;
-  counts: Counts;
-  progress: Progress;
-  recordedExplicitOutcomes: {
-    pass: number;
-    fail: number;
-  };
-  evidenceIntegrity: {
-    hashVerifiedItems: number;
-  };
-  evidenceCoverage?: {
-    registeredScreenshots: number;
-    distinctRetainedContents: number;
-    finalCasesWithoutScreenshots: string[];
-  };
-  context?: RetrospectiveReportContextV1NoBusinessExecution;
-  caveat: string;
-  evidenceCatalog: EgoLiteEvidenceCatalogV3;
-  /**
-   * @minItems 1
-   */
-  cases: ReportCaseV3[];
-  execution: EgoLiteExecutionLedgerV1;
-  executionSummary: ExecutionSummary;
+  recordedAt: string;
 }
-export interface EgoLiteExecutionLedgerV1 {
-  schemaVersion: 1;
+export interface Diagnosis {
+  state: 'unknown' | 'hypothesis' | 'confirmed';
+  category: 'product' | 'agent' | 'environment' | 'spec' | 'unknown';
+  summary: string;
+  evidenceIds: string[];
+}
+export interface Observation {
+  id: string;
+  summary: string;
+  coveredRefs: string[];
+  evidenceIds: string[];
+}
+export interface ResultEntry {
+  operationId: string;
+  payloadSha256: string;
+  expectedRevision: number;
+  revision: number;
+  recordedAt: string;
+  caseId: string;
+  mode: 'final' | 'attempt';
+  record: RecordPayload;
+}
+export interface RecordPayload {
+  observations: Observation[];
+  assessments: Assessment[];
+}
+export interface Assessment {
+  goalId: string;
+  status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
+  rationale: string;
+  observationIds: string[];
+  gaps: string[];
+  diagnosis?: Diagnosis;
+}
+export interface EgoLiteExecutionLedgerV5 {
+  schemaVersion: 5;
   runId: string;
   baselineSha256: string;
   revision: number;
@@ -442,24 +282,15 @@ export interface ExecutionConfigurationSnapshot {
   initialMaxParallelCases: number;
   requestedMaxParallelCases: number;
   configuration: {
-    schemaVersion: 1;
+    schemaVersion: 5;
     maxParallelCases: number;
   };
   configFile?: string;
   configSha256?: string;
 }
 export interface ExecutionAssignment {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   id: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   attemptId: string;
   state: 'reserved' | 'running' | 'paused' | 'stop_requested' | 'stopped' | 'completed' | 'failed' | 'lost';
   workerDirectory: string;
@@ -472,7 +303,6 @@ export interface ExecutionAssignment {
   defaultSpaceId: number | null;
   spaceHistory: SpaceUse[];
   ownedSpaces: OwnedSpace[];
-  goalAssessments: CommittedGoalAssessment[];
   executionWindow?: ExecutionWindow;
 }
 export interface SpaceUse {
@@ -493,84 +323,41 @@ export interface RetainedFileReference {
   sha256: string;
   bytes: number;
 }
-export interface CommittedGoalAssessment {
-  /**
-   * @minItems 1
-   */
-  targets: string[];
-  status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
-  observed: string;
-  rationale: string;
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  evidenceIds: string[];
-}
 export interface ExecutionWindow {
   startedAt: string;
   endedAt: string;
   /**
    * @minItems 1
-   *
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
    */
   evidenceKeys: string[];
 }
 export interface PacketImport {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   operationId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   assignmentId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   packetId: string;
   packetSha256: string;
   packetFile: string;
-  originalPacket: EgoLiteWorkerPacketV1;
+  originalPacket: EgoLiteWorkerPacketV5;
   review: PacketReview;
   evidenceJobs: EvidenceImportJob[];
-  resultRequest?: ResultOrAttemptRequestV3;
+  resultRequest?: ResultOrAttemptRequestV5;
   resultReceipt?: ImportedResultReceipt;
   phase: 'prepared' | 'evidence' | 'result' | 'complete' | 'superseded';
   startedAt: string;
   completedAt?: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   supersededBy?: string;
 }
-export interface EgoLiteWorkerPacketV1 {
-  schemaVersion: 1;
+export interface EgoLiteWorkerPacketV5 {
+  schemaVersion: 5;
   runId: string;
   baselineSha256: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   assignmentId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   attemptId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   packetId: string;
   mode: 'attempt' | 'final';
-  record: PacketRecord;
+  record: RecordPayload;
   evidence: PacketEvidence[];
-  /**
-   * @minItems 1
-   */
-  goalAssessments: GoalAssessment[];
   executionWindow?: ExecutionWindow1;
   /**
    * @minItems 1
@@ -578,27 +365,10 @@ export interface EgoLiteWorkerPacketV1 {
   spaceUsage: {
     spaceId: number | null;
     reason: string;
-    /**
-     * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-     */
     evidenceKeys: string[];
   }[];
 }
-export interface PacketRecord {
-  status: 'pass' | 'fail' | 'inconclusive' | 'blocked' | 'not_run';
-  observed: string;
-  rationale: string;
-  remainingQuestions: string[];
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  evidenceKeys: string[];
-  cause?: 'product_candidate' | 'agent' | 'environment' | 'spec' | 'unknown';
-}
 export interface PacketEvidence {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   key: string;
   path: string;
   kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
@@ -608,26 +378,11 @@ export interface PacketEvidence {
   bytes: number;
   capturedAt?: string;
 }
-export interface GoalAssessment {
-  /**
-   * @minItems 1
-   */
-  targets: string[];
-  status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
-  observed: string;
-  rationale: string;
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  evidenceKeys: string[];
-}
 export interface ExecutionWindow1 {
   startedAt: string;
   endedAt: string;
   /**
    * @minItems 1
-   *
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
    */
   evidenceKeys: string[];
 }
@@ -635,57 +390,29 @@ export interface PacketReview {
   decision: 'accept' | 'revise';
   reviewer: string;
   rationale: string;
-  record?: PacketRecord;
-  /**
-   * @minItems 1
-   */
-  goalAssessments?: GoalAssessment[];
+  record?: RecordPayload;
   mode?: 'attempt' | 'final';
 }
 export interface EvidenceImportJob {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   key: string;
-  request?: EvidenceRegistrationRequestV3;
+  request?: EvidenceRegistrationRequestV5;
   receipt?: ImportedEvidenceReceipt;
 }
-export interface EvidenceRegistrationRequestV3 {
-  schemaVersion: 3;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
+export interface EvidenceRegistrationRequestV5 {
+  schemaVersion: 5;
   operationId: string;
   expectedRevision: number;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
-  /**
-   * Absolute local regular file path on the current operating system.
-   */
   sourceFile: string;
   kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
-  /**
-   * Optional source-provided capture time. Omit when unknown; collectedAt is recorded independently.
-   */
   capturedAt?: string;
   source: string;
   description: string;
 }
 export interface ImportedEvidenceReceipt {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   operationId: string;
   revision: number;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   evidenceId: string;
   path: string;
   sha256: string;
@@ -693,32 +420,25 @@ export interface ImportedEvidenceReceipt {
   collectedAt: string;
   replayed: boolean;
 }
+export interface ResultOrAttemptRequestV5 {
+  schemaVersion: 5;
+  operationId: string;
+  expectedRevision: number;
+  caseId: string;
+  mode: 'final' | 'attempt';
+  record: RecordPayload;
+}
 export interface ImportedResultReceipt {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   operationId: string;
   revision: number;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
   mode: 'attempt' | 'final';
-  status: 'pass' | 'fail' | 'inconclusive' | 'blocked' | 'not_run';
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  attemptId?: string;
-  noOp?: boolean;
   replayed: boolean;
 }
 export interface ExecutionOperation {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   operationId: string;
   payloadSha256: string;
-  request: EgoLiteExecutionRequestV1;
+  request: EgoLiteExecutionRequestV5;
   startedAt: string;
   receipt?: ExecutionReceipt;
 }
@@ -726,57 +446,29 @@ export interface PacketReview1 {
   decision: 'accept' | 'revise';
   reviewer: string;
   rationale: string;
-  record?: PacketRecord;
-  /**
-   * @minItems 1
-   */
-  goalAssessments?: GoalAssessment[];
+  record?: RecordPayload;
   mode?: 'attempt' | 'final';
 }
 export interface ExecutionReceipt {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   operationId: string;
   kind: string;
   revision: number;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   assignmentId?: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId?: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   packetId?: string;
   workerDirectory?: string;
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   evidenceIds?: string[];
   state?: string;
   maxParallelCases?: number;
   availableWorkers?: number | null;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   resultOperationId?: string;
 }
 export interface ExecutionEvent {
   revision: number;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   operationId: string;
   at: string;
   kind: string;
   reason: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   assignmentId?: string;
   evidenceFiles?: RetainedFileReference1[];
 }
@@ -793,16 +485,6 @@ export interface ExecutionSummary {
   reportedExecutionPeak: number | null;
   executionWindowSource: string;
   draining: boolean;
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   unfinishedAssignmentIds: string[];
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   pendingImportIds: string[];
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  unassessedCaseIds: string[];
 }

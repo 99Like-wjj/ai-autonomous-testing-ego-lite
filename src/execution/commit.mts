@@ -21,7 +21,6 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
   const c = cases.find(c => c.id === packet.caseId); if (!c) fail('Packet case is not in the frozen baseline.');
   validateAssessment(packet, c, request.review); await verifyPacketFiles(root, a, packet);
   const mode = request.review.mode ?? packet.mode, record = request.review.record ?? packet.record;
-  if (mode === 'attempt' && record.status === 'not_run') fail('An attempt cannot use not_run.');
   if (mode === 'final' && ledger.assignments.slice(ledger.assignments.indexOf(a) + 1).some(later => later.caseId === a.caseId)) fail('A stale assignment cannot replace a newer case final. Preserve it or explicitly review it as an attempt.');
   let journal = ledger.imports.find(imp => imp.operationId === request.operationId);
   if (journal) {
@@ -32,7 +31,7 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
     if (old) {
       if (request.rebaseOf !== old.operationId || old.phase === 'complete' || old.packetSha256 !== packetSha256) fail('Packet ID already belongs to an import in this run; resume it or explicitly rebase an unapplied conflict. A different delivery needs a run-unique packet ID, for example one scoped by its assignment. Preserve the original packet.');
       const results = parseResults(await readJSON(path.join(root, 'results.json'))), catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-      if (old.resultRequest && results.operations.some(op => op.operationId === old.resultRequest?.operationId)) fail('The old result already committed. Resume the original import before revising it.');
+      if (old.resultRequest && results.entries.some(op => op.operationId === old.resultRequest?.operationId)) fail('The old result already committed. Resume the original import before revising it.');
       for (const job of old.evidenceJobs) {
         if (!job.request) continue;
         const committed = catalog.operations.find(op => op.operationId === job.request?.operationId);
@@ -60,27 +59,28 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
     }
     if (!job.request) {
       const catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-      job.request = { schemaVersion: 3, operationId: prefix + '-ev-' + i, expectedRevision: catalog.revision, caseId: a.caseId, sourceFile: path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/')), kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }) };
+      job.request = { schemaVersion: 5, operationId: prefix + '-ev-' + i, expectedRevision: catalog.revision, caseId: a.caseId, sourceFile: path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/')), kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }) };
       journal.phase = 'evidence'; await checkpoint(root, ledger, { operationId: request.operationId, kind: 'evidence-prepared', reason: request.reason, assignmentId: a.id });
     }
-    const expectedEvidence = { schemaVersion: 3, operationId: prefix + '-ev-' + i, expectedRevision: job.request.expectedRevision, caseId: a.caseId, sourceFile, kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }) };
+    const expectedEvidence = { schemaVersion: 5, operationId: prefix + '-ev-' + i, expectedRevision: job.request.expectedRevision, caseId: a.caseId, sourceFile, kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }) };
     if (canonicalHash(job.request) !== canonicalHash(expectedEvidence)) fail('Prepared evidence request changed.');
     job.receipt = await registerEvidenceUnlocked(root, job.request, hooks.afterEvidenceCommit ? { afterCommit: hooks.afterEvidenceCommit } : {});
     await checkpoint(root, ledger, { operationId: request.operationId, kind: 'evidence-committed', reason: request.reason, assignmentId: a.id });
   }
   const evidenceId = (key: string): string => { const receipt = journal.evidenceJobs.find(job => job.key === key)?.receipt; if (!receipt) fail('Evidence has not committed: ' + key); return receipt.evidenceId; };
+  const mappedRecord = {
+    observations: record.observations.map(o => ({ ...o, evidenceIds: o.evidenceIds.map(evidenceId) })),
+    assessments: record.assessments.map(g => ({ ...g, ...(g.diagnosis ? { diagnosis: { ...g.diagnosis, evidenceIds: g.diagnosis.evidenceIds.map(evidenceId) } } : {}) }))
+  };
   if (!journal.resultRequest) {
     const results = parseResults(await readJSON(path.join(root, 'results.json')));
-    const { evidenceKeys, ...payload } = record;
-    journal.resultRequest = { schemaVersion: 3, operationId: prefix + '-result', expectedRevision: results.revision, caseId: a.caseId, mode, record: { ...payload, evidenceIds: evidenceKeys.map(evidenceId) } };
+    journal.resultRequest = { schemaVersion: 5, operationId: prefix + '-result', expectedRevision: results.revision, caseId: a.caseId, mode, record: mappedRecord };
     journal.phase = 'result'; await checkpoint(root, ledger, { operationId: request.operationId, kind: 'result-prepared', reason: request.reason, assignmentId: a.id });
   }
-  const { evidenceKeys: selectedKeys, ...selectedRecord } = record;
-  const expectedResult = { schemaVersion: 3, operationId: prefix + '-result', expectedRevision: journal.resultRequest.expectedRevision, caseId: a.caseId, mode, record: { ...selectedRecord, evidenceIds: selectedKeys.map(evidenceId) } };
+  const expectedResult = { schemaVersion: 5, operationId: prefix + '-result', expectedRevision: journal.resultRequest.expectedRevision, caseId: a.caseId, mode, record: mappedRecord };
   if (canonicalHash(journal.resultRequest) !== canonicalHash(expectedResult)) fail('Prepared result association or payload changed.');
   if (hooks.beforeResultCommit) await hooks.beforeResultCommit();
   journal.resultReceipt = await recordResultUnlocked(root, journal.resultRequest, hooks.afterResultCommit ? { afterCommit: hooks.afterResultCommit } : {});
-  a.goalAssessments = (request.review.goalAssessments ?? packet.goalAssessments).map(goal => { const { evidenceKeys, ...rest } = goal; return { ...rest, evidenceIds: evidenceKeys.map(evidenceId) }; });
   if (packet.executionWindow) a.executionWindow = packet.executionWindow;
   for (const use of packet.spaceUsage) if (use.spaceId === null || use.spaceId !== a.defaultSpaceId) a.spaceHistory.push({ spaceId: use.spaceId, kind: 'deviation', at: now(), reason: use.reason });
   a.updatedAt = now(); journal.phase = 'complete'; journal.completedAt = now();

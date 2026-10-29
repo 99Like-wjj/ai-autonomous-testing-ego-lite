@@ -1,25 +1,65 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "report-context.schema.json",
-  "title": "Retrospective report context v1 (no business execution)",
+  "title": "Retrospective report context v5, no business execution",
   "type": "object",
-  "required": ["schemaVersion", "kind", "summary", "limitations", "sources", "supplementalCaseIds", "reviews"],
+  "required": [
+    "schemaVersion",
+    "kind",
+    "summary",
+    "limitations",
+    "sources",
+    "supplementalCaseIds"
+  ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "kind": { "const": "retrospective" },
-    "summary": { "$ref": "common.schema.json#/$defs/nonempty" },
-    "limitations": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/nonempty" } },
-    "sources": { "type": "array", "minItems": 1, "items": {
-      "type": "object", "required": ["label", "file", "sha256"],
-      "properties": { "label": { "$ref": "common.schema.json#/$defs/nonempty" }, "file": { "$ref": "common.schema.json#/$defs/nonempty" }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" } },
-      "additionalProperties": false
-    } },
-    "supplementalCaseIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "common.schema.json#/$defs/nonempty" } },
-    "reviews": { "type": "array", "minItems": 1, "items": {
-      "type": "object", "required": ["caseId", "status", "rationale"],
-      "properties": { "caseId": { "$ref": "common.schema.json#/$defs/nonempty" }, "status": { "enum": ["verified", "violation", "inconclusive", "not_tested"] }, "rationale": { "$ref": "common.schema.json#/$defs/nonempty" } },
-      "additionalProperties": false
-    } }
+    "schemaVersion": {
+      "const": 5
+    },
+    "kind": {
+      "const": "retrospective"
+    },
+    "summary": {
+      "$ref": "common.schema.json#/$defs/nonempty"
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/nonempty"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "file",
+          "sha256"
+        ],
+        "properties": {
+          "label": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "file": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "supplementalCaseIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/nonempty"
+      }
+    }
   },
   "additionalProperties": false
 }

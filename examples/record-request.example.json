@@ -1,15 +1,49 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 5,
   "operationId": "result-r01-first",
   "expectedRevision": 0,
   "caseId": "R-01-empty-title",
   "mode": "final",
   "record": {
-    "status": "inconclusive",
-    "observed": "Synthetic observation placeholder",
-    "rationale": "Synthetic explanation placeholder; replace with the observed evidence comparison.",
-    "remainingQuestions": [],
-    "evidenceIds": ["ev-replace-with-id-from-evidence-receipt"],
-    "cause": "unknown"
+    "observations": [
+      {
+        "id": "required-message-visible",
+        "summary": "合成格式示例：提交后显示标题必填提示，但尚未核对是否新增对象。",
+        "coveredRefs": [
+          "step:submit"
+        ],
+        "evidenceIds": [
+          "ev-replace-with-id-from-evidence-receipt"
+        ]
+      }
+    ],
+    "assessments": [
+      {
+        "goalId": "required-message",
+        "status": "inconclusive",
+        "rationale": "此文件仅示范格式，尚未登记支持实际身份、输入与动作的证据。",
+        "observationIds": [
+          "required-message-visible"
+        ],
+        "gaps": [
+          "需要实际执行并登记目标所需的前提和动作证据。"
+        ],
+        "diagnosis": {
+          "state": "unknown",
+          "category": "unknown",
+          "summary": "没有真实执行事实，不能归因。",
+          "evidenceIds": []
+        }
+      },
+      {
+        "goalId": "no-object-created",
+        "status": "not_tested",
+        "rationale": "合成示例尚未开展对象数量读回。",
+        "observationIds": [],
+        "gaps": [
+          "尚未执行 step:verify。"
+        ]
+      }
+    ]
   }
 }

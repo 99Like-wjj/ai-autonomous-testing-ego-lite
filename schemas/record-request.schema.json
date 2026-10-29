@@ -1,50 +1,39 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "record-request.schema.json",
-  "title": "Result or attempt request v3",
+  "title": "Result or attempt request v5",
   "type": "object",
-  "required": ["schemaVersion", "operationId", "expectedRevision", "caseId", "mode", "record"],
+  "required": [
+    "schemaVersion",
+    "operationId",
+    "expectedRevision",
+    "caseId",
+    "mode",
+    "record"
+  ],
   "properties": {
-    "schemaVersion": { "const": 3 },
-    "operationId": { "$ref": "common.schema.json#/$defs/safeId" },
-    "expectedRevision": { "type": "integer", "minimum": 0 },
-    "caseId": { "$ref": "common.schema.json#/$defs/safeId" },
-    "mode": { "enum": ["final", "attempt"] },
-    "record": {
-      "type": "object",
-      "required": ["status", "observed", "rationale", "remainingQuestions", "evidenceIds"],
-      "properties": {
-        "status": { "enum": ["pass", "fail", "inconclusive", "blocked", "not_run"] },
-        "observed": { "type": "string" },
-        "rationale": { "type": "string" },
-        "remainingQuestions": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/nonempty" } },
-        "evidenceIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "common.schema.json#/$defs/safeId" } },
-        "cause": { "enum": ["product_candidate", "agent", "environment", "spec", "unknown"] }
-      },
-      "additionalProperties": false,
-      "allOf": [
-        {
-          "if": { "properties": { "status": { "enum": ["pass", "fail"] } }, "required": ["status"] },
-          "then": {
-            "properties": {
-              "observed": { "$ref": "common.schema.json#/$defs/nonempty" },
-              "rationale": { "$ref": "common.schema.json#/$defs/nonempty" },
-              "evidenceIds": { "minItems": 1 }
-            }
-          }
-        },
-        {
-          "if": { "properties": { "status": { "enum": ["inconclusive", "blocked"] } }, "required": ["status"] },
-          "then": { "properties": { "rationale": { "$ref": "common.schema.json#/$defs/nonempty" } }}
-        }
+    "schemaVersion": {
+      "const": 5
+    },
+    "operationId": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "expectedRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "caseId": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "mode": {
+      "enum": [
+        "final",
+        "attempt"
       ]
+    },
+    "record": {
+      "$ref": "common.schema.json#/$defs/recordPayload"
     }
   },
-  "allOf": [
-    {
-      "if": { "properties": { "mode": { "const": "attempt" } }, "required": ["mode"] },
-      "then": { "properties": { "record": { "properties": { "status": { "enum": ["pass", "fail", "inconclusive", "blocked"] } } } } }
-    }
-  ],
   "additionalProperties": false
 }

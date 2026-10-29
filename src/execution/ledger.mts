@@ -3,17 +3,17 @@ import { referencePath, retainReference, workerEvidencePath } from '../core/file
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Baseline, Manifest } from '../contracts/model.mjs';
-import type { Assignment, AssignmentState, ConfigurationSnapshot, ExecutionLedger, ExecutionSummary, FileReference, ImportState, Receipt, Event, CommittedGoal } from '../contracts/execution-model.mjs';
+import type { Assignment, AssignmentState, ConfigurationSnapshot, ExecutionLedger, ExecutionSummary, FileReference, ImportState, Receipt, Event } from '../contracts/execution-model.mjs';
 import { activeStates } from '../contracts/execution-model.mjs';
 import { assignmentId } from '../contracts/ids.mjs';
 import type { AssignmentId } from '../contracts/ids.mjs';
 import { assertClosed, atomicReplace, canonicalHash, errorInfo, fail, json, now, readJSON, safeIdentifier, safePath, writeNew } from '../core/common.mjs';
 import { arrayValue, integer, oneOf, parseEvidenceRequest, parseRecordRequest, sha256Value, textValue, timeValue } from '../core/validation.mjs';
-import { executionWindow, goals, numbers, parsePacket, parseRequest, parseReview, uniqueStrings } from './parse.mjs';
+import { executionWindow, numbers, parsePacket, parseRequest, parseReview, uniqueStrings } from './parse.mjs';
 import { parallelLimit } from './config.mjs';
 
 export function initialExecution(manifest: Manifest, configuration: ConfigurationSnapshot): ExecutionLedger {
-  return { schemaVersion: 1, runId: manifest.runId, baselineSha256: manifest.baselineSha256, revision: 0, configuration, knownAvailableWorkers: null, capacityReason: '', protectedSpaceIds: null, peakReservations: 0, assignments: [], imports: [], operations: [], events: [] };
+  return { schemaVersion: 5, runId: manifest.runId, baselineSha256: manifest.baselineSha256, revision: 0, configuration, knownAvailableWorkers: null, capacityReason: '', protectedSpaceIds: null, peakReservations: 0, assignments: [], imports: [], operations: [], events: [] };
 }
 export function fileReference(value: unknown): FileReference {
   assertClosed(value, ['path', 'sha256', 'bytes'], 'execution file reference');
@@ -22,25 +22,17 @@ export function fileReference(value: unknown): FileReference {
 function configurationSnapshot(value: unknown): ConfigurationSnapshot {
   assertClosed(value, ['kind', 'initialMaxParallelCases', 'requestedMaxParallelCases', 'configuration', 'configFile', 'configSha256'], 'configuration snapshot');
   assertClosed(value.configuration, ['schemaVersion', 'maxParallelCases'], 'configuration input');
-  if (value.configuration.schemaVersion !== 1) fail('Invalid configuration snapshot version.');
-  return { kind: oneOf(value.kind, ['default', 'project', 'file', 'override'], 'configuration source'), initialMaxParallelCases: parallelLimit(value.initialMaxParallelCases), requestedMaxParallelCases: parallelLimit(value.requestedMaxParallelCases), configuration: { schemaVersion: 1, maxParallelCases: parallelLimit(value.configuration.maxParallelCases) }, ...(value.configFile === undefined ? {} : { configFile: textValue(value.configFile, 'configuration file') }), ...(value.configSha256 === undefined ? {} : { configSha256: sha256Value(value.configSha256) }) };
-}
-function committedGoals(value: unknown): CommittedGoal[] {
-  return arrayValue(value, 'committed goals').map(raw => {
-    assertClosed(raw, ['targets', 'status', 'observed', 'rationale', 'evidenceIds'], 'committed goal');
-    const decoded = goals([{ targets: raw.targets, status: raw.status, observed: raw.observed, rationale: raw.rationale, evidenceKeys: raw.evidenceIds }])[0];
-    if (!decoded) fail('Invalid committed goal.'); const { evidenceKeys, ...rest } = decoded; return { ...rest, evidenceIds: evidenceKeys };
-  });
+  if (value.configuration.schemaVersion !== 5) fail('Invalid configuration snapshot version.');
+  return { kind: oneOf(value.kind, ['default', 'project', 'file', 'override'], 'configuration source'), initialMaxParallelCases: parallelLimit(value.initialMaxParallelCases), requestedMaxParallelCases: parallelLimit(value.requestedMaxParallelCases), configuration: { schemaVersion: 5, maxParallelCases: parallelLimit(value.configuration.maxParallelCases) }, ...(value.configFile === undefined ? {} : { configFile: textValue(value.configFile, 'configuration file') }), ...(value.configSha256 === undefined ? {} : { configSha256: sha256Value(value.configSha256) }) };
 }
 function parseAssignment(value: unknown): Assignment {
-  assertClosed(value, ['id', 'caseId', 'attemptId', 'state', 'workerDirectory', 'resources', 'createdAt', 'updatedAt', 'workerId', 'model', 'reasoning', 'defaultSpaceId', 'spaceHistory', 'ownedSpaces', 'goalAssessments', 'executionWindow'], 'assignment');
+  assertClosed(value, ['id', 'caseId', 'attemptId', 'state', 'workerDirectory', 'resources', 'createdAt', 'updatedAt', 'workerId', 'model', 'reasoning', 'defaultSpaceId', 'spaceHistory', 'ownedSpaces', 'executionWindow'], 'assignment');
   const id = assignmentId(value.id), workerDirectory = textValue(value.workerDirectory, 'worker directory');
   if (workerDirectory !== 'workers/' + id) fail('Assignment directory does not match its ID.');
   return { id, caseId: safeIdentifier(value.caseId), attemptId: safeIdentifier(value.attemptId), state: oneOf(value.state, ['reserved', 'running', 'paused', 'stop_requested', 'stopped', 'completed', 'failed', 'lost'], 'assignment state'), workerDirectory, resources: uniqueStrings(value.resources, 'resources'), createdAt: timeValue(value.createdAt, 'createdAt'), updatedAt: timeValue(value.updatedAt, 'updatedAt'),
     defaultSpaceId: value.defaultSpaceId === null ? null : integer(value.defaultSpaceId, 'default Space'),
     spaceHistory: arrayValue(value.spaceHistory, 'Space history').map(value => { assertClosed(value, ['spaceId', 'kind', 'at', 'reason'], 'Space history'); return { spaceId: value.spaceId === null ? null : integer(value.spaceId, 'Space ID'), kind: oneOf(value.kind, ['default', 'recovery', 'deviation', 'cleaned'], 'Space history kind'), at: timeValue(value.at, 'Space observation time'), reason: textValue(value.reason, 'Space observation reason') }; }),
     ownedSpaces: arrayValue(value.ownedSpaces, 'owned Spaces').map(value => { assertClosed(value, ['spaceId', 'name', 'createdAt', 'receipt', 'closedAt'], 'owned Space'); return { spaceId: integer(value.spaceId, 'owned Space ID'), name: textValue(value.name, 'Space name'), createdAt: timeValue(value.createdAt, 'Space createdAt'), receipt: fileReference(value.receipt), ...(value.closedAt === undefined ? {} : { closedAt: timeValue(value.closedAt, 'Space closedAt') }) }; }),
-    goalAssessments: committedGoals(value.goalAssessments),
     ...(value.workerId === undefined ? {} : { workerId: textValue(value.workerId, 'worker ID') }), ...(value.model === undefined ? {} : { model: textValue(value.model, 'worker model') }), ...(value.reasoning === undefined ? {} : { reasoning: textValue(value.reasoning, 'worker reasoning') }), ...(value.executionWindow === undefined ? {} : { executionWindow: executionWindow(value.executionWindow) }) };
 }
 function parseReceipt(value: unknown): Receipt {
@@ -62,16 +54,16 @@ function parseImport(value: unknown): ImportState {
     return { key: safeIdentifier(raw.key), ...(raw.request === undefined ? {} : { request: parseEvidenceRequest(raw.request) }), ...(receipt === undefined ? {} : { receipt }) };
   }), ...(value.resultRequest === undefined ? {} : { resultRequest: parseRecordRequest(value.resultRequest) }), ...(value.completedAt === undefined ? {} : { completedAt: timeValue(value.completedAt, 'import completedAt') }) };
   if (value.resultReceipt !== undefined) {
-    const v = value.resultReceipt; assertClosed(v, ['operationId', 'revision', 'caseId', 'mode', 'status', 'attemptId', 'noOp', 'replayed'], 'result receipt');
-    if (typeof v.replayed !== 'boolean' || (v.noOp !== undefined && typeof v.noOp !== 'boolean')) fail('Invalid result receipt flags.');
-    result.resultReceipt = { operationId: safeIdentifier(v.operationId), revision: integer(v.revision, 'result revision'), caseId: safeIdentifier(v.caseId), mode: oneOf(v.mode, ['final', 'attempt'], 'result mode'), status: oneOf(v.status, ['pass', 'fail', 'inconclusive', 'blocked', 'not_run'], 'result status'), replayed: v.replayed, ...(v.attemptId === undefined ? {} : { attemptId: safeIdentifier(v.attemptId) }), ...(v.noOp === undefined ? {} : { noOp: v.noOp }) };
+    const v = value.resultReceipt; assertClosed(v, ['operationId', 'revision', 'caseId', 'mode', 'replayed'], 'result receipt');
+    if (typeof v.replayed !== 'boolean') fail('Invalid result receipt flags.');
+    result.resultReceipt = { operationId: safeIdentifier(v.operationId), revision: integer(v.revision, 'result revision'), caseId: safeIdentifier(v.caseId), mode: oneOf(v.mode, ['final', 'attempt'], 'result mode'), replayed: v.replayed };
   }
   return result;
 }
 export function parseLedger(value: unknown): ExecutionLedger {
   assertClosed(value, ['schemaVersion', 'runId', 'baselineSha256', 'revision', 'configuration', 'knownAvailableWorkers', 'capacityReason', 'protectedSpaceIds', 'peakReservations', 'assignments', 'imports', 'operations', 'events'], 'execution ledger');
-  if (value.schemaVersion !== 1) fail('Execution ledger requires schemaVersion 1.');
-  const result: ExecutionLedger = { schemaVersion: 1, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), revision: integer(value.revision, 'execution revision'), configuration: configurationSnapshot(value.configuration), knownAvailableWorkers: value.knownAvailableWorkers === null ? null : integer(value.knownAvailableWorkers, 'worker capacity'), capacityReason: textValue(value.capacityReason, 'capacity reason', { empty: true }), protectedSpaceIds: value.protectedSpaceIds === null ? null : numbers(value.protectedSpaceIds), peakReservations: integer(value.peakReservations, 'peak reservations'), assignments: arrayValue(value.assignments, 'assignments').map(parseAssignment), imports: arrayValue(value.imports, 'imports').map(parseImport),
+  if (value.schemaVersion !== 5) fail('Execution ledger requires schemaVersion 5.');
+  const result: ExecutionLedger = { schemaVersion: 5, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), revision: integer(value.revision, 'execution revision'), configuration: configurationSnapshot(value.configuration), knownAvailableWorkers: value.knownAvailableWorkers === null ? null : integer(value.knownAvailableWorkers, 'worker capacity'), capacityReason: textValue(value.capacityReason, 'capacity reason', { empty: true }), protectedSpaceIds: value.protectedSpaceIds === null ? null : numbers(value.protectedSpaceIds), peakReservations: integer(value.peakReservations, 'peak reservations'), assignments: arrayValue(value.assignments, 'assignments').map(parseAssignment), imports: arrayValue(value.imports, 'imports').map(parseImport),
     operations: arrayValue(value.operations, 'execution operations').map(raw => { assertClosed(raw, ['operationId', 'payloadSha256', 'request', 'startedAt', 'receipt'], 'execution operation'); return { operationId: safeIdentifier(raw.operationId), payloadSha256: sha256Value(raw.payloadSha256), request: parseRequest(raw.request), startedAt: timeValue(raw.startedAt, 'operation startedAt'), ...(raw.receipt === undefined ? {} : { receipt: parseReceipt(raw.receipt) }) }; }),
     events: arrayValue(value.events, 'execution events').map(raw => { assertClosed(raw, ['revision', 'operationId', 'at', 'kind', 'reason', 'assignmentId', 'evidenceFiles'], 'execution event'); return { revision: integer(raw.revision, 'event revision', 1), operationId: safeIdentifier(raw.operationId), at: timeValue(raw.at, 'event time'), kind: textValue(raw.kind, 'event kind'), reason: textValue(raw.reason, 'event reason'), ...(raw.assignmentId === undefined ? {} : { assignmentId: assignmentId(raw.assignmentId) }), ...(raw.evidenceFiles === undefined ? {} : { evidenceFiles: arrayValue(raw.evidenceFiles, 'event evidence').map(fileReference) }) }; }) };
   if (result.revision !== result.events.length || result.events.some((event, i) => event.revision !== i + 1)) fail('Execution revision does not match its event ledger.');
@@ -110,7 +102,7 @@ export function isActive(state: AssignmentState): boolean { return activeStates.
 export function activeCount(ledger: ExecutionLedger): number { return ledger.assignments.filter(a => isActive(a.state)).length; }
 export function assignment(ledger: ExecutionLedger, id: AssignmentId): Assignment { const result = ledger.assignments.find(a => a.id === id); if (!result) fail('Unknown assignment: ' + id); return result; }
 export async function readExecution(root: string, manifest: Manifest, baseline: Baseline): Promise<ExecutionLedger> {
-  if (manifest.schemaVersion !== 4 || manifest.executionFile !== 'execution.json') fail('This command requires a v4 run.');
+  if (manifest.schemaVersion !== 5 || manifest.executionFile !== 'execution.json') fail('This command requires a v5 run.');
   const ledger = parseLedger(await readJSON(path.join(root, 'execution.json')));
   if (ledger.runId !== manifest.runId || ledger.baselineSha256 !== manifest.baselineSha256 || ledger.assignments.some(a => !baseline.cases.some(c => c.id === a.caseId))) fail('Execution ledger does not match the frozen run.');
   validateExecutionReferencePaths(root, ledger);
@@ -162,7 +154,7 @@ export async function ensureWorkerDirectory(root: string, a: Assignment, operati
   try { await fs.mkdir(captures, { mode: 0o700 }); } catch (caught) { const error = errorInfo(caught); if (error.code !== 'EEXIST') throw error; }
   if (!(await fs.lstat(captures)).isDirectory()) fail('Capture path is not a directory.');
 }
-export function summarize(ledger: ExecutionLedger, baseline: Baseline): ExecutionSummary {
+export function summarize(ledger: ExecutionLedger, _baseline: Baseline): ExecutionSummary {
   const perCase = new Map<string, { start: number; end: number }[]>();
   for (const imp of ledger.imports) if (imp.phase === 'complete' && imp.originalPacket.executionWindow) {
     const window = imp.originalPacket.executionWindow, intervals = perCase.get(imp.originalPacket.caseId) ?? [];
@@ -178,5 +170,5 @@ export function summarize(ledger: ExecutionLedger, baseline: Baseline): Executio
   }
   const events = windows.filter(window => window.end > window.start).flatMap(window => [{ at: window.start, delta: 1 }, { at: window.end, delta: -1 }]).sort((a, b) => a.at - b.at || a.delta - b.delta);
   let active = 0, peak = 0; for (const event of events) { active += event.delta; peak = Math.max(peak, active); }
-  return { configuredMaxParallelCases: ledger.configuration.requestedMaxParallelCases, knownAvailableWorkers: ledger.knownAvailableWorkers, activeReservations: activeCount(ledger), peakReservations: ledger.peakReservations, reportedExecutionPeak: windows.length ? peak : null, executionWindowSource: 'Worker-supplied intervals and referenced files; not independently authenticated. Reservation counts are separate.', draining: activeCount(ledger) > availableLimit(ledger), unfinishedAssignmentIds: ledger.assignments.filter(a => !['completed', 'stopped', 'failed'].includes(a.state)).map(a => a.id), pendingImportIds: ledger.imports.filter(imp => !['complete', 'superseded'].includes(imp.phase)).map(imp => imp.operationId), unassessedCaseIds: baseline.cases.filter(c => !ledger.assignments.some(a => a.caseId === c.id && a.goalAssessments.length)).map(c => c.id) };
+  return { configuredMaxParallelCases: ledger.configuration.requestedMaxParallelCases, knownAvailableWorkers: ledger.knownAvailableWorkers, activeReservations: activeCount(ledger), peakReservations: ledger.peakReservations, reportedExecutionPeak: windows.length ? peak : null, executionWindowSource: 'Worker-supplied intervals and referenced files; not independently authenticated. Reservation counts are separate.', draining: activeCount(ledger) > availableLimit(ledger), unfinishedAssignmentIds: ledger.assignments.filter(a => !['completed', 'stopped', 'failed'].includes(a.state)).map(a => a.id), pendingImportIds: ledger.imports.filter(imp => !['complete', 'superseded'].includes(imp.phase)).map(imp => imp.operationId) };
 }

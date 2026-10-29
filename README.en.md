@@ -1,170 +1,85 @@
-<p align="center"><img src="docs/images/hero.png" alt="AI Autonomous Testing with Ego Lite for new web projects and first feature deliveries. AI plans tests against business rules." width="100%"></p>
+<p align="center"><img src="docs/images/hero.png" alt="AI autonomous Web testing with Ego Lite" width="100%"></p>
 
-<h1 align="center">AI-led Testing Skill Built on Ego Lite</h1>
+<h1 align="center">AI Autonomous Testing with Ego Lite</h1>
 
-<p align="center"><strong>English</strong> · <a href="README.md">简体中文</a><br><a href="#quick-start-on-windows">Quick start</a> · <a href="docs/architecture.en.md">Architecture</a> · <a href="docs/asset-formats.en.md">Format and commands</a> · <a href="docs/privacy.md">Privacy</a> · <a href="docs/testing.en.md">Validation</a></p>
+<p align="center"><strong>English</strong> · <a href="README.md">简体中文</a></p>
 
-**An AI-led Web testing Skill for new projects before their first launch and new features at their first delivery.** The current AI session analyzes requirements, plans tests, explores the application through Ego Lite, and checks outcomes against business rules and expectations. Observations and evidence make conclusions reviewable, rather than reducing them to a success/failure badge.
+**An AI-led Web testing Skill for first delivery and regression.** The current AI session interprets trusted requirements, designs independently assessable business goals, explores through Ego Lite and judges actual outcomes using evidence. Users may provide existing cases or requirements. Methods remain flexible; goals, necessary semantics and authorization do not.
 
-An existing automated test suite is not required. Supply prepared cases, or provide requirements, business rules, and acceptance expectations so the AI can draft cases in the Skill format. The AI may adapt its actions, gather more evidence, and adjust execution order while preserving goals, expectations, dependencies, and permission boundaries.
+## Development candidate
 
-First launch is a target use case, not a promise to infer missing rules or guarantee release readiness. Missing requirements need clarification, and insufficient evidence must remain uncertain. Existing-feature regression is also supported.
+Current source: **0.1.6-rc.1 / native-network-observation-1**, a development candidate rather than a formal release. The previous formal package is [v0.1.5](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5); its validation does not cover this format change. Builds/tests do not replace the user's installed Skill or create Git tags/releases.
 
-## Name and invocation
+Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidance, compiled Node ESM tools, schemas, examples and an integrity manifest. Source is TypeScript; installed use requires Node.js >=22.
 
-The repository/package/Skill identifier is **ai-autonomous-testing-ego-lite**. Codex displays **AI 自主自动化测试 · Ego Lite**; invoke `$ai-autonomous-testing-ego-lite`. The Chinese README heading is unchanged. See the [rename and upgrade guide](docs/rename-upgrade.md) before updating the remote or migrating an existing installation; do not leave duplicate old/new discoverable Skills.
+## What changed
 
-## Project status
+- Cases group related workflows; source-backed goals hold independently assessable expectations. Steps, conditions and paths retain necessary semantics without becoming extra business goals.
+- Serial record and reviewed worker import write the same observations/assessments/entries. Serial reporting does not require fabricated assignments or packets.
+- Four explicit outcomes are verified, violation, inconclusive and not_tested. Missing assessments are visibly separate recording gaps, never defaulted to inconclusive.
+- Outcomes and causes are separate. Sufficient evidence of a violation can coexist with an unknown cause; uncertainty about the actual action or result is stated specifically.
+- Parent scenarios show goal distributions. final updates submitted goals incrementally; attempt preserves history. Follow-up links do not overwrite original anomalies or old conclusions.
 
-This branch is the **0.1.6-rc.cross-host.1 / cross-host-parallel-1 development candidate**, based on committed testing-experience revision `d350cc5`. It excludes the original checkout's uncommitted v5 goal-assessment and API-monitoring work. The formal release remains [v0.1.5](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5). This repair does not establish complete host compatibility or update user installations. See the [validation record](docs/testing.en.md) and [changelog](CHANGELOG.md).
+All current test-asset JSON contracts use **schemaVersion 5**, and execution query viewVersion is 5. Older formats are explicitly rejected, without readers or converters. Keep historical reports, files and runs unchanged; prepare new v5 assets from original sources instead of changing only version fields. See [formats](docs/asset-formats.en.md).
 
-Maintained source uses strict TypeScript; installation packages contain compiled JavaScript and require no TypeScript compiler or development dependencies. Case concurrency is configurable and defaults to serial execution. The AI decides which cases are independent and uses native host subagents. Space association and deviation records are not a hard permission sandbox or a guarantee of account or backend-data isolation.
+## Cases, evidence and delivery
 
-Codex, Claude Code and ZCode supply their own subagent tools; this package does not dispatch through a hardcoded host API. Complete live workflows remain unverified. See [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Claude Code uses `/ai-autonomous-testing-ego-lite`; loading a Skill does not prove that workers can execute, return evidence and finish safely.
+Before freezing, the AI maps each expectation to sources, prerequisites, actions and observation methods. Different role/data dependencies can be assessed separately without dropping workflow dependencies. Acceptance ambiguity belongs to goal.clarificationQuestions; actual resource and authorization gaps require real clarification. User-deferred goals remain visible. Do not expand acceptance scope after execution to justify a result.
 
+Successful tool calls do not prove business success. Key UI findings require real screenshots, with AI-selected capture timing. DOM, logs and action receipts supplement images. Submission, drag, context and download uncertainty can benefit from targeted observations; capabilities must be verified against the current Ego version. A method name or timeout is not proof of a browser defect.
 
-## 0.1.5: clarify missing resources
+Default deliverables are standalone HTML, JSON and Markdown from one result projection. Reports expose expectations, observations, evidence, gaps, diagnosis and history. Screenshot gaps, record completeness and file integrity remain distinct. Hash consistency does not establish business correctness; file verification and actual browser opening are separate.
 
-The AI infers prerequisites from each goal, checks existing material and safely available facts within authorization, and asks about material gaps. It explains affected goals and how to supply what is missing, pauses dependent actions, and may continue independent authorized work. Supplied resources require verification before resuming, including new dependencies discovered during execution.
-
-Acceptance ambiguity, resource availability and permission to act stay separate. Existing tools retain observations, questions and history; no fixed resource checklist or business workflow is added. See the [resource guide (Chinese)](skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md) and [local acceptance steps (Chinese)](docs/v0.1.5-local-acceptance.md). Guidance and engineering checks do not replace behavioral acceptance.
-
-![Latest four versions: v0.1.3 through v0.1.6; v0.1.6 is in development, not released. Full history is preserved separately.](docs/images/readme-version-history.png)
-
-## Parallel execution and delivery (since v0.1.4)
-
-![AI assigns independent cases within user concurrency limits; workers use their own Spaces and seal evidence packets for coordinator review.](docs/images/parallel.svg)
-
-Unless the user explicitly requests another format, completed test execution delivers standalone offline HTML, JSON, and Markdown. Chat summaries are insufficient. Key UI outcomes and defects require real screenshots; DOM, logs and summaries supplement them. The AI chooses capture moments, without a screenshot or expectation for every step. Missing screenshots must be visible and trigger conclusion review, not automatic product failure.
-
-Build a complete standalone directory from the source repository with `npm run build:skill -- --output-dir ABS_NEW_EXTERNAL_SKILL_DIR`. The package contains the Skill, guides, scripts, schemas, synthetic examples and `runtime-manifest.json`. Copying only the source Skill instructions is incomplete. Before updating an existing installation, compare known source files and report unknown edits instead of overwriting them, creating duplicate installations or adding old-version backups.
-
-Use the absolute root of the actually loaded SKILL.md, then run `node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.6-rc.cross-host.1 --expect-revision cross-host-parallel-1`. Check paths, formatVersions and installationIntegrity. Every CLI command verifies installed files. Source development runs npm ci and npm run build from the confirmed repository, then uses its explicit .build/runtime tool root. Fingerprints check consistency, not publisher identity. Validate this complete package separately before deciding whether to replace an existing installation; no new resource JSON format is introduced.
-
-`report` reads back all three outputs. `verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR` compares the files with current records, retained evidence and context sources. Receipts include paths, sizes, hashes and `browserOpen: not_checked`; actual browser opening is separate. Report access restrictions honestly without routing around them.
-
-To retain an existing report, prepare a new external directory and pass `report --output-dir ABS_EXISTING_NEW_DIR`. Post-execution assembly also passes `--context ABS_CONTEXT_JSON`, defined by [the context schema](schemas/report-context.schema.json). It records limitations, existing source files and hashes, supplemental case IDs and AI-supplied reviews for every goal. Original claims remain separate; no pre-execution freeze, screenshot, timestamp or execution step is invented. No business actions run to fill a report.
-
-This candidate uses tool revision `cross-host-parallel-1` and retains its committed baseline's formats: cases/results/evidence v3, new manifests/reports v4, execution/configuration/worker packets v1, executionRead v2. No new legacy-format fallback is introduced. Historical data stays untouched; v2 and another branch's v5 are not inputs for this candidate. Installation requires Node.js >=22, not a TS compiler.
-
-## Cases and judgments
-
-![AI-led workflow: receive or draft cases, adapt execution, and account for every goal.](docs/images/workflow.png)
-
-External cases and cases drafted by the AI following the Skill guidelines can support new-feature testing and regression. Cases describe business intent and necessary input. The current AI chooses an authorized execution route from the page it observes. `strict` preserves business-step order. `adaptive` may adjust a route or order only when intent, prerequisites, and coverage remain intact.
-
-Keep the overall expected outcome and requirement basis. A step-level `expected` is optional; when supplied, it needs an independent source. Omitting it does not mean the step was skipped or passed automatically. When acceptance questions remain, put them in the frozen case's `clarificationQuestions`. While this list is nonempty, neither the final result nor any attempt may be `pass` or `fail`. After clarification, freeze a revised case rather than editing the old baseline.
-
-Statuses remain distinct: `pass`, `fail`, `inconclusive`, `blocked`, and `not_run`. `not_run` means no final outcome is recorded and may coexist with exploratory attempts; the report distinguishes missing recorded observations from recorded attempts without a final outcome, separately from execution state. The helper validates local structures, revisions, and evidence-file hashes. It does not diagnose defects, select routes, retry business actions, or decide whether evidence supports a conclusion.
+Network observation implements the v3 design through network start/status/query/stop: a dedicated native context records scoped Fetch/XHR, SSE and WebSocket evidence; the AI chooses queries, evidence and business judgments. It never replays business requests. Network data uses independent networkVersion 1, while the v5 business contracts remain. See [observation guidance (Chinese)](skills/ai-autonomous-testing-ego-lite/references/network-observation.md).
 
 ## Quick start on Windows
 
-### Prepare the runtime
+Prepare Ego and the official ego-browser Skill using the [official guide](https://lite.ego.app/document/en/docs/windows/quick-start). This project does not install or replace Ego. Case design alone requires no browser connection.
 
-Follow the [official Ego Windows quick start](https://lite.ego.app/document/en/docs/windows/quick-start) to configure Ego and its official `ego-browser` Skill. This repository neither installs Ego nor replaces its official usage guide. The local report helper uses Node.js 22 or newer and has no third-party runtime package dependency.
-
-The commands below run from the source repository after `npm ci` and `npm run build`; the CLI is at `.build/runtime/scripts/ego.mjs`. For a downloaded standalone package, use `scripts/ego.mjs` within its installation root instead. Do not mix the two layouts.
-
-### Keep private assets outside the source directory
-
-Open PowerShell at the repository root. The private root must be outside the repository. `init` and `start` require a destination that does not already exist and never overwrite one.
+From the confirmed source root:
 
 ```powershell
-$Source = (Get-Location).Path
+npm ci
+npm run build
+$Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
+node $Tool tool-info --expect-version 0.1.6-rc.1 --expect-revision native-network-observation-1
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
-$Project = Join-Path $LocalRoot 'demo-project'
-node .\.build\runtime\scripts\ego.mjs init --project-dir $Project
+$Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))
+node $Tool init --project-dir $Project
 ```
 
-Replace `$Project\cases.example.json` with cases checked against their sources. Validate, then freeze a new run:
+For a complete installed package, use scripts/ego.mjs under the actual loaded Skill root. Keep real assets outside source control. Review the generated example against trusted requirements before freezing:
 
 ```powershell
 $Cases = Join-Path $Project 'cases.example.json'
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
-node .\.build\runtime\scripts\ego.mjs validate-cases --cases $Cases
-node .\.build\runtime\scripts\ego.mjs start --project-dir $Project --cases $Cases --output-dir $Run
+node $Tool validate-cases --cases $Cases
+node $Tool start --project-dir $Project --cases $Cases --output-dir $Run
 ```
 
-`start` creates local files only; it does not run a browser or business action. See the [Skill workflow](skills/ai-autonomous-testing-ego-lite/SKILL.md) and its [local toolbox guide](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.en.md).
+start creates local assets, not browser actions. Use the [toolbox guide](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.en.md) and [synthetic requests](examples/record-request.example.json) to register evidence and goal assessments. Unique operation IDs and revisions protect data transactions; replaying a request recovers its receipt, not a business action.
 
-### Register evidence and record outcomes
-
-Use a local file as evidence source only when it should be retained, and write a UTF-8 JSON request. Requests need a unique `operationId` and the current `expectedRevision`. Omit `capturedAt` when the source time is unknown:
-
-```json
-{
-  "schemaVersion": 3,
-  "operationId": "evidence-first-observation",
-  "expectedRevision": 0,
-  "caseId": "CONFIG-01",
-  "sourceFile": "C:\\Users\\example\\AppData\\Local\\EgoLiteTest\\capture.png",
-  "kind": "screenshot",
-  "source": "Local page capture saved during this test",
-  "description": "Observation of the settings page in a synthetic environment"
-}
+```text
+node ABS_TOOL evidence-add --run-dir ABS_RUN --request ABS_EVIDENCE_REQUEST
+node ABS_TOOL record --run-dir ABS_RUN --request ABS_RECORD_REQUEST
+node ABS_TOOL progress --run-dir ABS_RUN
+node ABS_TOOL check --run-dir ABS_RUN
+node ABS_TOOL report --run-dir ABS_RUN
+node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 ```
 
-Run `evidence-add --run-dir $Run --request <absolute request file path>`. The helper copies a regular local file into the run's `evidence/` folder and calculates SHA-256 and byte count from the retained copy. It returns the evidence ID and catalog revision. The helper sets `collectedAt`; supply `capturedAt` only when the source provides that time.
-
-Put the returned evidence ID in a `record` request's `evidenceIds`. `mode: "final"` updates the current outcome. `mode: "attempt"` appends a historical observation and leaves the current outcome unchanged. Example:
-
-```json
-{
-  "schemaVersion": 3,
-  "operationId": "CONFIG-01-first-attempt",
-  "expectedRevision": 0,
-  "caseId": "CONFIG-01",
-  "mode": "attempt",
-  "record": {
-    "status": "inconclusive",
-    "observed": "Synthetic observation: the page did not show a clear result after saving.",
-    "rationale": "This page alone does not establish the frozen overall expectation.",
-    "remainingQuestions": ["Is persistence after refresh required?"],
-    "evidenceIds": ["replace-with-the-ID-returned-by-evidence-add"],
-    "cause": "unknown"
-  }
-}
-```
-
-`operationId` is the idempotency key. Repeating the same ID with the same content returns the original receipt without appending again. Reusing the ID with changed content is rejected. A new request with an old `expectedRevision` is rejected as a conflict. A run-level exclusive lock rejects concurrent writers instead of retrying. If a response is lost, retry the exact same request to retrieve its receipt.
-
-### Check progress and write a report
-
-```powershell
-node .\.build\runtime\scripts\ego.mjs progress --run-dir $Run
-node .\.build\runtime\scripts\ego.mjs check --run-dir $Run
-node .\.build\runtime\scripts\ego.mjs report --run-dir $Run
-Invoke-Item (Join-Path $Run 'report.html')
-```
-
-Progress counts each frozen case's **current final status**. `blocked`, `inconclusive`, and `not_run` stay separate; pending clarifications have their own list. Historical attempts are not counted again as current pass/fail outcomes. `report` writes `report.json`, `report.md`, and a standalone offline `report.html` in the run directory; it refuses to overwrite any of them. The HTML shows frozen goals, critical conditions, required path, order policy, observations, rationale, requirement basis, unverified items, each attempt and its remaining questions, and evidence source/SHA-256 metadata. Hash/size-verified PNG, JPEG, and WebP screenshots are embedded; missing, unsupported, or browser-undecodable images are called out without substituting an image. You can copy `report.html` by itself for an authorized reviewer; it does not need the run directory or network access. See the [schema v3 format and runtime contract](docs/asset-formats.en.md).
-
-Business outcomes and file integrity are shown separately. A matching SHA-256 does not prove a screenshot is authentic or an outcome is correct. Before writing any report, the helper validates the run and every registered evidence file; a failed check writes no report. No image does not automatically mean failure; the AI decides whether more evidence or testing is needed under the user's authorization. A successful click or enabled button does not prove a submission succeeded; observe the actual result and persistence when required.
-
-![Illustrative report content, not an actual test report screenshot.](docs/images/result-specimen.png)
+Reports refuse overwrite; use a new directory for later reports. browserOpen:not_checked is not a browser validation claim. Open and inspect the actual HTML through Ego before claiming that validation. Examples contain fictional data only.
 
 ## Responsibilities and limits
 
-![Ownership: the current AI session interprets and decides; Ego performs authorized browser reads and actions; the local helper manages records only.](docs/images/architecture.png)
-
-| Part | Responsible for | Not responsible for |
-| --- | --- | --- |
-| Current AI session | Understand goals, select tests, use an authorized browser, review observations | Invent missing requirements or exceed authorization |
-| Native Ego browser | Page reads and user-authorized browser actions | Decide whether business rules are correct |
-| Local toolbox | Register files, validate records, hash current files, report progress, display an offline evidence report | Network/model/Ego access, automatic bug verdicts, retrying business actions |
-
-SHA-256 detects whether retained bytes still match the catalog. It does not prove authenticity, source identity, or a business conclusion. The helper is not a security boundary against direct file edits or other local programs. A single JSON file is updated with a temporary file and rename. Evidence and catalog updates are not a general multi-file transaction and do not promise power-loss durability. A leftover `.run.lock` blocks writes; an operator should verify its process has exited before inspecting and handling the lock.
-
-Evidence registration does not redact data. Screenshots, logs, URLs, and descriptions may contain personal or business information; limit their scope and review them before storage. Keep real cases, sites, credentials, and run output outside the repository. A private repository, hashes, ignore rules, and heuristic scans are not a secrets vault. See the [privacy guide](docs/privacy.md).
+AI owns planning, authorized operation and judgment. Ego supplies supported browser primitives. Local tools own freezing, records, references, revisions, evidence-file checks and reports; they do not call models/browsers, decide bugs or retry business writes. Space separation is not account/backend isolation. File transactions are not a general multi-file or power-loss guarantee. Registration does not redact evidence. Keep credentials, real sites, screenshots and run data private and outside the repository; do not auto-upload reports. See [privacy](docs/privacy.md).
 
 ## Further reading
 
-- [Skill workflow](skills/ai-autonomous-testing-ego-lite/SKILL.md) and [local toolbox calling guide](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.en.md)
-- [Architecture](docs/architecture.en.md), [Asset formats and commands](docs/asset-formats.en.md)
-- [v0.1.4 requirements and decision history (Chinese)](docs/requirements.md): configurable concurrency and Space associations
-- [Synthetic cases](examples/cases.example.json), [evidence request](examples/evidence-request.example.json), [result request](examples/record-request.example.json)
-- [Validation status](docs/testing.en.md), [privacy](docs/privacy.md), [changelog](CHANGELOG.md)
+- [Skill](skills/ai-autonomous-testing-ego-lite/SKILL.md), [case design](skills/ai-autonomous-testing-ego-lite/references/case-authoring.md), [judgment](skills/ai-autonomous-testing-ego-lite/references/judgment-and-diagnosis.md)
+- [Architecture](docs/architecture.en.md), [formats](docs/asset-formats.en.md), [validation](docs/testing.en.md), [changelog](CHANGELOG.md)
+- [Cases](examples/cases.example.json), [evidence requests](examples/evidence-request.example.json), [result requests](examples/record-request.example.json)
 
 ## Feedback and contact
 
@@ -183,5 +98,7 @@ Report bugs or suggest improvements through [GitHub Issues](https://github.com/9
 Original code and documentation in this repository are licensed under the [MIT License](LICENSE), copyright 2026 99Like-wjj. This license does not cover Ego, Ego's official browser, or other third-party software; their own licenses and official terms continue to apply. This is an independent project, not affiliated with or endorsed by Ego. The source is available under the MIT License. Development is ongoing; refer to each release's notes for its capabilities and validation scope.
 
 ## Configurable concurrency
+
+Repair commit 8e6e2d9 is integrated while retaining v5 goal assessment and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-autonomous-testing-ego-lite; Claude Code uses /ai-autonomous-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
 
 The default is **1 (serial)**. Without a user request for concurrency or an explicit setting, execute cases one at a time. Set `start --max-parallel-cases N` or project execution-config.json to opt in; N is a positive safe integer with no fixed 2/4/8 product ceiling. The AI chooses tool calls, batches and worker use within that limit; it need not fill all slots. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.

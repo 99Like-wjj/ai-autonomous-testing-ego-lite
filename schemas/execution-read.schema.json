@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "execution-read.schema.json",
-  "title": "Ego Lite execution read view v2",
+  "title": "Ego Lite execution read view v5",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -26,7 +26,7 @@
   ],
   "properties": {
     "viewVersion": {
-      "const": 2
+      "const": 5
     },
     "view": {
       "enum": [
@@ -135,7 +135,6 @@
         "unfinishedAssignments",
         "failedAssignments",
         "pendingImports",
-        "unassessedCases",
         "operations",
         "events",
         "protectedSpaces"
@@ -172,10 +171,6 @@
           "minimum": 0
         },
         "pendingImports": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "unassessedCases": {
           "type": "integer",
           "minimum": 0
         },

@@ -1,26 +1,34 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export type ResultOrAttemptRequestV3 = {
-  schemaVersion: 3;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
+export interface ResultOrAttemptRequestV5 {
+  schemaVersion: 5;
   operationId: string;
   expectedRevision: number;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
   mode: 'final' | 'attempt';
-  record: {
-    status: 'pass' | 'fail' | 'inconclusive' | 'blocked' | 'not_run';
-    observed: string;
-    rationale: string;
-    remainingQuestions: string[];
-    /**
-     * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-     */
-    evidenceIds: string[];
-    cause?: 'product_candidate' | 'agent' | 'environment' | 'spec' | 'unknown';
-  };
-};
+  record: RecordPayload;
+}
+export interface RecordPayload {
+  observations: Observation[];
+  assessments: Assessment[];
+}
+export interface Observation {
+  id: string;
+  summary: string;
+  coveredRefs: string[];
+  evidenceIds: string[];
+}
+export interface Assessment {
+  goalId: string;
+  status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
+  rationale: string;
+  observationIds: string[];
+  gaps: string[];
+  diagnosis?: Diagnosis;
+}
+export interface Diagnosis {
+  state: 'unknown' | 'hypothesis' | 'confirmed';
+  category: 'product' | 'agent' | 'environment' | 'spec' | 'unknown';
+  summary: string;
+  evidenceIds: string[];
+}

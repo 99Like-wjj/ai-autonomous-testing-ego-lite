@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "worker-packet.schema.json",
-  "title": "Ego Lite worker packet v1",
+  "title": "Ego Lite worker packet v5",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 1
+      "const": 5
     },
     "runId": {
       "type": "string",
@@ -41,13 +41,6 @@
       "items": {
         "$ref": "#/$defs/evidence"
       }
-    },
-    "goalAssessments": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/goal"
-      },
-      "minItems": 1
     },
     "executionWindow": {
       "$ref": "#/$defs/window"
@@ -102,62 +95,12 @@
     "mode",
     "record",
     "evidence",
-    "goalAssessments",
     "spaceUsage"
   ],
   "additionalProperties": false,
   "$defs": {
     "record": {
-      "title": "Packet record",
-      "type": "object",
-      "properties": {
-        "status": {
-          "enum": [
-            "pass",
-            "fail",
-            "inconclusive",
-            "blocked",
-            "not_run"
-          ]
-        },
-        "observed": {
-          "type": "string"
-        },
-        "rationale": {
-          "type": "string"
-        },
-        "remainingQuestions": {
-          "type": "array",
-          "items": {
-            "$ref": "common.schema.json#/$defs/nonempty"
-          },
-          "uniqueItems": true
-        },
-        "evidenceKeys": {
-          "type": "array",
-          "items": {
-            "$ref": "common.schema.json#/$defs/safeId"
-          },
-          "uniqueItems": true
-        },
-        "cause": {
-          "enum": [
-            "product_candidate",
-            "agent",
-            "environment",
-            "spec",
-            "unknown"
-          ]
-        }
-      },
-      "required": [
-        "status",
-        "observed",
-        "rationale",
-        "remainingQuestions",
-        "evidenceKeys"
-      ],
-      "additionalProperties": false
+      "$ref": "common.schema.json#/$defs/recordPayload"
     },
     "evidence": {
       "title": "Packet evidence",
@@ -208,49 +151,6 @@
       ],
       "additionalProperties": false
     },
-    "goal": {
-      "title": "Goal assessment",
-      "type": "object",
-      "properties": {
-        "targets": {
-          "type": "array",
-          "items": {
-            "$ref": "common.schema.json#/$defs/nonempty"
-          },
-          "uniqueItems": true,
-          "minItems": 1
-        },
-        "status": {
-          "enum": [
-            "verified",
-            "violation",
-            "inconclusive",
-            "not_tested"
-          ]
-        },
-        "observed": {
-          "type": "string"
-        },
-        "rationale": {
-          "$ref": "common.schema.json#/$defs/nonempty"
-        },
-        "evidenceKeys": {
-          "type": "array",
-          "items": {
-            "$ref": "common.schema.json#/$defs/safeId"
-          },
-          "uniqueItems": true
-        }
-      },
-      "required": [
-        "targets",
-        "status",
-        "observed",
-        "rationale",
-        "evidenceKeys"
-      ],
-      "additionalProperties": false
-    },
     "window": {
       "title": "Execution window",
       "type": "object",
@@ -279,4 +179,3 @@
     }
   }
 }
-

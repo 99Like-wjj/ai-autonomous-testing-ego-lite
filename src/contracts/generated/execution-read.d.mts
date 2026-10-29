@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface EgoLiteExecutionReadViewV2 {
-  viewVersion: 2;
+export interface EgoLiteExecutionReadViewV5 {
+  viewVersion: 5;
   view: 'summary' | 'assignment';
   runId: string;
   baselineSha256: string;
@@ -20,7 +20,6 @@ export interface EgoLiteExecutionReadViewV2 {
     unfinishedAssignments: number;
     failedAssignments: number;
     pendingImports: number;
-    unassessedCases: number;
     operations: number;
     events: number;
     protectedSpaces: number | null;
@@ -64,7 +63,7 @@ export interface ExecutionConfigurationSnapshot {
   initialMaxParallelCases: number;
   requestedMaxParallelCases: number;
   configuration: {
-    schemaVersion: 1;
+    schemaVersion: 5;
     maxParallelCases: number;
   };
   configFile?: string;
@@ -100,17 +99,8 @@ export interface ExecutionAssignmentSummary {
   updatedAt: string;
 }
 export interface ExecutionAssignment {
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   id: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   caseId: string;
-  /**
-   * Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
   attemptId: string;
   state: 'reserved' | 'running' | 'paused' | 'stop_requested' | 'stopped' | 'completed' | 'failed' | 'lost';
   workerDirectory: string;
@@ -123,7 +113,6 @@ export interface ExecutionAssignment {
   defaultSpaceId: number | null;
   spaceHistory: SpaceUse[];
   ownedSpaces: OwnedSpace[];
-  goalAssessments: CommittedGoalAssessment[];
   executionWindow?: ExecutionWindow;
 }
 export interface SpaceUse {
@@ -144,26 +133,11 @@ export interface RetainedFileReference {
   sha256: string;
   bytes: number;
 }
-export interface CommittedGoalAssessment {
-  /**
-   * @minItems 1
-   */
-  targets: string[];
-  status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
-  observed: string;
-  rationale: string;
-  /**
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
-   */
-  evidenceIds: string[];
-}
 export interface ExecutionWindow {
   startedAt: string;
   endedAt: string;
   /**
    * @minItems 1
-   *
-   * Items: Reserved property names such as __proto__, prototype, and constructor are forbidden.
    */
   evidenceKeys: string[];
 }

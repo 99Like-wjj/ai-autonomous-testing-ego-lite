@@ -1,5 +1,20 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "rootDir": ".", "outDir": ".build/node" },
-  "include": ["src/**/*.mts", "tools/**/*.mts", "tests/**/*.mts", "docs/images/render.mts"]
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": ".build/node"
+  },
+  "include": [
+    "src/**/*.mts",
+    "tests/**/*.mts",
+    "tools/generate-contracts.mts",
+    "tools/check-experience.mts",
+    "tools/public-check.mts",
+    "tools/stage-runtime.mts",
+    "tools/build-skill.mts",
+    "tools/synthetic-server.mts",
+    "tools/observation-fixture.mts",
+    "tools/network-fixture.mts",
+    "docs/images/render.mts"
+  ]
 }

@@ -1,15 +1,10 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 5,
   "project": "synthetic-example",
   "cases": [
     {
       "id": "R-01-empty-title",
       "title": "空标题被拒绝且不创建书签",
-      "basis": {
-        "kind": "explicit",
-        "source": "project.example/brief.md#明确要求 R-01 (synthetic-v1)",
-        "text": "通过新建书签表单提交空标题时，显示必填提示，且不创建书签。"
-      },
       "criticalConditions": [
         "实际身份已核验为编辑者",
         "目标为获准使用的独立测试目录",
@@ -17,124 +12,194 @@
         "该测试提交及可能的副作用在用户授权范围内",
         "能够只读核对提交前后是否新增对象"
       ],
-      "expected": "出现标题必填提示；通过授权的只读核对确认没有新增书签。",
       "requiredPath": "通过 UI 新建书签表单提交，不能改用写 API",
       "stepOrder": "strict",
       "steps": [
         {
           "id": "open",
-          "action": "打开新建书签表单",
-          "expected": "已显示标题与其他必填输入"
+          "action": "打开新建书签表单"
         },
         {
           "id": "fill",
-          "action": "保持标题为空并填写其他已约定必要字段",
-          "expected": "标题为空且其他字段满足约定"
+          "action": "保持标题为空并填写其他已约定必要字段"
         },
         {
           "id": "submit",
-          "action": "通过 UI 提交表单",
-          "expected": "显示标题必填提示"
+          "action": "通过 UI 提交表单"
         },
         {
           "id": "verify",
-          "action": "使用获授权只读方式核对提交前后对象",
-          "expected": "没有新增书签"
+          "action": "使用获授权只读方式核对提交前后对象"
+        }
+      ],
+      "goals": [
+        {
+          "id": "required-message",
+          "basis": {
+            "kind": "explicit",
+            "source": "project.example/brief.md#明确要求 R-01 (synthetic-v1)",
+            "text": "通过新建书签表单提交空标题时，显示必填提示，且不创建书签。"
+          },
+          "expected": "通过 UI 提交空标题后显示标题必填提示。",
+          "requiredRefs": [
+            "condition:0",
+            "condition:1",
+            "condition:2",
+            "condition:3",
+            "condition:4",
+            "requiredPath",
+            "step:open",
+            "step:fill",
+            "step:submit"
+          ]
+        },
+        {
+          "id": "no-object-created",
+          "basis": {
+            "kind": "explicit",
+            "source": "project.example/brief.md#明确要求 R-01 (synthetic-v1)",
+            "text": "通过新建书签表单提交空标题时，显示必填提示，且不创建书签。"
+          },
+          "expected": "授权只读核对确认该次空标题提交未新增书签。",
+          "requiredRefs": [
+            "condition:0",
+            "condition:1",
+            "condition:2",
+            "condition:3",
+            "condition:4",
+            "requiredPath",
+            "step:open",
+            "step:fill",
+            "step:submit",
+            "step:verify"
+          ]
         }
       ]
     },
     {
       "id": "R-02-reader-detail",
       "title": "读者从列表进入详情无可用编辑入口",
-      "basis": {
-        "kind": "explicit",
-        "source": "project.example/brief.md#明确要求 R-02 (synthetic-v1)",
-        "text": "读者角色通过列表打开已有条目后，详情不提供可用的编辑入口。"
-      },
       "criticalConditions": [
         "实际身份已核验为读者",
         "已有条目属于本次授权测试数据",
         "目标目录与条目初始状态已核验"
       ],
-      "expected": "从列表打开对应详情后，没有可用的编辑入口；不据此断言后端权限已全面验证。",
       "requiredPath": "书签列表 → 对应条目详情",
       "stepOrder": "strict",
       "steps": [
         {
           "id": "list",
-          "action": "打开授权书签列表并确认目标条目",
-          "expected": "目标条目可见且匹配已核验对象"
+          "action": "打开授权书签列表并确认目标条目"
         },
         {
           "id": "detail",
-          "action": "从列表进入对应条目详情",
-          "expected": "详情对应目标条目"
+          "action": "从列表进入对应条目详情"
         },
         {
           "id": "inspect",
-          "action": "检查详情可用编辑入口",
-          "expected": "没有可用编辑入口；不据此证明后端权限"
+          "action": "检查详情可用编辑入口"
+        }
+      ],
+      "goals": [
+        {
+          "id": "outcome",
+          "basis": {
+            "kind": "explicit",
+            "source": "project.example/brief.md#明确要求 R-02 (synthetic-v1)",
+            "text": "读者角色通过列表打开已有条目后，详情不提供可用的编辑入口。"
+          },
+          "expected": "从列表打开对应详情后，没有可用的编辑入口；不据此断言后端权限已全面验证。",
+          "requiredRefs": [
+            "condition:0",
+            "condition:1",
+            "condition:2",
+            "requiredPath",
+            "step:list",
+            "step:detail",
+            "step:inspect"
+          ]
         }
       ]
     },
     {
       "id": "I-01-title-whitespace",
       "title": "仅空白标题的解释性检查",
-      "basis": {
-        "kind": "interpretation",
-        "source": "project.example/brief.md R-01 的待确认解释",
-        "text": "空标题规则可能也包括仅空格输入，但原要求没有明确规定。"
-      },
       "criticalConditions": [
         "仅在用户授权测试该输入与可能创建数据后执行",
         "保留仅空格输入，不替换为真正空字符串"
       ],
-      "expected": "按暂定解释应拒绝仅空格标题；无论观察如何，标注规则解释尚待确认。",
       "requiredPath": null,
       "stepOrder": "strict",
       "steps": [
         {
           "id": "open",
-          "action": "打开获准的新建书签表单",
-          "expected": "表单可输入"
+          "action": "打开获准的新建书签表单"
         },
         {
           "id": "fill",
-          "action": "将标题设为仅空格并填写其他约定字段",
-          "expected": "标题保持仅空格，不替换为空串"
+          "action": "将标题设为仅空格并填写其他约定字段"
         },
         {
           "id": "submit",
-          "action": "在授权范围内提交该表单",
-          "expected": "按暂定解释应拒绝仅空格标题；结果仍为待确认规则的观察"
+          "action": "在授权范围内提交该表单"
+        }
+      ],
+      "goals": [
+        {
+          "id": "outcome",
+          "basis": {
+            "kind": "interpretation",
+            "source": "project.example/brief.md R-01 的待确认解释",
+            "text": "空标题规则可能也包括仅空格输入，但原要求没有明确规定。"
+          },
+          "expected": "按暂定解释应拒绝仅空格标题；无论观察如何，标注规则解释尚待确认。",
+          "requiredRefs": [
+            "condition:0",
+            "condition:1",
+            "step:open",
+            "step:fill",
+            "step:submit"
+          ],
+          "clarificationQuestions": [
+            "仅空格标题是否适用空标题拒绝规则？"
+          ]
         }
       ]
     },
     {
       "id": "H-01-long-title",
       "title": "长标题展示的探索观察",
-      "basis": {
-        "kind": "hypothesis",
-        "source": "本轮探索提议，非已确认需求",
-        "text": "已有测试条目的长标题可能遮挡详情的返回入口。"
-      },
       "criticalConditions": [
         "使用已有且获准读取的虚构长标题条目，不自行创建数据",
         "记录实际视口与观察范围"
       ],
-      "expected": "记录返回入口是否可见、可达及标题展示现象；不推导未规定的标题长度限制。",
       "requiredPath": null,
       "stepOrder": "strict",
       "steps": [
         {
           "id": "detail",
-          "action": "打开已获准读取的长标题条目详情",
-          "expected": "显示目标条目和长标题"
+          "action": "打开已获准读取的长标题条目详情"
         },
         {
           "id": "inspect",
-          "action": "在记录的实际视口检查返回入口与标题布局",
-          "expected": "记录可见性、可达性和遮挡现象，不推导长度限制"
+          "action": "在记录的实际视口检查返回入口与标题布局"
+        }
+      ],
+      "goals": [
+        {
+          "id": "outcome",
+          "basis": {
+            "kind": "hypothesis",
+            "source": "本轮探索提议，非已确认需求",
+            "text": "已有测试条目的长标题可能遮挡详情的返回入口。"
+          },
+          "expected": "记录返回入口是否可见、可达及标题展示现象；不推导未规定的标题长度限制。",
+          "requiredRefs": [
+            "condition:0",
+            "condition:1",
+            "step:detail",
+            "step:inspect"
+          ]
         }
       ]
     }

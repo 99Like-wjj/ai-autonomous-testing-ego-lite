@@ -1,13 +1,239 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "report.schema.json",
-  "title": "Ego Lite generated report",
-  "oneOf": [
-    {
-      "$ref": "report-v3.schema.json"
+  "title": "Ego Lite generated report v5",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 5
     },
-    {
-      "$ref": "report-v4.schema.json"
+    "runId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "project": {
+      "$ref": "common.schema.json#/$defs/nonempty"
+    },
+    "structurallyValid": {
+      "const": true
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "evidenceRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "verified": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "violation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inconclusive": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_tested": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unassessed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "verified",
+        "violation",
+        "inconclusive",
+        "not_tested",
+        "unassessed"
+      ],
+      "additionalProperties": false
+    },
+    "evidenceIntegrity": {
+      "type": "object",
+      "required": [
+        "hashVerifiedItems"
+      ],
+      "properties": {
+        "hashVerifiedItems": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidenceCoverage": {
+      "type": "object",
+      "required": [
+        "registeredScreenshots",
+        "distinctRetainedContents",
+        "goalsWithoutScreenshots"
+      ],
+      "properties": {
+        "registeredScreenshots": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "distinctRetainedContents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "goalsWithoutScreenshots": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "goalId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              }
+            },
+            "required": [
+              "caseId",
+              "goalId"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "$ref": "report-context.schema.json"
+    },
+    "caveat": {
+      "$ref": "common.schema.json#/$defs/nonempty"
+    },
+    "evidenceCatalog": {
+      "$ref": "evidence.schema.json"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "common.schema.json#/$defs/checkedCase"
+      }
+    },
+    "execution": {
+      "$ref": "execution.schema.json"
+    },
+    "executionSummary": {
+      "title": "Execution summary",
+      "type": "object",
+      "properties": {
+        "configuredMaxParallelCases": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "knownAvailableWorkers": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "activeReservations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "peakReservations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "reportedExecutionPeak": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "executionWindowSource": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "draining": {
+          "type": "boolean"
+        },
+        "unfinishedAssignmentIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "pendingImportIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "configuredMaxParallelCases",
+        "knownAvailableWorkers",
+        "activeReservations",
+        "peakReservations",
+        "reportedExecutionPeak",
+        "executionWindowSource",
+        "draining",
+        "unfinishedAssignmentIds",
+        "pendingImportIds"
+      ],
+      "additionalProperties": false
+    },
+    "caseCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "goalCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "assessmentComplete": {
+      "type": "boolean"
     }
-  ]
+  },
+  "required": [
+    "schemaVersion",
+    "runId",
+    "project",
+    "structurallyValid",
+    "revision",
+    "evidenceRevision",
+    "counts",
+    "evidenceIntegrity",
+    "evidenceCoverage",
+    "caveat",
+    "evidenceCatalog",
+    "cases",
+    "caseCount",
+    "goalCount",
+    "assessmentComplete"
+  ],
+  "additionalProperties": false
 }

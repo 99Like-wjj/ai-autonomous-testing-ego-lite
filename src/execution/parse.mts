@@ -1,4 +1,4 @@
-import type { ExecutionRequest, GoalAssessment, PacketRecord, PacketReview, WorkerPacket, ExecutionWindow } from '../contracts/execution-model.mjs';
+import type { ExecutionRequest, PacketRecord, PacketReview, WorkerPacket, ExecutionWindow } from '../contracts/execution-model.mjs';
 import { assertClosed, fail, safeIdentifier } from '../core/common.mjs';
 import { arrayValue, integer, oneOf, parsePayload, sha256Value, strings, textValue, timeValue } from '../core/validation.mjs';
 import { parallelLimit } from './config.mjs';
@@ -7,21 +7,7 @@ export const requestKinds = ['inventory', 'capacity', 'reserve', 'attach-space',
 export function uniqueStrings(value: unknown, label: string): string[] { const result = strings(value, label); if (new Set(result).size !== result.length) fail('Duplicate ' + label + '.'); return result; }
 export function numbers(value: unknown): number[] { const result = arrayValue(value, 'Space IDs').map(v => integer(v, 'Space ID')); if (new Set(result).size !== result.length) fail('Duplicate Space ID.'); return result; }
 export function packetRecord(value: unknown): PacketRecord {
-  assertClosed(value, ['status', 'observed', 'rationale', 'remainingQuestions', 'evidenceKeys', 'cause'], 'packet record');
-  const payload = parsePayload({ status: value.status, observed: value.observed, rationale: value.rationale, remainingQuestions: value.remainingQuestions, evidenceIds: value.evidenceKeys, ...(value.cause === undefined ? {} : { cause: value.cause }) });
-  const { evidenceIds, ...rest } = payload; return { ...rest, evidenceKeys: evidenceIds };
-}
-export function goals(value: unknown): GoalAssessment[] {
-  const result = arrayValue(value, 'goal assessments').map(value => {
-    assertClosed(value, ['targets', 'status', 'observed', 'rationale', 'evidenceKeys'], 'goal assessment');
-    const targets = uniqueStrings(value.targets, 'goal targets'); if (!targets.length) fail('A goal assessment needs target references.');
-    const status = oneOf(value.status, ['verified', 'violation', 'inconclusive', 'not_tested'], 'goal status');
-    const observed = textValue(value.observed, 'goal observed', { empty: true }), rationale = textValue(value.rationale, 'goal rationale');
-    const evidenceKeys = uniqueStrings(value.evidenceKeys, 'goal evidence keys'); evidenceKeys.forEach(key => safeIdentifier(key, 'evidence key'));
-    if (['verified', 'violation'].includes(status) && (!observed.trim() || !evidenceKeys.length)) fail('Verified/violation goals need observations and evidence.');
-    return { targets, status, observed, rationale, evidenceKeys };
-  });
-  if (!result.length) fail('A packet needs goal assessments.'); return result;
+  return parsePayload(value);
 }
 export function executionWindow(value: unknown): ExecutionWindow {
   assertClosed(value, ['startedAt', 'endedAt', 'evidenceKeys'], 'execution window');
@@ -31,33 +17,32 @@ export function executionWindow(value: unknown): ExecutionWindow {
   return { startedAt, endedAt, evidenceKeys };
 }
 export function parsePacket(value: unknown): WorkerPacket {
-  assertClosed(value, ['schemaVersion', 'runId', 'baselineSha256', 'caseId', 'assignmentId', 'attemptId', 'packetId', 'mode', 'record', 'evidence', 'goalAssessments', 'executionWindow', 'spaceUsage'], 'worker packet');
-  if (value.schemaVersion !== 1) fail('Worker packets require schemaVersion 1.');
+  assertClosed(value, ['schemaVersion', 'runId', 'baselineSha256', 'caseId', 'assignmentId', 'attemptId', 'packetId', 'mode', 'record', 'evidence', 'executionWindow', 'spaceUsage'], 'worker packet');
+  if (value.schemaVersion !== 5) fail('Worker packets require schemaVersion 5.');
   const evidence = arrayValue(value.evidence, 'packet evidence').map(value => {
     assertClosed(value, ['key', 'path', 'kind', 'source', 'description', 'sha256', 'bytes', 'capturedAt'], 'packet evidence');
     return { key: safeIdentifier(value.key, 'evidence key'), path: textValue(value.path, 'evidence path'), kind: oneOf(value.kind, ['screenshot', 'dom', 'tool_receipt', 'log', 'other'], 'evidence kind'), source: textValue(value.source, 'evidence source'), description: textValue(value.description, 'evidence description'), sha256: sha256Value(value.sha256), bytes: integer(value.bytes, 'evidence bytes'), ...(value.capturedAt === undefined ? {} : { capturedAt: timeValue(value.capturedAt, 'capturedAt') }) };
   });
   const keys = new Set(evidence.map(item => item.key)); if (keys.size !== evidence.length) fail('Duplicate packet evidence key.');
   const record = packetRecord(value.record), mode = oneOf(value.mode, ['attempt', 'final'], 'packet mode');
-  if (mode === 'attempt' && record.status === 'not_run') fail('An attempt cannot use not_run.');
-  const goalAssessments = goals(value.goalAssessments), window = value.executionWindow === undefined ? undefined : executionWindow(value.executionWindow);
+  const window = value.executionWindow === undefined ? undefined : executionWindow(value.executionWindow);
   const spaceUsage = arrayValue(value.spaceUsage, 'actual Space usage').map(raw => { assertClosed(raw, ['spaceId', 'reason', 'evidenceKeys'], 'Space usage'); return { spaceId: raw.spaceId === null ? null : integer(raw.spaceId, 'actual Space ID'), reason: textValue(raw.reason, 'Space usage reason'), evidenceKeys: uniqueStrings(raw.evidenceKeys, 'Space usage evidence') }; });
   if (!spaceUsage.length) fail('Record actual Space usage, or an explicit unknown observation.');
-  for (const key of [...record.evidenceKeys, ...goalAssessments.flatMap(goal => goal.evidenceKeys), ...(window?.evidenceKeys ?? []), ...spaceUsage.flatMap(use => use.evidenceKeys)]) if (!keys.has(key)) fail('Unknown packet evidence key: ' + key);
-  return { schemaVersion: 1, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), caseId: safeIdentifier(value.caseId, 'case ID'), assignmentId: safeIdentifier(value.assignmentId, 'assignment ID'), attemptId: safeIdentifier(value.attemptId, 'attempt ID'), packetId: safeIdentifier(value.packetId, 'packet ID'), mode, record, evidence, goalAssessments, spaceUsage, ...(window ? { executionWindow: window } : {}) };
+  for (const key of [...record.observations.flatMap(o => o.evidenceIds), ...record.assessments.flatMap(a => a.diagnosis?.evidenceIds ?? []), ...(window?.evidenceKeys ?? []), ...spaceUsage.flatMap(use => use.evidenceKeys)]) if (!keys.has(key)) fail('Unknown packet evidence key: ' + key);
+  return { schemaVersion: 5, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), caseId: safeIdentifier(value.caseId, 'case ID'), assignmentId: safeIdentifier(value.assignmentId, 'assignment ID'), attemptId: safeIdentifier(value.attemptId, 'attempt ID'), packetId: safeIdentifier(value.packetId, 'packet ID'), mode, record, evidence, spaceUsage, ...(window ? { executionWindow: window } : {}) };
 }
 export function parseReview(value: unknown): PacketReview {
-  assertClosed(value, ['decision', 'reviewer', 'rationale', 'record', 'goalAssessments', 'mode'], 'packet review');
+  assertClosed(value, ['decision', 'reviewer', 'rationale', 'record', 'mode'], 'packet review');
   const decision = oneOf(value.decision, ['accept', 'revise'], 'review decision');
-  if (decision === 'accept' && (value.record !== undefined || value.goalAssessments !== undefined || value.mode !== undefined)) fail('An accept review cannot override worker assessments.');
-  if (decision === 'revise' && value.record === undefined && value.goalAssessments === undefined && value.mode === undefined) fail('A revise review needs an explicit replacement.');
-  return { decision, reviewer: textValue(value.reviewer, 'reviewer'), rationale: textValue(value.rationale, 'review rationale'), ...(value.record === undefined ? {} : { record: packetRecord(value.record) }), ...(value.goalAssessments === undefined ? {} : { goalAssessments: goals(value.goalAssessments) }), ...(value.mode === undefined ? {} : { mode: oneOf(value.mode, ['attempt', 'final'], 'review mode') }) };
+  if (decision === 'accept' && (value.record !== undefined || value.mode !== undefined)) fail('An accept review cannot override worker assessments.');
+  if (decision === 'revise' && value.record === undefined && value.mode === undefined) fail('A revise review needs an explicit replacement.');
+  return { decision, reviewer: textValue(value.reviewer, 'reviewer'), rationale: textValue(value.rationale, 'review rationale'), ...(value.record === undefined ? {} : { record: packetRecord(value.record) }), ...(value.mode === undefined ? {} : { mode: oneOf(value.mode, ['attempt', 'final'], 'review mode') }) };
 }
 export function parseRequest(value: unknown): ExecutionRequest {
   const common = ['schemaVersion', 'operationId', 'expectedRevision', 'reason', 'kind'];
   assertClosed(value, [...common, 'spaceIds', 'evidenceFiles', 'availableWorkers', 'caseId', 'baselineSha256', 'resources', 'workerId', 'model', 'reasoning', 'assignmentId', 'spaceId', 'name', 'receiptFile', 'created', 'replaceDefault', 'category', 'remainingSpaceIds', 'maxParallelCases', 'state', 'inFlight', 'packetFile', 'review', 'rebaseOf'], 'execution request');
-  if (value.schemaVersion !== 1) fail('Execution requests require schemaVersion 1.');
-  const base = { schemaVersion: 1 as const, operationId: safeIdentifier(value.operationId, 'operation ID'), expectedRevision: integer(value.expectedRevision, 'execution revision'), reason: textValue(value.reason, 'execution reason') };
+  if (value.schemaVersion !== 5) fail('Execution requests require schemaVersion 5.');
+  const base = { schemaVersion: 5 as const, operationId: safeIdentifier(value.operationId, 'operation ID'), expectedRevision: integer(value.expectedRevision, 'execution revision'), reason: textValue(value.reason, 'execution reason') };
   const kind = oneOf(value.kind, requestKinds, 'execution request kind');
   const files = value.evidenceFiles === undefined ? {} : { evidenceFiles: uniqueStrings(value.evidenceFiles, 'evidence files') };
   const worker = { ...(value.workerId === undefined ? {} : { workerId: textValue(value.workerId, 'worker ID') }), ...(value.model === undefined ? {} : { model: textValue(value.model, 'model') }), ...(value.reasoning === undefined ? {} : { reasoning: textValue(value.reasoning, 'reasoning') }) };

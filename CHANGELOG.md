@@ -1,6 +1,27 @@
 # 更新记录 / Changelog
 
-## 0.1.6-rc.cross-host.1 — 2026-10-28 · 未发布，跨宿主并行修复
+## v0.1.6 接口观测 · 开发候选增量（未发布）
+
+- 以最终设计 v3 为基线新增 network start/status/query/stop，独立 native-only 上下文后台记录授权范围内的 Fetch/XHR、SSE 和 WebSocket 双向正文，不重发业务请求、不替 AI 判断。
+- 独立 networkVersion 1 配置/存储/查询、内容处理、容量、快照分页、不可变片段导出和正常/交接清理；v5 用例、目标评估及三格式报告保持。未发布的 protocol-query 被新入口取代，旧摘要和历史证据不迁移、不删除。
+- 候选标识为 0.1.6-rc.1 / native-network-observation-1。完整包需同步更新工具与指南；本次不自动更新用户安装、不合并 main 或正式发布。
+- 自测范围和实际限制见 docs/v0.1.6-network-validation.md；真实 UAT/生产与其他宿主仍需各自授权和验收。
+
+## 0.1.6-rc.1 — 开发候选 · 目标评估、统一报告与跨宿主修复
+
+- 业务预期统一进入 goals；每个目标独立保留依据、预期、必要语义引用、澄清问题和可选后续复核关联。步骤、条件和路径保留业务依赖，不再机械计为独立业务目标。
+- 串行 record 与并行交付导入共用 observations/assessments 和 results.entries；final 按 goal 增量更新，attempt 保留历史，消除串行记录与逐目标报告读取通道脱节。
+- 报告按业务目标统计四态，父场景显示目标分布；缺少评估单独显示记录缺口，不回落为无法判断。业务结果、根因确认程度、执行状态、截图缺口与文件完整性分开呈现。
+- 加强用例生成的前提—动作—观察对应检查和结果/根因分离示例；提交、拖动、AI 上下文和下载提供按需观察建议，具体浏览器能力以当次隔离验证为据，不固化业务路线或自动重试。
+- 目标评估阶段的历史 P2 实现（现已由 network query 取代）：normalizeProtocolEvents 立即处理原生 page.events，queryProtocolEvents 查询保存后的摘要；默认不取 body、headers、cookies、query 或原始 console。allowlist 不保证字段值和 URL 路径无敏感内容，调用者仍须审查；助手不控制浏览器或自动判断结果。实际隔离能力观察及临时派生页下载限制见验证记录。
+- 当前测试资产 JSON 契约统一 schemaVersion 5，执行查询 viewVersion 5。新版拒绝旧格式，不提供兼容读取或转换；旧报告、截图和运行原样保留，格式变化不授权覆盖或删除历史。使用新格式应按原始来源另建资产，不只改版本号。
+- 合并修复提交 8e6e2d9：链接路径正确执行 CLI；补齐跨宿主上下文、权限、实际执行者与 handle 交接，以及总活动容量和全 run packetId 约定。v5 数据契约及原始记录保留，新增指南随完整包分发；真实跨宿主链路仍待验收。
+- 软件版本为 0.1.6-rc.1，toolRevision 为 native-network-observation-1。开发构建不替换用户级安装，不代表正式 Tag/Release；验证范围和未完成项见 [验证记录](docs/testing.md)。
+
+English: Development candidate with source-backed business goals, shared serial/parallel observations and assessments, incremental final goal updates and preserved history. Missing assessments remain recording gaps, separate from the four business outcomes and diagnosis. All current contracts are v5; old formats are rejected without conversion, while historical files remain untouched. No installed Skill replacement or formal release is implied.
+
+
+## 独立修复分支历史：0.1.6-rc.cross-host.1 — 2026-10-28 · 未发布，跨宿主并行修复
 
 - 从测试经验分支已提交的 d350cc5 派生，独立于原目录中的 v5 目标评估与接口监控工作；toolRevision 为 cross-host-parallel-1，不代表正式发布。
 - 修复通过目录链接调用 scripts/ego.mjs 时因入口路径比较而静默退出的问题；仅解析可执行入口身份，运行/证据文件的路径保护保持。

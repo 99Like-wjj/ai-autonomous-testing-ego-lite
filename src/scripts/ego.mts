@@ -12,6 +12,9 @@ import { readExecutionQuery, executeRequest } from '../execution/commands.mjs';
 import { sealPacket } from '../execution/packets.mjs';
 import { requestKinds, parseRequest } from '../execution/parse.mjs';
 import { cliParallelLimit } from '../execution/config.mjs';
+import { startNetwork, statusNetwork, stopNetwork, queryNetwork } from '../observation/commands.mjs';
+import { boundedJSON } from '../observation/store.mjs';
+import { codeOf, NetworkError } from '../observation/model.mjs';
 export { SOURCE_ROOT, safePath } from '../core/common.mjs';
 export { normalizeCases, validateCases, init, start } from '../core/cases.mjs';
 export { check, recordResult, registerEvidence, progress } from '../core/records.mjs';
@@ -29,6 +32,7 @@ interface Responses {
   report: Awaited<ReturnType<typeof report>>; 'verify-report': Awaited<ReturnType<typeof verifyReport>>;
   execution: Awaited<ReturnType<typeof readExecutionQuery>> | Awaited<ReturnType<typeof executeRequest>>;
   'packet-seal': Awaited<ReturnType<typeof sealPacket>>;
+  network: Awaited<ReturnType<typeof startNetwork>> | Awaited<ReturnType<typeof statusNetwork>> | Awaited<ReturnType<typeof stopNetwork>> | Awaited<ReturnType<typeof queryNetwork>>;
 }
 export function parseFlags(args: readonly string[], allowed: readonly string[], required: readonly string[]): Record<string, string> {
   const flags: Record<string, string> = {};
@@ -57,14 +61,34 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS [--view summary|assignment|full] [--assignment-id ID] [--integrity metadata|full]
        node ABS_TOOL_ROOT/scripts/ego.mjs execution ACTION --run-dir ABS --request ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs packet-seal --run-dir ABS --assignment-id ID --draft ABS_JSON
+       node ABS_TOOL_ROOT/scripts/ego.mjs network start --run-dir ABS --config ABS_JSON
+       node ABS_TOOL_ROOT/scripts/ego.mjs network status --run-dir ABS [--capture-id ID]
+       node ABS_TOOL_ROOT/scripts/ego.mjs network query --run-dir ABS --request ABS_JSON [--output-file ABS_NEW_JSON]
+       node ABS_TOOL_ROOT/scripts/ego.mjs network stop --run-dir ABS [--capture-id ID]
 Execution ACTION: inventory, capacity, reserve, attach-space, note, set-limit, reconcile, import.
 execution read defaults to a bounded metadata summary; assignment requires --assignment-id. Use --integrity full for a strictly checked compact view. --view full keeps the previous complete output and requires full checks. Metadata reads do not recover evidence or recheck historical files.
 max-parallel-cases is a positive safe integer; no fixed product ceiling. Host limits are used only when explicitly supplied, never probed or globally configured.
-New runs/reports use v4; frozen cases/results/evidence and old record requests stay v3. Existing v3 runs remain v3.
+All current data contracts use v5. Older formats are explicitly rejected; existing data is never migrated or overwritten.
+record commits observations and explicit business-goal assessments through the same transaction as reviewed packet imports.
+Missing assessments are recording gaps, not inconclusive verdicts. Cases group goals and have no separate business verdict.
 packet-seal writes an immutable worker-local packet; it does not commit a verdict. Coordinator import requires an explicit AI review.
 report writes report.json, report.md, and a standalone offline report.html; it refuses to overwrite them. Invalid run data or registered evidence stops report generation.
 Generation and verify-report read back all three files; browserOpen stays not_checked. Retrospective context preserves original recorded outcomes and separate AI reviews.
-No network, model, browser, or Ego actions.`;
+network start/stop manage a scoped native-only Ego observation context. Queries read committed local evidence and make no business requests or verdicts.
+Network format is independently versioned (networkVersion 1). Old experimental protocol summaries are not read or migrated.
+No model calls, automatic UI actions, request replay or automatic business verdicts.`;
+  if (command === 'network') {
+    try {
+    const [action, ...options] = rest;
+    if (!action || !['start', 'status', 'query', 'stop'].includes(action)) fail('Unknown network action.');
+    const allowed = action === 'start' ? ['run-dir', 'config'] : action === 'query' ? ['run-dir', 'request', 'output-file'] : ['run-dir', 'capture-id'];
+    const flags = parseFlags(options, allowed, action === 'start' ? ['run-dir', 'config'] : action === 'query' ? ['run-dir', 'request'] : ['run-dir']); await toolInfo();
+    if (action === 'status') return await statusNetwork(flags['run-dir'], flags['capture-id']);
+    if (action === 'stop') return await stopNetwork({ runDir: flags['run-dir'], ...(flags['capture-id'] ? { captureId: flags['capture-id'] } : {}) });
+    if (action === 'query') return await queryNetwork({ runDir: flags['run-dir'], request: await boundedJSON(await safePath(flags.request, { existing: true })), ...(flags['output-file'] ? { outputFile: flags['output-file'] } : {}) });
+    return await startNetwork({ runDir: flags['run-dir'], config: await boundedJSON(await safePath(flags.config, { existing: true })) });
+    } catch (error) { throw new NetworkError(codeOf(error)); }
+  }
   if (command === 'packet-seal') {
     const flags = parseFlags(rest, ['run-dir', 'assignment-id', 'draft'], ['run-dir', 'assignment-id', 'draft']); await toolInfo();
     return sealPacket({ runDir: flags['run-dir'], assignment: flags['assignment-id'] ?? '', draftFile: flags.draft ?? '' });

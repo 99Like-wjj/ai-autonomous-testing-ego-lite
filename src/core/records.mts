@@ -1,187 +1,130 @@
 import { readExecution, summarize, verifyExecutionFiles } from '../execution/ledger.mjs';
-import type { Attempt, Case, CheckedCase, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceReceipt, EvidenceRequest, Manifest, PendingEvidence, RecordPayload, RecordRequest, Report, ResultOperation, ResultReceipt, ResultRecord, Status, TestHooks } from '../contracts/model.mjs';
+import type { Baseline, Case, CheckedCase, CommittedAssessment, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceReceipt, EvidenceRequest, Manifest, Observation, PendingEvidence, RecordPayload, RecordRequest, Report, ResultEntry, ResultReceipt, TestHooks } from '../contracts/model.mjs';
 import { readAndValidateBaseline } from './baseline.mjs';
-import { parseCatalog, parseResults, parseManifest, parsePendingEvidence, parseRecordRequest, parseEvidenceRequest } from './validation.mjs';
-import { errorInfo } from './common.mjs';
+import { parseCatalog, parseResults, parseManifest, parsePendingEvidence, parseRecordRequest, parseEvidenceRequest, parsePayload } from './validation.mjs';
 import fs from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { statuses, causes, evidenceKinds, fail, json, object, nonempty, now, randomId, assertClosed, safeIdentifier, validTimestamp, assertTimestamp, canonicalHash, canonicalRecord, sameRecord, safePath, readJSON, writeNew, removeRegularIfPresent, atomicReplace, withRunLock } from './common.mjs';
+import { assertClosed, fail, json, nonempty, now, randomId, safeIdentifier, canonicalHash, canonical, safePath, readJSON, writeNew, removeRegularIfPresent, atomicReplace, withRunLock, errorInfo } from './common.mjs';
 import { evidenceReference, evidenceFile, hashFile } from './file-integrity.mjs';
+import { requiredRefs } from '../contracts/targets.mjs';
 export { evidenceReference, evidenceFile, hashFile } from './file-integrity.mjs';
-export function countsFor(cases: readonly { status: Status }[]): Report['counts'] {
-  return { pass: cases.filter(c => c.status === 'pass').length, fail: cases.filter(c => c.status === 'fail').length, inconclusive: cases.filter(c => c.status === 'inconclusive').length, blocked: cases.filter(c => c.status === 'blocked').length, not_run: cases.filter(c => c.status === 'not_run').length };
-}
-export function progressFor(cases: readonly Pick<CheckedCase, 'id' | 'status' | 'clarificationQuestions' | 'attempts'>[]): Report['progress'] {
-  const completed = cases.filter(c => ['pass', 'fail'].includes(c.status));
-  const uncompleted = cases.filter(c => !['pass', 'fail'].includes(c.status));
-  const pending = cases.filter(c => (c.clarificationQuestions ?? []).length > 0);
-  return {
-    completed: { count: completed.length, caseIds: completed.map(c => c.id), statusCounts: { pass: completed.filter(c => c.status === 'pass').length, fail: completed.filter(c => c.status === 'fail').length } },
-    uncompleted: { count: uncompleted.length, caseIds: uncompleted.map(c => c.id), statusCounts: { not_run: uncompleted.filter(c => c.status === 'not_run').length, blocked: uncompleted.filter(c => c.status === 'blocked').length, inconclusive: uncompleted.filter(c => c.status === 'inconclusive').length } },
-    pendingClarification: { count: pending.length, caseIds: pending.map(c => c.id) },
-    attemptedCases: { count: cases.filter(c => (c.attempts ?? []).length > 0).length, totalAttempts: cases.reduce((sum, c) => sum + (c.attempts ?? []).length, 0) }
-  };
-}
 export { readAndValidateBaseline } from './baseline.mjs';
-export function validateV3Operation(operation: EvidenceOperation | ResultOperation, allowed: string[], label: string, revision: number) {
-  assertClosed(operation, allowed, label);
-  safeIdentifier(operation.operationId, label + ' operation id');
-  if (!/^[a-f0-9]{64}$/.test(operation.payloadSha256) || !Number.isSafeInteger(operation.revision) || operation.revision < 0 || operation.revision > revision || !validTimestamp(operation.committedAt)) fail('Invalid ' + label + ' operation receipt.');
+
+export function countsFor(cases: readonly CheckedCase[]): Report['counts'] {
+  const counts: Report['counts'] = { verified: 0, violation: 0, inconclusive: 0, not_tested: 0, unassessed: 0 };
+  for (const c of cases) { for (const a of c.assessments) counts[a.status]++; counts.unassessed += c.missingGoalIds.length; }
+  return counts;
 }
-export async function validateV3EvidenceItem(root: string, item: EvidenceItem, byId: Map<string, Case>, ids: Set<string>, paths: Set<string>) {
-  assertClosed(item, ['id', 'path', 'caseId', 'kind', 'capturedAt', 'collectedAt', 'source', 'description', 'sha256', 'bytes', 'operationId'], 'evidence catalog item');
-  safeIdentifier(item.id, 'evidence id'); safeIdentifier(item.caseId, 'evidence case id'); safeIdentifier(item.operationId, 'evidence operation id');
-  if (!byId.has(item.caseId) || !nonempty(item.path) || !evidenceKinds.has(item.kind) || !nonempty(item.source) || !nonempty(item.description)) fail('Invalid versioned evidence catalog item.');
-  if (Object.hasOwn(item, 'capturedAt')) assertTimestamp(item.capturedAt, 'capturedAt');
-  assertTimestamp(item.collectedAt, 'collectedAt');
-  if (!/^[a-f0-9]{64}$/.test(item.sha256) || !Number.isSafeInteger(item.bytes) || item.bytes < 0) fail('Invalid evidence hash or byte count.');
-  if (ids.has(item.id) || paths.has(item.path)) fail('Duplicate evidence id or path.');
-  const filename = await evidenceFile(root, item.path);
-  const actual = await hashFile(filename);
-  if (actual.sha256 !== item.sha256 || actual.bytes !== item.bytes) fail('Evidence content hash or byte count mismatch: ' + item.id);
-  ids.add(item.id); paths.add(item.path);
-  return item;
+export function progressFor(cases: readonly CheckedCase[]) {
+  const counts = countsFor(cases);
+  return { caseCount: cases.length, goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
+    recordedEntries: cases.reduce((sum, c) => sum + c.entries.length, 0) };
 }
-export function validateV3AttemptShape(attempt: Attempt, label: string) {
-  assertClosed(attempt, ['attemptId', 'operationId', 'revision', 'recordedAt', 'kind', 'status', 'observed', 'rationale', 'remainingQuestions', 'evidenceIds', 'cause'], 'attempt');
-  safeIdentifier(attempt.attemptId, 'attempt id'); safeIdentifier(attempt.operationId, 'attempt operation id');
-  if (!Number.isSafeInteger(attempt.revision) || attempt.revision < 1 || !validTimestamp(attempt.recordedAt) || !['attempt', 'superseded_final'].includes(attempt.kind)) fail('Invalid attempt metadata: ' + label);
-}
-export function validateV3ResultRecordShape(record: ResultRecord, label: string) {
-  assertClosed(record, ['id', 'basis', 'status', 'observed', 'rationale', 'remainingQuestions', 'evidenceIds', 'cause', 'attempts', 'operationId', 'revision', 'recordedAt'], 'result');
-  if (!nonempty(record.id) || !Array.isArray(record.evidenceIds) || !Array.isArray(record.attempts)) fail('Invalid result record: ' + label);
-  if (record.operationId !== undefined) safeIdentifier(record.operationId, 'result operation id');
-  if (record.revision !== undefined && (!Number.isSafeInteger(record.revision) || record.revision < 1)) fail('Invalid result revision: ' + label);
-  if (record.recordedAt !== undefined) assertTimestamp(record.recordedAt, 'result recordedAt');
-}
-export async function validateV3Record(record: ResultRecord, label: string, evidenceById: Map<string, EvidenceItem>, caseId: string, clarificationQuestions: string[], resultOperations: Map<string, ResultOperation>, attemptIds: Set<string>, globalRevision: number) {
-  validateV3ResultRecordShape(record, label);
-  if (record.operationId !== undefined && (record.revision === undefined || record.recordedAt === undefined)) fail('Current final record has incomplete operation metadata: ' + label);
-  if (record.operationId === undefined && (record.revision !== undefined || record.recordedAt !== undefined)) fail('Current final record has incomplete operation metadata: ' + label);
-  if (!statuses.has(record.status) || typeof record.observed !== 'string' || typeof record.rationale !== 'string' || !Array.isArray(record.remainingQuestions) || !record.remainingQuestions.every(nonempty)) fail('Invalid result record: ' + label);
-  if (clarificationQuestions.length && ['pass', 'fail'].includes(record.status)) fail('Pending clarification prohibits pass/fail: ' + label);
-  if (record.cause !== undefined && !causes.has(record.cause)) fail('Invalid cause: ' + label);
-  const evidenceIds = record.evidenceIds;
-  if (new Set(evidenceIds).size !== evidenceIds.length) fail('Duplicate evidence reference: ' + label);
-  if (['pass', 'fail'].includes(record.status) && (!record.observed.trim() || !record.rationale.trim() || !evidenceIds.length)) fail('Pass/fail requires rationale and evidence plus observed behavior: ' + label);
-  if (['inconclusive', 'blocked'].includes(record.status) && !record.rationale.trim()) fail('Inconclusive/blocked requires rationale: ' + label);
-  for (const id of evidenceIds) {
-    safeIdentifier(id, 'evidence reference id');
-    const item = evidenceById.get(id);
-    if (!item) fail('Evidence ID missing from catalog: ' + id);
-    if (item.caseId !== caseId) fail('Evidence is associated with a different case: ' + id);
+/** Pure semantic validation shared by serial records and reviewed parallel packets. */
+export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>): void {
+  parsePayload(payload);
+  const refs = new Set(requiredRefs(c)), observations = new Map<string, Observation>();
+  const checkEvidence = (ids: readonly string[]) => {
+    for (const id of ids) {
+      if (evidenceById && !evidenceById.has(id)) fail('Evidence ID is not registered: ' + id);
+      if (evidenceById && evidenceById.get(id)?.caseId !== c.id) fail('Evidence is associated with a different case: ' + id);
+    }
+  };
+  for (const o of [...availableObservations, ...payload.observations]) {
+    const prior = observations.get(o.id);
+    if (prior && canonical(prior) !== canonical(o)) fail('Observation ID was already used with different content: ' + o.id);
+    if (o.coveredRefs.some(ref => !refs.has(ref))) fail('Observation refers to an unknown plan reference: ' + o.id);
+    checkEvidence(o.evidenceIds); observations.set(o.id, o);
   }
-  for (const [index, attempt] of (record.attempts ?? []).entries()) {
-    validateV3AttemptShape(attempt, label + ' attempt ' + (index + 1));
-    if (!statuses.has(attempt.status) || typeof attempt.observed !== 'string' || typeof attempt.rationale !== 'string' || !Array.isArray(attempt.remainingQuestions) || !attempt.remainingQuestions.every(nonempty) || !Array.isArray(attempt.evidenceIds)) fail('Invalid attempt: ' + label);
-    if (clarificationQuestions.length && ['pass', 'fail'].includes(attempt.status)) fail('Pending clarification prohibits pass/fail: ' + label + ' attempt ' + (index + 1));
-    if (attempt.cause !== undefined && !causes.has(attempt.cause)) fail('Invalid attempt cause: ' + label);
-    if (['pass', 'fail'].includes(attempt.status) && (!attempt.observed.trim() || !attempt.rationale.trim() || !attempt.evidenceIds.length)) fail('Pass/fail attempt requires rationale and evidence plus observed behavior: ' + label);
-    if (['inconclusive', 'blocked'].includes(attempt.status) && !attempt.rationale.trim()) fail('Inconclusive/blocked attempt requires rationale: ' + label);
-    if (attemptIds.has(attempt.attemptId)) fail('Duplicate attempt id: ' + attempt.attemptId);
-    if (new Set(attempt.evidenceIds).size !== attempt.evidenceIds.length) fail('Duplicate attempt evidence reference: ' + label);
-    attemptIds.add(attempt.attemptId);
-    const op = resultOperations.get(attempt.operationId);
-    if (!op || op.caseId !== caseId || attempt.revision > globalRevision) fail('Attempt is not linked to a recorded operation: ' + attempt.attemptId);
-    for (const id of attempt.evidenceIds) {
-      const item = evidenceById.get(id);
-      if (!item || item.caseId !== caseId) fail('Attempt evidence ID missing or associated with a different case: ' + id);
+  for (const a of payload.assessments) {
+    const goal = c.goals.find(g => g.id === a.goalId);
+    if (!goal) fail('Unknown goal ID: ' + a.goalId);
+    const observed = a.observationIds.map(id => { const o = observations.get(id); if (!o) fail('Unknown observation ID: ' + id); return o; });
+    if (a.diagnosis) {
+      checkEvidence(a.diagnosis.evidenceIds);
+      if (a.diagnosis.state === 'confirmed' && !a.diagnosis.evidenceIds.length) fail('Confirmed diagnosis requires its own evidence references.');
+    }
+    if (a.status === 'verified' || a.status === 'violation') {
+      if (goal.clarificationQuestions?.length) fail('Pending clarification prohibits verified/violation for goal: ' + goal.id);
+      if (!observed.length || !observed.some(o => o.evidenceIds.length)) fail('Verified/violation requires observations and associated evidence: ' + goal.id);
+    }
+    if (a.status === 'verified') {
+      const covered = new Set(observed.filter(o => o.evidenceIds.length > 0).flatMap(o => o.coveredRefs));
+      const missing = goal.requiredRefs.filter(ref => !covered.has(ref));
+      if (missing.length) fail('Verified goal omits necessary plan references: ' + missing.join(', '));
+      if (a.gaps.length) fail('Verified goal cannot retain unresolved gaps: ' + goal.id);
     }
   }
-  if (record.operationId !== undefined) {
-    const op = resultOperations.get(record.operationId);
-    if (!op || op.caseId !== caseId || op.mode !== 'final' || op.status !== record.status || op.revision !== record.revision || record.revision > globalRevision) fail('Final result is not linked to a recorded operation: ' + label);
-  }
 }
-export async function checkV3(root: string, manifest: Manifest): Promise<Report> {
-  assertClosed(manifest, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256', ...(manifest.schemaVersion === 4 ? ['executionFile'] : [])], 'manifest');
-  if (![3, 4].includes(manifest.schemaVersion) || manifest.baselineSchemaVersion !== 3 || !nonempty(manifest.projectDir) || !path.isAbsolute(manifest.projectDir) || !nonempty(manifest.runId) || !/^[a-f0-9]{64}$/.test(manifest.baselineSha256)) fail('Invalid v3 manifest.');
-  const { baseline } = await readAndValidateBaseline(root, manifest);
-  const byId = new Map(baseline.cases.map(c => [c.id, c]));
-  const evidenceCatalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-  assertClosed(evidenceCatalog, ['schemaVersion', 'revision', 'items', 'operations'], 'evidence catalog');
-  if (evidenceCatalog.schemaVersion !== 3 || !Number.isSafeInteger(evidenceCatalog.revision) || evidenceCatalog.revision < 0 || !Array.isArray(evidenceCatalog.items) || !Array.isArray(evidenceCatalog.operations)) fail('Invalid v3 evidence catalog.');
-  const evidenceById = new Map<string, EvidenceItem>(), catalogIds = new Set<string>(), catalogPaths = new Set<string>();
-  for (const item of evidenceCatalog.items) {
-    await validateV3EvidenceItem(root, item, byId, catalogIds, catalogPaths);
-    evidenceById.set(item.id, item);
+/** Current assessments are a projection of explicit final events; attempt events remain historical. */
+export function projectCases(baseline: Baseline, entries: readonly ResultEntry[]): CheckedCase[] {
+  return baseline.cases.map(c => {
+    const own = entries.filter(entry => entry.caseId === c.id), observations = new Map<string, Observation>(), current = new Map<string, CommittedAssessment>();
+    for (const entry of own) {
+      for (const o of entry.record.observations) observations.set(o.id, o);
+      if (entry.mode === 'final') for (const assessment of entry.record.assessments) current.set(assessment.goalId, { ...assessment, operationId: entry.operationId, revision: entry.revision, recordedAt: entry.recordedAt });
+    }
+    return { ...c, assessments: c.goals.flatMap(g => { const a = current.get(g.id); return a ? [a] : []; }), observations: [...observations.values()], entries: own, missingGoalIds: c.goals.filter(g => !current.has(g.id)).map(g => g.id) };
+  });
+}
+async function validateEvidenceCatalog(root: string, catalog: EvidenceCatalog, cases: readonly Case[]) {
+  const caseIds = new Set(cases.map(c => c.id)), evidenceById = new Map<string, EvidenceItem>(), paths = new Set<string>(), operationIds = new Set<string>();
+  for (const item of catalog.items) {
+    if (!caseIds.has(item.caseId)) fail('Unknown evidence case ID: ' + item.caseId);
+    if (evidenceById.has(item.id) || paths.has(item.path)) fail('Duplicate evidence ID or path.');
+    const actual = await hashFile(await evidenceFile(root, item.path));
+    if (actual.sha256 !== item.sha256 || actual.bytes !== item.bytes) fail('Evidence content hash or byte count mismatch: ' + item.id);
+    evidenceById.set(item.id, item); paths.add(item.path);
   }
-  const evidenceOps = new Map<string, EvidenceOperation>();
-  let committedEvidenceRevision = 0;
-  for (const op of evidenceCatalog.operations) {
-    validateV3Operation(op, ['operationId', 'payloadSha256', 'revision', 'committedAt', 'caseId', 'evidenceId', 'path', 'sha256', 'bytes'], 'evidence', evidenceCatalog.revision);
-    safeIdentifier(op.caseId, 'evidence operation case id'); safeIdentifier(op.evidenceId, 'evidence operation evidence id');
-    if (!byId.has(op.caseId) || !Number.isSafeInteger(op.bytes) || op.bytes < 0 || !/^[a-f0-9]{64}$/.test(op.sha256) || !nonempty(op.path) || op.revision !== ++committedEvidenceRevision) fail('Invalid evidence operation receipt.');
-    if (evidenceOps.has(op.operationId)) fail('Duplicate evidence operation id: ' + op.operationId);
+  let revision = 0;
+  for (const op of catalog.operations) {
+    if (op.revision !== ++revision || operationIds.has(op.operationId)) fail('Invalid evidence operation order or duplicate operation ID.');
     const item = evidenceById.get(op.evidenceId);
-    if (!item || item.operationId !== op.operationId || item.caseId !== op.caseId || item.path !== op.path || item.sha256 !== op.sha256 || item.bytes !== op.bytes) fail('Evidence operation receipt does not match its catalog item.');
-    evidenceOps.set(op.operationId, op);
+    if (!item || item.operationId !== op.operationId || item.caseId !== op.caseId || item.path !== op.path || item.sha256 !== op.sha256 || item.bytes !== op.bytes || item.collectedAt !== op.committedAt) fail('Evidence operation does not match its catalog item.');
+    operationIds.add(op.operationId);
   }
-  if (committedEvidenceRevision !== evidenceCatalog.revision) fail('Evidence catalog revision does not match its operation ledger.');
-  for (const item of evidenceCatalog.items) if (!evidenceOps.has(item.operationId)) fail('Versioned evidence item has no operation receipt: ' + item.id);
+  if (revision !== catalog.revision || catalog.items.length !== catalog.operations.length) fail('Evidence catalog revision does not match its operation ledger.');
+  for (const item of catalog.items) if (!operationIds.has(item.operationId)) fail('Evidence item has no operation receipt.');
+  return { evidenceById, operationIds };
+}
+export async function checkUnlocked(root: string): Promise<Report> {
+  const manifest: Manifest = parseManifest(await readJSON(path.join(root, 'manifest.json')));
+  if (!path.isAbsolute(manifest.projectDir)) fail('Manifest project directory must be absolute.');
+  const { baseline } = await readAndValidateBaseline(root, manifest);
+  const evidenceCatalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
+  const { evidenceById, operationIds } = await validateEvidenceCatalog(root, evidenceCatalog, baseline.cases);
   const results = parseResults(await readJSON(path.join(root, 'results.json')));
-  assertClosed(results, ['schemaVersion', 'revision', 'cases', 'operations'], 'results');
-  if (results.schemaVersion !== 3 || !Number.isSafeInteger(results.revision) || results.revision < 0 || !Array.isArray(results.cases) || !Array.isArray(results.operations)) fail('Invalid v3 results schema.');
-  const resultOps = new Map<string, ResultOperation>();
-  let committedResultRevision = 0;
-  for (const op of results.operations) {
-    validateV3Operation(op, ['operationId', 'payloadSha256', 'revision', 'committedAt', 'caseId', 'mode', 'status', 'attemptId', 'noOp'], 'result', results.revision);
-    safeIdentifier(op.caseId, 'result operation case id');
-    if (!byId.has(op.caseId) || !['final', 'attempt'].includes(op.mode) || !statuses.has(op.status) || (op.noOp !== undefined && typeof op.noOp !== 'boolean')) fail('Invalid result operation receipt.');
-    if (op.attemptId !== undefined) safeIdentifier(op.attemptId, 'attempt id');
-    if (op.mode === 'attempt' && op.attemptId === undefined) fail('Attempt operation receipt is missing its attempt ID.');
-    if (op.noOp === true) {
-      if (op.mode !== 'final' || op.revision !== committedResultRevision) fail('No-op result operation has an invalid revision.');
-    } else if (op.revision !== ++committedResultRevision) fail('Result revision does not match its operation ledger.');
-    if (resultOps.has(op.operationId)) fail('Duplicate result operation id: ' + op.operationId);
-    resultOps.set(op.operationId, op);
+  const observationsByCase = new Map<string, Observation[]>(), casesById = new Map(baseline.cases.map(c => [c.id, c]));
+  let revision = 0;
+  for (const entry of results.entries) {
+    const c = casesById.get(entry.caseId); if (!c) fail('Unknown result case ID: ' + entry.caseId);
+    if (entry.expectedRevision !== revision || entry.revision !== ++revision) fail('Result revision does not match append-only event order.');
+    if (operationIds.has(entry.operationId)) fail('Operation ID is reused: ' + entry.operationId);
+    const request: RecordRequest = { schemaVersion: 5, operationId: entry.operationId, expectedRevision: entry.expectedRevision, caseId: entry.caseId, mode: entry.mode, record: entry.record };
+    if (canonicalHash(request) !== entry.payloadSha256) fail('Result event payload hash mismatch: ' + entry.operationId);
+    const prior = observationsByCase.get(c.id) ?? [];
+    validatePayloadAgainstCase(c, entry.record, prior, evidenceById);
+    const merged = new Map([...prior, ...entry.record.observations].map(o => [o.id, o]));
+    observationsByCase.set(c.id, [...merged.values()]); operationIds.add(entry.operationId);
   }
-  if (committedResultRevision !== results.revision) fail('Results revision does not match its operation ledger.');
-  for (const opId of evidenceOps.keys()) if (resultOps.has(opId)) fail('Operation ID is reused across evidence and result records: ' + opId);
-  const seen = new Set<string>(), attemptIds = new Set<string>();
-  for (const record of results.cases) {
-    if (!object(record) || !byId.has(record.id)) fail('Unknown case id in results.');
-    if (seen.has(record.id)) fail('Duplicate result id: ' + record.id);
-    seen.add(record.id);
-    const baselineCase = byId.get(record.id); if (!baselineCase) fail('Unknown baseline case.'); const expected = baselineCase.basis;
-    if (!object(record.basis) || Object.keys(record.basis).length !== 3 || (['kind', 'source', 'text'] as const).some(key => record.basis[key] !== expected[key])) fail('Basis changed: ' + record.id);
-    await validateV3Record(record, record.id, evidenceById, record.id, baselineCase.clarificationQuestions ?? [], resultOps, attemptIds, results.revision);
-  }
-  if (seen.size !== byId.size) fail('Missing original cases in results. Keep unexecuted cases as not_run.');
-  const attemptsById = new Map<string, Attempt>();
-  for (const record of results.cases) for (const attempt of record.attempts) attemptsById.set(attempt.attemptId, attempt);
-  for (const op of results.operations) if (op.attemptId !== undefined) {
-    const attempt = attemptsById.get(op.attemptId);
-    if (!attempt || attempt.operationId !== op.operationId || attempt.revision !== op.revision) fail('Result operation receipt references a mismatched attempt: ' + op.attemptId);
-    if (attempt.kind === 'attempt' && (op.mode !== 'attempt' || attempt.status !== op.status)) fail('Attempt operation receipt does not match its attempt: ' + op.attemptId);
-    if (attempt.kind === 'superseded_final' && op.mode !== 'final') fail('Superseded final snapshot must be linked to a final operation: ' + op.attemptId);
-  }
-  const ordered: CheckedCase[] = baseline.cases.map(c => { const record = results.cases.find(r => r.id === c.id); if (!record) fail('Missing original case.'); return { ...c, ...record, cause: record.cause ?? 'unknown' }; });
-  const counts = countsFor(ordered), progressSummary = progressFor(ordered);
-  const execution = manifest.schemaVersion === 4 ? await readExecution(root, manifest, baseline) : undefined;
-  if (execution) await verifyExecutionFiles(root, execution);
+  if (revision !== results.revision) fail('Results revision does not match its entries.');
+  const cases = projectCases(baseline, results.entries), counts = countsFor(cases);
+  const execution = await readExecution(root, manifest, baseline); await verifyExecutionFiles(root, execution);
   return {
-    schemaVersion: manifest.schemaVersion, ...(execution ? { execution, executionSummary: summarize(execution, baseline) } : {}), runId: manifest.runId, project: baseline.project, structurallyValid: true,
-    revision: results.revision, evidenceRevision: evidenceCatalog.revision,
-    hasUnexecutedCases: ordered.some(c => c.status === 'not_run' && c.attempts.length === 0), counts, progress: progressSummary,
-    recordedExplicitOutcomes: { pass: ordered.filter(c => c.basis.kind === 'explicit' && c.status === 'pass').length, fail: ordered.filter(c => c.basis.kind === 'explicit' && c.status === 'fail').length },
+    schemaVersion: 5, runId: manifest.runId, project: baseline.project, structurallyValid: true,
+    revision: results.revision, evidenceRevision: evidenceCatalog.revision, caseCount: cases.length,
+    goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
+    execution, executionSummary: summarize(execution, baseline), cases, evidenceCatalog,
     evidenceIntegrity: { hashVerifiedItems: evidenceCatalog.items.length },
     evidenceCoverage: {
       registeredScreenshots: evidenceCatalog.items.filter(item => item.kind === 'screenshot').length,
       distinctRetainedContents: new Set(evidenceCatalog.items.map(item => item.sha256)).size,
-      finalCasesWithoutScreenshots: ordered.filter(c => c.status !== 'not_run' && !c.evidenceIds.some(id => evidenceCatalog.items.some(item => item.id === id && item.kind === 'screenshot'))).map(c => c.id)
+      goalsWithoutScreenshots: cases.flatMap(c => c.assessments.filter(a => a.status !== 'not_tested' && (a.status === 'verified' || a.status === 'violation' || a.observationIds.length > 0) && !a.observationIds.some(id => c.observations.find(o => o.id === id)?.evidenceIds.some(eid => evidenceById.get(eid)?.kind === 'screenshot'))).map(a => ({ caseId: c.id, goalId: a.goalId })))
     },
-    caveat: 'Structural validation and file hash comparison only. Verdicts, sources, and capture times are operator supplied, not authenticated. SHA-256 matching proves only that the current bytes match the catalog hash, not who created them or whether they are true. The frozen baseline hash is not tamper-proof. Helpers are not a security boundary for actions bypassing them.',
-    evidenceCatalog, cases: ordered
+    caveat: 'Structural validation and file hashes do not authenticate observations or business judgments. Recorded times are local transaction times; capture times are source supplied when known. Missing assessments are recording gaps, not business verdicts.'
   };
-}
-export async function checkUnlocked(root: string): Promise<Report> {
-  const manifest = parseManifest(await readJSON(path.join(root, 'manifest.json')));
-  assertClosed(manifest, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256', ...(manifest.schemaVersion === 4 ? ['executionFile'] : [])], 'manifest');
-  if (![3, 4].includes(manifest.schemaVersion)) fail('Unsupported run schema version.');
-  return checkV3(root, manifest);
 }
 export async function markerExists(root: string): Promise<string | null> {
   const filename = path.join(root, '.evidence.pending.json');
@@ -204,11 +147,11 @@ export async function recoverEvidence(root: string): Promise<void> {
   if (!markerFilename) return;
   const marker = parsePendingEvidence(await readJSON(markerFilename));
   assertClosed(marker, ['schemaVersion', 'operationId', 'payloadSha256', 'evidenceId', 'stagePath', 'finalPath', 'catalogTempPath', 'markerTempPath', 'sha256', 'bytes'], 'pending evidence marker');
-  if (marker.schemaVersion !== 1 || !/^[a-f0-9]{64}$/.test(marker.payloadSha256)) fail('Invalid pending evidence recovery marker.');
+  if (marker.schemaVersion !== 5 || !/^[a-f0-9]{64}$/.test(marker.payloadSha256)) fail('Invalid pending evidence recovery marker.');
   safeIdentifier(marker.operationId, 'pending evidence operation id');
   const paths = markerPaths(root, marker);
   const catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-  if (catalog.schemaVersion !== 3) fail('Pending evidence transaction requires run schemaVersion 3.');
+  if (catalog.schemaVersion !== 5) fail('Pending evidence transaction requires run schemaVersion 5.');
   const committed = catalog.operations.find(op => op.operationId === marker.operationId);
   if (committed) {
     const item = catalog.items.find(entry => entry.id === marker.evidenceId);
@@ -230,78 +173,32 @@ export async function check(runDir: unknown): Promise<Report> {
   return withRunLock(runDir, async root => { await recoverEvidence(root); return checkUnlocked(root); });
 }
 export function validateText(value: unknown, label: string, limit = 4096): string {
-  if (!nonempty(value) || value.length > limit || value.includes('\0')) fail('Invalid ' + label + '.');
-  return value;
+  if (!nonempty(value) || value.length > limit || value.includes('\0')) fail('Invalid ' + label + '.'); return value;
 }
 export function validateRecordRequest(request: unknown): asserts request is RecordRequest { parseRecordRequest(request); }
-export function resultOperationReceipt(op: ResultOperation, replayed = false): ResultReceipt {
-  return { operationId: op.operationId, revision: op.revision, caseId: op.caseId, mode: op.mode, status: op.status, ...(op.attemptId ? { attemptId: op.attemptId } : {}), ...(op.noOp ? { noOp: true } : {}), replayed };
+export function resultOperationReceipt(entry: ResultEntry, replayed = false): ResultReceipt {
+  return { operationId: entry.operationId, revision: entry.revision, caseId: entry.caseId, mode: entry.mode, replayed };
 }
 export function evidenceOperationReceipt(op: EvidenceOperation, replayed = false): EvidenceReceipt {
   return { operationId: op.operationId, revision: op.revision, caseId: op.caseId, evidenceId: op.evidenceId, path: op.path, sha256: op.sha256, bytes: op.bytes, collectedAt: op.committedAt, replayed };
 }
-export async function recordResultUnlocked(root: string, request: unknown, testHooks: TestHooks = {}): Promise<ResultReceipt> {
-    await recoverEvidence(root);
-    const checked = await checkUnlocked(root);
-    if (![3, 4].includes(checked.schemaVersion)) fail('Run manifest v3 or v4 is required.');
-    validateRecordRequest(request);
-    const resultsPath = path.join(root, 'results.json'), results = parseResults(await readJSON(resultsPath));
-    const payloadSha256 = canonicalHash(request);
-    const existing = results.operations.find(op => op.operationId === request.operationId);
-    if (existing) {
-      if (existing.payloadSha256 !== payloadSha256) fail('Operation ID was already used with a different payload.');
-      return resultOperationReceipt(existing, true);
-    }
-    const evidenceCatalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-    if (evidenceCatalog.operations.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by an evidence operation.');
-    if (request.expectedRevision !== results.revision) fail('Revision conflict: expected ' + request.expectedRevision + ', current ' + results.revision + '.');
-    const baselineCase = checked.cases.find(c => c.id === request.caseId);
-    if (!baselineCase) fail('Unknown case id: ' + request.caseId);
-    if ((baselineCase.clarificationQuestions ?? []).length && ['pass', 'fail'].includes(request.record.status)) fail('Pending clarification prohibits pass/fail: ' + request.caseId);
-    const next = structuredClone(results), target = next.cases.find(c => c.id === request.caseId);
-    const newRecord: Required<RecordPayload> = {
-      status: request.record.status, observed: request.record.observed, rationale: request.record.rationale,
-      remainingQuestions: [...request.record.remainingQuestions], evidenceIds: [...request.record.evidenceIds],
-      cause: request.record.cause ?? 'unknown'
-    };
-    const evidenceById = new Map(evidenceCatalog.items.map(item => [item.id, item]));
-    for (const id of newRecord.evidenceIds) {
-      const item = evidenceById.get(id);
-      if (!item) fail('Evidence ID is not registered in the catalog: ' + id);
-      if (item.caseId !== request.caseId) fail('Evidence is associated with a different case: ' + id);
-    }
-    if (!target) fail('Missing result case: ' + request.caseId);
-    const isNoOp = request.mode === 'final' && sameRecord(target, newRecord);
-    const revision = isNoOp ? results.revision : results.revision + 1;
-    let attemptId: string | undefined;
-    const recordedAt = now();
-    if (!target) fail('Missing result case: ' + request.caseId);
-    if (request.mode === 'attempt') {
-      attemptId = randomId('att-');
-      if (newRecord.status === 'not_run') fail('Invalid attempt status.');
-      target.attempts.push({ attemptId, operationId: request.operationId, revision, recordedAt, kind: 'attempt', ...newRecord, status: newRecord.status });
-    } else if (!isNoOp) {
-      if (target.status !== 'not_run' && !target.attempts.some(a => sameRecord(a, target))) {
-        attemptId = randomId('att-');
-        target.attempts.push({
-          attemptId, operationId: request.operationId,
-          revision, recordedAt,
-          kind: 'superseded_final', ...canonicalRecord(target), status: target.status
-        });
-      }
-      Object.assign(target, newRecord, { operationId: request.operationId, revision, recordedAt });
-    }
-    next.revision = revision;
-    const operation: ResultOperation = {
-      operationId: request.operationId, payloadSha256, revision, committedAt: recordedAt,
-      caseId: request.caseId, mode: request.mode, status: request.record.status,
-      ...(attemptId ? { attemptId } : {}), ...(isNoOp ? { noOp: true } : {})
-    };
-    next.operations.push(operation);
-    await atomicReplace(resultsPath, json(next));
-    if (typeof testHooks.afterCommit === 'function') await testHooks.afterCommit();
-    return resultOperationReceipt(operation, false);
-
+export async function recordResultUnlocked(root: string, input: unknown, testHooks: TestHooks = {}): Promise<ResultReceipt> {
+  await recoverEvidence(root);
+  const checked = await checkUnlocked(root), request = parseRecordRequest(input);
+  const resultsPath = path.join(root, 'results.json'), results = parseResults(await readJSON(resultsPath));
+  const payloadSha256 = canonicalHash(request), existing = results.entries.find(entry => entry.operationId === request.operationId);
+  if (existing) {
+    if (existing.payloadSha256 !== payloadSha256) fail('Operation ID was already used with a different payload.');
+    return resultOperationReceipt(existing, true);
+  }
+  if (checked.evidenceCatalog.operations.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by an evidence operation.');
+  if (request.expectedRevision !== results.revision) fail('Revision conflict: expected ' + request.expectedRevision + ', current ' + results.revision + '.');
+  const c = checked.cases.find(c => c.id === request.caseId); if (!c) fail('Unknown case ID: ' + request.caseId);
+  validatePayloadAgainstCase(c, request.record, c.observations, new Map(checked.evidenceCatalog.items.map(item => [item.id, item])));
+  const entry: ResultEntry = { operationId: request.operationId, payloadSha256, expectedRevision: request.expectedRevision, revision: results.revision + 1, recordedAt: now(), caseId: request.caseId, mode: request.mode, record: request.record };
+  await atomicReplace(resultsPath, json({ schemaVersion: 5, revision: entry.revision, entries: [...results.entries, entry] }));
+  if (testHooks.afterCommit) await testHooks.afterCommit();
+  return resultOperationReceipt(entry, false);
 }
 export async function recordResult({ runDir, request }: { runDir: unknown; request: unknown }, testHooks: TestHooks = {}): Promise<ResultReceipt> {
   return withRunLock(runDir, root => recordResultUnlocked(root, request, testHooks));
@@ -340,7 +237,7 @@ export function validateEvidenceRequest(request: unknown): asserts request is Ev
 export async function registerEvidenceUnlocked(root: string, request: unknown, testHooks: TestHooks = {}): Promise<EvidenceReceipt> {
   await recoverEvidence(root);
   const checked = await checkUnlocked(root);
-  if (![3, 4].includes(checked.schemaVersion)) fail('Run manifest v3 or v4 is required.');
+  if (checked.schemaVersion !== 5) fail('Run manifest v5 is required.');
   validateEvidenceRequest(request);
   const catalogPath = path.join(root, 'evidence.json'), catalog = parseCatalog(await readJSON(catalogPath));
   const payloadSha256 = canonicalHash(request);
@@ -350,7 +247,7 @@ export async function registerEvidenceUnlocked(root: string, request: unknown, t
     return evidenceOperationReceipt(existing, true);
   }
   const results = parseResults(await readJSON(path.join(root, 'results.json')));
-  if (results.operations.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by a result operation.');
+  if (results.entries.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by a result operation.');
   if (request.expectedRevision !== catalog.revision) fail('Evidence revision conflict: expected ' + request.expectedRevision + ', current ' + catalog.revision + '.');
   if (!checked.cases.some(c => c.id === request.caseId)) fail('Unknown case id: ' + request.caseId);
   const source = await safePath(request.sourceFile, { existing: true });
@@ -362,7 +259,7 @@ export async function registerEvidenceUnlocked(root: string, request: unknown, t
   const catalogTemp = path.join(root, '.ego-evidence-' + evidenceId + '.tmp'), markerTemp = path.join(root, '.ego-marker-' + evidenceId + '.tmp');
   const markerFile = path.join(root, '.evidence.pending.json');
   const marker: PendingEvidence = {
-    schemaVersion: 1, operationId: request.operationId, payloadSha256, evidenceId,
+    schemaVersion: 5, operationId: request.operationId, payloadSha256, evidenceId,
     stagePath: stageRelative, finalPath: relativeFinal,
     catalogTempPath: path.basename(catalogTemp), markerTempPath: path.basename(markerTemp)
   };

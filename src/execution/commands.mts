@@ -13,11 +13,11 @@ import { readExecutionMetadataUnlocked } from './read-context.mjs';
 
 async function context(root: string): Promise<{ ledger: ExecutionLedger; cases: Case[]; project: string }> {
   await recoverEvidence(root); const checked = await checkUnlocked(root);
-  if (checked.schemaVersion !== 4 || !checked.execution) fail('Execution commands require a v4 run; existing v3 runs are never migrated.');
+  if (checked.schemaVersion !== 5 || !checked.execution) fail('Execution commands require a v5 run; older formats are not supported or migrated.');
   return { ledger: checked.execution, cases: checked.cases, project: checked.project };
 }
 export async function readExecutionView(runDir: unknown) {
-  return withRunLock(runDir, async root => { const { ledger, cases, project } = await context(root); return { ...ledger, project, summary: summarize(ledger, { schemaVersion: 3, project, cases }) }; });
+  return withRunLock(runDir, async root => { const { ledger, cases, project } = await context(root); return { ...ledger, project, summary: summarize(ledger, { schemaVersion: 5, project, cases }) }; });
 }
 export async function readExecutionQuery(runDir: unknown, view = 'summary', assignmentId?: string, integrity?: string) {
   const options = readOptions(view, assignmentId, integrity);
@@ -52,7 +52,7 @@ export async function executeRequest({ runDir, request: input }: { runDir: unkno
         if (request.baselineSha256 !== ledger.baselineSha256 || !cases.some(c => c.id === caseId(request.caseId))) fail('Wrong frozen case or baseline hash.');
         const resources = request.resources ?? []; checkSlot(ledger, request.caseId, resources);
         const id = assignmentId('asg-' + canonicalHash({ runId: ledger.runId, operationId: request.operationId }).slice(0, 32));
-        a = { id, caseId: request.caseId, attemptId: 'att-' + canonicalHash({ runId: ledger.runId, assignmentId: id }).slice(0, 32), state: 'reserved', workerDirectory: 'workers/' + id, resources, createdAt: now(), updatedAt: now(), defaultSpaceId: null, spaceHistory: [], ownedSpaces: [], goalAssessments: [], ...(request.workerId === undefined ? {} : { workerId: request.workerId }), ...(request.model === undefined ? {} : { model: request.model }), ...(request.reasoning === undefined ? {} : { reasoning: request.reasoning }) };
+        a = { id, caseId: request.caseId, attemptId: 'att-' + canonicalHash({ runId: ledger.runId, assignmentId: id }).slice(0, 32), state: 'reserved', workerDirectory: 'workers/' + id, resources, createdAt: now(), updatedAt: now(), defaultSpaceId: null, spaceHistory: [], ownedSpaces: [], ...(request.workerId === undefined ? {} : { workerId: request.workerId }), ...(request.model === undefined ? {} : { model: request.model }), ...(request.reasoning === undefined ? {} : { reasoning: request.reasoning }) };
         await ensureWorkerDirectory(root, a, request.operationId); ledger.assignments.push(a); ledger.peakReservations = Math.max(ledger.peakReservations, activeCount(ledger));
         receipt.assignmentId = a.id; receipt.caseId = a.caseId; receipt.workerDirectory = a.workerDirectory; receipt.state = a.state; break;
       }

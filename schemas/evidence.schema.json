@@ -1,15 +1,34 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "evidence.schema.json",
-  "title": "Ego Lite evidence catalog v3",
-  "description": "New entries bind a local file copy to its associated case, source metadata, collectedAt, optional source-provided capturedAt, byte count, and SHA-256 of the retained bytes. A matching hash is not proof of authenticity.",
+  "title": "Ego Lite evidence catalog v5",
   "type": "object",
-  "required": ["schemaVersion", "revision", "items", "operations"],
+  "required": [
+    "schemaVersion",
+    "revision",
+    "items",
+    "operations"
+  ],
   "properties": {
-    "schemaVersion": { "const": 3 },
-    "revision": { "type": "integer", "minimum": 0 },
-    "items": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/evidenceItemV3" } },
-    "operations": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/evidenceOperationV3" } }
+    "schemaVersion": {
+      "const": 5
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceItem"
+      }
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceOperation"
+      }
+    }
   },
   "additionalProperties": false
 }
