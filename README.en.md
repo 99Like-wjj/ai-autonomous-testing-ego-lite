@@ -8,6 +8,8 @@
 
 ## Current release
 
+The independent development candidate is **0.1.8-rc.1 / resource-readiness-2**, unreleased. It clarifies whole-scope resource communication before starting or resuming execution and partial replies. Main contracts remain v5. The separate v0.1.7 report work is not included. See the [resource-readiness validation](docs/v0.1.8-resource-readiness-validation.md) for the development scope and limitations.
+
 **0.1.6 / native-network-observation-1**. Download the complete package and checksums from [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). The maintainer reported a usable local trial with one requirements document; this is not broad acceptance across products, models or hosts. See [validation](docs/testing.en.md). Builds do not update installed Skills.
 
 
@@ -47,6 +49,8 @@ Network observation implements the v3 design through network start/status/query/
 
 ## Quick start on Windows
 
+This source example targets the current development candidate in .build/runtime, without replacing the user installation. Verify a released installation against its actual version and revision.
+
 Prepare Ego and the official ego-browser Skill using the [official guide](https://lite.ego.app/document/en/docs/windows/quick-start). This project does not install or replace Ego. Case design alone requires no browser connection.
 
 From the confirmed source root:
@@ -55,7 +59,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
+node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision resource-readiness-2
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))

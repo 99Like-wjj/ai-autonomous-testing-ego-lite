@@ -8,6 +8,8 @@
 
 ## 当前版本
 
+当前独立开发候选为 **0.1.8-rc.1 / resource-readiness-2**，尚未发布。完善首次/恢复实际测试前的整轮资源沟通及多轮答复承接；主数据契约仍为 v5。未包含另一工作区的 v0.1.7 报告改动。 开发与自测范围见[资源澄清验证](docs/v0.1.8-resource-readiness-validation.md)。
+
 当前正式版本为 **0.1.6 / native-network-observation-1**。完整安装包与校验值见 [v0.1.6 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。用户已反馈本地按一份需求试跑可用；这不代表所有业务、模型和宿主均已验收。发布收尾与已有验证分别见[验证记录](docs/testing.md)。构建与测试不会自动替换用户级 Skill。
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
@@ -46,6 +48,8 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 
 ## Windows 快速开始
 
+本节源码示例针对当前开发候选，使用本仓库构建的 .build/runtime；不会自动替换用户安装。正式安装包按其实际版本和 revision 核对。
+
 先按 [Ego 官方 Windows 快速开始](https://lite.ego.app/document/en/docs/windows/quick-start)准备 Ego 与官方 ego-browser Skill。本仓库不安装或替代官方浏览器。仅设计用例无需浏览器连接。
 
 源码开发在已确认仓库执行：
@@ -54,7 +58,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
+node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision resource-readiness-2
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：

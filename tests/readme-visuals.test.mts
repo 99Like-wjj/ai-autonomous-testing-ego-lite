@@ -19,14 +19,18 @@ test('both READMEs retain the documented visual sections and historical navigati
   }
 });
 
-test('README timeline contains four releases ending at the package version, without replacing the full historical diagram', async () => {
-  const pkg = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'package.json'), 'utf8')) as { version: string };
+test('README timeline contains four releases ending at the documented stable release, without replacing the full historical diagram', async () => {
+  const zh = await fs.readFile(path.join(SOURCE_ROOT, 'README.md'), 'utf8');
+  const en = await fs.readFile(path.join(SOURCE_ROOT, 'README.en.md'), 'utf8');
+  const stable = zh.match(/当前正式版本为 \*\*(\d+\.\d+\.\d+)/)?.[1];
+  assert.ok(stable);
+  assert.ok(en.includes('**' + stable + ' /'));
   for (const suffix of ['', '.zh-CN']) {
     const svg = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/readme-version-history${suffix}.svg`), 'utf8');
     const versions = [...svg.matchAll(/>v(\d+\.\d+\.\d+)</g)].map(m => m[1]);
     assert.equal(versions.length, 4);
     assert.equal(new Set(versions).size, 4);
-    assert.equal(versions.at(-1), pkg.version);
+    assert.equal(versions.at(-1), stable);
     assert.doesNotMatch(svg, /IN DEVELOPMENT|开发中，未发布/);
     assert.ok((await fs.stat(path.join(SOURCE_ROOT, `docs/images/version-history${suffix}.svg`))).size > 0);
   }

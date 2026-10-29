@@ -1,5 +1,9 @@
 # Validation record and coverage limits
 
+## Independent v0.1.8 development candidate
+
+See [resource-readiness validation](v0.1.8-resource-readiness-validation.md). Separate v0.1.7 report work is not included; older records below retain their historical scope.
+
 ## v0.1.6 release validation (2026-10-29)
 
 See the [release validation record (Chinese)](v0.1.6-release-validation.md) for the cloud checks and the maintainer’s scoped local trial. Candidate results below remain historical.

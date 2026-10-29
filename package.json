@@ -1,8 +1,8 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.6",
+  "version": "0.1.8-rc.1",
   "egoLiteTest": {
-    "toolRevision": "native-network-observation-1",
+    "toolRevision": "resource-readiness-2",
     "formatVersions": {
       "cases": 5,
       "manifest": 5,

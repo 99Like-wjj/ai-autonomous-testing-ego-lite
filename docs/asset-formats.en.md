@@ -1,6 +1,6 @@
 # Asset formats and runtime contract (schemaVersion 5)
 
-Current release: 0.1.6 / native-network-observation-1. All JSON contracts use schemaVersion 5; execution query viewVersion is 5. Older formats are explicitly rejected. There is no legacy reader, converter or in-place migration. Keep historical runs, reports, source files and screenshots unchanged; prepare new v5 assets from original sources instead of changing only a version field.
+Current independent candidate: 0.1.8-rc.1 / resource-readiness-2, unreleased. All JSON contracts use schemaVersion 5; execution query viewVersion is 5. Older formats are explicitly rejected. There is no legacy reader, converter or in-place migration. Keep historical runs, reports, source files and screenshots unchanged; prepare new v5 assets from original sources instead of changing only a version field.
 
 availableWorkers caps all active assignments for this run, including existing reservations; it is not the free-slot count. packetId is unique across the entire run; use assignment-scoped namespaces. Local sealing cannot detect duplicates in another worker directory. Preserve original packets and correct delivery from retained observations without repeating business actions. The complete tool root provides references/parallel-testing.md; its source is skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md.
 
