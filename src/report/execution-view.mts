@@ -8,11 +8,12 @@ export function caseGoals(_report: Report, c: CheckedCase) {
   return c.goals.map(goal => {
     const assessment = c.assessments.find(item => item.goalId === goal.id);
     const observations = assessment ? c.observations.filter(item => assessment.observationIds.includes(item.id)) : [];
-    const contexts = c.contexts.filter(context => observations.some(item => item.contextId === context.id));
+    const events=c.actionEvents.filter(e=>observations.some(o=>o.actionEventIds?.includes(e.id)));
+    const contexts = c.contexts.filter(context => observations.some(item => item.contextId === context.id)||events.some(e=>e.contextId===context.id));
     return { goal, assessment, observations, contexts, status: assessment?.status ?? 'unassessed' as const,
-      evidenceIds: [...new Set([...observations.flatMap(observationEvidenceIds), ...(assessment?.diagnosis?.evidenceIds ?? []),
+      evidenceIds: [...new Set([...events.flatMap(e=>e.evidenceIds),...observations.flatMap(observationEvidenceIds), ...(assessment?.diagnosis?.evidenceIds ?? []),
         ...(assessment?.phenomena ?? []).flatMap(item => item.evidenceIds),
-        ...contexts.flatMap(context => [context.environment, context.actor, context.object, context.initialState, context.authorization].flatMap(fact => fact.sourceEvidenceIds))])] };
+        ...contexts.flatMap(context => [context.environment, context.identity, context.objects, context.initialState, context.authorization].flatMap(fact => fact.sources.flatMap(s=>s.evidenceIds)))])] };
   });
 }
 export function goalDistribution(report: Report, c: CheckedCase): string {

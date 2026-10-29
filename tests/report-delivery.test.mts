@@ -27,7 +27,7 @@ async function temporary(t: TestContext) {
     return root;
 }
 function cases() {
-    return { schemaVersion: 7, project: 'Synthetic report delivery only', cases: ['original', 'extra'].map(id => ({
+    return { schemaVersion: 8, project: 'Synthetic report delivery only', cases: ['original', 'extra'].map(id => ({
         id, title: 'Synthetic ' + id, criticalConditions: [], requiredPath: null, stepOrder: 'strict',
         steps: [{ id: 'inspect', action: 'Inspect the synthetic result.' }],
         goals: ['visible','scope'].map(goal => ({id: goal, title:'Synthetic '+goal, basis: {kind:'explicit',source:'Synthetic fixture',text:'Synthetic expectation.'}, expected: 'Synthetic '+goal+' result.',requiredRefs:['step:inspect']}))
@@ -37,13 +37,13 @@ async function fixture(t: TestContext) {
     const root=await temporary(t),project=path.join(root,'project'),run=path.join(root,'run');await init(project);
     const input=path.join(project,'cases.json');await write(input,cases());await start({projectDir:project,casesFile:input,outputDir:run});
     const source=path.join(root,'source.txt');await fs.writeFile(source,'Synthetic observation, not a screenshot.');
-    const ev=await registerEvidence({runDir:run,request:{schemaVersion:7,operationId:'ev',expectedRevision:0,caseId:'original',sourceFile:source,kind:'other',source:'Synthetic observer',description:'Synthetic text evidence.'}});
-    await recordResult({runDir:run,request:{schemaVersion:7,operationId:'first-attempt',expectedRevision:0,caseId:'original',mode:'attempt',record:{observations:[{id:'first',summary:'Initial uncertainty preserved.',coveredRefs:['step:inspect'],evidenceIds:[ev.evidenceId]}],assessments:[{goalId:'visible',status:'inconclusive',rationale:'Action confirmation missing.',observationIds:['first'],gaps:['Need independent readback.']}]}}});
-    await recordResult({runDir:run,request:{schemaVersion:7,operationId:'final',expectedRevision:1,caseId:'original',mode:'final',record:{observations:[{id:'readback',summary:'Synthetic valid readback.',coveredRefs:['step:inspect'],evidenceIds:[ev.evidenceId]}],assessments:[{goalId:'visible',status:'violation',rationale:'Readback contradicts the explicit expected result.',observationIds:['readback'],gaps:[],diagnosis:{state:'unknown',category:'unknown',summary:'Business violation established; implementation cause unknown.',evidenceIds:[]}},{goalId:'scope',status:'not_tested',rationale:'User deferred the second identity.',observationIds:[],gaps:['Second identity unavailable.']}]}}});
+    const ev=await registerEvidence({runDir:run,request:{schemaVersion:8,operationId:'ev',expectedRevision:0,caseId:'original',sourceFile:source,kind:'other',source:'Synthetic observer',description:'Synthetic text evidence.'}});
+    await recordResult({runDir:run,request:{schemaVersion:8,operationId:'first-attempt',expectedRevision:0,caseId:'original',mode:'attempt',record:{observations:[{id:'first',summary:'Initial uncertainty preserved.',coveredRefs:['step:inspect'],evidenceIds:[ev.evidenceId]}],assessments:[{goalId:'visible',status:'inconclusive',rationale:'Action confirmation missing.',observationIds:['first'],gaps:['Need independent readback.']}]}}});
+    await recordResult({runDir:run,request:{schemaVersion:8,operationId:'final',expectedRevision:1,caseId:'original',mode:'final',record:{observations:[{id:'readback',summary:'Synthetic valid readback.',coveredRefs:['step:inspect'],evidenceIds:[ev.evidenceId]}],assessments:[{goalId:'visible',status:'violation',rationale:'Readback contradicts the explicit expected result.',observationIds:['readback'],gaps:[],diagnosis:{state:'unknown',category:'unknown',summary:'Business violation established; implementation cause unknown.',evidenceIds:[]}},{goalId:'scope',status:'not_tested',rationale:'User deferred the second identity.',observationIds:[],gaps:['Second identity unavailable.']}]}}});
     return {root,project,run,source,evidenceId:ev.evidenceId};
 }
 async function context(f:Awaited<ReturnType<typeof fixture>>) {
-    const value={schemaVersion:7,kind:'retrospective',summary:'Synthetic assembly after execution </script><img src=x>',limitations:['Synthetic missing screenshot; no new execution.'],sources:[{label:'Synthetic source',file:f.source,sha256:hash(await fs.readFile(f.source))}],supplementalCaseIds:['extra']};
+    const value={schemaVersion:8,kind:'retrospective',summary:'Synthetic assembly after execution </script><img src=x>',limitations:['Synthetic missing screenshot; no new execution.'],sources:[{label:'Synthetic source',file:f.source,sha256:hash(await fs.readFile(f.source))}],supplementalCaseIds:['extra']};
     const filename=path.join(f.root,'context.json');await write(filename,value);return {filename,value};
 }
 function payloadOf(html: string) {
@@ -128,7 +128,7 @@ test('renamed package rejects legacy Skill identity and changed Codex metadata',
 
 test('three report formats share four-state goals, preserve first attempts and do not infer missing assessments',async t=>{
     const f=await fixture(t),out=await report(f.run),data=await check(f.run);
-    assert.deepEqual(await read(out.reportJson),data);assert.equal(data.schemaVersion,7);
+    assert.deepEqual(await read(out.reportJson),data);assert.equal(data.schemaVersion,8);
     assert.deepEqual(data.counts,{verified:0,violation:1,inconclusive:0,not_tested:1,unassessed:2});assert.equal(data.assessmentComplete,false);assert.equal(data.goalCount,4);
     assert.equal(Object.hasOwn(at(data.cases,0),'status'),false);assert.equal(at(data.cases,0).entries.length,2);
     assert.equal(at(data.cases,0).assessments.find(a=>a.goalId==='visible')?.diagnosis?.state,'unknown');
@@ -161,13 +161,13 @@ test('context rejects old format, independent verdicts and bad provenance before
 test('changed sources and later goal assessments invalidate report verification without rewriting reports',async t=>{
     const f=await fixture(t),ctx=await context(f),out=await report(f.run,{contextFile:ctx.filename}),html=await fs.readFile(out.reportHtml);
     await fs.appendFile(f.source,'\nchanged');await assert.rejects(verifyReport(f.run),/source hash mismatch/);assert.deepEqual(await fs.readFile(out.reportHtml),html);await fs.writeFile(f.source,'Synthetic observation, not a screenshot.');
-    await recordResult({runDir:f.run,request:{schemaVersion:7,operationId:'later',expectedRevision:2,caseId:'extra',mode:'final',record:{observations:[],assessments:[{goalId:'scope',status:'not_tested',rationale:'Explicitly deferred.',observationIds:[],gaps:['Identity deferred.']}]}}});
+    await recordResult({runDir:f.run,request:{schemaVersion:8,operationId:'later',expectedRevision:2,caseId:'extra',mode:'final',record:{observations:[],assessments:[{goalId:'scope',status:'not_tested',rationale:'Explicitly deferred.',observationIds:[],gaps:['Identity deferred.']}]}}});
     await assert.rejects(verifyReport(f.run),/does not match/);assert.deepEqual(await fs.readFile(out.reportHtml),html);
 });
 test('evidence references must belong to case, while repeated content is not independent evidence',async t=>{
     const f=await fixture(t);
-    await assert.rejects(recordResult({runDir:f.run,request:{schemaVersion:7,operationId:'wrong-evidence',expectedRevision:2,caseId:'extra',mode:'final',record:{observations:[{id:'wrong',summary:'Invalid cross-case evidence reference.',coveredRefs:['step:inspect'],evidenceIds:[f.evidenceId]}],assessments:[{goalId:'visible',status:'verified',rationale:'Synthetic invalid evidence.',observationIds:['wrong'],gaps:[]}]}}}));
-    await registerEvidence({runDir:f.run,request:{schemaVersion:7,operationId:'duplicate-text',expectedRevision:1,caseId:'extra',sourceFile:f.source,kind:'other',source:'Synthetic shared index',description:'Second association, not a second observation.'}});
+    await assert.rejects(recordResult({runDir:f.run,request:{schemaVersion:8,operationId:'wrong-evidence',expectedRevision:2,caseId:'extra',mode:'final',record:{observations:[{id:'wrong',summary:'Invalid cross-case evidence reference.',coveredRefs:['step:inspect'],evidenceIds:[f.evidenceId]}],assessments:[{goalId:'visible',status:'verified',rationale:'Synthetic invalid evidence.',observationIds:['wrong'],gaps:[]}]}}}));
+    await registerEvidence({runDir:f.run,request:{schemaVersion:8,operationId:'duplicate-text',expectedRevision:1,caseId:'extra',sourceFile:f.source,kind:'other',source:'Synthetic shared index',description:'Second association, not a second observation.'}});
     const data=await check(f.run);assert.equal(data.evidenceIntegrity.hashVerifiedItems,2);assert.equal(data.evidenceCoverage.distinctRetainedContents,1);assert.equal(data.evidenceCoverage.registeredScreenshots,0);
     const out=await report(f.run);assert.deepEqual(await read(out.reportJson),data);
 });
@@ -175,9 +175,9 @@ test('screenshots stay self-contained and reject active formats without changing
     const f=await fixture(t),pngFile=path.join(f.root,'sample.png'),svgFile=path.join(f.root,'sample.svg');
     const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRz0AAAAASUVORK5CYII=','base64');
     await fs.writeFile(pngFile,png);await fs.writeFile(svgFile,'<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
-    const shot=await registerEvidence({runDir:f.run,request:{schemaVersion:7,operationId:'shot',expectedRevision:1,caseId:'original',sourceFile:pngFile,kind:'screenshot',source:'Local synthetic fixture',description:'Synthetic screenshot </script><img src=x>'}});
-    await registerEvidence({runDir:f.run,request:{schemaVersion:7,operationId:'active-image',expectedRevision:2,caseId:'original',sourceFile:svgFile,kind:'screenshot',source:'Local synthetic fixture',description:'Unsupported active image format'}});
-    await recordResult({runDir:f.run,request:{schemaVersion:7,operationId:'shot-observation',expectedRevision:2,caseId:'original',mode:'attempt',record:{observations:[{id:'shot-observation',summary:'Synthetic snapshot registered; no new verdict.',coveredRefs:['step:inspect'],evidenceIds:[shot.evidenceId]}],assessments:[]}}});
+    const shot=await registerEvidence({runDir:f.run,request:{schemaVersion:8,operationId:'shot',expectedRevision:1,caseId:'original',sourceFile:pngFile,kind:'screenshot',source:'Local synthetic fixture',description:'Synthetic screenshot </script><img src=x>'}});
+    await registerEvidence({runDir:f.run,request:{schemaVersion:8,operationId:'active-image',expectedRevision:2,caseId:'original',sourceFile:svgFile,kind:'screenshot',source:'Local synthetic fixture',description:'Unsupported active image format'}});
+    await recordResult({runDir:f.run,request:{schemaVersion:8,operationId:'shot-observation',expectedRevision:2,caseId:'original',mode:'attempt',record:{observations:[{id:'shot-observation',summary:'Synthetic snapshot registered; no new verdict.',coveredRefs:['step:inspect'],evidenceIds:[shot.evidenceId]}],assessments:[]}}});
     const out=await report(f.run),html=await fs.readFile(out.reportHtml,'utf8'),payload=payloadOf(html);
     assert.match(html,/data:image\/png;base64,/);assert.doesNotMatch(html,/data:image\/svg/);assert.doesNotMatch(html,/<script>alert\(1\)<\/script>/);assert.doesNotMatch(html,/<img src=x>/);assert.match(html,/connect-src 'none'/);
     const previews=objectValue(payload.previews),assets=objectValue(payload.assets);

@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 8,
+  "operationId": "synthetic-intent-record",
+  "expectedRevision": 0,
+  "caseId": "synthetic-case",
+  "mode": "attempt",
+  "record": {
+    "observations": [],
+    "assessments": [],
+    "contexts": [
+      {
+        "id": "synthetic-context",
+        "environment": {
+          "state": "known",
+          "summary": "合成示例当前条件，实际使用须替换并核验。",
+          "sources": [
+            {
+              "kind": "user_confirmation",
+              "reference": "SYNTHETIC example only; not actual authorization",
+              "evidenceIds": []
+            }
+          ]
+        },
+        "identity": {
+          "state": "known",
+          "summary": "合成示例当前条件，实际使用须替换并核验。",
+          "sources": [
+            {
+              "kind": "user_confirmation",
+              "reference": "SYNTHETIC example only; not actual authorization",
+              "evidenceIds": []
+            }
+          ]
+        },
+        "objects": {
+          "state": "known",
+          "summary": "合成示例当前条件，实际使用须替换并核验。",
+          "sources": [
+            {
+              "kind": "user_confirmation",
+              "reference": "SYNTHETIC example only; not actual authorization",
+              "evidenceIds": []
+            }
+          ]
+        },
+        "initialState": {
+          "state": "known",
+          "summary": "合成示例当前条件，实际使用须替换并核验。",
+          "sources": [
+            {
+              "kind": "user_confirmation",
+              "reference": "SYNTHETIC example only; not actual authorization",
+              "evidenceIds": []
+            }
+          ]
+        },
+        "authorization": {
+          "state": "known",
+          "summary": "合成示例当前条件，实际使用须替换并核验。",
+          "sources": [
+            {
+              "kind": "user_confirmation",
+              "reference": "SYNTHETIC example only; not actual authorization",
+              "evidenceIds": []
+            }
+          ]
+        }
+      }
+    ],
+    "actionEvents": [
+      {
+        "id": "synthetic-intent-event",
+        "actionId": "synthetic-attempt-1",
+        "kind": "intent",
+        "purpose": "test",
+        "contextId": "synthetic-context",
+        "actor": "Synthetic AI example",
+        "summary": "计划保存；尚未证明实际发出。",
+        "sideEffectRisk": "possible",
+        "evidenceIds": [],
+        "target": "获准的合成条目（实际对象待核实）",
+        "inputs": [
+          "合成值 alpha"
+        ],
+        "sideEffects": [
+          "可能创建一个条目"
+        ],
+        "planRef": "step:save-read"
+      }
+    ]
+  }
+}

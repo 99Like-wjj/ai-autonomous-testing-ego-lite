@@ -1,0 +1,29 @@
+{
+  "regressionVersion": 1,
+  "operationId": "synthetic-replace-operation-id",
+  "expectedRevision": 0,
+  "artifact": {
+    "kind": "rule",
+    "ruleId": "synthetic-rule",
+    "statement": "合成示例：获准创建的条目应能独立读回保存值。",
+    "scope": [
+      "SYNTHETIC EXAMPLE ONLY; replace with confirmed project scope"
+    ],
+    "source": {
+      "kind": "requirement",
+      "contentFile": "C:/REPLACE_WITH_PRIVATE_PROJECT/requirements.md",
+      "locator": "SYNTHETIC requirement paragraph",
+      "excerpt": "获准创建的条目应能独立读回保存值。",
+      "version": "synthetic-placeholder",
+      "contentSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "confirmation": {
+      "state": "explicit",
+      "basis": [
+        "仅示例占位，实际使用须保留可信规则原文及指纹。"
+      ]
+    },
+    "supersedes": null,
+    "reason": "SYNTHETIC EXAMPLE ONLY; replace all source references before committing."
+  }
+}

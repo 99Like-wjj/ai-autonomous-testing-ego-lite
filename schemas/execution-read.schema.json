@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "execution-read.schema.json",
-  "title": "Ego Lite execution read view v7",
+  "title": "Ego Lite execution read view v8",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -26,7 +26,7 @@
   ],
   "properties": {
     "viewVersion": {
-      "const": 7
+      "const": 8
     },
     "view": {
       "enum": [

@@ -10,7 +10,7 @@ export function cliParallelLimit(value: string): number {
   return parallelLimit(Number(value));
 }
 export async function resolveConfiguration({ projectDir, configFile, maxParallelCases }: { projectDir: string; configFile?: string | undefined; maxParallelCases?: number | undefined }): Promise<ConfigurationSnapshot> {
-  let configuration = { schemaVersion: 7 as const, maxParallelCases: 1 };
+  let configuration = { schemaVersion: 8 as const, maxParallelCases: 1 };
   let kind: ConfigurationSnapshot['kind'] = 'default';
   let file: string | undefined, sha256: string | undefined;
   const candidate = configFile ?? path.join(projectDir, 'execution-config.json');
@@ -19,8 +19,8 @@ export async function resolveConfiguration({ projectDir, configFile, maxParallel
     if (!(await fs.lstat(file)).isFile()) throw new Error('Execution configuration must be a regular file.');
     const bytes = await fs.readFile(file); const value: unknown = JSON.parse(bytes.toString('utf8'));
     assertClosed(value, ['schemaVersion', 'maxParallelCases'], 'execution configuration');
-    if (value.schemaVersion !== 7) throw new Error('Execution configuration requires schemaVersion 7.');
-    configuration = { schemaVersion: 7, maxParallelCases: parallelLimit(value.maxParallelCases) };
+    if (value.schemaVersion !== 8) throw new Error('Execution configuration requires schemaVersion 8.');
+    configuration = { schemaVersion: 8, maxParallelCases: parallelLimit(value.maxParallelCases) };
     sha256 = hash(bytes); kind = configFile === undefined ? 'project' : 'file';
   } catch (caught) { const error = errorInfo(caught); if (configFile !== undefined || error.code !== 'ENOENT') throw error; file = undefined; }
   const limit = maxParallelCases === undefined ? configuration.maxParallelCases : parallelLimit(maxParallelCases);

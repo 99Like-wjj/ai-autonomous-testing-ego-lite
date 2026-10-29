@@ -29,7 +29,7 @@ const cases = [
 ];
 cases[4]!.goals[1]!.followUpOf = { runId: 'self', caseId: 'SC-01', goalId: 'goal-1', reason: '独立合成复核关系；不自动替换原目标结论。' };
 cases[5]!.goals[2]!.basis.kind = 'hypothesis'; cases[5]!.goals[2]!.clarificationQuestions = ['此合成分支的范围尚待澄清。'];
-const baseline: Baseline = { schemaVersion: 7, project: 'v0.1.7 合成报告展示矩阵（不是业务测试）', cases };
+const baseline: Baseline = { schemaVersion: 8, project: 'v0.1.7 合成报告展示矩阵（不是业务测试）', cases };
 const casesFile = path.join(projectDir, 'cases.json'); await fs.writeFile(casesFile, json(baseline)); await start({ projectDir, casesFile, outputDir: runDir });
 const files: Record<string, string> = {};
 async function source(name: string, bytes: string | Buffer) { const file = path.join(sources, name); await fs.writeFile(file, bytes); files[name] = file; return file; }
@@ -46,18 +46,18 @@ await source('long.txt', '合成超长文本：范围必须标明，文件不能
 await source('excluded.json', json({ synthetic: true, bodyState: 'excluded', reason: 'The synthetic capture policy excluded body content.' }));
 let evidenceRevision = 0, revision = 0, op = 0;
 async function evidence(caseId: string, filename: string, kind: 'screenshot' | 'log' | 'tool_receipt' | 'other', description: string, metadata?: EvidenceMetadata) {
-  const receipt = await registerEvidence({ runDir, request: { schemaVersion: 7, operationId: 'fixture-ev-' + ++op, expectedRevision: evidenceRevision, caseId, sourceFile: files[filename]!, kind, description, source: '明确合成本地展示夹具', capturedAt: '2026-10-29T04:00:00.000Z', ...(metadata ? { metadata } : {}) } }); evidenceRevision = receipt.revision; return receipt.evidenceId;
+  const receipt = await registerEvidence({ runDir, request: { schemaVersion: 8, operationId: 'fixture-ev-' + ++op, expectedRevision: evidenceRevision, caseId, sourceFile: files[filename]!, kind, description, source: '明确合成本地展示夹具', capturedAt: '2026-10-29T04:00:00.000Z', ...(metadata ? { metadata } : {}) } }); evidenceRevision = receipt.revision; return receipt.evidenceId;
 }
 async function record(caseId: string, payload: RecordPayload, mode: 'final' | 'attempt' = 'final') {
   const operationId = 'fixture-record-' + ++op;
-  const receipt = await recordResult({ runDir, request: { schemaVersion: 7, operationId, expectedRevision: revision, caseId, mode, record: payload } }); revision = receipt.revision; return operationId;
+  const receipt = await recordResult({ runDir, request: { schemaVersion: 8, operationId, expectedRevision: revision, caseId, mode, record: payload } }); revision = receipt.revision; return operationId;
 }
 const obs = (id: string, summary: string, evidenceIds: string[]): Observation => ({ id, summary, coveredRefs: ['condition:0', 'step:inspect'], evidenceIds });
 const assessment = (goalId: string, status: Assessment['status'], observationIds: string[], rationale: string, gaps: string[] = []): Assessment => ({ goalId, status, rationale, observationIds, gaps });
 
 const screenshot = await evidence('SC-01', 'synthetic.png', 'screenshot', provided ? '提供的本地合成页面截图；不是被测业务页面。' : '1×1合成占位PNG；验证解码，不证明真实页面。', { scope: 'viewport', page: '本地合成页', object: 'synthetic-object', purpose: '演示图片入口与元数据', limitations: ['不是业务系统截图。'] });
 const log = await evidence('SC-01', 'event.log', 'log', '合成保存后读回日志', { contentState: 'full', mediaType: 'text/plain' });
-const context: ExecutionContext = { id: 'context-1', environment: { state: 'known', value: '离线合成环境', sourceEvidenceIds: [log] }, actor: { state: 'unknown', reason: '夹具没有登录真实身份。', sourceEvidenceIds: [] }, object: { state: 'known', value: 'synthetic-object', sourceEvidenceIds: [log] }, initialState: { state: 'known', value: 'title=old', sourceEvidenceIds: [log] }, authorization: { state: 'not_applicable', reason: '只读本地合成数据。', sourceEvidenceIds: [] } };
+const context: ExecutionContext = { id: 'context-1', environment: { state: 'known', summary: '离线合成环境', sources: [{kind:'other',reference:'Synthetic fixture source',evidenceIds:[log]}] }, identity: { state: 'unknown', summary: '夹具没有登录真实身份。', sources: [{kind:'other',reference:'Synthetic fixture source',evidenceIds:[]}] }, objects: { state: 'known', summary: 'synthetic-object', sources: [{kind:'other',reference:'Synthetic fixture source',evidenceIds:[log]}] }, initialState: { state: 'known', summary: 'title=old', sources: [{kind:'other',reference:'Synthetic fixture source',evidenceIds:[log]}] }, authorization: { state: 'not_applicable', summary: '只读本地合成数据。', sources: [{kind:'other',reference:'Synthetic fixture source',evidenceIds:[]}] } };
 const rename: Observation = { ...obs('rename-first', '合成首次保存后标题仍为old。', [screenshot, log]), actual: 'title=old；预期title=new。', contextId: context.id, occurredAt: '2026-10-29T04:00:00.000Z', actions: [{ id: 'save', description: '夹具记录保存输入。', input: 'title=new', result: '读回title=old', planRefs: ['step:inspect'], evidenceIds: [log] }], evidenceLinks: [{ evidenceId: log, actionId: 'save', purpose: '支持实际读回差异', fact: '标题仍为old', limitations: ['合成行为，不是实际产品缺陷。'] }] };
 await record('SC-01', { contexts: [context], observations: [rename], assessments: [assessment('goal-1', 'violation', [rename.id], '合成预期与合成实际不同。'), assessment('goal-2', 'verified', [rename.id], '合成原对象标识没有变化。'), assessment('goal-3', 'inconclusive', [], '没有响应观察，保留无法判断。', ['后台响应未记录。'])] });
 await record('SC-01', { observations: [obs('rename-attempt', '合成后续尝试，仅留历史。', [log])], assessments: [assessment('goal-1', 'verified', ['rename-attempt'], '尝试记录不覆盖当前目标结论。')] }, 'attempt');

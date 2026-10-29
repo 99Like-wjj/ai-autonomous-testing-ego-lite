@@ -15,7 +15,7 @@ import { TOOL_VERSION, TOOL_REVISION } from '../src/contracts/layout.mjs';
 
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aL10AAAAASUVORK5CYII=', 'base64');
 
-test('v7 report retains independent IDs but deduplicates bodies and measures raster bytes', async t => {
+test('v8 report retains independent IDs but deduplicates bodies and measures raster bytes', async t => {
   const f = await fixture(t), text = 'Synthetic </script><img src=x onerror=alert(1)> fact'; await fs.writeFile(f.sourceFile, text);
   const first = await addEvidence(f, { metadata: { contentState: 'summary', encoding: 'utf8', purpose: 'A synthetic retained summary' } });
   const second = await addEvidence(f, { operationId: 'evidence-2', expectedRevision: 1 });
@@ -153,7 +153,7 @@ test('network evidence export selects committed events and keeps bounded-window 
   assert.equal(saved.source.querySha256, canonicalHash(saved.source.query)); assert.match(saved.source.resultSha256, /^[a-f0-9]{64}$/); assert.notEqual(saved.source.querySha256, saved.source.resultSha256);
   await assert.rejects(exportNetworkEvidence({ runDir: f.runDir, request, outputFile }), /EEXIST/);
   await assert.rejects(exportNetworkEvidence({ runDir: f.runDir, request: { ...request, selection: [{ captureId, seq: 2 }] }, outputFile: path.join(f.root, 'wrong.json') }), /selected_event_not_in_query_page/);
-  assert.throws(() => parseEvidenceExport({ ...request, bodyFields: ['constructor.value'] }), /unsafe_export_body_field/);
+  assert.throws(() => parseEvidenceExport({ ...request, bodyFields: ['constructor.summary'] }), /unsafe_export_body_field/);
   await assert.rejects(exportNetworkEvidence({ runDir: f.runDir, request: { ...request, bodyFields: ['data'] }, outputFile: path.join(f.root, 'parent.json') }), /export_body_field_must_be_scalar/);
   assert.throws(() => parseEvidenceExport({ ...request, bodyFields: ['data.' + 'access' + '_' + 'token'] }), /unsafe_export_body_field/);
   const innerOffset = bodyText.indexOf('{', 1), innerJSON = bodyText.slice(innerOffset, -1), partialFile = path.join(f.root, 'partial-root.json');

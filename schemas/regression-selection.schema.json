@@ -1,0 +1,429 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "regression-selection.schema.json",
+  "title": "Explicit whole-case regression selection v1",
+  "description": "No status is inferred from missing assessments. Runtime validation re-reads exact source revisions, verifies hashes and recomputes the selection; full scope includes uncompiled coverage gaps.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/selection"
+    }
+  ],
+  "$defs": {
+    "goalRef": {
+      "type": "object",
+      "properties": {
+        "caseId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "goalId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        }
+      },
+      "required": [
+        "caseId",
+        "goalId"
+      ],
+      "additionalProperties": false
+    },
+    "gap": {
+      "type": "object",
+      "properties": {
+        "caseId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "goalId": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/safeId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "caseId",
+        "goalId",
+        "code",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "scopeId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline": {
+          "$ref": "cases.schema.json"
+        },
+        "taskBindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "taskRef": {
+                "anyOf": [
+                  {
+                    "$ref": "regression-artifact.schema.json#/$defs/taskRef"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "caseId",
+              "taskRef"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "goalId": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "caseId",
+              "goalId",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "scopeId",
+        "version",
+        "baseline",
+        "taskBindings",
+        "gaps"
+      ],
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "runDir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resultsRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resultsSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "goalMappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "goalId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "sourceCaseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "sourceGoalId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              }
+            },
+            "required": [
+              "caseId",
+              "goalId",
+              "sourceCaseId",
+              "sourceGoalId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "baselineSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "runDir",
+        "runId",
+        "resultsRevision",
+        "resultsSha256",
+        "goalMappings",
+        "baselineSha256"
+      ],
+      "additionalProperties": false
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "regressionVersion": {
+          "const": 1
+        },
+        "mode": {
+          "enum": [
+            "status",
+            "full"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/source"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "statuses": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "verified",
+              "violation",
+              "inconclusive",
+              "not_tested"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "includeUnassessedCases": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "regressionVersion",
+        "mode",
+        "scope",
+        "source",
+        "statuses",
+        "includeUnassessedCases"
+      ],
+      "additionalProperties": false
+    },
+    "selection": {
+      "type": "object",
+      "properties": {
+        "regressionVersion": {
+          "const": 1
+        },
+        "request": {
+          "$ref": "#/$defs/request"
+        },
+        "scopeSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "matchPolicy": {
+          "const": "any_goal"
+        },
+        "sourceStates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "goalId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "status": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "verified",
+                      "violation",
+                      "inconclusive",
+                      "not_tested"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sourceMapped": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "caseId",
+              "goalId",
+              "status",
+              "sourceMapped"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "assetGaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gap"
+          }
+        },
+        "selectedCaseIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "matchedGoalRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/goalRef"
+          }
+        },
+        "plannedGoalRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/goalRef"
+          }
+        },
+        "caseMatches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "matchedGoalRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/goalRef"
+                }
+              },
+              "unassessedGoalRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/goalRef"
+                }
+              },
+              "reason": {
+                "enum": [
+                  "full_scope",
+                  "status_match",
+                  "explicit_unassessed"
+                ]
+              }
+            },
+            "required": [
+              "caseId",
+              "matchedGoalRefs",
+              "unassessedGoalRefs",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "notSelected": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "goalRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/goalRef"
+                }
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "caseId",
+              "goalRefs",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gap"
+          }
+        },
+        "selectionSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "regressionVersion",
+        "request",
+        "scopeSha256",
+        "matchPolicy",
+        "sourceStates",
+        "assetGaps",
+        "selectedCaseIds",
+        "matchedGoalRefs",
+        "plannedGoalRefs",
+        "caseMatches",
+        "notSelected",
+        "gaps",
+        "selectionSha256"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -16,8 +16,8 @@ export type EvidenceMetadata = {
   height?: number;
 };
 
-export interface EgoLiteEvidenceCatalogV7 {
-  schemaVersion: 7;
+export interface EgoLiteEvidenceCatalogV8 {
+  schemaVersion: 8;
   revision: number;
   items: EvidenceItem[];
   operations: EvidenceOperation[];

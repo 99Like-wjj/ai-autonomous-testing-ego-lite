@@ -6,7 +6,7 @@ const reportViewModel = (() => {
   type Context = import('../contracts/model.mjs').ExecutionContext;
   type Entry = import('../contracts/model.mjs').ResultEntry;
   const observationIds=(o:Observation)=>[...o.evidenceIds,...(o.actions??[]).flatMap(a=>a.evidenceIds),...(o.evidenceLinks??[]).map(l=>l.evidenceId)];
-  const contextIds=(c:Context)=>[c.environment,c.actor,c.object,c.initialState,c.authorization].flatMap(f=>f.sourceEvidenceIds);
+  const contextIds=(c:Context)=>[c.environment,c.identity,c.objects,c.initialState,c.authorization].flatMap(f=>f.sources.flatMap(s=>s.evidenceIds));
   function closure(ids:readonly string[],evidence:readonly Evidence[]):string[]{
     const map=new Map(evidence.map(e=>[e.id,e])),seen=new Set<string>(),queue=[...ids];
     for(let i=0;i<queue.length;i++){const id=queue[i];if(!id||seen.has(id))continue;seen.add(id);queue.push(...(map.get(id)?.metadata?.contextEvidenceIds??[]));}
@@ -15,21 +15,22 @@ const reportViewModel = (() => {
   function history(c:CaseData,entry:Entry,goalId:string){
     const assessment=entry.record.assessments.find(a=>a.goalId===goalId);
     const observations=(assessment?.observationIds??[]).map(id=>entry.record.observations.find(o=>o.id===id)??c.observations.find(o=>o.id===id)).filter((o):o is Observation=>!!o);
-    const contexts=[...new Set(observations.map(o=>o.contextId).filter((id):id is string=>!!id))].map(id=>entry.record.contexts?.find(c=>c.id===id)??c.contexts.find(c=>c.id===id)).filter((c):c is Context=>!!c);
-    const evidenceIds=[...observations.flatMap(observationIds),...contexts.flatMap(contextIds),...(assessment?.diagnosis?.evidenceIds??[]),...(assessment?.phenomena??[]).flatMap(p=>p.evidenceIds)];
-    return {assessment,observations,contexts,evidenceIds};
+    const actionEvents=(c.actionEvents??[]).filter(e=>observations.some(o=>o.actionEventIds?.includes(e.id)));
+    const contexts=[...new Set([...actionEvents.map(e=>e.contextId),...observations.map(o=>o.contextId).filter((id):id is string=>!!id)])].map(id=>entry.record.contexts?.find(c=>c.id===id)??c.contexts.find(c=>c.id===id)).filter((c):c is Context=>!!c);
+    const evidenceIds=[...actionEvents.flatMap(e=>e.evidenceIds),...observations.flatMap(observationIds),...contexts.flatMap(contextIds),...(assessment?.diagnosis?.evidenceIds??[]),...(assessment?.phenomena??[]).flatMap(p=>p.evidenceIds)];
+    return {assessment,observations,contexts,actionEvents,evidenceIds};
   }
   function current(c:CaseData,evidence:readonly Evidence[]):string[]{
     const observedIds=new Set(c.assessments.flatMap(a=>a.observationIds));
-    const observations=c.observations.filter(o=>observedIds.has(o.id)),contexts=c.contexts.filter(ctx=>observations.some(o=>o.contextId===ctx.id));
-    return closure([...observations.flatMap(observationIds),...contexts.flatMap(contextIds),...c.assessments.flatMap(a=>[...(a.diagnosis?.evidenceIds??[]),...(a.phenomena??[]).flatMap(p=>p.evidenceIds)])],evidence);
+    const observations=c.observations.filter(o=>observedIds.has(o.id)),events=(c.actionEvents??[]).filter(e=>observations.some(o=>o.actionEventIds?.includes(e.id))),contexts=c.contexts.filter(ctx=>observations.some(o=>o.contextId===ctx.id)||events.some(e=>e.contextId===ctx.id));
+    return closure([...events.flatMap(e=>e.evidenceIds),...observations.flatMap(observationIds),...contexts.flatMap(contextIds),...c.assessments.flatMap(a=>[...(a.diagnosis?.evidenceIds??[]),...(a.phenomena??[]).flatMap(p=>p.evidenceIds)])],evidence);
   }
   function findingRefs(c:CaseData,evidence:readonly Evidence[]):string[]{
     const ids=new Set(c.findings.flatMap(f=>f.observationIds)),observations=c.observations.filter(o=>ids.has(o.id)),contexts=c.contexts.filter(ctx=>observations.some(o=>o.contextId===ctx.id));
     return closure([...c.findings.flatMap(f=>f.evidenceIds),...observations.flatMap(observationIds),...contexts.flatMap(contextIds)],evidence);
   }
   function historical(c:CaseData,evidence:readonly Evidence[]):string[]{
-    return closure(c.entries.flatMap(entry=>[...entry.record.observations.flatMap(observationIds),...(entry.record.contexts??[]).flatMap(contextIds),...entry.record.assessments.flatMap(a=>history(c,entry,a.goalId).evidenceIds),...(entry.record.findings??[]).flatMap(f=>f.evidenceIds)]),evidence);
+    return closure(c.entries.flatMap(entry=>[...(entry.record.actionEvents??[]).flatMap(e=>e.evidenceIds),...entry.record.observations.flatMap(observationIds),...(entry.record.contexts??[]).flatMap(contextIds),...entry.record.assessments.flatMap(a=>history(c,entry,a.goalId).evidenceIds),...(entry.record.findings??[]).flatMap(f=>f.evidenceIds)]),evidence);
   }
   function sceneFindings(c:CaseData){return {items:[...c.findings],additional:c.findings.filter(f=>f.scope==='additional'),unbound:c.findings.filter(f=>f.goalIds.length===0)};}
   return {closure,history,current,historical,findingRefs,sceneFindings};
@@ -60,7 +61,7 @@ const reportViewModel = (() => {
   function time(value?:string):string {if(!value)return '未记录';const d=new Date(value);return Number.isNaN(d.valueOf())?esc(value):esc(d.toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}))+' UTC+08:00';}
   function object(v:unknown):v is Record<string,unknown>{return !!v&&typeof v==='object'&&!Array.isArray(v);}
   function assertPayload(v:unknown):asserts v is Payload {
-    if(!object(v)||v.htmlPayloadVersion!==7||!object(v.report)||v.report.schemaVersion!==7||!Array.isArray(v.report.cases)||!object(v.report.evidenceCatalog)||!Array.isArray(v.report.evidenceCatalog.items)||!object(v.previews)||!object(v.assets)||!object(v.delivery))throw new Error('报告格式不受支持；需要 v7。历史文件不会被修改。');
+    if(!object(v)||v.htmlPayloadVersion!==8||!object(v.report)||v.report.schemaVersion!==8||!Array.isArray(v.report.cases)||!object(v.report.evidenceCatalog)||!Array.isArray(v.report.evidenceCatalog.items)||!object(v.previews)||!object(v.assets)||!object(v.delivery))throw new Error('报告格式不受支持；需要 v8。历史文件不会被修改。');
     const number=(n:unknown)=>typeof n==='number'&&Number.isSafeInteger(n)&&n>=0,r=v.report;
     if(typeof r.project!=='string'||typeof r.runId!=='string'||!object(r.counts)||!['caseCount','goalCount','revision','evidenceRevision'].every(k=>number(r[k]))||!Object.values(r.counts).every(number))throw new Error('报告统计结构无效。');
     for(const c of v.report.cases){
@@ -79,7 +80,7 @@ const reportViewModel = (() => {
   const report=payload.report;
   const evidenceMap=new Map(report.evidenceCatalog.items.map(e=>[e.id,e]));
   function observationEvidence(o:Observation):string[]{return [...o.evidenceIds,...(o.actions??[]).flatMap(a=>a.evidenceIds),...(o.evidenceLinks??[]).map(l=>l.evidenceId)];}
-  function contextEvidence(c:Context):string[]{return [c.environment,c.actor,c.object,c.initialState,c.authorization].flatMap(f=>f.sourceEvidenceIds);}
+  function contextEvidence(c:Context):string[]{return [c.environment,c.identity,c.objects,c.initialState,c.authorization].flatMap(f=>f.sources.flatMap(s=>s.evidenceIds));}
   function evidenceText(id:string):string {const e=evidenceMap.get(id),p=payload.previews[id],a=p?.assetId?payload.assets[p.assetId]:undefined;return e?[e.description,e.source,e.metadata?.purpose,e.metadata?.page,e.metadata?.object,a?.kind==='text'?a.text:''].filter(Boolean).join('\n'):'';}
   interface Row {c:CaseData;g:Goal;a:Assessment|undefined;observations:Observation[];evidenceIds:string[];status:Status;search:[string,string][]}
   const rows:Row[]=report.cases.flatMap(c=>c.goals.map(g=>{
@@ -137,8 +138,8 @@ const reportViewModel = (() => {
     return `<article class="evidence-card" id="evidence-${esc(id)}">${context!=='当前引用'?`<p class="note">${esc(context)}；材料存在不等于支持当前结论。</p>`:''}${content}${p?.previewNote&&(src||asset?.kind==='text')?`<p class="hint">${esc(p.previewNote)}</p>`:''}${e.metadata?.purpose?`<p><strong>用途：</strong>${esc(e.metadata.purpose)}</p>`:''}${e.metadata?.limitations?.length?`<p class="hint">局限：${esc(e.metadata.limitations.join('；'))}</p>`:''}${e.metadata?.contextEvidenceIds?.length?`<p class="hint">关联上下文：</p>${evidenceButtons(e.metadata.contextEvidenceIds,'上下文关联')}`:''}${attachment?`<a class="attachment" href="${esc(attachment)}" download>打开留存附件</a>`:''}${metadata(e)}</article>`;
   }
   const evidenceGrid=(ids:string[],context='当前引用')=>ids.length?`<div class="evidence-grid">${unique(ids).map(id=>evidenceCard(id,context)).join('')}</div>`:'<p class="empty">没有关联证据；这不是通过结论。</p>';
-  function contextFact(title:string,f:ContextFact):string{const value=f.state==='known'?f.value??'':(f.state==='unknown'?'未知：':'不适用：')+(f.reason??'未说明');return `<div class="contextfact"><div class="kicker">${title}</div><p class="text">${hi(value)}</p>${f.sourceEvidenceIds.length?evidenceButtons(f.sourceEvidenceIds,'上下文来源'):'<p class="meta">未关联独立来源证据。</p>'}</div>`;}
-  function renderContext(c:Context):string{return `<section class="fact"><h4>执行上下文 <span class="inline-id">${esc(c.id)}</span></h4><div class="contexts">${contextFact('环境 / 版本',c.environment)}${contextFact('身份 / 角色 / 租户',c.actor)}${contextFact('操作对象',c.object)}${contextFact('初始状态',c.initialState)}${contextFact('授权条件',c.authorization)}</div>${c.notes?`<p class="hint text">${esc(c.notes)}</p>`:''}</section>`;}
+  function contextFact(title:string,f:ContextFact):string{const value=f.state==='known'?f.summary:(f.state==='unknown'?'未知：':'不适用：')+(f.summary);return `<div class="contextfact"><div class="kicker">${title}</div><p class="text">${hi(value)}</p>${f.sources.flatMap(s=>s.evidenceIds).length?evidenceButtons(f.sources.flatMap(s=>s.evidenceIds),'上下文来源'):'<p class="meta">未关联独立来源证据。</p>'}</div>`;}
+  function renderContext(c:Context):string{return `<section class="fact"><h4>执行上下文 <span class="inline-id">${esc(c.id)}</span></h4><div class="contexts">${contextFact('环境 / 版本',c.environment)}${contextFact('身份 / 角色 / 租户',c.identity)}${contextFact('操作对象',c.objects)}${contextFact('初始状态',c.initialState)}${contextFact('授权条件',c.authorization)}</div>${c.notes?`<p class="hint text">${esc(c.notes)}</p>`:''}</section>`;}
   function renderObservation(o:Observation,c:CaseData,context='当前引用'):string{
     const ctx=c.contexts.find(ctx=>ctx.id===o.contextId);
     return `<section class="fact"><h4>实际观察 <span class="inline-id">${esc(o.id)}</span></h4><p class="text">${hi(o.actual??o.summary)}</p><p class="meta">事实发生时间：${time(o.occurredAt)}${o.contextId?' · 上下文 '+esc(o.contextId):' · 未绑定独立上下文'}</p>${ctx?`<details><summary>身份、对象与初态</summary>${renderContext(ctx)}</details>`:''}${o.actions?.length?o.actions.map((a,i)=>`<div class="action"><div class="action-header"><span class="action-number">${i+1}</span><div><h4>${hi(a.description)}</h4>${a.input?`<p class="text"><strong>实际输入：</strong>${hi(a.input)}</p>`:''}${a.result?`<p class="text"><strong>观察结果：</strong>${hi(a.result)}</p>`:''}<p class="meta">操作时间：${time(a.occurredAt)} · ${esc(a.id)}</p></div></div>${evidenceGrid(a.evidenceIds,context)}${(o.evidenceLinks??[]).filter(l=>l.actionId===a.id).map(l=>`<p><strong>证据用途：</strong>${esc(l.purpose)}；支持事实：${esc(l.fact)}${l.limitations.length?'；局限：'+esc(l.limitations.join('；')):''}${evidenceButtons([l.evidenceId],context)}</p>`).join('')}</div>`).join(''):'<p class="note">原记录未提供独立的实际动作序列。下方计划不能当作已执行步骤。</p>'}${(o.evidenceLinks??[]).filter(l=>!l.actionId).map(l=>`<p><strong>${esc(l.purpose)}</strong>：${esc(l.fact)}${l.limitations.length?'；局限：'+esc(l.limitations.join('；')):''}${evidenceButtons([l.evidenceId],context)}</p>`).join('')}<details><summary>原始观察与必要语义引用</summary><p class="text">${esc(o.summary)}</p><p class="meta">覆盖：${esc(o.coveredRefs.join('、')||'未声明')}</p>${evidenceButtons(o.evidenceIds,context)}</details></section>`;
@@ -192,13 +193,18 @@ const reportViewModel = (() => {
     if(!cases.length)return '';
     return `<section class="panel"><h3>${q?'另有场景现象关键词命中':'场景关联现象入口'}</h3><p class="hint">这里独立列示关联现象及额外发现，不受目标状态推断，不计入目标命中数。</p>${cases.map(c=>`<article class="fact"><button class="title-button" data-scene="${esc(c.id)}">${esc(c.title)} · 查看关联现象与额外发现</button>${c.findings.filter(f=>!q||JSON.stringify(f).toLocaleLowerCase().includes(q)).map(f=>`<p>${hi(f.title)} <span class="meta">${f.scope==='additional'?'额外发现':'原范围关联'}${f.goalIds.length?'':' · 未绑定目标'}</span></p>`).join('')}</article>`).join('')}</section>`;
   }
-  function render():void{renderNavigation();$('#detail').innerHTML=state.view==='overview'?sceneOverview()+findingMatches():state.view==='scene'?sceneDetail():state.view==='evidence'?library():goalDetail()+(state.query?findingMatches():'');}
-  $('#project-line').textContent=report.project;$('#run-line').textContent=`Run ${report.runId} · 时间显示 UTC+08:00 · 离线报告 v7`;
+  function lifecycle():string{return report.cases.filter(c=>c.actionEvents.length&&(!state.sceneFilter||c.id===state.sceneFilter)&&(!state.selectedCase||state.view==='overview'||c.id===state.selectedCase)).map(c=>`<details class="panel"><summary>${esc(c.title)}：动作尝试与核对记录</summary><p>意图、派发回执不代表业务通过；首次异常与处置均保留。</p>${c.actionEvents.map(e=>`<section class="fact"><h4>${esc(e.actionId+' / '+e.kind+' / '+e.purpose)}</h4><p>${esc(e.summary)}</p><p>${esc(e.dispatchState??e.resultState??e.disposition?.state??'未声明')}</p>${evidenceButtons(e.evidenceIds,'动作事件证据')}</section>`).join('')}</details>`).join('');}
+  function render():void{renderNavigation();$('#detail').innerHTML=state.view==='overview'?sceneOverview()+findingMatches():state.view==='scene'?sceneDetail():state.view==='evidence'?library():goalDetail()+(state.query?findingMatches():'');$('#detail').insertAdjacentHTML('beforeend',lifecycle());}
+  $('#project-line').textContent=report.project;$('#run-line').textContent=`Run ${report.runId} · 时间显示 UTC+08:00 · 离线报告 v8`;
   $('#scope-summary').textContent=`${report.caseCount} 个场景 · ${report.goalCount} 个业务目标`;
   $('#retrospective-label').hidden=!report.context;
   $('#summary').innerHTML=order.filter(s=>s!=='unassessed'||report.counts.unassessed>0).map(s=>`<button class="stat status-${s}" data-stat="${s}"><strong>${report.counts[s]}</strong><span>${labels[s]}</span></button>`).join('');
   if(!report.assessmentComplete||!payload.delivery.complete){$('#recording-warning').hidden=false;$('#recording-warning').textContent=[!report.assessmentComplete?`${report.counts.unassessed} 个目标未登记评估；这是记录缺口，不能算作通过或未测试。`:'',!payload.delivery.complete?'证据交付不完整；请查看各证据的缺失、截断或附件说明。':''].filter(Boolean).join(' ');}
   $('#integrity').innerHTML=`<p class="hint">${report.evidenceIntegrity.hashVerifiedItems} 项文件hash匹配；${report.evidenceCoverage.registeredScreenshots} 项截图登记，全部证据按内容去重 ${report.evidenceCoverage.distinctRetainedContents} 份。记录${report.assessmentComplete?'完整':'不完整'}不等于业务验收通过。</p><p class="meta">结果 revision ${report.revision} · 证据 revision ${report.evidenceRevision} · ${payload.delivery.mode==='bundle'?'附件包交付，移动时须保留附件目录':'独立HTML交付'}。</p>`;
+  const extras:string[]=[];
+  if(report.regressionBinding){const b=report.regressionBinding as {selection:{request:{mode:string};notSelected:{caseId:string}[]};coverage:{requestedCases:number;requestedGoals:number;selectedCases:number;selectedGoals:number;compiledCases:number;compiledGoals:number;gaps:{caseId:string;reason:string}[]};tasks:{taskId:string;revision:number}[]};const c=b.coverage;extras.push(`<section class="panel"><h3>回归范围与任务版本</h3><p>${b.selection.request.mode==='full'?'全量回归':'按历史目标状态选择，整条场景重跑'}</p><p>原范围 ${c.requestedCases}/${c.requestedGoals}；选中 ${c.selectedCases}/${c.selectedGoals}；本次冻结 ${c.compiledCases}/${c.compiledGoals}（场景/目标）。</p><p class="hint">未选中没有本次结果，不继承历史通过；全量选择不等于全量完成。</p><p>未选中：${esc(b.selection.notSelected.map(x=>x.caseId).join(', ')||'无')}</p>${c.gaps.map(g=>`<p class="note">${esc(g.caseId+'：'+g.reason)}</p>`).join('')}<details><summary>精确任务与规则、本次条件</summary><pre class="body-text">${esc(JSON.stringify(report.regressionBinding,null,2))}</pre></details></section>`);}
+  const unresolved=(report.actionAttempts??[]).filter(a=>a.unresolved);if(unresolved.length)extras.push(`<section class="panel"><h3>尚待核对的动作</h3>${unresolved.map(a=>`<p class="note">${esc(a.caseId+'/'+a.actionId+'：'+a.reasons.join('；'))}</p>`).join('')}<p>不自动重放业务动作。</p></section>`);
+  if(extras.length){const section=document.createElement('section');section.id='regression-summary';section.innerHTML=extras.join('');$('#summary').after(section);}
   if(report.execution&&report.executionSummary){const e=report.execution,s=report.executionSummary;$('#execution-summary').innerHTML=`<h4>执行记录</h4><p class="hint">并发上限 ${s.configuredMaxParallelCases}；名额峰值 ${s.peakReservations}；执行峰值 ${s.reportedExecutionPeak??'未知'}。名额不是浏览器实测重叠。</p><p class="hint">未完成分派 ${s.unfinishedAssignmentIds.length}；待导入 ${s.pendingImportIds.length}。</p>${e.assignments.length?`<details><summary>分派与事件明细</summary>${e.assignments.map(a=>`<p class="meta">${esc(a.caseId)} / ${esc(a.id)} / ${esc(a.state)} / worker ${esc(a.workerId??'未绑定')} / Space ${esc(a.defaultSpaceId??'未知')}</p>`).join('')}${e.events.filter(e=>e.kind.startsWith('note:')).map(e=>`<p class="meta">${esc(e.kind)}：${esc(e.reason)}</p>`).join('')}</details>`:''}`;}
   if(report.context)$('#report-context').innerHTML=`<h4>事后整理来源</h4><p class="text">${esc(report.context.summary)}</p>${list(report.context.limitations)}${report.context.sources.map(s=>`<p class="meta">${esc(s.label)} · ${esc(s.file)} · SHA-256 ${esc(s.sha256)}</p>`).join('')}`;
   const modals=new Map<string,{focus:HTMLElement|null;x:number;y:number;body:string;root:string}>();

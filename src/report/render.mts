@@ -1,3 +1,4 @@
+import type { RegressionBinding } from '../regression/binding.mjs';
 import type { Report, HtmlPayload } from '../contracts/model.mjs';
 import { caseGoals, goalDistribution, labels } from './execution-view.mjs';
 import path from 'node:path';
@@ -7,7 +8,7 @@ import { fail } from '../core/common.mjs';
 import { reportShell } from './shell.mjs';
 export const escape = (value: unknown): string => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\\*_{}\[\]()#+.!|~-]/g, '\\$&').split(String.fromCharCode(96)).join('\\' + String.fromCharCode(96)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, character => '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')).replace(/\r?\n/g, '  \n');
 export function markdown(report: Report, payload?: HtmlPayload): string {
-  if (report.schemaVersion !== 7) fail('Unsupported report format; v7 is required.');
+  if (report.schemaVersion !== 8) fail('Unsupported report format; v8 is required.');
   const lines: string[] = ['# 本地测试报告', '', escape(report.project), '', escape(report.caveat), '',
     '业务目标总数：' + report.goalCount + '；用例／场景数：' + report.caseCount + '。', '',
     Object.entries(report.counts).map(([state, count]) => labels[state as keyof typeof labels] + '：' + count).join('；') + '。', '',
@@ -15,6 +16,23 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
     '结果版本：' + report.revision + '；证据版本：' + report.evidenceRevision + '；校验匹配证据：' + report.evidenceIntegrity.hashVerifiedItems + '。', '',
     '截图证据：已登记 ' + report.evidenceCoverage.registeredScreenshots + '；全部证据去重后内容 ' + report.evidenceCoverage.distinctRetainedContents + '。', '',
     '评估未关联截图的目标：' + (report.evidenceCoverage.goalsWithoutScreenshots.map(item => escape(item.caseId + '/' + item.goalId)).join(', ') || '(none)') + '。关键 UI 结论需要真实页面截图，文件哈希不证明业务结论。', ''];
+  if (report.regressionBinding) {
+    const b = report.regressionBinding as RegressionBinding, c = b.coverage;
+    lines.push('## 回归范围与任务版本', '', '模式：' + (b.selection.request.mode === 'full' ? '全量回归' : '按历史目标状态选择，整条场景重跑'), '',
+      '原范围 ' + c.requestedCases + ' 场景 / ' + c.requestedGoals + ' 目标；选中 ' + c.selectedCases + ' 场景 / ' + c.selectedGoals + ' 目标；本次冻结 ' + c.compiledCases + ' 场景 / ' + c.compiledGoals + ' 目标；未选中 ' + c.notSelectedCases + ' 场景。', '',
+      '本报告四态仅对应本次冻结范围；未选中不是未测试，不继承历史通过。全量选择不等于全量执行完成。', '',
+      '选择依据：' + escape(b.selection.request.scope.scopeId + ' @ ' + b.selection.request.scope.version) + '；固定筛选状态：' + escape(b.selection.request.statuses.join(', ') || '(全量不按状态筛选)'), '',
+      '来源运行：' + escape(b.selection.request.source?.runId ?? '(未指定历史状态基准)') + '；源结果版本：' + (b.selection.request.source?.resultsRevision ?? '无') + '。', '');
+    for (const t of b.tasks) lines.push('- 任务 ' + escape(t.taskId) + ' @ ' + t.revision + '：' + escape(t.title) + '；定义 ' + t.maturity + '；适用性 ' + t.applicability.state);
+    for (const r of b.rules) lines.push('- 规则 ' + escape(r.ruleId) + ' @ ' + r.revision + '：' + escape(r.statement) + '；依据确认 ' + r.confirmation.state);
+    for (const g of c.gaps) lines.push('- 范围/资产缺口 ' + escape(g.caseId + (g.goalId ? '/' + g.goalId : '') + '：' + g.reason));
+    for (const n of b.selection.notSelected) lines.push('- 本轮未选中 ' + escape(n.caseId) + '；无本次结果，历史仅供参考。');
+    lines.push('', '当次条件是有来源的 AI 核验说明，工具不认证真实就绪或授权；待核验项仍需处理。', '');
+    for (const i of b.conditions.items) lines.push('- ' + escape(i.caseIds.join(', ') + ' / ' + i.aspect + ' / ' + i.state + '：' + i.statement) + '；来源 ' + escape(i.source.locator));
+    lines.push('');
+  }
+  const unresolved = (report.actionAttempts ?? []).filter(a => a.unresolved);
+  if (unresolved.length) lines.push('## 尚待核对的动作', '', ...unresolved.map(a => '- ' + escape(a.caseId + '/' + a.actionId + '：' + a.reasons.join('；'))), '', '不自动重放业务动作；是否重试由 AI 结合事实、幂等依据和授权决定。', '');
   if (report.context) {
     lines.push('## 事后整理来源（未重新执行）', '', escape(report.context.summary), '', ...report.context.limitations.map(item => '- ' + escape(item)), '',
       '补充范围用例：' + (report.context.supplementalCaseIds.map(escape).join(', ') || '(none)'), '',
@@ -41,9 +59,9 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
       if (a.summary) lines.push('阅读摘要：' + escape(a.summary), '');
       for (const context of item.contexts) {
         lines.push('#### 实际上下文 ' + escape(context.id), '');
-        for (const [key, label] of [['environment', '环境'], ['actor', '实际身份'], ['object', '对象'], ['initialState', '初态'], ['authorization', '授权条件']] as const) {
+        for (const [key, label] of [['environment', '环境'], ['identity', '实际身份'], ['objects', '对象'], ['initialState', '初态'], ['authorization', '授权条件']] as const) {
           const fact = context[key];
-          lines.push('- ' + label + '：' + fact.state + '；' + escape(fact.value ?? fact.reason ?? '') + '；来源证据：' + escape(fact.sourceEvidenceIds.join(', ') || '未记录'));
+          lines.push('- ' + label + '：' + fact.state + '；' + escape(fact.summary) + '；来源证据：' + escape(fact.sources.flatMap(s=>s.evidenceIds).join(', ') || '未记录'));
         }
         if (context.notes) lines.push(escape(context.notes));
         lines.push('');
@@ -66,6 +84,12 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
       '计划不是执行证明；添加事后整理说明不会改变该计划的来源。', '');
     for (const [i, step] of c.steps.entries()) lines.push((i + 1) + '. ' + escape(step.id) + '：' + escape(step.action));
     for (const finding of c.findings) lines.push('', '#### 相关现象主题：' + escape(finding.title), '', '范围：' + finding.scope + '；整理状态：' + finding.reviewState + '；不自动计为独立缺陷。', '', '关联目标：' + escape(finding.goalIds.join(', ')) + '；关联理由：' + escape(finding.relationReason), '', '观察：' + escape(finding.observationIds.join(', ')) + '；证据：' + escape(finding.evidenceIds.join(', ')), '');
+    if (c.contexts.length || c.actionEvents.length) lines.push('', '### 当次上下文与动作事实', '');
+    for (const ctx of c.contexts) {
+      lines.push('#### 上下文 ' + escape(ctx.id), '');
+      for (const key of ['environment', 'identity', 'objects', 'initialState', 'authorization'] as const) lines.push('- ' + key + ' / ' + ctx[key].state + '：' + escape(ctx[key].summary) + '；来源 ' + escape(ctx[key].sources.map(s => s.reference).join('；')));
+    }
+    for (const e of c.actionEvents) lines.push('- 动作 ' + escape(e.actionId) + ' / 事件 ' + escape(e.id) + ' / ' + e.purpose + ' / ' + e.kind + '：' + escape(e.summary), '  发出：' + (e.dispatchState ?? '未声明') + '；业务结果知识：' + (e.resultState ?? '未声明') + '；处置：' + (e.disposition?.state ?? '未声明') + '；证据 ' + escape(e.evidenceIds.join(', ') || '(none)'), ...(e.inputs?.length ? ['  关键输入：' + escape(e.inputs.join('；'))] : []), ...(e.disposition ? ['  处置依据：' + escape(e.disposition.rationale + '；范围 ' + e.disposition.scope + '；限制 ' + e.disposition.limitations.join('；'))] : []));
     lines.push('', '### 原始观察与评估历史', '', 'attempt 仅是历史，不自动替换当前评估；final 只更新本次明确提及的目标。', '');
     for (const entry of c.entries) {
       lines.push('#### ' + entry.mode + ' / ' + escape(entry.operationId) + ' / revision ' + entry.revision, '', escape(entry.recordedAt), '');

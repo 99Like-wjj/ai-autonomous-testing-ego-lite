@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "evidence-request.schema.json",
-  "title": "Evidence registration request v7",
+  "title": "Evidence registration request v8",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 7
+      "const": 8
     },
     "operationId": {
       "$ref": "common.schema.json#/$defs/safeId"

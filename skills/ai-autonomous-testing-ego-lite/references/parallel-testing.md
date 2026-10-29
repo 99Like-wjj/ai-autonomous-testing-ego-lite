@@ -1,6 +1,4 @@
-# 可配置并发与独立交付（v7）
-
-v7新增上下文、实际动作、现象、复现准备与发现关系。worker record与串行record同形；context.sourceEvidenceIds、action.evidenceIds、evidenceLinks、phenomena、findings及metadata.contextEvidenceIds中的本地键全部在导入时映射。上下文图依赖须在包内可解析且无环；不能通过跨case引用绕过归属检查。缺口、图像尺寸及操作回执都不自动决定业务状态。
+# 可配置并发与独立交付（v8）
 
 AI 自主选择批次、路线、补测与结论；本地工具仅保存分派、文件和显式评估。串行直接 record 即可得到完整目标报告，不需要虚构 worker、初始 Space 清单或封包。
 
@@ -8,7 +6,7 @@ AI 自主选择批次、路线、补测与结论；本地工具仅保存分派�
 
 ## 并发与共享写入
 
-maxParallelCases 默认 1。用户未要求并发且没有明确配置时逐条执行。配置正整数只规定上限，不要求跑满；宿主容量只使用明确已知信息，不主动探测或改全局设置。配置文件为 {"schemaVersion":7,"maxParallelCases":6}，优先级为 start 显式数值、指定配置文件、项目配置、默认值。
+maxParallelCases 默认 1。用户未要求并发且没有明确配置时逐条执行。配置正整数只规定上限，不要求跑满；宿主容量只使用明确已知信息，不主动探测或改全局设置。配置文件为 {"schemaVersion":8,"maxParallelCases":6}，优先级为 start 显式数值、指定配置文件、项目配置、默认值。
 
 协调者是 run 共享文件唯一写入者，worker 只写分派目录。AI 判断身份、数据、共享对象和互斥资源；Space 不保证 Cookie、账号或后端数据隔离。模型与推理强度继承用户选择，不自行创建独立模型服务。
 
@@ -24,9 +22,9 @@ node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS_RUN --view full
 node ABS_TOOL_ROOT/scripts/ego.mjs execution ACTION --run-dir ABS_RUN --request ABS_REQUEST
 ```
 
-摘要与单例视图默认检查 metadata，明示 results/历史证据未复核；full integrity 可完整检查后仍只返回摘要，full view 严格核验。viewVersion 为 7。total/truncated 显示省略，不能把摘要当全量。工具不证明 worker 实时状态或业务完成，不固定轮询。
+摘要与单例视图默认检查 metadata，明示 results/历史证据未复核；full integrity 可完整检查后仍只返回摘要，full view 严格核验。viewVersion 为 8。total/truncated 显示省略，不能把摘要当全量。工具不证明 worker 实时状态或业务完成，不固定轮询。
 
-ACTION 包含 inventory、capacity、reserve、attach-space、note、set-limit、reconcile、import。请求统一 schemaVersion 7、唯一 operationId、expectedRevision、kind、reason；具体必填字段读当前 schemas/execution-request.schema.json。对初始 Space、分派、所有权、证据路径和在途状态的结构保护仍有效。
+ACTION 包含 inventory、capacity、reserve、attach-space、note、set-limit、reconcile、import。请求统一 schemaVersion 8、唯一 operationId、expectedRevision、kind、reason；具体必填字段读当前 schemas/execution-request.schema.json。对初始 Space、分派、所有权、证据路径和在途状态的结构保护仍有效。
 
 - inventory 记录创建前实际全部 Space ID，不补造、不追溯伪装；不读取用户原有页面。
 - reserve 声明 caseId、baselineSha256 和必要互斥资源，先登记名额再分派；reserved 也占名额，超时不自动释放。
@@ -50,7 +48,7 @@ worker 接收冻结 case、run/基线 hash、assignment ID、权限与专属目�
 
 ```json
 {
-  "schemaVersion":7,
+  "schemaVersion":8,
   "packetId":"asg-example-one-observation-1",
   "mode":"final",
   "record":{
@@ -75,7 +73,7 @@ node ABS_TOOL_ROOT/scripts/ego.mjs packet-seal --run-dir ABS_RUN --assignment-id
 复核冻结目标、观察、关键截图及必要语义，显式 accept 或 revise。accept 不等于业务通过；修订提供 record 或 mode 及理由，原包保留。请求例如：
 
 ```json
-{"schemaVersion":7,"operationId":"case-one-import-1","expectedRevision":5,"kind":"import","reason":"按冻结目标复核交付","packetFile":"ABS_WORKER_PACKET","review":{"decision":"accept","reviewer":"当前协调 AI","rationale":"目标与事实已逐项对照，保留未完成部分。"}}
+{"schemaVersion":8,"operationId":"case-one-import-1","expectedRevision":5,"kind":"import","reason":"按冻结目标复核交付","packetFile":"ABS_WORKER_PACKET","review":{"decision":"accept","reviewer":"当前协调 AI","rationale":"目标与事实已逐项对照，保留未完成部分。"}}
 ```
 
 import 先登记证据，再按同一 record 契约写 results.entries。final 按 goal 增量更新，attempt 仅留历史；迟到观察不应覆盖较新结果时由协调者显式选择 attempt。partial import 显示 pending；数据事务恢复复用已登记证据，原请求和历史不改。仅在确认未提交请求发生 revision 冲突时，使用新 operationId 和 rebaseOf 指向旧导入，不修改同 ID 内容。
@@ -87,3 +85,11 @@ worker 发现资源缺口时只暂停依赖动作，交回 observations/assessme
 串并行均从同一 results 读取目标四态，执行台账另呈现分派、容量、Space 偏差、导入状态与 Skill 问题。文件校验不是业务验证。关键 UI 结论需真实截图，缺失按[证据指南](evidence-and-report.md)复核。
 
 保存证据与可交付报告后，仅在所有权仍匹配时关闭本次精确 Space ID，等待 finish 回执并独立读回。cleanup note 保存 inactive 分派、精确 spaceIds、remainingSpaceIds 和证据，工具不执行关闭。用户/其他任务 Space、Cookie 和安装不擅自处理。若用户要求先讨论修复，不在真实测试中改代码或切换工具版本。
+
+
+## v8 动作事实续交
+
+worker 记录 contexts/actionEvents，协调者统一导入；意图不是发出证明。新 packet 可续接当前 run/case 已导入的事实；需要保留旧事件引用时，证据显式使用 reuseEvidenceId，并保留原文件、来源描述和采集时间供核验。该字段不允许引用其他 run，不能把历史截图变成本次新采集；同哈希也不自动去重。具体行为与未知副作用见[回归复用](regression-reuse.md)。
+
+
+合并后的富证据可带 metadata；contextEvidenceIds 在 packet 中使用包内 evidence key，导入时按依赖顺序映射到正式 ID。显式复用含上下文图片的旧证据时，也为被引用的上下文证据提供包内条目及 reuseEvidenceId；不把裸历史 ID 冒充本包新文件。原元数据与采集时间保持一致。
