@@ -153,7 +153,7 @@ export async function checkUnlocked(root: string, options: { allowMissingScreens
     const c = casesById.get(entry.caseId); if (!c) fail('Unknown result case ID: ' + entry.caseId);
     if (entry.expectedRevision !== revision || entry.revision !== ++revision) fail('Result revision does not match append-only event order.');
     if (operationIds.has(entry.operationId)) fail('Operation ID is reused: ' + entry.operationId);
-    const request: RecordRequest = { schemaVersion: 6, operationId: entry.operationId, expectedRevision: entry.expectedRevision, caseId: entry.caseId, mode: entry.mode, record: entry.record };
+    const request: RecordRequest = { schemaVersion: 7, operationId: entry.operationId, expectedRevision: entry.expectedRevision, caseId: entry.caseId, mode: entry.mode, record: entry.record };
     if (canonicalHash(request) !== entry.payloadSha256) fail('Result event payload hash mismatch: ' + entry.operationId);
     const prior = observationsByCase.get(c.id) ?? [];
     const contexts = contextsByCase.get(c.id) ?? [], findings = findingsByCase.get(c.id) ?? [], entries = entriesByCase.get(c.id) ?? [];
@@ -168,7 +168,7 @@ export async function checkUnlocked(root: string, options: { allowMissingScreens
   const cases = projectCases(baseline, results.entries), counts = countsFor(cases);
   const execution = await readExecution(root, manifest, baseline); await verifyExecutionFiles(root, execution);
   return {
-    schemaVersion: 6, runId: manifest.runId, project: baseline.project, structurallyValid: true,
+    schemaVersion: 7, runId: manifest.runId, project: baseline.project, structurallyValid: true,
     revision: results.revision, evidenceRevision: evidenceCatalog.revision, caseCount: cases.length,
     goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
     execution, executionSummary: summarize(execution, baseline), cases, evidenceCatalog,
@@ -202,11 +202,11 @@ export async function recoverEvidence(root: string): Promise<void> {
   if (!markerFilename) return;
   const marker = parsePendingEvidence(await readJSON(markerFilename));
   assertClosed(marker, ['schemaVersion', 'operationId', 'payloadSha256', 'evidenceId', 'stagePath', 'finalPath', 'catalogTempPath', 'markerTempPath', 'sha256', 'bytes'], 'pending evidence marker');
-  if (marker.schemaVersion !== 6 || !/^[a-f0-9]{64}$/.test(marker.payloadSha256)) fail('Invalid pending evidence recovery marker.');
+  if (marker.schemaVersion !== 7 || !/^[a-f0-9]{64}$/.test(marker.payloadSha256)) fail('Invalid pending evidence recovery marker.');
   safeIdentifier(marker.operationId, 'pending evidence operation id');
   const paths = markerPaths(root, marker);
   const catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-  if (catalog.schemaVersion !== 6) fail('Pending evidence transaction requires run schemaVersion 6.');
+  if (catalog.schemaVersion !== 7) fail('Pending evidence transaction requires run schemaVersion 7.');
   const committed = catalog.operations.find(op => op.operationId === marker.operationId);
   if (committed) {
     const item = catalog.items.find(entry => entry.id === marker.evidenceId);
@@ -251,7 +251,7 @@ export async function recordResultUnlocked(root: string, input: unknown, testHoo
   const c = checked.cases.find(c => c.id === request.caseId); if (!c) fail('Unknown case ID: ' + request.caseId);
   validatePayloadAgainstCase(c, request.record, c.observations, new Map(checked.evidenceCatalog.items.map(item => [item.id, item])), { contexts: c.contexts, findings: c.findings, entries: c.entries });
   const entry: ResultEntry = { operationId: request.operationId, payloadSha256, expectedRevision: request.expectedRevision, revision: results.revision + 1, recordedAt: now(), caseId: request.caseId, mode: request.mode, record: request.record };
-  await atomicReplace(resultsPath, json({ schemaVersion: 6, revision: entry.revision, entries: [...results.entries, entry] }));
+  await atomicReplace(resultsPath, json({ schemaVersion: 7, revision: entry.revision, entries: [...results.entries, entry] }));
   if (testHooks.afterCommit) await testHooks.afterCommit();
   return resultOperationReceipt(entry, false);
 }
@@ -292,7 +292,7 @@ export function validateEvidenceRequest(request: unknown): asserts request is Ev
 export async function registerEvidenceUnlocked(root: string, request: unknown, testHooks: TestHooks = {}): Promise<EvidenceReceipt> {
   await recoverEvidence(root);
   const checked = await checkUnlocked(root);
-  if (checked.schemaVersion !== 6) fail('Run manifest v6 is required.');
+  if (checked.schemaVersion !== 7) fail('Run manifest v7 is required.');
   validateEvidenceRequest(request);
   const catalogPath = path.join(root, 'evidence.json'), catalog = parseCatalog(await readJSON(catalogPath));
   const payloadSha256 = canonicalHash(request);
@@ -315,7 +315,7 @@ export async function registerEvidenceUnlocked(root: string, request: unknown, t
   const catalogTemp = path.join(root, '.ego-evidence-' + evidenceId + '.tmp'), markerTemp = path.join(root, '.ego-marker-' + evidenceId + '.tmp');
   const markerFile = path.join(root, '.evidence.pending.json');
   const marker: PendingEvidence = {
-    schemaVersion: 6, operationId: request.operationId, payloadSha256, evidenceId,
+    schemaVersion: 7, operationId: request.operationId, payloadSha256, evidenceId,
     stagePath: stageRelative, finalPath: relativeFinal,
     catalogTempPath: path.basename(catalogTemp), markerTempPath: path.basename(markerTemp)
   };

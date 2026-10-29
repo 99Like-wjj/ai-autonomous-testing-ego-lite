@@ -22,8 +22,8 @@ export type EvidenceMetadata = {
   height?: number;
 };
 
-export interface EgoLiteWorkerPacketV6 {
-  schemaVersion: 6;
+export interface EgoLiteWorkerPacketV7 {
+  schemaVersion: 7;
   runId: string;
   baselineSha256: string;
   caseId: string;

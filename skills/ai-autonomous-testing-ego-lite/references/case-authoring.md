@@ -1,4 +1,4 @@
-# 用例接收与生成（schemaVersion 6）
+# 用例接收与生成（schemaVersion 7）
 
 ## 目标是判断单位
 
@@ -10,7 +10,7 @@
 
 ## 从来源到可执行目标
 
-接收外部资料时保留原文件、原文依据、关键输入、顺序和授权；规范表达不等于获准改预期。旧 JSON 不能直接输入新版工具，从原始来源重新整理为 v6 新文件，不覆盖历史或只改版本号。
+接收外部资料时保留原文件、原文依据、关键输入、顺序和授权；规范表达不等于获准改预期。旧 JSON 不能直接输入新版工具，从原始来源重新整理为 v7 新文件，不覆盖历史或只改版本号。
 
 AI 从可信需求和用户范围定位每个验收目标，标明 basis.kind：explicit 为明确要求，interpretation 为有来源的待确认解释，hypothesis 为探索假设。当前 UI 和模型信心不能充当需求依据。明确的“本期不做”不进入本期执行。
 
@@ -26,9 +26,9 @@ AI 从可信需求和用户范围定位每个验收目标，标明 basis.kind：
 
 实际资源和操作授权按[资源指南](resource-readiness.md)核验，未决验收规则才使用目标的 clarificationQuestions。资源不足不改变原规则；用户暂缓的目标保留为未测试，并解释原因。
 
-## v6 字段
+## v7 字段
 
-根对象为 schemaVersion: 6、非空 project、非空 cases。每个 case 包含：
+根对象为 schemaVersion: 7、非空 project、非空 cases。每个 case 包含：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -47,7 +47,7 @@ clarificationQuestions 非空的目标，在 final 和 attempt 中都不得给�
 
 ```json
 {
-  "schemaVersion": 6,
+  "schemaVersion": 7,
   "project": "synthetic-config",
   "cases": [
     {

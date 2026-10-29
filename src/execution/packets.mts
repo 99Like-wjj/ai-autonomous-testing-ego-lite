@@ -27,7 +27,7 @@ export async function verifyPacketFiles(root: string, a: Assignment, packet: Wor
 }
 export async function sealPacket({ runDir, assignment, draftFile }: { runDir: unknown; assignment: string; draftFile: string }) {
   const root = await directory(runDir), id = assignmentId(assignment);
-  const manifest = parseManifest(await readJSON(path.join(root, 'manifest.json'))); if (manifest.schemaVersion !== 6) fail('Packet sealing requires a v6 run.');
+  const manifest = parseManifest(await readJSON(path.join(root, 'manifest.json'))); if (manifest.schemaVersion !== 7) fail('Packet sealing requires a v7 run.');
   const { baseline } = await readAndValidateBaseline(root, manifest);
   const workerRoot = path.join(root, 'workers', id), marker = await readJSON(await safePath(path.join(workerRoot, 'assignment.json'), { existing: true }));
   assertClosed(marker, ['assignmentId', 'caseId', 'attemptId', 'operationId'], 'assignment receipt');
@@ -36,7 +36,7 @@ export async function sealPacket({ runDir, assignment, draftFile }: { runDir: un
   const inputPath = await safePath(draftFile, { existing: true }); if (!inside(workerRoot, inputPath)) fail('Draft must belong to the assigned worker directory.');
   const draft = await readJSON(inputPath);
   assertClosed(draft, ['schemaVersion', 'packetId', 'mode', 'record', 'evidence', 'executionWindow', 'spaceUsage'], 'worker draft');
-  if (draft.schemaVersion !== 6) fail('Worker drafts require schemaVersion 6.');
+  if (draft.schemaVersion !== 7) fail('Worker drafts require schemaVersion 7.');
   const packetId = safeIdentifier(draft.packetId, 'packet ID');
   const evidence = [];
   for (const raw of arrayValue(draft.evidence, 'draft evidence')) {
@@ -45,7 +45,7 @@ export async function sealPacket({ runDir, assignment, draftFile }: { runDir: un
     const filename = workerEvidencePath(workerRoot, relative, 'Draft');
     const actual = await retainReference(root, filename); evidence.push({ ...raw, sha256: actual.sha256, bytes: actual.bytes });
   }
-  const packet = parsePacket({ ...draft, schemaVersion: 6, runId: manifest.runId, baselineSha256: manifest.baselineSha256, caseId, assignmentId: id, attemptId, evidence });
+  const packet = parsePacket({ ...draft, schemaVersion: 7, runId: manifest.runId, baselineSha256: manifest.baselineSha256, caseId, assignmentId: id, attemptId, evidence });
   // Validate the worker's supplied decision. A later coordinator review may explicitly revise it.
   validateAssessment(packet, c);
   const filename = await safePath(path.join(workerRoot, 'packet-' + packetId + '.json')), bytes = json(packet);

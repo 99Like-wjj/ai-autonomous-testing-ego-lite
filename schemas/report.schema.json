@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "report.schema.json",
-  "title": "Ego Lite generated report v6",
+  "title": "Ego Lite generated report v7",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 6
+      "const": 7
     },
     "runId": {
       "type": "string",

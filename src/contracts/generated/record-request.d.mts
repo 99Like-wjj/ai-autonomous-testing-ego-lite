@@ -7,8 +7,8 @@ export type ContextFact = {
   sourceEvidenceIds: string[];
 };
 
-export interface ResultOrAttemptRequestV6 {
-  schemaVersion: 6;
+export interface ResultOrAttemptRequestV7 {
+  schemaVersion: 7;
   operationId: string;
   expectedRevision: number;
   caseId: string;

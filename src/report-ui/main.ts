@@ -60,7 +60,7 @@ const reportViewModel = (() => {
   function time(value?:string):string {if(!value)return '未记录';const d=new Date(value);return Number.isNaN(d.valueOf())?esc(value):esc(d.toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}))+' UTC+08:00';}
   function object(v:unknown):v is Record<string,unknown>{return !!v&&typeof v==='object'&&!Array.isArray(v);}
   function assertPayload(v:unknown):asserts v is Payload {
-    if(!object(v)||v.htmlPayloadVersion!==6||!object(v.report)||v.report.schemaVersion!==6||!Array.isArray(v.report.cases)||!object(v.report.evidenceCatalog)||!Array.isArray(v.report.evidenceCatalog.items)||!object(v.previews)||!object(v.assets)||!object(v.delivery))throw new Error('报告格式不受支持；需要 v6。历史文件不会被修改。');
+    if(!object(v)||v.htmlPayloadVersion!==7||!object(v.report)||v.report.schemaVersion!==7||!Array.isArray(v.report.cases)||!object(v.report.evidenceCatalog)||!Array.isArray(v.report.evidenceCatalog.items)||!object(v.previews)||!object(v.assets)||!object(v.delivery))throw new Error('报告格式不受支持；需要 v7。历史文件不会被修改。');
     const number=(n:unknown)=>typeof n==='number'&&Number.isSafeInteger(n)&&n>=0,r=v.report;
     if(typeof r.project!=='string'||typeof r.runId!=='string'||!object(r.counts)||!['caseCount','goalCount','revision','evidenceRevision'].every(k=>number(r[k]))||!Object.values(r.counts).every(number))throw new Error('报告统计结构无效。');
     for(const c of v.report.cases){
@@ -193,7 +193,7 @@ const reportViewModel = (() => {
     return `<section class="panel"><h3>${q?'另有场景现象关键词命中':'场景关联现象入口'}</h3><p class="hint">这里独立列示关联现象及额外发现，不受目标状态推断，不计入目标命中数。</p>${cases.map(c=>`<article class="fact"><button class="title-button" data-scene="${esc(c.id)}">${esc(c.title)} · 查看关联现象与额外发现</button>${c.findings.filter(f=>!q||JSON.stringify(f).toLocaleLowerCase().includes(q)).map(f=>`<p>${hi(f.title)} <span class="meta">${f.scope==='additional'?'额外发现':'原范围关联'}${f.goalIds.length?'':' · 未绑定目标'}</span></p>`).join('')}</article>`).join('')}</section>`;
   }
   function render():void{renderNavigation();$('#detail').innerHTML=state.view==='overview'?sceneOverview()+findingMatches():state.view==='scene'?sceneDetail():state.view==='evidence'?library():goalDetail()+(state.query?findingMatches():'');}
-  $('#project-line').textContent=report.project;$('#run-line').textContent=`Run ${report.runId} · 时间显示 UTC+08:00 · 离线报告 v6`;
+  $('#project-line').textContent=report.project;$('#run-line').textContent=`Run ${report.runId} · 时间显示 UTC+08:00 · 离线报告 v7`;
   $('#scope-summary').textContent=`${report.caseCount} 个场景 · ${report.goalCount} 个业务目标`;
   $('#retrospective-label').hidden=!report.context;
   $('#summary').innerHTML=order.filter(s=>s!=='unassessed'||report.counts.unassessed>0).map(s=>`<button class="stat status-${s}" data-stat="${s}"><strong>${report.counts[s]}</strong><span>${labels[s]}</span></button>`).join('');

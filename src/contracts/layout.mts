@@ -1,7 +1,7 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
 export const TOOL_VERSION = '0.1.7-rc.1';
 export const TOOL_REVISION = 'report-usability-1';
-export const FORMAT_VERSIONS = { cases: 6, manifest: 6, results: 6, evidence: 6, report: 6, execution: 6, configuration: 6, workerPacket: 6, executionRead: 6 } as const;
+export const FORMAT_VERSIONS = { cases: 7, manifest: 7, results: 7, evidence: 7, report: 7, execution: 7, configuration: 7, workerPacket: 7, executionRead: 7 } as const;
 export const runtimeFiles = [
   'scripts/ego.mjs', 'scripts/toolchain.mjs', 'contracts/layout.mjs', 'contracts/ids.mjs', 'contracts/execution-model.mjs', 'contracts/targets.mjs',
   'execution/config.mjs', 'execution/parse.mjs', 'execution/ledger.mjs', 'execution/packets.mjs', 'execution/commands.mjs', 'execution/commit.mjs', 'execution/views.mjs', 'execution/read-context.mjs',

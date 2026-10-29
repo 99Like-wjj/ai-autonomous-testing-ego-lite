@@ -29,7 +29,7 @@ const cases = [
 ];
 cases[4]!.goals[1]!.followUpOf = { runId: 'self', caseId: 'SC-01', goalId: 'goal-1', reason: '独立合成复核关系；不自动替换原目标结论。' };
 cases[5]!.goals[2]!.basis.kind = 'hypothesis'; cases[5]!.goals[2]!.clarificationQuestions = ['此合成分支的范围尚待澄清。'];
-const baseline: Baseline = { schemaVersion: 6, project: 'v0.1.7 合成报告展示矩阵（不是业务测试）', cases };
+const baseline: Baseline = { schemaVersion: 7, project: 'v0.1.7 合成报告展示矩阵（不是业务测试）', cases };
 const casesFile = path.join(projectDir, 'cases.json'); await fs.writeFile(casesFile, json(baseline)); await start({ projectDir, casesFile, outputDir: runDir });
 const files: Record<string, string> = {};
 async function source(name: string, bytes: string | Buffer) { const file = path.join(sources, name); await fs.writeFile(file, bytes); files[name] = file; return file; }
@@ -46,11 +46,11 @@ await source('long.txt', '合成超长文本：范围必须标明，文件不能
 await source('excluded.json', json({ synthetic: true, bodyState: 'excluded', reason: 'The synthetic capture policy excluded body content.' }));
 let evidenceRevision = 0, revision = 0, op = 0;
 async function evidence(caseId: string, filename: string, kind: 'screenshot' | 'log' | 'tool_receipt' | 'other', description: string, metadata?: EvidenceMetadata) {
-  const receipt = await registerEvidence({ runDir, request: { schemaVersion: 6, operationId: 'fixture-ev-' + ++op, expectedRevision: evidenceRevision, caseId, sourceFile: files[filename]!, kind, description, source: '明确合成本地展示夹具', capturedAt: '2026-10-29T04:00:00.000Z', ...(metadata ? { metadata } : {}) } }); evidenceRevision = receipt.revision; return receipt.evidenceId;
+  const receipt = await registerEvidence({ runDir, request: { schemaVersion: 7, operationId: 'fixture-ev-' + ++op, expectedRevision: evidenceRevision, caseId, sourceFile: files[filename]!, kind, description, source: '明确合成本地展示夹具', capturedAt: '2026-10-29T04:00:00.000Z', ...(metadata ? { metadata } : {}) } }); evidenceRevision = receipt.revision; return receipt.evidenceId;
 }
 async function record(caseId: string, payload: RecordPayload, mode: 'final' | 'attempt' = 'final') {
   const operationId = 'fixture-record-' + ++op;
-  const receipt = await recordResult({ runDir, request: { schemaVersion: 6, operationId, expectedRevision: revision, caseId, mode, record: payload } }); revision = receipt.revision; return operationId;
+  const receipt = await recordResult({ runDir, request: { schemaVersion: 7, operationId, expectedRevision: revision, caseId, mode, record: payload } }); revision = receipt.revision; return operationId;
 }
 const obs = (id: string, summary: string, evidenceIds: string[]): Observation => ({ id, summary, coveredRefs: ['condition:0', 'step:inspect'], evidenceIds });
 const assessment = (goalId: string, status: Assessment['status'], observationIds: string[], rationale: string, gaps: string[] = []): Assessment => ({ goalId, status, rationale, observationIds, gaps });

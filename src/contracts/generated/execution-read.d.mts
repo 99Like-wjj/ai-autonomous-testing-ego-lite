@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface EgoLiteExecutionReadViewV6 {
-  viewVersion: 6;
+export interface EgoLiteExecutionReadViewV7 {
+  viewVersion: 7;
   view: 'summary' | 'assignment';
   runId: string;
   baselineSha256: string;
@@ -63,7 +63,7 @@ export interface ExecutionConfigurationSnapshot {
   initialMaxParallelCases: number;
   requestedMaxParallelCases: number;
   configuration: {
-    schemaVersion: 6;
+    schemaVersion: 7;
     maxParallelCases: number;
   };
   configFile?: string;

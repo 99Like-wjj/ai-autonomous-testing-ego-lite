@@ -81,12 +81,12 @@ test('unresolved acceptance rules block only the affected goal in finals and att
 });
 test('schema preserves explicit goal provenance and rejects unmapped necessary plan semantics', () => {
   const c = caseOf(); c.goals[0]!.followUpOf = { runId: 'prior-run', caseId: 'prior-case', goalId: 'prior-goal', reason: 'User clarified the requirement.' };
-  const baseline = normalizeCases({ schemaVersion: 6, project: 'Synthetic', cases: [c] });
+  const baseline = normalizeCases({ schemaVersion: 7, project: 'Synthetic', cases: [c] });
   assert.equal(baseline.cases[0]?.goals[0]?.followUpOf?.runId, 'prior-run');
   c.goals[1]!.requiredRefs = [];
-  assert.throws(() => normalizeCases({ schemaVersion: 6, project: 'Synthetic', cases: [c] }), /not linked to any goal/);
+  assert.throws(() => normalizeCases({ schemaVersion: 7, project: 'Synthetic', cases: [c] }), /not linked to any goal/);
   c.goals[1]!.requiredRefs = ['step:missing'];
-  assert.throws(() => normalizeCases({ schemaVersion: 6, project: 'Synthetic', cases: [c] }), /Unknown plan reference/);
+  assert.throws(() => normalizeCases({ schemaVersion: 7, project: 'Synthetic', cases: [c] }), /Unknown plan reference/);
 });
 test('readback detects altered assessment content, missing events, and baseline edits', async t => {
   const f = await fixture(t); await record(f, untested());

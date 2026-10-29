@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface RetrospectiveReportContextV6NoBusinessExecution {
-  schemaVersion: 6;
+export interface RetrospectiveReportContextV7NoBusinessExecution {
+  schemaVersion: 7;
   kind: 'retrospective';
   summary: string;
   /**
