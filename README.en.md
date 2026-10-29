@@ -6,13 +6,16 @@
 
 **An AI-led Web testing Skill for first delivery and regression.** The current AI session interprets trusted requirements, designs independently assessable business goals, explores through Ego Lite and judges actual outcomes using evidence. Users may provide existing cases or requirements. Methods remain flexible; goals, necessary semantics and authorization do not.
 
-## Development candidate
+## Current release
 
-Current source: **0.1.6-rc.1 / native-network-observation-1**, a development candidate rather than a formal release. The previous formal package is [v0.1.5](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5); its validation does not cover this format change. Builds/tests do not replace the user's installed Skill or create Git tags/releases.
+**0.1.6 / native-network-observation-1**. Download the complete package and checksums from [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). The maintainer reported a usable local trial with one requirements document; this is not broad acceptance across products, models or hosts. See [validation](docs/testing.en.md). Builds do not update installed Skills.
+
 
 Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidance, compiled Node ESM tools, schemas, examples and an integrity manifest. Source is TypeScript; installed use requires Node.js >=22.
 
 ## What changed
+
+- Stage-specific design and execution experience: concise indexes, concrete scenarios and human-maintained, read-only guidance. AI retains method selection within goals and authorization.
 
 - Cases group related workflows; source-backed goals hold independently assessable expectations. Steps, conditions and paths retain necessary semantics without becoming extra business goals.
 - Serial record and reviewed worker import write the same observations/assessments/entries. Serial reporting does not require fabricated assignments or packets.
@@ -42,7 +45,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.6-rc.1 --expect-revision native-network-observation-1
+node $Tool tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))
@@ -73,7 +76,7 @@ Reports refuse overwrite; use a new directory for later reports. browserOpen:not
 
 ## Responsibilities and limits
 
-AI owns planning, authorized operation and judgment. Ego supplies supported browser primitives. Local tools own freezing, records, references, revisions, evidence-file checks and reports; they do not call models/browsers, decide bugs or retry business writes. Space separation is not account/backend isolation. File transactions are not a general multi-file or power-loss guarantee. Registration does not redact evidence. Keep credentials, real sites, screenshots and run data private and outside the repository; do not auto-upload reports. See [privacy](docs/privacy.md).
+AI owns planning, authorized operation and judgment. Ego supplies supported browser primitives. Local tools own freezing, records, references, revisions, evidence-file checks and reports; they do not call models, decide bugs or retry business writes. Network observation starts a scoped Ego native collector; business UI actions remain AI-driven. Space separation is not account/backend isolation. File transactions are not a general multi-file or power-loss guarantee. Registration does not redact evidence. Keep credentials, real sites, screenshots and run data private and outside the repository; do not auto-upload reports. See [privacy](docs/privacy.md).
 
 ## Further reading
 
@@ -102,3 +105,10 @@ Original code and documentation in this repository are licensed under the [MIT L
 Repair commit 8e6e2d9 is integrated while retaining v5 goal assessment and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-autonomous-testing-ego-lite; Claude Code uses /ai-autonomous-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
 
 The default is **1 (serial)**. Without a user request for concurrency or an explicit setting, execute cases one at a time. Set `start --max-parallel-cases N` or project execution-config.json to opt in; N is a positive safe integer with no fixed 2/4/8 product ceiling. The AI chooses tool calls, batches and worker use within that limit; it need not fill all slots. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.
+
+## v0.1.7 preview (planned, not shipped)
+
+- Improve requirements coverage, relevant experience use, observations and recovery based on reviewed real trials, while preserving AI autonomy.
+- Define reviewable evaluation scenarios and criteria for coverage, judgment accuracy, evidence, authorization boundaries and cost. Engineering test passes do not establish AI testing quality.
+- Improve report summaries, goal outcomes, defects, screenshots and network evidence navigation; preserve unknown/untested outcomes and consistent HTML/JSON/Markdown statistics.
+- Keep README, usage and evaluation/report examples aligned with verified capabilities. Scope, thresholds and schedule remain subject to design review. See the [v0.1.7 preview (Chinese)](docs/v0.1.7-preview.md).

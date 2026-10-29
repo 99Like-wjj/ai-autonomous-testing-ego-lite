@@ -1,5 +1,10 @@
 # Validation record and coverage limits
 
+## v0.1.6 release validation (2026-10-29)
+
+See the [release validation record (Chinese)](v0.1.6-release-validation.md) for the cloud checks and the maintainer’s scoped local trial. Candidate results below remain historical.
+
+
 
 ## Current network-observation candidate (2026-10-28)
 

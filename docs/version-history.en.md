@@ -6,6 +6,12 @@ The AI interprets goals and judges business outcomes, Ego operates the browser, 
 
 ![Evolution: v0.1.2 business steps and acceptance questions; v0.1.3 evidence-rich delivery; v0.1.4 configurable concurrency; v0.1.5 guidance for resource clarification. Illustration, not execution evidence.](images/version-history.png)
 
+## v0.1.6 · Experience, goal assessment and network observation
+
+2026-10-29: [release and full package](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). Separate design/execution experience, unified v5 goal records and reports, scoped native observation and host handoff guidance. Old formats are rejected without conversion; historical files remain unchanged. See [release validation (Chinese)](v0.1.6-release-validation.md). The image above retains the historical v0.1.2–v0.1.5 overview.
+
+See the planned [v0.1.7 preview (Chinese)](v0.1.7-preview.md).
+
 ## v0.1.5 · Resource clarification
 
 **Formal version: 2026-10-25.** [Release, package and checksums](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5). Scoped behavioral acceptance has been completed. The source adds resource-readiness guidance, discoverable from the Skill entrypoint. The AI infers prerequisites from each goal, checks available facts within authorization, asks about material gaps, pauses dependent actions and may continue independent authorized work. Supplied resources require verification before resuming; new dependencies can emerge during execution.

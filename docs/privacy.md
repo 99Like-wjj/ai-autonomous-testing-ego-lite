@@ -6,7 +6,7 @@
 真实需求、账号说明、用例与运行结果放到仓库外，例如 `%LOCALAPPDATA%` 下的独立目录。
 这种分离降低误提交概率，不等于加密或操作系统级隔离。
 
-辅助脚本不联网、不调用模型、不读取浏览器登录信息，也不需要 API key。
+本地工具不调用模型 API，也不需要单独的模型 API key。冻结、入账、查询已保存数据和报告渲染是本地操作；network start 会通过本机 Ego 启动独立 native 采集上下文，读取获授权页面和接口范围内的协议事件及内容。采集器不主动发起或重放业务请求，不读取浏览器个人资料目录；已登录页面的流量仍可能包含身份、认证或业务敏感信息，不能据此宣称工具完全不接触登录相关数据。
 但 AI 宿主和 Ego 仍有各自的数据处理方式；让模型读取资料可能涉及宿主向模型服务传输资料，
 请先确认项目允许使用的环境和数据范围。
 
@@ -15,9 +15,11 @@
 分享前生成并人工检查脱敏副本，不要把原始证据直接放进仓库。
 
 提交前检查实际文件清单和差异，运行 `npm run check:public`，并逐张查看图片。
-未来公开前还需检查完整 Git 历史、提交信息、附件、发布包、CI 日志和产物。
+仓库已公开，每次推送或发布前仍需按变更范围审查 Git 历史、提交信息、附件、发布包、CI 日志和产物。
 当前检查器不扫描历史、图片像素或外部平台，不能承诺没有任何泄漏。
-本项目原创代码与文档采用 MIT 许可。该许可不覆盖 Ego 官方浏览器或其他第三方软件；它们仍受各自许可约束。许可证不改变私有仓库可见性，也不会自动公开或上传 npm。
+本项目原创代码与文档采用 MIT 许可。该许可不覆盖 Ego 官方浏览器或其他第三方软件；它们仍受各自许可约束。许可证与仓库可见性是不同事项；本仓库已公开，工具不会自动上传运行数据或发布 npm 包。
+
+接口观测默认过滤部分认证头和明显秘密字段，但通用过滤不保证识别全部敏感值，特别是不透明二进制。严格场景需使用允许字段或禁采正文；数据依旧保留在私有运行目录，查询和分享前须人工检查。
 
 哈希和格式检查只校验记录结构与部分完整性，不证明证据真实或业务结论正确。
 
@@ -32,10 +34,11 @@ resources under a separate local directory, for example a dedicated directory
 under `%LOCALAPPDATA%`. This separation reduces accidental commits; it is not
 encryption, an ACL guarantee, or protection against another program.
 
-The helpers use no network or model API and do not read browser profiles.
-They do not need an API key. The AI host and Ego still have their own data
+The tools do not call a model API or require a separate model API key. Record and report operations are local. Network capture starts a dedicated native context through the local Ego installation and observes authorized page/interface traffic, including selected content. It does not issue or replay business requests or read browser profile directories. Traffic from signed-in pages can still contain authentication and other sensitive data. The AI host and Ego still have their own data
 handling and permissions: material you ask an AI to inspect can be transmitted
 by that host. Review those settings before testing sensitive applications.
+
+Network capture applies bounded content handling and some credential filtering before persistence. This is not complete redaction, especially for opaque binary content. Use allowed JSON fields or omit bodies for stricter scopes, and review any exported evidence before sharing.
 
 ### Separate three things
 
@@ -66,8 +69,8 @@ local originals only as long as the authorized purpose requires.
 - Ensure no original/private project data appears in filenames, metadata,
   examples, commit messages or links. Do not copy the developer's research notes.
 - The repository's original code and documentation use the MIT License. This
-  does not change the repository's private visibility or cover Ego and other
-  third-party software. No registry publishing is configured.
+  is independent of repository visibility and does not cover Ego and other
+  third-party software. This repository is public. No automatic run-data upload or registry publishing is configured.
 - Review future CI, telemetry, installation hooks and dependencies separately.
   This version installs no hook and registers no persistent service.
 

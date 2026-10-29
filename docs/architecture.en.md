@@ -1,6 +1,6 @@
 # Architecture and responsibilities (v5)
 
-The current AI session owns requirement analysis, goal design, browser exploration, evidence selection and business judgment. Ego supplies native browser operations. Local tools freeze records, validate references, retain files and render reports; they do not call models, choose routes, retry business operations or infer verdicts.
+The current AI session owns requirement analysis, goal design, browser exploration, evidence selection and business judgment. Ego supplies native browser operations. Local tools freeze records, validate references, retain files and render reports. The network component also starts a scoped native collector and provides local queries; they do not call models, choose routes, retry business operations or infer verdicts.
 
 Hosts own real workers, context, permissions and lifecycle; local tools retain assignments and reviewed deliveries without adding a host dispatcher or permission sandbox. Linked CLI identity uses real paths while run/evidence path protection stays intact. See [host guidance (Chinese)](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md).
 

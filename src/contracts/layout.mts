@@ -1,5 +1,5 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.6-rc.1';
+export const TOOL_VERSION = '0.1.6';
 export const TOOL_REVISION = 'native-network-observation-1';
 export const FORMAT_VERSIONS = { cases: 5, manifest: 5, results: 5, evidence: 5, report: 5, execution: 5, configuration: 5, workerPacket: 5, executionRead: 5 } as const;
 export const runtimeFiles = [
@@ -16,7 +16,7 @@ export const runtimeFiles = [
   'schemas/report.schema.json', 'schemas/report-context.schema.json',
   'schemas/execution-config.schema.json', 'schemas/execution-request.schema.json', 'schemas/execution.schema.json', 'schemas/worker-packet.schema.json', 'schemas/worker-draft.schema.json', 'schemas/execution-read.schema.json',
   'docs/rename-upgrade.md', 'docs/asset-formats.md', 'docs/asset-formats.en.md',
-  'docs/v0.1.6-goal-assessment-validation.md',
+  'docs/v0.1.6-goal-assessment-validation.md', 'docs/v0.1.6-release-validation.md', 'docs/v0.1.7-preview.md',
   'docs/version-history.md', 'docs/version-history.en.md', 'docs/v0.1.5-local-acceptance.md',
   'docs/images/readme-version-history.svg', 'docs/images/readme-version-history.zh-CN.svg',
   'docs/images/readme-version-history.png', 'docs/images/readme-version-history.zh-CN.png',

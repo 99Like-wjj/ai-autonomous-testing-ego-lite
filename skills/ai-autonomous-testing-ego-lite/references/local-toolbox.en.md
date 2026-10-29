@@ -1,11 +1,11 @@
-# Local toolbox guide (0.1.6-rc.1)
+# Local toolbox guide (0.1.6)
 
-The toolbox performs deterministic local data transactions, validation and report rendering. AI judgment and Ego browser actions remain outside it. Read docs/asset-formats.md from the actual complete tool root; in source, build first and use .build/runtime.
+The toolbox performs deterministic local data transactions, validation and report rendering. The network commands also start a scoped native collector through the local Ego installation. Business UI actions and judgments remain AI-driven; the collector does not issue or replay business requests. Read docs/asset-formats.md from the actual complete tool root; in source, build first and use .build/runtime.
 
-For linked installations, obtain a nonempty tool-info receipt and use its resolved toolRoot. Exit code zero alone does not prove execution. See [host conditions and handoff (Chinese)](host-compatibility.md) for host entrypoints, context and lifecycle. This integrated candidate uses v5 rather than the isolated repair branch formats.
+For linked installations, obtain a nonempty tool-info receipt and use its resolved toolRoot. Exit code zero alone does not prove execution. See [host conditions and handoff (Chinese)](host-compatibility.md) for host entrypoints, context and lifecycle. This release uses v5 rather than the isolated repair branch formats.
 
 ```text
-node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.6-rc.1 --expect-revision native-network-observation-1
+node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
 node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS_CASES
 node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN
 node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS_RUN --request ABS_EVIDENCE_REQUEST

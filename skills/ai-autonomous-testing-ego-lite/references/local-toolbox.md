@@ -1,6 +1,6 @@
-# 本地工具箱调用指南（0.1.6-rc.1）
+# 本地工具箱调用指南（0.1.6）
 
-工具只做本地数据事务与报告渲染，不联网、不调用模型或 Ego、不选择执行路线、不自动重试业务。业务四态与证据充分性由 AI 判断。完整格式以已确认工具根的 docs/asset-formats.md 和 schemas 为准。
+工具负责本地数据事务、结构校验与报告渲染；network 命令还会通过本机 Ego 启动独立 native 采集上下文并查询已授权的接口观察。工具不调用模型、不选择业务执行路线、不发起或重放业务请求、不自动重试业务。业务四态与证据充分性由 AI 判断。完整格式以已确认工具根的 docs/asset-formats.md 和 schemas 为准。
 
 ## 工具根与格式
 
@@ -9,10 +9,10 @@
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.6-rc.1 --expect-revision native-network-observation-1
+node $Tool tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
 ```
 
-核对 toolRoot、skillFile、formatVersions（统一为 5）和 installationIntegrity: verified。未知修改或混用先报告。此开发候选版不接受旧格式，不提供旧 run 读取或自动转换；历史文件保留原样。不要只改 schemaVersion，也不要为升级覆盖旧数据。
+核对 toolRoot、skillFile、formatVersions（统一为 5）和 installationIntegrity: verified。未知修改或混用先报告。本版不接受旧格式，不提供旧 run 读取或自动转换；历史文件保留原样。不要只改 schemaVersion，也不要为升级覆盖旧数据。
 
 链接安装入口先取得非空 tool-info 回执，再使用其返回的真实 toolRoot；退出码 0 不替代回执与产物。各宿主入口、上下文和生命周期条件见[跨宿主指南](host-compatibility.md)。当前整合包使用 v5，不沿用独立修复分支的旧契约。
 

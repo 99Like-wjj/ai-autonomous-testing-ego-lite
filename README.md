@@ -6,13 +6,15 @@
 
 **由当前 AI 会话分析需求、设计业务目标，通过 Ego Lite 执行并用真实证据判断结果的 Web 测试 Skill。** 面向新项目首次上线前、新功能交付和已有功能回归，可接收现成用例，也可由 AI 根据可信需求生成用例。方法由 AI 选择，目标、必要业务语义与授权边界保持不变。
 
-## 当前开发版本
+## 当前版本
 
-当前源码为 **0.1.6-rc.1 / native-network-observation-1 开发候选版**，尚不代表正式发布。已有正式版本见 [v0.1.5 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5)，其验收结果不替代本次格式改动的验证。构建与测试不会自动替换用户级 Skill、推送或创建 Tag/Release。
+当前正式版本为 **0.1.6 / native-network-observation-1**。完整安装包与校验值见 [v0.1.6 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。用户已反馈本地按一份需求试跑可用；这不代表所有业务、模型和宿主均已验收。发布收尾与已有验证分别见[验证记录](docs/testing.md)。构建与测试不会自动替换用户级 Skill。
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
 
 ## 本次改进
+
+- **按阶段使用测试经验。** 用例设计与执行经验分别提供简短入口、主题索引和具体场景，帮助 AI 核对覆盖、前提、证据和误判风险。经验由人工维护、运行时只读，AI 根据目标与授权选择方法。
 
 - **业务目标可分别判断。** case 保留相关流程，goals 保存有来源的独立预期；步骤、条件、必经路径是必要语义，不按点击次数扩充目标数。
 - **串并行统一入账。** 串行 record 和协调者复核后的 worker import 写同一 observations/assessments/entries，串行无需虚构分派或封包才能生成目标报告。
@@ -42,7 +44,7 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.6-rc.1 --expect-revision native-network-observation-1
+node $Tool tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：
@@ -84,7 +86,18 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 | Ego 浏览器 | 提供当前安装版本支持的浏览器原语 |
 | 本地工具 | 冻结与入账、引用/revision/文件校验、幂等数据事务、同源报告 |
 
-工具不调用模型或浏览器，不自动判 bug、选择路线或重试业务。Space 不保证账号或后端数据隔离；单文件更新不承诺通用多文件事务或断电持久性。证据登记不自动脱敏，真实账号、凭据、站点和截图放在私有工作区，不自动上传报告。详见[隐私指南](docs/privacy.md)。
+工具不调用模型，不自动判 bug、选择业务路线或重试业务。接口观测命令会启动独立 Ego native 采集上下文，仅在授权范围内观察；业务 UI 操作仍由 AI 通过 Ego 执行。Space 不保证账号或后端数据隔离；单文件更新不承诺通用多文件事务或断电持久性。证据登记不自动脱敏，真实账号、凭据、站点和截图放在私有工作区，不自动上传报告。详见[隐私指南](docs/privacy.md)。
+
+## v0.1.7 版本前瞻（计划中）
+
+下一版聚焦 **测试效果、评测标准和报告可读性**，不把规划写成已实现能力：
+
+1. **测试效果优化：** 结合实际试跑与复盘，改进需求分析、用例覆盖、经验引用、执行观察和异常恢复；减少漏测、误判与缺乏证据的结论，保留 AI 自主选择方法。
+2. **评测标准完善：** 建立可复核的代表性场景与判断依据，分别评估需求覆盖、结论准确性、证据充分性、授权遵守及完成成本；区分工程测试通过和 AI 测试效果，不只统计通过率。
+3. **测试报告优化：** 优化摘要、目标结果、缺陷、关键步骤截图与接口证据的关联展示；突出未测试、无法判断和证据缺口，保持 HTML、JSON、Markdown 的结论与统计一致。
+4. **文档同步：** 随已验收能力更新 README、使用示例、评测说明和报告示例，明确适用条件与已知限制。
+
+详细范围及验收方向见 [v0.1.7 版本前瞻](docs/v0.1.7-preview.md)。具体实现、阈值和排期仍待设计与审核；本轮不发布 v0.1.7。
 
 ## 继续阅读
 

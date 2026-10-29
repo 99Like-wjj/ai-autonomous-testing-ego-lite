@@ -1,6 +1,6 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.6-rc.1",
+  "version": "0.1.6",
   "egoLiteTest": {
     "toolRevision": "native-network-observation-1",
     "formatVersions": {

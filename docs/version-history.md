@@ -6,6 +6,12 @@
 
 ![版本演变：v0.1.2 业务步骤与验收澄清；v0.1.3 图文证据交付；v0.1.4 可配置并发；v0.1.5 补强资源主动澄清。图为能力示意，非测试截图。](images/version-history.zh-CN.png)
 
+## v0.1.6 · 经验指南、目标评估与接口观测
+
+2026-10-29：[完整安装包与发布说明](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。分离设计/执行经验，统一 v5 目标评估与报告，新增独立接口观测和跨宿主交接约定。旧格式拒绝读取、不自动转换，历史数据保持。验证边界见 [发布验证](v0.1.6-release-validation.md)。上图保留 v0.1.2–v0.1.5 历史示意，不表示当前最新版。
+
+下一版本方向见 [v0.1.7 前瞻](v0.1.7-preview.md)（计划中）。
+
 ## v0.1.5 · 资源不足时主动澄清
 
 **正式版本：2026-10-25。** [Release、安装包与校验值](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.5)。已完成限定场景专项验收。 当前源码包含以下规范与文档；专项结果不代表所有模型和业务场景均已验证。
