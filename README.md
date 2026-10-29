@@ -12,6 +12,12 @@
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
 
+## 版本演变
+
+![最近四版：v0.1.3、v0.1.4、v0.1.5、v0.1.6，均为正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
+
+README 仅展示最新正式版本与前三个历史版本；更早版本继续保留在[完整版本演变](docs/version-history.md)中。v0.1.7 为计划，不计入已发布四版。
+
 ## 本次改进
 
 - **按阶段使用测试经验。** 用例设计与执行经验分别提供简短入口、主题索引和具体场景，帮助 AI 核对覆盖、前提、证据和误判风险。经验由人工维护、运行时只读，AI 根据目标与授权选择方法。
@@ -26,6 +32,8 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 
 ## 用例与证据
 
+![AI 按业务目标自主选择方法，逐目标说明四态与证据。](docs/images/workflow.zh-CN.png)
+
 冻结前，AI 核对每个 goal 的来源、前提、动作和观察方式；不同身份或数据依赖可分别表达，必要连续流程仍保留。验收歧义放在目标 clarificationQuestions，实际资源或授权缺口通过真实问答解决；用户明确暂缓的目标继续保留。不能在执行结束时临时扩大已有目标的验收范围。
 
 工具操作成功不代表业务结果成功。关键 UI 结果与缺陷必须有真实页面截图，AI 自主选择取证时机，DOM/日志/动作回执补充截图。下载、拖动、上下文和提交异常可按需查有区分力的观察，具体 Ego 能力仍须以当次安装版本和实际验证为据；能力名称或一次超时不能证明浏览器缺陷。
@@ -33,6 +41,8 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 默认交付独立 HTML、JSON、Markdown。报告显示目标预期、观察、证据、缺口、根因确认程度和历史；三种格式共享统计。缺图与文件完整性单独展示，哈希一致不证明业务判断正确。文件校验与实际浏览器打开分别验证。
 
 接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，v5 结果契约保持。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
+
+![报告内容示意：预期、观察、证据与未覆盖范围；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
 
 ## Windows 快速开始
 
@@ -80,6 +90,10 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 
 ## 责任与限制
 
+![职责分工：AI 理解与判断，Ego 操作浏览器，工具箱登记证据与生成报告。](docs/images/architecture.zh-CN.png)
+
+图示为职责概览；v0.1.6 另有按授权启用的独立 native 接口采集组件，具体边界见下文。
+
 | 部分 | 负责 |
 | --- | --- |
 | 当前 AI | 理解目标、选择测试与观察、操作获授权浏览器、审阅业务结论 |
@@ -100,6 +114,9 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 详细范围及验收方向见 [v0.1.7 版本前瞻](docs/v0.1.7-preview.md)。具体实现、阈值和排期仍待设计与审核；本轮不发布 v0.1.7。
 
 ## 继续阅读
+
+- [完整版本演变](docs/version-history.md)、[历史需求与调研](docs/requirements.md)、[v0.1.5 更名历史与升级说明](docs/rename-upgrade.md)
+- [用例设计经验入口](skills/ai-autonomous-testing-ego-lite/references/case-design-guide.md)、[执行经验入口](skills/ai-autonomous-testing-ego-lite/references/experience-guide.md)、[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)
 
 - [Skill](skills/ai-autonomous-testing-ego-lite/SKILL.md)、[用例生成](skills/ai-autonomous-testing-ego-lite/references/case-authoring.md)、[判断与归因](skills/ai-autonomous-testing-ego-lite/references/judgment-and-diagnosis.md)
 - [架构](docs/architecture.md)、[格式](docs/asset-formats.md)、[验证状态](docs/testing.md)、[更新记录](CHANGELOG.md)
@@ -122,6 +139,8 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 本仓库原创代码和文档按 [MIT License](LICENSE) 授权，版权声明为 2026 99Like-wjj。此许可不覆盖 Ego、Ego 官方浏览器或其他第三方软件；它们仍受各自许可和官方条款约束。本项目非 Ego 官方项目，未获其背书。源码按 MIT 许可开放；项目仍在持续开发，具体版本能力与验证范围以对应版本说明为准。
 
 ## 并发配置与开发
+
+![独立用例 worker 留证封包，协调者复核后汇总；默认串行，显式配置后安排并发。](docs/images/parallel.zh-CN.svg)
 
 已整合跨宿主修复提交 8e6e2d9，当前保留 v5 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
 

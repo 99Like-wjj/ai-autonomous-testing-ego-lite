@@ -36,7 +36,7 @@ export async function generateImages(outputDir: string) {
     const t = (en: string, cn: string): string => zh ? cn : en;
     let p = start(t("AI Autonomous Testing · Ego Lite", "AI 自主自动化测试 · Ego Lite"), 540);
     p.push(...[text(54, 64, t("AI AUTONOMOUS TESTING / EGO LITE", "AI 自主自动化测试 / EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test new features.", "新功能首次交付，"), 48, "text", 700), text(54, 198, t("Let AI plan the checks.", "让 AI 自主规划测试。"), 48, "text", 700), text(56, 246, t("New web projects and feature launches. Rules, actions, and evidence.", "面向新项目上线前、新功能交付时的 Web 业务验证"), 20, "muted")]);
-    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW", "03  核验与交付"), 16, "cyan", 700), text(835, 370, t("Evidence + verdict", "证据与结论"), 23), text(835, 403, t("Show gaps and evidence", "说明证据与未验证项"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.5  /  SCOPED CHECKS VERIFIED", "版本 0.1.5  /  限定场景专项已验证"), 16, "muted")]);
+    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW", "03  核验与交付"), 16, "cyan", 700), text(835, 370, t("Evidence + verdict", "证据与结论"), 23), text(835, 403, t("Show gaps and evidence", "说明证据与未验证项"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.6  /  RELEASED · SEE VALIDATION SCOPE", "版本 0.1.6  /  正式版，验证范围见文档"), 16, "muted")]);
     await save(outputDir, ("hero" + suffix), p, png);
     p = start(t("Who owns what?", "谁负责什么？"), 650);
     p.push(...[text(50, 65, t("AI decides. Ego operates. Tools keep records.", "AI 做判断，Ego 做操作，工具管记录。"), 35, "text", 700), text(50, 103, t("Use the current AI session and Ego. No extra model API service.", "复用当前 AI 会话和 Ego 浏览器，不另建模型 API 服务。"), 20, "muted")]);
@@ -49,7 +49,7 @@ export async function generateImages(outputDir: string) {
     await save(outputDir, ("architecture" + suffix), p, png);
     p = start(t("Adaptive test workflow", "自适应测试流程"), 780);
     p.push(...[text(50, 65, t("Stable goals. Flexible execution.", "目标和规则不变，操作方法灵活调整。"), 34, "text", 700), text(50, 103, t("Two input sources. One case format. New features and regression.", "两种用例来源，一套格式；共同用于新功能与回归验证。"), 20, "muted")]);
-    p.push(...[rect(50, 130, 535, 84), text(70, 162, t("External cases → validate format", "接收已有用例 → 校验格式"), 21, "cyan", 700), text(70, 193, t("Business steps + overall acceptance", "业务步骤 + 整体验收目标"), 17, "muted"), rect(615, 130, 535, 84), text(635, 162, t("AI drafts cases → validate format", "AI 根据需求生成用例 → 校验格式"), 21, "violet", 700), text(635, 193, t("Business steps, not invented buttons", "描述业务步骤，不编造按钮和页面细节"), 17, "muted"), "<g transform=\"translate(0 120)\">"]);
+    p.push(...[rect(50, 130, 535, 84), text(70, 162, t("External cases → validate format", "接收已有用例 → 校验格式"), 21, "cyan", 700), text(70, 193, t("Business steps + source-backed goals", "业务步骤 + 有依据的独立目标"), 17, "muted"), rect(615, 130, 535, 84), text(635, 162, t("AI drafts cases → validate format", "AI 根据需求生成用例 → 校验格式"), 21, "violet", 700), text(635, 193, t("Business steps, not invented buttons", "描述业务步骤，不编造按钮和页面细节"), 17, "muted"), "<g transform=\"translate(0 120)\">"]);
     const heads = [t("Observe", "观察"), t("Decide", "判断"), t("Act", "行动"), t("Verify", "验证")];
     const subs = [t("Read current state", "读取当前状态"), t("Choose next step", "选择下一步"), t("Use native Ego", "使用 Ego 原生操作"), t("Compare with criteria", "对照验收条件")];
     for (let i = 0; i < 4; i++) {
@@ -60,7 +60,7 @@ export async function generateImages(outputDir: string) {
       }
     }
     p.push(...["<path d=\"M1027,324 V368 H173 V324\" fill=\"none\" stroke=\"#ae91ff\" stroke-width=\"2\"/>", text(345, 400, t("AI may gather more evidence or report uncertainty.", "证据不足时，由 AI 决定补充验证或说明无法判断。"), 21, "violet")]);
-    p.push(...[rect(50, 443, 1100, 172), text(78, 484, t("Account for every test goal", "每个测试目标，都要有交代"), 24, "cyan", 700), text(78, 524, t("Report passed, failed, blocked, uncertain, and untested items separately.", "分别说明通过、失败、执行受阻、无法判断和未测试的内容。"), 20), text(78, 558, t("Clarify missing accounts, data or permission; independent goals may continue.", "缺少账号、数据或授权，主动澄清；独立目标可继续。"), 18, "muted"), text(78, 590, t("Verify supplied resources before resuming; keep acceptance questions separate.", "补充后核验再恢复；验收和资源问题分别处理。"), 18, "muted")]);
+    p.push(...[rect(50, 443, 1100, 172), text(78, 484, t("Account for every test goal", "每个测试目标，都要有交代"), 24, "cyan", 700), text(78, 524, t("Separate verified, violation, inconclusive and not tested.", "分别说明已验证、发现违反、无法判断和未测试。"), 20), text(78, 558, t("Clarify missing accounts, data or permission; independent goals may continue.", "缺少账号、数据或授权，主动澄清；独立目标可继续。"), 18, "muted"), text(78, 590, t("Verify supplied resources before resuming; keep acceptance questions separate.", "补充后核验再恢复；验收和资源问题分别处理。"), 18, "muted")]);
     p.push(...["</g>"]);
     await save(outputDir, ("workflow" + suffix), p, png);
     p = start(t("Illustrative evidence specimen, not a real run", "证据展示示意，非真实运行结果"), 620);
@@ -117,7 +117,7 @@ export async function generateImages(outputDir: string) {
       { version: 'v0.1.3', state: t('RELEASED', '正式版'), title: t('Evidence-rich delivery', '证据与报告完整交付') },
       { version: 'v0.1.4', state: t('RELEASED', '正式版'), title: t('Configurable concurrency', '可配置并发与协调复核') },
       { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
-      { version: 'v0.1.6', state: t('IN DEVELOPMENT', '开发中，未发布'), title: t('Scoped testing experience', '分阶段测试经验与短索引') }
+      { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') }
     ]);
     p = start(t('Latest four versions — README overview', '最近四个版本 — README 概览'), 650, 840);
     p.push(text(48, 65, t('Latest + three previous versions', '最新版本与前三个历史版本'), 32, 'text', 700));
