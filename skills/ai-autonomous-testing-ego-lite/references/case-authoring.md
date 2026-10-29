@@ -1,4 +1,4 @@
-# 用例接收与生成（schemaVersion 5）
+# 用例接收与生成（schemaVersion 6）
 
 ## 目标是判断单位
 
@@ -10,7 +10,7 @@
 
 ## 从来源到可执行目标
 
-接收外部资料时保留原文件、原文依据、关键输入、顺序和授权；规范表达不等于获准改预期。旧 JSON 不能直接输入新版工具，从原始来源重新整理为 v5 新文件，不覆盖历史或只改版本号。
+接收外部资料时保留原文件、原文依据、关键输入、顺序和授权；规范表达不等于获准改预期。旧 JSON 不能直接输入新版工具，从原始来源重新整理为 v6 新文件，不覆盖历史或只改版本号。
 
 AI 从可信需求和用户范围定位每个验收目标，标明 basis.kind：explicit 为明确要求，interpretation 为有来源的待确认解释，hypothesis 为探索假设。当前 UI 和模型信心不能充当需求依据。明确的“本期不做”不进入本期执行。
 
@@ -26,9 +26,9 @@ AI 从可信需求和用户范围定位每个验收目标，标明 basis.kind：
 
 实际资源和操作授权按[资源指南](resource-readiness.md)核验，未决验收规则才使用目标的 clarificationQuestions。资源不足不改变原规则；用户暂缓的目标保留为未测试，并解释原因。
 
-## v5 字段
+## v6 字段
 
-根对象为 schemaVersion: 5、非空 project、非空 cases。每个 case 包含：
+根对象为 schemaVersion: 6、非空 project、非空 cases。每个 case 包含：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -39,7 +39,7 @@ AI 从可信需求和用户范围定位每个验收目标，标明 basis.kind：
 | steps | 非空有序数组，每步 id、action；表达业务意图与必要输入，不编造选择器 |
 | goals | 非空业务目标数组，ID 在本用例中唯一 |
 
-每个 goal 包含 id、basis（kind/source/text）、非空 expected、requiredRefs；可选 clarificationQuestions 和 followUpOf。requiredRefs 使用 step:步骤ID、condition:从0开始的索引，以及有值时的 requiredPath。步骤、前提和路径是必须履行的语义，不分别填写四态，也不机械计为目标数量。
+每个 goal 包含 id、title（业务标题）、basis（kind/source/text）、非空 expected、requiredRefs；可选 clarificationQuestions 和 followUpOf。requiredRefs 使用 step:步骤ID、condition:从0开始的索引，以及有值时的 requiredPath。步骤、前提和路径是必须履行的语义，不分别填写四态，也不机械计为目标数量。
 
 clarificationQuestions 非空的目标，在 final 和 attempt 中都不得给出 verified 或 violation；其他不依赖该歧义的目标可分别判断。澄清后新建修订基线，通过 followUpOf:{runId,caseId,goalId,reason} 关联原目标；保持原观察与旧口径，不在旧基线清空问题。
 
@@ -47,25 +47,49 @@ clarificationQuestions 非空的目标，在 final 和 attempt 中都不得给�
 
 ```json
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "project": "synthetic-config",
-  "cases": [{
-    "id": "CONFIG-01",
-    "title": "创建模板并读取保存结果",
-    "criticalConditions": ["实际身份已核验且允许创建", "获授权的独立合成数据环境"],
-    "requiredPath": "通过配置中心的模板功能创建",
-    "stepOrder": "strict",
-    "steps": [
-      {"id":"create","action":"新建名称为演示模板A、字段为演示字段甲的模板"},
-      {"id":"readback","action":"重新读取同一模板并核对名称与字段"}
-    ],
-    "goals": [{
-      "id":"saved-content",
-      "basis":{"kind":"explicit","source":"合成需求 CONFIG-01","text":"保存后重新读取仍保持模板名称与字段。"},
-      "expected":"重新读取的模板名称为演示模板A，包含演示字段甲。",
-      "requiredRefs":["condition:0","condition:1","requiredPath","step:create","step:readback"]
-    }]
-  }]
+  "cases": [
+    {
+      "id": "CONFIG-01",
+      "title": "创建模板并读取保存结果",
+      "criticalConditions": [
+        "实际身份已核验且允许创建",
+        "获授权的独立合成数据环境"
+      ],
+      "requiredPath": "通过配置中心的模板功能创建",
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "create",
+          "action": "新建名称为演示模板A、字段为演示字段甲的模板"
+        },
+        {
+          "id": "readback",
+          "action": "重新读取同一模板并核对名称与字段"
+        }
+      ],
+      "goals": [
+        {
+          "id": "saved-content",
+          "basis": {
+            "kind": "explicit",
+            "source": "合成需求 CONFIG-01",
+            "text": "保存后重新读取仍保持模板名称与字段。"
+          },
+          "expected": "重新读取的模板名称为演示模板A，包含演示字段甲。",
+          "requiredRefs": [
+            "condition:0",
+            "condition:1",
+            "requiredPath",
+            "step:create",
+            "step:readback"
+          ],
+          "title": "重新读取的模板名称为演示模板A，包含演示字段甲。"
+        }
+      ]
+    }
+  ]
 }
 ```
 

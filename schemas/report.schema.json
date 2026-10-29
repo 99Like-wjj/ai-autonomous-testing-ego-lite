@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "report.schema.json",
-  "title": "Ego Lite generated report v5",
+  "title": "Ego Lite generated report v6",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 6
     },
     "runId": {
       "type": "string",
@@ -67,6 +67,11 @@
         "hashVerifiedItems": {
           "type": "integer",
           "minimum": 0
+        },
+        "missingScreenshotIds": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/safeId" },
+          "uniqueItems": true
         }
       },
       "additionalProperties": false

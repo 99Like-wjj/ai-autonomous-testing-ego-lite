@@ -1,18 +1,18 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.6",
+  "version": "0.1.7-rc.1",
   "egoLiteTest": {
-    "toolRevision": "native-network-observation-1",
+    "toolRevision": "report-usability-1",
     "formatVersions": {
-      "cases": 5,
-      "manifest": 5,
-      "results": 5,
-      "evidence": 5,
-      "report": 5,
-      "execution": 5,
-      "configuration": 5,
-      "workerPacket": 5,
-      "executionRead": 5
+      "cases": 6,
+      "manifest": 6,
+      "results": 6,
+      "evidence": 6,
+      "report": 6,
+      "execution": 6,
+      "configuration": 6,
+      "workerPacket": 6,
+      "executionRead": 6
     },
     "networkFormatVersion": 1
   },

@@ -18,6 +18,22 @@ final 按 goal 增量更新当前评估，attempt 仅留历史。entries 保留�
 
 evidence-add 保存普通文件副本并校验 hash/字节数；source、description 保留来源。capturedAt 仅在真实来源提供时填写，未知则省略。collectedAt/recordedAt 是登记时间，不是执行或采集时间。哈希一致只证明留存字节一致，不认证真实性或业务正确性。
 
+### 用v6保存可供复核的事实
+
+为相关操作提供可复用的 `record.contexts`：environment、actor、object、initialState、authorization 分别用 `state:known/unknown/not_applicable`、value或reason以及sourceEvidenceIds表达。身份/对象变化时另建context；资料型目标不强迫填写不存在的UI上下文。不能根据冻结计划推断实际身份已核实。
+
+观察可引用contextId，并用actions保存真正做过的关键操作、输入、读回和可选occurredAt；planRefs仅说明与计划的关系。一个动作不等于一个业务目标，也不要求逐鼠标事件录像。evidenceLinks说明每份证据支持什么事实、对应哪一步及其局限。首次异常先保留；后续补证、复测、整理另记来源，不覆盖首次现场。
+
+对多个不同现象使用assessment.phenomena分别列实际事实和观察/证据引用；reproduction保存准备条件、对象现状、重复验证情况及限制。未知重复次数就写未知，不能从final条数推算复测次数。gapDetails说明缺什么、影响什么、后续需要什么；工具不据缺口类型自动更换四态。revisionReason/previousOperationId可说明同目标的评估修订。
+
+finding只是带理由的观察主题关系，scope区分原范围与额外发现，reviewState说明是否审核。不能按标题相似自动归并为同根因，不能把违反目标数当独立bug数。额外发现不掩盖原目标未完成。
+
+### 采集范围与正文
+
+登记时metadata可说明scope、page、object、purpose、limitations及contextEvidenceIds。关键局部图不足以识别现场时，关联足够的上下文图或已记录上下文；否定结论须说明检查区域、加载和筛选状态。工具读取的像素尺寸只是客观信息，不自动判断截图充分性。
+
+正文用metadata.contentState区分full、selected_fields、summary、truncated、excluded、failed、unknown，并记录redaction/omissionReason。源文件确实存在但未放入HTML，与现场根本没记录，是两种缺口。来源只有脱敏检查摘要就如实标summary；不能称完整HTTP响应。登记前完成获准的脱敏，工具不自动获得读取凭证或扩大采集范围的授权。
+
 ## 四态与记录完整性
 
 报告默认按业务目标统计已验证、发现违反、无法判断、未测试。父场景展示分布，不把每个步骤、条件和路径算作业务目标。缺少 assessment 单列“缺少目标评估记录”，unassessed 属于记录完整性计数；不能从缺记录推出无法判断、未测试或已验证。
@@ -36,7 +52,9 @@ followUpOf 说明新目标延续哪个 run/case/goal 及原因。它帮助读者
 
 默认交付独立 report.html、report.json、report.md，聊天摘要不替代文件。先按[工具箱指南](local-toolbox.md)核对实际根与版本。工具不可用则保留事实并说明交付阻塞，不能静默降级后宣称完成。
 
-report 对冻结记录、引用及留存证据 hash/字节数核验后生成三个文件，任何目标文件存在都拒绝覆盖。HTML 只安全内嵌登记且核验的 PNG/JPEG/WebP；未知格式或解码失败明确提示，不生成替代图。
+report 对冻结记录、引用及留存证据 hash/字节数核验后生成三个文件，任何目标文件存在都拒绝覆盖。HTML安全内嵌核验的PNG/JPEG/WebP以及可交付文本正文；主动内容只作文本展示。未知格式、缺失和解码失败分别提示，不生成替代图。正文超过内嵌预算时显示范围与缺口，完整交付可显式选择bundle附件模式；把整个交付目录交给获准读者，不能只发送HTML而漏掉附件。
+
+人工主要阅读HTML：保留场景总览及场景→目标层级，在目标中核对预期、实际、上下文、操作及证据。右上角背景按钮提供八主题，颜色只是阅读偏好，不能改变目标、状态、证据原图。历史/未引用证据的可查看性不表示它自动支持当前评估。
 
 生成后 verify-report 读回三种文件，与当前运行及证据核对。运行后续变化时旧报告不再匹配，应另存新报告而非覆盖。回执中的 browserOpen:not_checked 不代表实际打开；需要通过 Ego 实际打开并检查后才可声明已验证打开。最终提供三种文件绝对路径、未覆盖范围、证据与记录缺口。
 
@@ -44,6 +62,6 @@ report 对冻结记录、引用及留存证据 hash/字节数核验后生成三�
 
 ## 格式变化与事后整理
 
-新版只接受统一 schemaVersion 5，不读取/转换旧 run。历史资料、报告、截图原样保留。需要基于旧来源重新整理时另建 v5 文件，明确为事后复核，标明来源与限制，不冒称执行前冻结，也不据旧摘要补造动作、时间或截图。新工具不能校验旧运行，不声称旧文件因新版构建而已验证。
+新版只接受统一 schemaVersion 6，不读取/转换旧 run。历史资料、报告、截图原样保留。需要基于旧来源重新整理时另建 v6 文件，明确为事后复核，标明来源与限制，不冒称执行前冻结，也不据旧摘要补造动作、时间或截图。新工具不能校验旧运行，不声称旧文件因新版构建而已验证。
 
 真实材料均留仓库外。工具不自动脱敏或上传；避免登记密码、token、Cookie、签名下载地址及无关业务数据。资源笔记、经验查阅、文件校验不能代替测试证据。

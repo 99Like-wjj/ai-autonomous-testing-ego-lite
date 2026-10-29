@@ -1,5 +1,9 @@
 # Validation record and coverage limits
 
+## v0.1.7 report candidate
+
+The v6 facts, evidence delivery, scene-first report and eight themes in 0.1.7-rc.1 / report-usability-1 are tracked in the [current candidate validation](v0.1.7-validation.md). The v0.1.6 results below remain historical and do not validate this candidate.
+
 ## v0.1.6 release validation (2026-10-29)
 
 See the [release validation record (Chinese)](v0.1.6-release-validation.md) for the cloud checks and the maintainer’s scoped local trial. Candidate results below remain historical.

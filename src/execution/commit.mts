@@ -5,11 +5,11 @@ import type { Case } from '../contracts/model.mjs';
 import type { ExecutionLedger, ExecutionRequest, ImportState, Receipt, Operation } from '../contracts/execution-model.mjs';
 import { assignmentId } from '../contracts/ids.mjs';
 import { canonicalHash, fail, hash, inside, now, readJSON, safePath } from '../core/common.mjs';
-import { parseCatalog, parseResults } from '../core/validation.mjs';
+import { parseCatalog, parseResults, mapPayloadEvidence } from '../core/validation.mjs';
 import { registerEvidenceUnlocked, recordResultUnlocked, evidenceOperationReceipt } from '../core/records.mjs';
 import { assignment, checkpoint } from './ledger.mjs';
 import { referencePath } from '../core/file-integrity.mjs';
-import { parsePacket } from './parse.mjs';
+import { parsePacket, orderedEvidence } from './parse.mjs';
 import { validateAssessment, verifyPacketFiles } from './packets.mjs';
 export interface ImportHooks { afterEvidenceCommit?: () => Promise<void>; afterResultCommit?: () => Promise<void>; afterPreparation?: () => Promise<void>; beforeResultCommit?: () => Promise<void> }
 
@@ -50,7 +50,10 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
     if (hooks.afterPreparation) await hooks.afterPreparation();
   }
   const prefix = 'imp-' + canonicalHash({ runId: ledger.runId, operationId: request.operationId }).slice(0, 32);
-  for (const [i, item] of packet.evidence.entries()) {
+  const evidenceId = (key: string): string => { const receipt = journal.evidenceJobs.find(job => job.key === key)?.receipt; if (!receipt) fail('Evidence has not committed: ' + key); return receipt.evidenceId; };
+  for (const item of orderedEvidence(packet.evidence)) {
+    const i = packet.evidence.indexOf(item);
+    const metadata = item.metadata ? { ...item.metadata, ...(item.metadata.contextEvidenceIds ? { contextEvidenceIds: item.metadata.contextEvidenceIds.map(evidenceId) } : {}) } : undefined;
     const job = journal.evidenceJobs.find(job => job.key === item.key); if (!job) fail('Missing evidence import job.');
     const sourceFile = path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/'));
     if (job.receipt) {
@@ -59,25 +62,21 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
     }
     if (!job.request) {
       const catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-      job.request = { schemaVersion: 5, operationId: prefix + '-ev-' + i, expectedRevision: catalog.revision, caseId: a.caseId, sourceFile: path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/')), kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }) };
+      job.request = { schemaVersion: 6, operationId: prefix + '-ev-' + i, expectedRevision: catalog.revision, caseId: a.caseId, sourceFile: path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/')), kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata ? { metadata } : {}) };
       journal.phase = 'evidence'; await checkpoint(root, ledger, { operationId: request.operationId, kind: 'evidence-prepared', reason: request.reason, assignmentId: a.id });
     }
-    const expectedEvidence = { schemaVersion: 5, operationId: prefix + '-ev-' + i, expectedRevision: job.request.expectedRevision, caseId: a.caseId, sourceFile, kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }) };
+    const expectedEvidence = { schemaVersion: 6, operationId: prefix + '-ev-' + i, expectedRevision: job.request.expectedRevision, caseId: a.caseId, sourceFile, kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata ? { metadata } : {}) };
     if (canonicalHash(job.request) !== canonicalHash(expectedEvidence)) fail('Prepared evidence request changed.');
     job.receipt = await registerEvidenceUnlocked(root, job.request, hooks.afterEvidenceCommit ? { afterCommit: hooks.afterEvidenceCommit } : {});
     await checkpoint(root, ledger, { operationId: request.operationId, kind: 'evidence-committed', reason: request.reason, assignmentId: a.id });
   }
-  const evidenceId = (key: string): string => { const receipt = journal.evidenceJobs.find(job => job.key === key)?.receipt; if (!receipt) fail('Evidence has not committed: ' + key); return receipt.evidenceId; };
-  const mappedRecord = {
-    observations: record.observations.map(o => ({ ...o, evidenceIds: o.evidenceIds.map(evidenceId) })),
-    assessments: record.assessments.map(g => ({ ...g, ...(g.diagnosis ? { diagnosis: { ...g.diagnosis, evidenceIds: g.diagnosis.evidenceIds.map(evidenceId) } } : {}) }))
-  };
+  const mappedRecord = mapPayloadEvidence(record, evidenceId);
   if (!journal.resultRequest) {
     const results = parseResults(await readJSON(path.join(root, 'results.json')));
-    journal.resultRequest = { schemaVersion: 5, operationId: prefix + '-result', expectedRevision: results.revision, caseId: a.caseId, mode, record: mappedRecord };
+    journal.resultRequest = { schemaVersion: 6, operationId: prefix + '-result', expectedRevision: results.revision, caseId: a.caseId, mode, record: mappedRecord };
     journal.phase = 'result'; await checkpoint(root, ledger, { operationId: request.operationId, kind: 'result-prepared', reason: request.reason, assignmentId: a.id });
   }
-  const expectedResult = { schemaVersion: 5, operationId: prefix + '-result', expectedRevision: journal.resultRequest.expectedRevision, caseId: a.caseId, mode, record: mappedRecord };
+  const expectedResult = { schemaVersion: 6, operationId: prefix + '-result', expectedRevision: journal.resultRequest.expectedRevision, caseId: a.caseId, mode, record: mappedRecord };
   if (canonicalHash(journal.resultRequest) !== canonicalHash(expectedResult)) fail('Prepared result association or payload changed.');
   if (hooks.beforeResultCommit) await hooks.beforeResultCommit();
   journal.resultReceipt = await recordResultUnlocked(root, journal.resultRequest, hooks.afterResultCommit ? { afterCommit: hooks.afterResultCommit } : {});

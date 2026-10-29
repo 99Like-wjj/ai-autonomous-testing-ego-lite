@@ -15,7 +15,7 @@ export function newSafeCases(baseline: Baseline) {
   }
 }
 export function normalizeCases(input: unknown): Baseline {
-  if (!object(input) || Object.keys(input).some(k => !['schemaVersion', 'project', 'cases'].includes(k)) || input.schemaVersion !== 5 || !nonempty(input.project) || !Array.isArray(input.cases) || !input.cases.length) fail('Cases require schemaVersion 5, project, and a nonempty cases array. Older files are not migrated.');
+  if (!object(input) || Object.keys(input).some(k => !['schemaVersion', 'project', 'cases'].includes(k)) || input.schemaVersion !== 6 || !nonempty(input.project) || !Array.isArray(input.cases) || !input.cases.length) fail('Cases require schemaVersion 6, project, and a nonempty cases array. Older files are not migrated.');
   const ids = new Set<string>();
   const cases: Case[] = arrayValue(input.cases, 'cases').map(c => {
     assertClosed(c, ['id', 'title', 'criticalConditions', 'requiredPath', 'stepOrder', 'steps', 'goals'], 'case');
@@ -35,7 +35,7 @@ export function normalizeCases(input: unknown): Baseline {
       stepOrder: oneOf(c.stepOrder, ['strict', 'adaptive'], 'stepOrder'), steps };
     const refs = requiredRefs(plan), usedRefs = new Set<string>(), goalIds = new Set<string>();
     const goals: Goal[] = arrayValue(c.goals, 'goals').map(g => {
-      assertClosed(g, ['id', 'basis', 'expected', 'requiredRefs', 'clarificationQuestions', 'followUpOf'], 'goal');
+      assertClosed(g, ['id', 'title', 'basis', 'expected', 'requiredRefs', 'clarificationQuestions', 'followUpOf'], 'goal');
       const goalId = safeIdentifier(g.id, 'goal id');
       if (goalIds.has(goalId)) fail('Duplicate goal id: ' + id + '/' + goalId); goalIds.add(goalId);
       const required = strings(g.requiredRefs, 'requiredRefs');
@@ -46,7 +46,7 @@ export function normalizeCases(input: unknown): Baseline {
         assertClosed(g.followUpOf, ['runId', 'caseId', 'goalId', 'reason'], 'follow-up source');
         followUpOf = { runId: textValue(g.followUpOf.runId, 'follow-up run ID'), caseId: safeIdentifier(g.followUpOf.caseId), goalId: safeIdentifier(g.followUpOf.goalId), reason: textValue(g.followUpOf.reason, 'follow-up reason') };
       }
-      return { id: goalId, basis: parseBasis(g.basis), expected: textValue(g.expected, 'expected'), requiredRefs: required,
+      return { id: goalId, title: textValue(g.title, 'goal title'), basis: parseBasis(g.basis), expected: textValue(g.expected, 'expected'), requiredRefs: required,
         ...(Object.hasOwn(g, 'clarificationQuestions') ? { clarificationQuestions: strings(g.clarificationQuestions, 'clarificationQuestions') } : {}),
         ...(followUpOf ? { followUpOf } : {}) };
     });
@@ -54,7 +54,14 @@ export function normalizeCases(input: unknown): Baseline {
     if (refs.some(ref => !usedRefs.has(ref))) fail('Necessary plan reference is not linked to any goal: ' + refs.filter(ref => !usedRefs.has(ref)).join(', '));
     return { ...plan, goals };
   });
-  return { schemaVersion: 5, project: input.project, cases };
+  for (const c of cases) for (const goal of c.goals) {
+    const ref = goal.followUpOf;
+    if (ref?.runId === 'self') {
+      if (ref.caseId === c.id && ref.goalId === goal.id) fail('A follow-up goal cannot reference itself.');
+      if (!cases.some(source => source.id === ref.caseId && source.goals.some(g => g.id === ref.goalId))) fail('Unknown same-run follow-up goal: ' + ref.caseId + '/' + ref.goalId);
+    }
+  }
+  return { schemaVersion: 6, project: input.project, cases };
 }
 export async function readAndValidateBaseline(root: string, manifest: Manifest) {
   const bytes = await fs.readFile(await regularFilePath(path.join(root, 'baseline.json')));

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "report-context.schema.json",
-  "title": "Retrospective report context v5, no business execution",
+  "title": "Retrospective report context v6, no business execution",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -13,7 +13,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 6
     },
     "kind": {
       "const": "retrospective"

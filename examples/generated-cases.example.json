@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "project": "synthetic-archive-feature",
   "cases": [
     {
@@ -42,7 +42,8 @@
             "requiredPath",
             "step:archive",
             "step:refresh"
-          ]
+          ],
+          "title": "归档后状态为已归档，刷新同一条目详情仍保持。"
         },
         {
           "id": "active-list-exclusion",
@@ -60,7 +61,8 @@
             "step:archive",
             "step:refresh",
             "step:list"
-          ]
+          ],
+          "title": "默认有效书签列表不显示已归档的目标书签。"
         }
       ]
     },
@@ -92,7 +94,8 @@
             "condition:0",
             "condition:1",
             "step:inspect"
-          ]
+          ],
+          "title": "详情可查看但无可用归档入口，不推断后端 API 权限正确。"
         }
       ]
     },
@@ -124,7 +127,8 @@
             "condition:0",
             "condition:1",
             "step:inspect"
-          ]
+          ],
+          "title": "显示已归档且无可用归档入口；不添加恢复操作。"
         }
       ]
     },
@@ -162,7 +166,8 @@
           "clarificationQuestions": [
             "部分所选书签无权限时，应全部拒绝，还是只归档有权限的条目？",
             "操作后应如何向用户呈现各条目的处理结果？"
-          ]
+          ],
+          "title": "支持对选中书签发起批量归档；部分条目无权限时的整体验收规则待澄清。"
         }
       ]
     }

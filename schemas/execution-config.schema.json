@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "execution-config.schema.json",
-  "title": "Ego Lite execution configuration v5",
+  "title": "Ego Lite execution configuration v6",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 6
     },
     "maxParallelCases": {
       "type": "integer",

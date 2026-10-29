@@ -1,5 +1,7 @@
 # 接口观测（networkVersion 1）
 
+需要将已留存事件加入业务证据时，可使用 `network export --run-dir ABS --request ABS_JSON --output-file ABS_NEW_JSON`。请求包含query、selection（captureId/seq）、purpose及可选bodyFields；格式见完整包schemas/network-evidence-export.schema.json。该命令只读本地已提交数据，保留query/result哈希、正文窗口、覆盖和省略说明，不启动采集、不重发请求。字段选择仅针对完整留存JSON窗口的安全标量叶子；局部窗口不推断根字段。返回登记草案后由AI自主决定是否evidence-add。
+
 保存反馈不明、页面报错、数据不一致或异步处理时，AI 可按需查询接口事实。AI 自主决定是否启用、查询条件和下一步；不要求每步查询。HTTP 200/202、错误或空查询都不自动产生业务结论。必要 UI 语义和真实截图继续保留。
 
 完整包提供统一入口，ToolRoot 是实际 SKILL.md 所在绝对目录。采集前按本机 Ego 官方 Skill 创建/恢复已授权的 TaskSpace，通过 task.tabs() 取得当前 targetId、页面来源及标签，不猜旧 ID。配置只登记获准的顶层页和接口来源；前后端来源不同时分别明确登记。来源变化或目标身份不明时停止，核对后显式新建采集段。相同已登记 target 的 session 更替可在范围不变时重新绑定，并记录缺口；不按相似 URL 或标签序号猜派生页。
@@ -20,7 +22,7 @@ start 配置示例（替换真实授权 Space、target 和来源）：
 
 路径按段前缀匹配：/api 覆盖 /api 和 /api/items，不覆盖 /api2。只声明 origins 不会自动允许该来源全部路径。ws/wss 来源分别用对应 http/https origin 登记。一个 Run 同时只保留一份活跃采集；配置修改、新页面登记和中断恢复均先 stop，再以明确新配置 start，不覆盖旧段、不追溯接入前流量。
 
-起始配置及查询契约见完整包 schemas/network-start.schema.json、schemas/network-query.schema.json。普通数据继续使用 schemaVersion 5，网络数据独立使用 networkVersion 1。早期 protocol-summary 不再读取、转换或删除。
+起始配置及查询契约见完整包 schemas/network-start.schema.json、schemas/network-query.schema.json。普通数据继续使用 schemaVersion 6，网络数据独立使用 networkVersion 1。早期 protocol-summary 不再读取、转换或删除。
 
 查询示例：
 

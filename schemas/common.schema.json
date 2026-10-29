@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "common.schema.json",
-  "title": "Ego Lite shared contracts v5",
+  "title": "Ego Lite shared contracts v6",
   "$defs": {
     "nonempty": {
       "type": "string",
@@ -71,7 +71,8 @@
         "id",
         "basis",
         "expected",
-        "requiredRefs"
+        "requiredRefs",
+        "title"
       ],
       "properties": {
         "id": {
@@ -106,7 +107,8 @@
           ],
           "properties": {
             "runId": {
-              "$ref": "#/$defs/nonempty"
+              "$ref": "#/$defs/nonempty",
+              "description": "Use self for a goal in the same frozen run; otherwise use the explicit source run ID. A relation never resolves or replaces the source verdict."
             },
             "caseId": {
               "$ref": "#/$defs/safeId"
@@ -119,6 +121,9 @@
             }
           },
           "additionalProperties": false
+        },
+        "title": {
+          "$ref": "#/$defs/nonempty"
         }
       },
       "additionalProperties": false
@@ -249,6 +254,27 @@
             "$ref": "#/$defs/safeId"
           },
           "uniqueItems": true
+        },
+        "contextId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "actual": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "occurredAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/actionFact"
+          }
+        },
+        "evidenceLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceLink"
+          }
         }
       },
       "additionalProperties": false
@@ -293,6 +319,30 @@
         },
         "diagnosis": {
           "$ref": "#/$defs/diagnosis"
+        },
+        "summary": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "phenomena": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/phenomenon"
+          }
+        },
+        "gapDetails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gapDetail"
+          }
+        },
+        "revisionReason": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "previousOperationId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "reproduction": {
+          "$ref": "#/$defs/reproduction"
         }
       },
       "additionalProperties": false
@@ -315,6 +365,18 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/assessment"
+          }
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionContext"
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
           }
         }
       },
@@ -420,6 +482,30 @@
         },
         "recordedAt": {
           "$ref": "#/$defs/timestamp"
+        },
+        "summary": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "phenomena": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/phenomenon"
+          }
+        },
+        "gapDetails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gapDetail"
+          }
+        },
+        "revisionReason": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "previousOperationId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "reproduction": {
+          "$ref": "#/$defs/reproduction"
         }
       },
       "additionalProperties": false
@@ -438,7 +524,9 @@
         "assessments",
         "observations",
         "entries",
-        "missingGoalIds"
+        "missingGoalIds",
+        "contexts",
+        "findings"
       ],
       "properties": {
         "id": {
@@ -507,6 +595,18 @@
             "$ref": "#/$defs/safeId"
           },
           "uniqueItems": true
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/executionContext"
+          }
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
         }
       },
       "additionalProperties": false
@@ -567,6 +667,9 @@
         },
         "operationId": {
           "$ref": "#/$defs/safeId"
+        },
+        "metadata": {
+          "$ref": "#/$defs/evidenceMetadata"
         }
       },
       "additionalProperties": false
@@ -653,6 +756,436 @@
         }
       },
       "additionalProperties": false
+    },
+    "contextFact": {
+      "title": "Context fact",
+      "type": "object",
+      "properties": {
+        "state": {
+          "enum": [
+            "known",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "value": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "reason": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "sourceEvidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "state",
+        "sourceEvidenceIds"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "known"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "value"
+            ]
+          },
+          "else": {
+            "required": [
+              "reason"
+            ],
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "executionContext": {
+      "title": "Execution context",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "environment": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "actor": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "object": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "initialState": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "authorization": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "notes": {
+          "$ref": "#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "id",
+        "environment",
+        "actor",
+        "object",
+        "initialState",
+        "authorization"
+      ],
+      "additionalProperties": false
+    },
+    "actionFact": {
+      "title": "Action fact",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "description": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "input": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "result": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "planRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "occurredAt": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "planRefs",
+        "evidenceIds"
+      ],
+      "additionalProperties": false
+    },
+    "evidenceLink": {
+      "title": "Evidence link",
+      "type": "object",
+      "properties": {
+        "evidenceId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "purpose": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "fact": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "actionId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        }
+      },
+      "required": [
+        "evidenceId",
+        "purpose",
+        "fact",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "phenomenon": {
+      "title": "Phenomenon",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "title": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "actual": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "observationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "actual",
+        "observationIds",
+        "evidenceIds",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "gapDetail": {
+      "title": "Gap detail",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "record",
+            "evidence",
+            "environment",
+            "authorization",
+            "requirement"
+          ]
+        },
+        "missing": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "impact": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "nextStep": {
+          "$ref": "#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "kind",
+        "missing",
+        "impact"
+      ],
+      "additionalProperties": false
+    },
+    "reproduction": {
+      "title": "Reproduction preparation",
+      "type": "object",
+      "properties": {
+        "preparation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        },
+        "objectState": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "repeatability": {
+          "$ref": "#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "preparation",
+        "limitations",
+        "objectState",
+        "repeatability"
+      ],
+      "additionalProperties": false
+    },
+    "finding": {
+      "title": "Finding",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "title": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "goalIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "observationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "relationReason": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "reviewState": {
+          "enum": [
+            "proposed",
+            "reviewed"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "original",
+            "additional"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "goalIds",
+        "observationIds",
+        "evidenceIds",
+        "relationReason",
+        "reviewState",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "evidenceMetadata": {
+      "title": "Evidence metadata",
+      "type": "object",
+      "properties": {
+        "mediaType": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "encoding": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "scope": {
+          "enum": [
+            "page",
+            "viewport",
+            "element",
+            "document",
+            "unknown"
+          ]
+        },
+        "page": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "object": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "purpose": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        },
+        "contextEvidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "contentState": {
+          "enum": [
+            "full",
+            "selected_fields",
+            "summary",
+            "truncated",
+            "excluded",
+            "failed",
+            "unknown"
+          ]
+        },
+        "redaction": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "omissionReason": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "dependentRequired": {
+        "width": [
+          "height"
+        ],
+        "height": [
+          "width"
+        ]
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "contentState"
+            ],
+            "properties": {
+              "contentState": {
+                "enum": [
+                  "truncated",
+                  "excluded",
+                  "failed"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "omissionReason"
+            ]
+          }
+        }
+      ]
     }
   }
 }

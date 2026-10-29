@@ -13,6 +13,7 @@ import { sealPacket } from '../execution/packets.mjs';
 import { requestKinds, parseRequest } from '../execution/parse.mjs';
 import { cliParallelLimit } from '../execution/config.mjs';
 import { startNetwork, statusNetwork, stopNetwork, queryNetwork } from '../observation/commands.mjs';
+import { exportNetworkEvidence } from '../observation/evidence-export.mjs';
 import { boundedJSON } from '../observation/store.mjs';
 import { codeOf, NetworkError } from '../observation/model.mjs';
 export { SOURCE_ROOT, safePath } from '../core/common.mjs';
@@ -32,7 +33,7 @@ interface Responses {
   report: Awaited<ReturnType<typeof report>>; 'verify-report': Awaited<ReturnType<typeof verifyReport>>;
   execution: Awaited<ReturnType<typeof readExecutionQuery>> | Awaited<ReturnType<typeof executeRequest>>;
   'packet-seal': Awaited<ReturnType<typeof sealPacket>>;
-  network: Awaited<ReturnType<typeof startNetwork>> | Awaited<ReturnType<typeof statusNetwork>> | Awaited<ReturnType<typeof stopNetwork>> | Awaited<ReturnType<typeof queryNetwork>>;
+  network: Awaited<ReturnType<typeof startNetwork>> | Awaited<ReturnType<typeof statusNetwork>> | Awaited<ReturnType<typeof stopNetwork>> | Awaited<ReturnType<typeof queryNetwork>> | Awaited<ReturnType<typeof exportNetworkEvidence>>;
 }
 export function parseFlags(args: readonly string[], allowed: readonly string[], required: readonly string[]): Record<string, string> {
   const flags: Record<string, string> = {};
@@ -56,7 +57,7 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs record --run-dir ABS --request ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs progress --run-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs check --run-dir ABS
-       node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON]
+       node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON] [--delivery inline|bundle] [--allow-missing-screenshots true|false]
        node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS --report-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS [--view summary|assignment|full] [--assignment-id ID] [--integrity metadata|full]
        node ABS_TOOL_ROOT/scripts/ego.mjs execution ACTION --run-dir ABS --request ABS_JSON
@@ -64,28 +65,30 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs network start --run-dir ABS --config ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs network status --run-dir ABS [--capture-id ID]
        node ABS_TOOL_ROOT/scripts/ego.mjs network query --run-dir ABS --request ABS_JSON [--output-file ABS_NEW_JSON]
+       node ABS_TOOL_ROOT/scripts/ego.mjs network export --run-dir ABS --request ABS_JSON --output-file ABS_NEW_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs network stop --run-dir ABS [--capture-id ID]
 Execution ACTION: inventory, capacity, reserve, attach-space, note, set-limit, reconcile, import.
 execution read defaults to a bounded metadata summary; assignment requires --assignment-id. Use --integrity full for a strictly checked compact view. --view full keeps the previous complete output and requires full checks. Metadata reads do not recover evidence or recheck historical files.
 max-parallel-cases is a positive safe integer; no fixed product ceiling. Host limits are used only when explicitly supplied, never probed or globally configured.
-All current data contracts use v5. Older formats are explicitly rejected; existing data is never migrated or overwritten.
+All current data contracts use v6. Older formats are explicitly rejected; existing data is never migrated or overwritten.
 record commits observations and explicit business-goal assessments through the same transaction as reviewed packet imports.
 Missing assessments are recording gaps, not inconclusive verdicts. Cases group goals and have no separate business verdict.
 packet-seal writes an immutable worker-local packet; it does not commit a verdict. Coordinator import requires an explicit AI review.
-report writes report.json, report.md, and a standalone offline report.html; it refuses to overwrite them. Invalid run data or registered evidence stops report generation.
+report writes report.json, report.md, standalone offline report.html and report-delivery.json; it refuses to overwrite them. Bundle mode adds verified attachments. Only explicit missing-screenshot drafts tolerate absent images; hash corruption and invalid run data still stop delivery.
 Generation and verify-report read back all three files; browserOpen stays not_checked. Retrospective context preserves original recorded outcomes and separate AI reviews.
 network start/stop manage a scoped native-only Ego observation context. Queries read committed local evidence and make no business requests or verdicts.
-Network format is independently versioned (networkVersion 1). Old experimental protocol summaries are not read or migrated.
+Network export selects committed local events and safe body fields into a new evidence file without capture or request replay. Network format is independently versioned (networkVersion 1). Old experimental protocol summaries are not read or migrated.
 No model calls, automatic UI actions, request replay or automatic business verdicts.`;
   if (command === 'network') {
     try {
     const [action, ...options] = rest;
-    if (!action || !['start', 'status', 'query', 'stop'].includes(action)) fail('Unknown network action.');
-    const allowed = action === 'start' ? ['run-dir', 'config'] : action === 'query' ? ['run-dir', 'request', 'output-file'] : ['run-dir', 'capture-id'];
-    const flags = parseFlags(options, allowed, action === 'start' ? ['run-dir', 'config'] : action === 'query' ? ['run-dir', 'request'] : ['run-dir']); await toolInfo();
+    if (!action || !['start', 'status', 'query', 'export', 'stop'].includes(action)) fail('Unknown network action.');
+    const allowed = action === 'start' ? ['run-dir', 'config'] : action === 'query' || action === 'export' ? ['run-dir', 'request', 'output-file'] : ['run-dir', 'capture-id'];
+    const flags = parseFlags(options, allowed, action === 'start' ? ['run-dir', 'config'] : action === 'export' ? ['run-dir', 'request', 'output-file'] : action === 'query' ? ['run-dir', 'request'] : ['run-dir']); await toolInfo();
     if (action === 'status') return await statusNetwork(flags['run-dir'], flags['capture-id']);
     if (action === 'stop') return await stopNetwork({ runDir: flags['run-dir'], ...(flags['capture-id'] ? { captureId: flags['capture-id'] } : {}) });
     if (action === 'query') return await queryNetwork({ runDir: flags['run-dir'], request: await boundedJSON(await safePath(flags.request, { existing: true })), ...(flags['output-file'] ? { outputFile: flags['output-file'] } : {}) });
+    if (action === 'export') return await exportNetworkEvidence({ runDir: flags['run-dir'], request: await boundedJSON(await safePath(flags.request, { existing: true })), outputFile: flags['output-file']! });
     return await startNetwork({ runDir: flags['run-dir'], config: await boundedJSON(await safePath(flags.config, { existing: true })) });
     } catch (error) { throw new NetworkError(codeOf(error)); }
   }
@@ -102,7 +105,7 @@ No model calls, automatic UI actions, request replay or automatic business verdi
     if (parseRequest(request).kind !== action) fail('Execution action and request kind disagree.');
     return executeRequest({ runDir: flags['run-dir'], request });
   }
-  const options: Record<string, readonly string[]> = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir', 'execution-config', 'max-parallel-cases'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'context'], 'verify-report': ['run-dir', 'report-dir'] };
+  const options: Record<string, readonly string[]> = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir', 'execution-config', 'max-parallel-cases'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'context', 'delivery', 'allow-missing-screenshots'], 'verify-report': ['run-dir', 'report-dir'] };
   const allowed = options[command];
   if (!allowed) fail('Unknown command. Use --help.');
   const required = command === 'tool-info' ? [] : command === 'report' ? ['run-dir'] : command === 'start' ? ['project-dir', 'cases', 'output-dir'] : allowed;
@@ -120,7 +123,10 @@ No model calls, automatic UI actions, request replay or automatic business verdi
   if (command === 'progress') return progress(flags['run-dir']);
   if (command === 'check') return check(flags['run-dir']);
   if (command === 'verify-report') return verifyReport(flags['run-dir'], flags['report-dir']);
-  return report(flags['run-dir'], { outputDir: flags['output-dir'] ?? flags['run-dir'], contextFile: flags.context });
+  if (flags.delivery !== undefined && flags.delivery !== 'inline' && flags.delivery !== 'bundle') fail('Report delivery must be inline or bundle.');
+  if (flags['allow-missing-screenshots'] !== undefined && !['true', 'false'].includes(flags['allow-missing-screenshots'])) fail('allow-missing-screenshots must be true or false.');
+  return report(flags['run-dir'], { outputDir: flags['output-dir'] ?? flags['run-dir'], contextFile: flags.context,
+    ...(flags.delivery ? { deliveryMode: flags.delivery as 'inline' | 'bundle' } : {}), allowMissingScreenshots: flags['allow-missing-screenshots'] === 'true' });
 }
 // A linked Skill path and Node's resolved module URL can name the same entrypoint.
 // Resolve only the executable identity; run/evidence path guards remain unchanged.

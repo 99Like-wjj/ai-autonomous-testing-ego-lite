@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ego/network-evidence-export.schema.json",
+  "title": "Local network evidence export request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["networkVersion", "query", "selection", "purpose"],
+  "properties": {
+    "networkVersion": { "const": 1 },
+    "query": { "$ref": "network-query.schema.json" },
+    "purpose": { "type": "string", "minLength": 1, "maxLength": 2048 },
+    "selection": {
+      "type": "array", "minItems": 1, "maxItems": 200, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["captureId", "seq"],
+        "properties": {
+          "captureId": { "type": "string", "minLength": 1 },
+          "seq": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "bodyFields": {
+      "description": "Explicit dot-separated scalar JSON leaf fields. Object/array values and sensitive/unsafe path segments are rejected at runtime.",
+      "type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[A-Za-z_][A-Za-z0-9_-]*(\\.[A-Za-z_][A-Za-z0-9_-]*){0,15}$" }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "results.schema.json",
-  "title": "Ego Lite recorded results v5",
+  "title": "Ego Lite recorded results v6",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -10,7 +10,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 6
     },
     "revision": {
       "type": "integer",

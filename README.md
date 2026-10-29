@@ -8,6 +8,8 @@
 
 ## 当前版本
 
+当前分支开发候选为 **0.1.7-rc.1 / report-usability-1**，尚未发布。包含场景与目标两级报告、可读证据正文、事实上下文与实际动作、八种可切换主题。详见[获批设计](docs/v0.1.7-report-design.md)与[候选验证范围](docs/v0.1.7-validation.md)。下列发布链接及版本图保留上一正式版本，不表示候选已发布。
+
 当前正式版本为 **0.1.6 / native-network-observation-1**。完整安装包与校验值见 [v0.1.6 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。用户已反馈本地按一份需求试跑可用；这不代表所有业务、模型和宿主均已验收。发布收尾与已有验证分别见[验证记录](docs/testing.md)。构建与测试不会自动替换用户级 Skill。
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
@@ -16,9 +18,16 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 
 ![最近四版：v0.1.3、v0.1.4、v0.1.5、v0.1.6，均为正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 仅展示最新正式版本与前三个历史版本；更早版本继续保留在[完整版本演变](docs/version-history.md)中。v0.1.7 为计划，不计入已发布四版。
+README 仅展示最新正式版本与前三个历史版本；更早版本继续保留在[完整版本演变](docs/version-history.md)中。v0.1.7 正在候选开发，不计入已发布四版；既有示意图保留上一正式版能力说明，v6新增字段以当前格式文档为准。
 
-## 本次改进
+## 当前候选的报告改进
+
+- 场景总览保留每个大场景及其目标分布；场景内/全局筛选按目标命中，支持返回完整场景。
+- 事实上下文、实际动作、多现象和证据用途串并行统一留存；API、日志和资料正文可在离线HTML中读取。
+- 右上角背景选择器提供八种柔和浅色/深色主题，偏好本地保存；不改变原始证据图片。
+- 当前主契约为v6，旧数据不迁移或覆盖；网络数据仍独立为networkVersion 1。
+
+## 既有基础能力
 
 - **按阶段使用测试经验。** 用例设计与执行经验分别提供简短入口、主题索引和具体场景，帮助 AI 核对覆盖、前提、证据和误判风险。经验由人工维护、运行时只读，AI 根据目标与授权选择方法。
 
@@ -28,7 +37,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 - **结果与原因分开。** 已足以证明违反时可同时记录根因未知。关键动作或结果本身尚不能确认时，具体说明证据缺口；不要求每个 UI 异常都查明后端根因。
 - **保留部分完成与历史。** 父场景展示目标分布；final 按目标更新，attempt 保留历史。后续澄清/复核可关联原目标，但不覆盖首次异常或旧结论。
 
-当前测试资产 JSON 契约统一为 **schemaVersion 5**，execution read 的 viewVersion 为 5。新版明确拒绝旧格式，不提供兼容读取或转换。旧报告、截图、运行与来源文件保持原样；重新使用来源时创建新的 v5 资产，不只改版本号，也不覆盖历史。具体见[格式说明](docs/asset-formats.md)。
+当前测试资产 JSON 契约统一为 **schemaVersion 6**，execution read 的 viewVersion 为 6。新版明确拒绝旧格式，不提供兼容读取或转换。旧报告、截图、运行与来源文件保持原样；重新使用来源时创建新的 v6 资产，不只改版本号，也不覆盖历史。具体见[格式说明](docs/asset-formats.md)。
 
 ## 用例与证据
 
@@ -40,7 +49,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 
 默认交付独立 HTML、JSON、Markdown。报告显示目标预期、观察、证据、缺口、根因确认程度和历史；三种格式共享统计。缺图与文件完整性单独展示，哈希一致不证明业务判断正确。文件校验与实际浏览器打开分别验证。
 
-接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，v5 结果契约保持。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
+接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，v6 结果契约保持。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
 
 ![报告内容示意：预期、观察、证据与未覆盖范围；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
 
@@ -54,7 +63,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
+node $Tool tool-info --expect-version 0.1.7-rc.1 --expect-revision report-usability-1
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：
@@ -67,7 +76,7 @@ node $Tool init --project-dir $Project
 $Cases = Join-Path $Project 'cases.example.json'
 ```
 
-将示例改成已核对来源和授权的 v5 用例，再冻结：
+将示例改成已核对来源和授权的 v6 用例，再冻结：
 
 ```powershell
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
@@ -142,7 +151,7 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 
 ![独立用例 worker 留证封包，协调者复核后汇总；默认串行，显式配置后安排并发。](docs/images/parallel.zh-CN.svg)
 
-已整合跨宿主修复提交 8e6e2d9，当前保留 v5 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
+已整合跨宿主修复提交 8e6e2d9，当前保留 v6 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
 
 `maxParallelCases` 默认为 **1（逐条执行）**；用户未要求并发且未明确配置时保持串行。用户可用命令行或项目配置指定任意可准确表示的正整数，无固定产品上限。AI 决定工具调用、批次与 worker 使用，配置不要求跑满。宿主明确提供的限制单独记录，未知则保持未知，不主动探测客户端最大子代理数或修改全局配置。
 

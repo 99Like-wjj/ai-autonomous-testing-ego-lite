@@ -1,5 +1,5 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface EgoLiteSharedContractsV5 {
+export interface EgoLiteSharedContractsV6 {
   [k: string]: unknown;
 }

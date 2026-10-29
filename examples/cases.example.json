@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "project": "synthetic-example",
   "cases": [
     {
@@ -51,7 +51,8 @@
             "step:open",
             "step:fill",
             "step:submit"
-          ]
+          ],
+          "title": "通过 UI 提交空标题后显示标题必填提示。"
         },
         {
           "id": "no-object-created",
@@ -72,7 +73,8 @@
             "step:fill",
             "step:submit",
             "step:verify"
-          ]
+          ],
+          "title": "授权只读核对确认该次空标题提交未新增书签。"
         }
       ]
     },
@@ -117,7 +119,8 @@
             "step:list",
             "step:detail",
             "step:inspect"
-          ]
+          ],
+          "title": "从列表打开对应详情后，没有可用的编辑入口；不据此断言后端权限已全面验证。"
         }
       ]
     },
@@ -162,7 +165,8 @@
           ],
           "clarificationQuestions": [
             "仅空格标题是否适用空标题拒绝规则？"
-          ]
+          ],
+          "title": "按暂定解释应拒绝仅空格标题；无论观察如何，标注规则解释尚待确认。"
         }
       ]
     },
@@ -199,7 +203,8 @@
             "condition:1",
             "step:detail",
             "step:inspect"
-          ]
+          ],
+          "title": "记录返回入口是否可见、可达及标题展示现象；不推导未规定的标题长度限制。"
         }
       ]
     }

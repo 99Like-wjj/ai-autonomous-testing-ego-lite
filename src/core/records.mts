@@ -1,7 +1,7 @@
 import { readExecution, summarize, verifyExecutionFiles } from '../execution/ledger.mjs';
-import type { Baseline, Case, CheckedCase, CommittedAssessment, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceReceipt, EvidenceRequest, Manifest, Observation, PendingEvidence, RecordPayload, RecordRequest, Report, ResultEntry, ResultReceipt, TestHooks } from '../contracts/model.mjs';
+import type { Baseline, Case, CheckedCase, CommittedAssessment, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceReceipt, EvidenceRequest, Manifest, Observation, PendingEvidence, RecordPayload, RecordRequest, Report, ResultEntry, ResultReceipt, TestHooks, ExecutionContext, Finding } from '../contracts/model.mjs';
 import { readAndValidateBaseline } from './baseline.mjs';
-import { parseCatalog, parseResults, parseManifest, parsePendingEvidence, parseRecordRequest, parseEvidenceRequest, parsePayload } from './validation.mjs';
+import { parseCatalog, parseResults, parseManifest, parsePendingEvidence, parseRecordRequest, parseEvidenceRequest, parsePayload, payloadEvidenceIds } from './validation.mjs';
 import fs from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import path from 'node:path';
@@ -23,7 +23,7 @@ export function progressFor(cases: readonly CheckedCase[]) {
     recordedEntries: cases.reduce((sum, c) => sum + c.entries.length, 0) };
 }
 /** Pure semantic validation shared by serial records and reviewed parallel packets. */
-export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>): void {
+export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, prior: { contexts?: readonly ExecutionContext[]; findings?: readonly Finding[]; entries?: readonly ResultEntry[] } = {}): void {
   parsePayload(payload);
   const refs = new Set(requiredRefs(c)), observations = new Map<string, Observation>();
   const checkEvidence = (ids: readonly string[]) => {
@@ -32,16 +32,38 @@ export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, avai
       if (evidenceById && evidenceById.get(id)?.caseId !== c.id) fail('Evidence is associated with a different case: ' + id);
     }
   };
+  checkEvidence(payloadEvidenceIds(payload));
+  const contexts = new Map<string, ExecutionContext>();
+  for (const context of [...(prior.contexts ?? []), ...(payload.contexts ?? [])]) {
+    const previous = contexts.get(context.id);
+    if (previous && canonical(previous) !== canonical(context)) fail('Context ID was already used with different content: ' + context.id);
+    contexts.set(context.id, context);
+  }
   for (const o of [...availableObservations, ...payload.observations]) {
     const prior = observations.get(o.id);
     if (prior && canonical(prior) !== canonical(o)) fail('Observation ID was already used with different content: ' + o.id);
     if (o.coveredRefs.some(ref => !refs.has(ref))) fail('Observation refers to an unknown plan reference: ' + o.id);
+    if (o.contextId && !contexts.has(o.contextId)) fail('Unknown context ID: ' + o.contextId);
+    for (const action of o.actions ?? []) {
+      if (action.planRefs.some(ref => !refs.has(ref))) fail('Action refers to an unknown plan reference: ' + action.id);
+      if (action.evidenceIds.some(id => !o.evidenceIds.includes(id))) fail('Action evidence must be included in its observation: ' + action.id);
+    }
+    for (const link of o.evidenceLinks ?? []) {
+      if (!o.evidenceIds.includes(link.evidenceId)) fail('Evidence link must belong to its observation.');
+      if (link.actionId && !o.actions?.some(a => a.id === link.actionId)) fail('Unknown linked action: ' + link.actionId);
+    }
     checkEvidence(o.evidenceIds); observations.set(o.id, o);
   }
   for (const a of payload.assessments) {
     const goal = c.goals.find(g => g.id === a.goalId);
     if (!goal) fail('Unknown goal ID: ' + a.goalId);
     const observed = a.observationIds.map(id => { const o = observations.get(id); if (!o) fail('Unknown observation ID: ' + id); return o; });
+    for (const p of a.phenomena ?? []) {
+      if (!p.observationIds.length || p.observationIds.some(id => !a.observationIds.includes(id))) fail('Phenomenon must refer to its assessment observations: ' + p.id);
+      const supported = new Set(observed.filter(o => p.observationIds.includes(o.id)).flatMap(o => o.evidenceIds));
+      if (p.evidenceIds.some(id => !supported.has(id))) fail('Phenomenon evidence must belong to its observations: ' + p.id);
+    }
+    if (a.previousOperationId && prior.entries !== undefined && !prior.entries.some(e => e.mode === 'final' && e.operationId === a.previousOperationId && e.record.assessments.some(old => old.goalId === a.goalId))) fail('Assessment revision must reference an earlier final for the same goal.');
     if (a.diagnosis) {
       checkEvidence(a.diagnosis.evidenceIds);
       if (a.diagnosis.state === 'confirmed' && !a.diagnosis.evidenceIds.length) fail('Confirmed diagnosis requires its own evidence references.');
@@ -54,28 +76,48 @@ export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, avai
       const covered = new Set(observed.filter(o => o.evidenceIds.length > 0).flatMap(o => o.coveredRefs));
       const missing = goal.requiredRefs.filter(ref => !covered.has(ref));
       if (missing.length) fail('Verified goal omits necessary plan references: ' + missing.join(', '));
-      if (a.gaps.length) fail('Verified goal cannot retain unresolved gaps: ' + goal.id);
+      if (a.gaps.length || a.gapDetails?.length) fail('Verified goal cannot retain unresolved gaps: ' + goal.id);
     }
+  }
+  const findings = new Map<string, Finding>();
+  for (const f of [...(prior.findings ?? []), ...(payload.findings ?? [])]) {
+    const previous = findings.get(f.id);
+    if (previous && canonical(previous) !== canonical(f)) fail('Finding ID was already used with different content: ' + f.id);
+    if (f.scope === 'original' && !f.goalIds.length) fail('An original-scope finding requires a goal reference.');
+    if (f.goalIds.some(id => !c.goals.some(g => g.id === id))) fail('Finding refers to an unknown goal.');
+    if (!f.observationIds.length || f.observationIds.some(id => !observations.has(id))) fail('Finding requires known observations.');
+    const supported = new Set(f.observationIds.flatMap(id => observations.get(id)?.evidenceIds ?? []));
+    if (f.evidenceIds.some(id => !supported.has(id))) fail('Finding evidence must belong to its observations.');
+    findings.set(f.id, f);
   }
 }
 /** Current assessments are a projection of explicit final events; attempt events remain historical. */
 export function projectCases(baseline: Baseline, entries: readonly ResultEntry[]): CheckedCase[] {
   return baseline.cases.map(c => {
-    const own = entries.filter(entry => entry.caseId === c.id), observations = new Map<string, Observation>(), current = new Map<string, CommittedAssessment>();
+    const own = entries.filter(entry => entry.caseId === c.id), observations = new Map<string, Observation>(), contexts = new Map<string, ExecutionContext>(), findings = new Map<string, Finding>(), current = new Map<string, CommittedAssessment>();
     for (const entry of own) {
       for (const o of entry.record.observations) observations.set(o.id, o);
+      for (const context of entry.record.contexts ?? []) contexts.set(context.id, context);
+      for (const finding of entry.record.findings ?? []) findings.set(finding.id, finding);
       if (entry.mode === 'final') for (const assessment of entry.record.assessments) current.set(assessment.goalId, { ...assessment, operationId: entry.operationId, revision: entry.revision, recordedAt: entry.recordedAt });
     }
-    return { ...c, assessments: c.goals.flatMap(g => { const a = current.get(g.id); return a ? [a] : []; }), observations: [...observations.values()], entries: own, missingGoalIds: c.goals.filter(g => !current.has(g.id)).map(g => g.id) };
+    return { ...c, assessments: c.goals.flatMap(g => { const a = current.get(g.id); return a ? [a] : []; }), observations: [...observations.values()], contexts: [...contexts.values()], findings: [...findings.values()], entries: own, missingGoalIds: c.goals.filter(g => !current.has(g.id)).map(g => g.id) };
   });
 }
-async function validateEvidenceCatalog(root: string, catalog: EvidenceCatalog, cases: readonly Case[]) {
+async function validateEvidenceCatalog(root: string, catalog: EvidenceCatalog, cases: readonly Case[], options: { allowMissingScreenshots?: boolean } = {}) {
   const caseIds = new Set(cases.map(c => c.id)), evidenceById = new Map<string, EvidenceItem>(), paths = new Set<string>(), operationIds = new Set<string>();
+  const missingScreenshotIds: string[] = [];
   for (const item of catalog.items) {
     if (!caseIds.has(item.caseId)) fail('Unknown evidence case ID: ' + item.caseId);
     if (evidenceById.has(item.id) || paths.has(item.path)) fail('Duplicate evidence ID or path.');
-    const actual = await hashFile(await evidenceFile(root, item.path));
-    if (actual.sha256 !== item.sha256 || actual.bytes !== item.bytes) fail('Evidence content hash or byte count mismatch: ' + item.id);
+    evidenceReference(item.path);
+    try {
+      const actual = await hashFile(await evidenceFile(root, item.path));
+      if (actual.sha256 !== item.sha256 || actual.bytes !== item.bytes) fail('Evidence content hash or byte count mismatch: ' + item.id);
+    } catch (caught) {
+      if (options.allowMissingScreenshots === true && item.kind === 'screenshot' && errorInfo(caught).code === 'ENOENT') missingScreenshotIds.push(item.id);
+      else throw caught;
+    }
     evidenceById.set(item.id, item); paths.add(item.path);
   }
   let revision = 0;
@@ -87,41 +129,54 @@ async function validateEvidenceCatalog(root: string, catalog: EvidenceCatalog, c
   }
   if (revision !== catalog.revision || catalog.items.length !== catalog.operations.length) fail('Evidence catalog revision does not match its operation ledger.');
   for (const item of catalog.items) if (!operationIds.has(item.operationId)) fail('Evidence item has no operation receipt.');
-  return { evidenceById, operationIds };
+  for (const item of catalog.items) for (const id of item.metadata?.contextEvidenceIds ?? []) {
+    const linked = evidenceById.get(id);
+    if (!linked || linked.caseId !== item.caseId || linked.id === item.id) fail('Invalid evidence context association: ' + id);
+    if (catalog.items.indexOf(linked) >= catalog.items.indexOf(item)) fail('Evidence context must reference an earlier registration.');
+  }
+  return { evidenceById, operationIds, missingScreenshotIds };
 }
-export async function checkUnlocked(root: string): Promise<Report> {
+export async function checkUnlocked(root: string, options: { allowMissingScreenshots?: boolean } = {}): Promise<Report> {
   const manifest: Manifest = parseManifest(await readJSON(path.join(root, 'manifest.json')));
   if (!path.isAbsolute(manifest.projectDir)) fail('Manifest project directory must be absolute.');
   const { baseline } = await readAndValidateBaseline(root, manifest);
+  for (const c of baseline.cases) for (const goal of c.goals) {
+    const ref = goal.followUpOf;
+    if (ref?.runId === manifest.runId && ((ref.caseId === c.id && ref.goalId === goal.id) || !baseline.cases.some(source => source.id === ref.caseId && source.goals.some(g => g.id === ref.goalId)))) fail('Invalid same-run follow-up goal reference.');
+  }
   const evidenceCatalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-  const { evidenceById, operationIds } = await validateEvidenceCatalog(root, evidenceCatalog, baseline.cases);
+  const { evidenceById, operationIds, missingScreenshotIds } = await validateEvidenceCatalog(root, evidenceCatalog, baseline.cases, options);
   const results = parseResults(await readJSON(path.join(root, 'results.json')));
-  const observationsByCase = new Map<string, Observation[]>(), casesById = new Map(baseline.cases.map(c => [c.id, c]));
+  const observationsByCase = new Map<string, Observation[]>(), contextsByCase = new Map<string, ExecutionContext[]>(), findingsByCase = new Map<string, Finding[]>(), entriesByCase = new Map<string, ResultEntry[]>(), casesById = new Map(baseline.cases.map(c => [c.id, c]));
   let revision = 0;
   for (const entry of results.entries) {
     const c = casesById.get(entry.caseId); if (!c) fail('Unknown result case ID: ' + entry.caseId);
     if (entry.expectedRevision !== revision || entry.revision !== ++revision) fail('Result revision does not match append-only event order.');
     if (operationIds.has(entry.operationId)) fail('Operation ID is reused: ' + entry.operationId);
-    const request: RecordRequest = { schemaVersion: 5, operationId: entry.operationId, expectedRevision: entry.expectedRevision, caseId: entry.caseId, mode: entry.mode, record: entry.record };
+    const request: RecordRequest = { schemaVersion: 6, operationId: entry.operationId, expectedRevision: entry.expectedRevision, caseId: entry.caseId, mode: entry.mode, record: entry.record };
     if (canonicalHash(request) !== entry.payloadSha256) fail('Result event payload hash mismatch: ' + entry.operationId);
     const prior = observationsByCase.get(c.id) ?? [];
-    validatePayloadAgainstCase(c, entry.record, prior, evidenceById);
+    const contexts = contextsByCase.get(c.id) ?? [], findings = findingsByCase.get(c.id) ?? [], entries = entriesByCase.get(c.id) ?? [];
+    validatePayloadAgainstCase(c, entry.record, prior, evidenceById, { contexts, findings, entries });
     const merged = new Map([...prior, ...entry.record.observations].map(o => [o.id, o]));
     observationsByCase.set(c.id, [...merged.values()]); operationIds.add(entry.operationId);
+    contextsByCase.set(c.id, [...new Map([...contexts, ...(entry.record.contexts ?? [])].map(x => [x.id, x])).values()]);
+    findingsByCase.set(c.id, [...new Map([...findings, ...(entry.record.findings ?? [])].map(x => [x.id, x])).values()]);
+    entriesByCase.set(c.id, [...entries, entry]);
   }
   if (revision !== results.revision) fail('Results revision does not match its entries.');
   const cases = projectCases(baseline, results.entries), counts = countsFor(cases);
   const execution = await readExecution(root, manifest, baseline); await verifyExecutionFiles(root, execution);
   return {
-    schemaVersion: 5, runId: manifest.runId, project: baseline.project, structurallyValid: true,
+    schemaVersion: 6, runId: manifest.runId, project: baseline.project, structurallyValid: true,
     revision: results.revision, evidenceRevision: evidenceCatalog.revision, caseCount: cases.length,
     goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
     execution, executionSummary: summarize(execution, baseline), cases, evidenceCatalog,
-    evidenceIntegrity: { hashVerifiedItems: evidenceCatalog.items.length },
+    evidenceIntegrity: { hashVerifiedItems: evidenceCatalog.items.length - missingScreenshotIds.length, ...(options.allowMissingScreenshots === true ? { missingScreenshotIds } : {}) },
     evidenceCoverage: {
       registeredScreenshots: evidenceCatalog.items.filter(item => item.kind === 'screenshot').length,
       distinctRetainedContents: new Set(evidenceCatalog.items.map(item => item.sha256)).size,
-      goalsWithoutScreenshots: cases.flatMap(c => c.assessments.filter(a => a.status !== 'not_tested' && (a.status === 'verified' || a.status === 'violation' || a.observationIds.length > 0) && !a.observationIds.some(id => c.observations.find(o => o.id === id)?.evidenceIds.some(eid => evidenceById.get(eid)?.kind === 'screenshot'))).map(a => ({ caseId: c.id, goalId: a.goalId })))
+      goalsWithoutScreenshots: cases.flatMap(c => c.assessments.filter(a => a.status !== 'not_tested' && (a.status === 'verified' || a.status === 'violation' || a.observationIds.length > 0) && !a.observationIds.some(id => c.observations.find(o => o.id === id)?.evidenceIds.some(eid => evidenceById.get(eid)?.kind === 'screenshot' && !missingScreenshotIds.includes(eid)))).map(a => ({ caseId: c.id, goalId: a.goalId })))
     },
     caveat: 'Structural validation and file hashes do not authenticate observations or business judgments. Recorded times are local transaction times; capture times are source supplied when known. Missing assessments are recording gaps, not business verdicts.'
   };
@@ -147,11 +202,11 @@ export async function recoverEvidence(root: string): Promise<void> {
   if (!markerFilename) return;
   const marker = parsePendingEvidence(await readJSON(markerFilename));
   assertClosed(marker, ['schemaVersion', 'operationId', 'payloadSha256', 'evidenceId', 'stagePath', 'finalPath', 'catalogTempPath', 'markerTempPath', 'sha256', 'bytes'], 'pending evidence marker');
-  if (marker.schemaVersion !== 5 || !/^[a-f0-9]{64}$/.test(marker.payloadSha256)) fail('Invalid pending evidence recovery marker.');
+  if (marker.schemaVersion !== 6 || !/^[a-f0-9]{64}$/.test(marker.payloadSha256)) fail('Invalid pending evidence recovery marker.');
   safeIdentifier(marker.operationId, 'pending evidence operation id');
   const paths = markerPaths(root, marker);
   const catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-  if (catalog.schemaVersion !== 5) fail('Pending evidence transaction requires run schemaVersion 5.');
+  if (catalog.schemaVersion !== 6) fail('Pending evidence transaction requires run schemaVersion 6.');
   const committed = catalog.operations.find(op => op.operationId === marker.operationId);
   if (committed) {
     const item = catalog.items.find(entry => entry.id === marker.evidenceId);
@@ -194,9 +249,9 @@ export async function recordResultUnlocked(root: string, input: unknown, testHoo
   if (checked.evidenceCatalog.operations.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by an evidence operation.');
   if (request.expectedRevision !== results.revision) fail('Revision conflict: expected ' + request.expectedRevision + ', current ' + results.revision + '.');
   const c = checked.cases.find(c => c.id === request.caseId); if (!c) fail('Unknown case ID: ' + request.caseId);
-  validatePayloadAgainstCase(c, request.record, c.observations, new Map(checked.evidenceCatalog.items.map(item => [item.id, item])));
+  validatePayloadAgainstCase(c, request.record, c.observations, new Map(checked.evidenceCatalog.items.map(item => [item.id, item])), { contexts: c.contexts, findings: c.findings, entries: c.entries });
   const entry: ResultEntry = { operationId: request.operationId, payloadSha256, expectedRevision: request.expectedRevision, revision: results.revision + 1, recordedAt: now(), caseId: request.caseId, mode: request.mode, record: request.record };
-  await atomicReplace(resultsPath, json({ schemaVersion: 5, revision: entry.revision, entries: [...results.entries, entry] }));
+  await atomicReplace(resultsPath, json({ schemaVersion: 6, revision: entry.revision, entries: [...results.entries, entry] }));
   if (testHooks.afterCommit) await testHooks.afterCommit();
   return resultOperationReceipt(entry, false);
 }
@@ -237,7 +292,7 @@ export function validateEvidenceRequest(request: unknown): asserts request is Ev
 export async function registerEvidenceUnlocked(root: string, request: unknown, testHooks: TestHooks = {}): Promise<EvidenceReceipt> {
   await recoverEvidence(root);
   const checked = await checkUnlocked(root);
-  if (checked.schemaVersion !== 5) fail('Run manifest v5 is required.');
+  if (checked.schemaVersion !== 6) fail('Run manifest v6 is required.');
   validateEvidenceRequest(request);
   const catalogPath = path.join(root, 'evidence.json'), catalog = parseCatalog(await readJSON(catalogPath));
   const payloadSha256 = canonicalHash(request);
@@ -250,6 +305,7 @@ export async function registerEvidenceUnlocked(root: string, request: unknown, t
   if (results.entries.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by a result operation.');
   if (request.expectedRevision !== catalog.revision) fail('Evidence revision conflict: expected ' + request.expectedRevision + ', current ' + catalog.revision + '.');
   if (!checked.cases.some(c => c.id === request.caseId)) fail('Unknown case id: ' + request.caseId);
+  for (const id of request.metadata?.contextEvidenceIds ?? []) if (!catalog.items.some(e => e.id === id && e.caseId === request.caseId)) fail('Evidence context must reference registered evidence in the same case: ' + id);
   const source = await safePath(request.sourceFile, { existing: true });
   if (!(await fs.lstat(source)).isFile()) fail('Evidence source must be a regular file.');
   const evidenceId = randomId('ev-'), extension = path.extname(source).toLowerCase();
@@ -259,7 +315,7 @@ export async function registerEvidenceUnlocked(root: string, request: unknown, t
   const catalogTemp = path.join(root, '.ego-evidence-' + evidenceId + '.tmp'), markerTemp = path.join(root, '.ego-marker-' + evidenceId + '.tmp');
   const markerFile = path.join(root, '.evidence.pending.json');
   const marker: PendingEvidence = {
-    schemaVersion: 5, operationId: request.operationId, payloadSha256, evidenceId,
+    schemaVersion: 6, operationId: request.operationId, payloadSha256, evidenceId,
     stagePath: stageRelative, finalPath: relativeFinal,
     catalogTempPath: path.basename(catalogTemp), markerTempPath: path.basename(markerTemp)
   };
@@ -279,6 +335,7 @@ export async function registerEvidenceUnlocked(root: string, request: unknown, t
     const item: EvidenceItem = {
       id: evidenceId, path: relativeFinal, caseId: request.caseId, kind: request.kind,
       ...(request.capturedAt !== undefined ? { capturedAt: request.capturedAt } : {}),
+      ...(request.metadata !== undefined ? { metadata: request.metadata } : {}),
       collectedAt, source: request.source, description: request.description,
       sha256: actual.sha256, bytes: actual.bytes, operationId: request.operationId
     };
