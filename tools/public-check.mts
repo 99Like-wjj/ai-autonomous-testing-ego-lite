@@ -8,7 +8,7 @@ export async function checkPublication(root: string, { development = false, inst
   root = path.resolve(root);
   const rootFiles = new Set(['README.md', 'README.en.md', 'AGENTS.md', 'LICENSE', 'SECURITY.md', 'CHANGELOG.md', 'package.json', '.gitignore', '.gitattributes',
     ...(installed ? ['SKILL.md', 'runtime-manifest.json'] : ['package-lock.json', 'tsconfig.json', 'tsconfig.node.json', 'tsconfig.browser.json', 'tsconfig.tools.json'])]);
-  const dirs = new Set(installed ? ['agents', 'scripts', 'core', 'contracts', 'execution', 'observation', 'report', 'report-ui', 'schemas', 'references', 'docs', 'examples'] : ['src', 'skills', 'scripts', 'schemas', 'examples', 'docs', 'tests', 'tools']);
+  const dirs = new Set(installed ? ['agents', 'scripts', 'core', 'contracts', 'execution', 'observation', 'regression', 'report', 'report-ui', 'schemas', 'references', 'docs', 'examples'] : ['src', 'skills', 'scripts', 'schemas', 'examples', 'docs', 'tests', 'tools']);
   const textExtensions = new Set(installed ? ['.md', '.mjs', '.js', '.json', '.svg', '.yaml', '.yml'] : ['.md', '.mts', '.ts', '.mjs', '.json', '.svg', '.yaml', '.yml']);
   const forbiddenSegments = /^(?:\.env(?:\..*)?|\.local|local|private|projects|runs|run-output|evidence|reports|screenshots|traces|profiles|node_modules|credentials.*|secrets.*|auth\.json|cookies.*|storage-?state.*)$/i;
   const secretPatterns: [string, RegExp][] = [

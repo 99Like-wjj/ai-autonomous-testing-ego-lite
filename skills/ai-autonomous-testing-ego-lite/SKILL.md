@@ -3,7 +3,7 @@ name: ai-autonomous-testing-ego-lite
 description: AI 自主 Web 自动化测试：由当前 AI 会话理解需求、设计可独立判断的业务目标，通过已安装的 Ego Lite / Ego Browser 执行并用真实证据验证；接收外部用例或生成用例，区分业务违反、执行问题、证据不足与未测试。适用于新需求、新功能、权限及业务流程测试；不是固定流程自动化器或 Agent 能力评测框架。
 metadata:
   version: "0.1.8-rc.1"
-  tool-revision: "resource-readiness-2"
+  tool-revision: "regression-reuse-1"
 ---
 
 # AI 自主自动化测试 · Ego Lite
@@ -16,7 +16,7 @@ metadata:
 
 答复只解决其明确覆盖的条件，收到资源后核实适用性并更新剩余缺口；环境或连接恢复不代表整轮资源齐备。登录成功不证明角色正确，Space 不证明账号或后端隔离，沉默不是授权。不重复索取已明确的资源或催促暂缓项。浏览器写入、身份切换、上传、外联或清理前读[Ego 使用边界](references/ego-usage-boundaries.md)，按已有授权核对具体对象及影响。
 
-准备用例时必读[用例接收与生成](references/case-authoring.md)。本版测试资产 JSON 契约统一为 schemaVersion 5；不读取或转换旧格式，旧历史文件保持原样，不只改版本号冒充新格式。外部用例保留原意与来源；AI 生成用例时，以可独立判断的业务目标建立 goals，每个目标有依据、预期、必要语义引用。步骤和前提用于保留业务依赖，不自动成为独立验收目标。
+准备用例时必读[用例接收与生成](references/case-authoring.md)。本版测试资产 JSON 契约统一为 schemaVersion 7；不读取或转换旧格式，旧历史文件保持原样，不只改版本号冒充新格式。外部用例保留原意与来源；AI 生成用例时，以可独立判断的业务目标建立 goals，每个目标有依据、预期、必要语义引用。步骤和前提用于保留业务依赖，不自动成为独立验收目标。
 
 生成或审查时按相关性查阅[设计经验入口](references/case-design-guide.md)和[测试策略](references/test-strategy.md)。逐项目标核对预期能否找到前提、动作和观察方式；未覆盖需求单列缺口，不在收尾时临时扩大已有目标的验收范围。可以只生成用例而不执行，此时不需要 Ego 连接，也不制造结果。
 
@@ -24,7 +24,13 @@ metadata:
 
 记录前读[本地工具箱指南](references/local-toolbox.md)。完整安装包的 ToolRoot 是实际加载的 SKILL.md 所在绝对目录，包含 scripts、schemas、docs 和清单。源码先在明确仓库构建，使用该仓库的 .build/runtime；不要把源码 Skill 子目录当作工具根，不猜旧安装路径或自动更新用户安装。
 
-执行 tool-info，核对 0.1.8-rc.1、resource-readiness-2、formatVersions 和 installationIntegrity。工具缺失或版本混用时保存真实事实并说明交付限制，不能伪造回执。用例校验与冻结只创建本地资产，不执行浏览器动作。
+执行 tool-info，核对 0.1.8-rc.1、regression-reuse-1、formatVersions 和 installationIntegrity。工具缺失或版本混用时保存真实事实并说明交付限制，不能伪造回执。用例校验与冻结只创建本地资产，不执行浏览器动作。
+
+## 首次成果与回归
+
+实际测试及后续回归时读[首次成果与回归复用](references/regression-reuse.md)。首次测试主动及时留存关键事实、失败和未完成目标，并从可信规则整理项目回归任务，交付前核对未整理范围；自动记录不等于认可现状。任务内容、当次资源/授权和目标四态分开，具体项目资料不写回通用经验。
+
+用户可按指定历史运行的目标状态筛选整条场景重跑，或对明确范围全量回归。两种模式都核对本次条件并创建独立run；未知副作用先只读对账，不自动重放。用regression数据工具保留规则/任务不可变修订、固定选择快照及比较，具体操作仍由当前AI决定。
 
 ## 执行、入账与判断
 

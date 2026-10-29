@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 7,
+  "operationId": "synthetic-action-lifecycle-record",
+  "expectedRevision": 0,
+  "caseId": "synthetic-action-lifecycle",
+  "mode": "attempt",
+  "record": {
+    "contexts": [
+      {
+        "id": "synthetic-context-1",
+        "environment": {
+          "state": "known",
+          "summary": "Synthetic isolated example; no real browser or business service.",
+          "sources": [
+            {
+              "kind": "other",
+              "reference": "synthetic fixture only; replace with actual retained provenance",
+              "evidenceIds": []
+            }
+          ]
+        },
+        "identity": {
+          "state": "known",
+          "summary": "Synthetic actor only; no real account verified.",
+          "sources": [
+            {
+              "kind": "other",
+              "reference": "synthetic fixture only; replace with actual retained provenance",
+              "evidenceIds": []
+            }
+          ]
+        },
+        "objects": {
+          "state": "known",
+          "summary": "Synthetic object A; no real object was created.",
+          "sources": [
+            {
+              "kind": "other",
+              "reference": "synthetic fixture only; replace with actual retained provenance",
+              "evidenceIds": []
+            }
+          ]
+        },
+        "initialState": {
+          "state": "known",
+          "summary": "Synthetic empty fixture before the example action.",
+          "sources": [
+            {
+              "kind": "other",
+              "reference": "synthetic fixture only; replace with actual retained provenance",
+              "evidenceIds": []
+            }
+          ]
+        },
+        "authorization": {
+          "state": "known",
+          "summary": "Synthetic local format demonstration only; no real environment authorization.",
+          "sources": [
+            {
+              "kind": "other",
+              "reference": "synthetic fixture only; replace with actual retained provenance",
+              "evidenceIds": []
+            }
+          ]
+        }
+      }
+    ],
+    "actionEvents": [
+      {
+        "id": "synthetic-intent",
+        "actionId": "synthetic-create-1",
+        "purpose": "test",
+        "contextId": "synthetic-context-1",
+        "actor": "synthetic-example-author",
+        "sideEffectRisk": "possible",
+        "kind": "intent",
+        "summary": "Synthetic intent only; this does not prove an action occurred.",
+        "evidenceIds": [],
+        "target": "synthetic-object-A",
+        "inputs": [
+          "synthetic value only"
+        ],
+        "sideEffects": [
+          "Synthetic fixture may contain one added row."
+        ]
+      },
+      {
+        "id": "synthetic-dispatch",
+        "actionId": "synthetic-create-1",
+        "purpose": "test",
+        "contextId": "synthetic-context-1",
+        "actor": "synthetic-example-author",
+        "sideEffectRisk": "possible",
+        "kind": "dispatch",
+        "summary": "Synthetic dispatch receipt; acceptance does not mean business completion.",
+        "evidenceIds": [
+          "ev-synthetic-dispatch"
+        ],
+        "dispatchState": "issued",
+        "acceptanceState": "accepted",
+        "occurredAt": "2026-10-30T00:00:00Z",
+        "timeSource": "Synthetic fixture clock; not a real capture time."
+      },
+      {
+        "id": "synthetic-processing",
+        "actionId": "synthetic-create-1",
+        "purpose": "test",
+        "contextId": "synthetic-context-1",
+        "actor": "synthetic-example-author",
+        "sideEffectRisk": "possible",
+        "kind": "result",
+        "summary": "Synthetic observed processing state; no terminal outcome yet.",
+        "evidenceIds": [
+          "ev-synthetic-processing"
+        ],
+        "resultState": "processing"
+      },
+      {
+        "id": "synthetic-window",
+        "actionId": "synthetic-create-1",
+        "purpose": "test",
+        "contextId": "synthetic-context-1",
+        "actor": "synthetic-example-author",
+        "sideEffectRisk": "possible",
+        "kind": "result",
+        "summary": "Synthetic observation window ended before a terminal outcome was observed.",
+        "evidenceIds": [
+          "ev-synthetic-window"
+        ],
+        "resultState": "window_incomplete",
+        "observationWindow": {
+          "startedAt": "2026-10-30T00:00:00Z",
+          "endedAt": "2026-10-30T00:01:00Z",
+          "source": "Synthetic fixture clock.",
+          "limitation": "Only this synthetic observation interval is known; no SLA or business failure is inferred."
+        }
+      },
+      {
+        "id": "synthetic-unknown",
+        "actionId": "synthetic-create-1",
+        "purpose": "test",
+        "contextId": "synthetic-context-1",
+        "actor": "synthetic-example-author",
+        "sideEffectRisk": "possible",
+        "kind": "result",
+        "summary": "Synthetic interruption leaves the business result unknown; do not repeat the business action.",
+        "evidenceIds": [],
+        "resultState": "unknown"
+      },
+      {
+        "id": "synthetic-reconciliation",
+        "actionId": "synthetic-create-1",
+        "purpose": "test",
+        "contextId": "synthetic-context-1",
+        "actor": "synthetic-example-author",
+        "sideEffectRisk": "possible",
+        "kind": "reconciliation",
+        "summary": "Synthetic authorized read-only lookup finds the expected fixture object.",
+        "evidenceIds": [
+          "ev-synthetic-readback"
+        ],
+        "resultState": "known",
+        "readOnly": true
+      },
+      {
+        "id": "synthetic-disposition",
+        "actionId": "synthetic-create-1",
+        "purpose": "test",
+        "contextId": "synthetic-context-1",
+        "actor": "synthetic-example-author",
+        "sideEffectRisk": "possible",
+        "kind": "disposition",
+        "summary": "Synthetic AI disposition after read-only reconciliation; not a real business verdict.",
+        "evidenceIds": [
+          "ev-synthetic-readback"
+        ],
+        "disposition": {
+          "state": "confirmed_occurred",
+          "rationale": "The synthetic readback explicitly identifies this fixture object and attempt.",
+          "scope": "Only synthetic-create-1 and the listed synthetic prior facts.",
+          "limitations": [
+            "This file demonstrates the contract only; all evidence IDs must be replaced with real registered references before use."
+          ],
+          "resolvesEventIds": [
+            "synthetic-intent",
+            "synthetic-dispatch",
+            "synthetic-processing",
+            "synthetic-window",
+            "synthetic-unknown",
+            "synthetic-reconciliation"
+          ]
+        }
+      }
+    ],
+    "observations": [
+      {
+        "id": "synthetic-readback-observation",
+        "summary": "Synthetic lifecycle example; no real execution or product acceptance is claimed.",
+        "coveredRefs": [],
+        "evidenceIds": [
+          "ev-synthetic-readback"
+        ],
+        "contextId": "synthetic-context-1",
+        "actionEventIds": [
+          "synthetic-reconciliation"
+        ]
+      }
+    ],
+    "assessments": []
+  }
+}

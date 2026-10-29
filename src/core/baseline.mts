@@ -15,7 +15,7 @@ export function newSafeCases(baseline: Baseline) {
   }
 }
 export function normalizeCases(input: unknown): Baseline {
-  if (!object(input) || Object.keys(input).some(k => !['schemaVersion', 'project', 'cases'].includes(k)) || input.schemaVersion !== 5 || !nonempty(input.project) || !Array.isArray(input.cases) || !input.cases.length) fail('Cases require schemaVersion 5, project, and a nonempty cases array. Older files are not migrated.');
+  if (!object(input) || Object.keys(input).some(k => !['schemaVersion', 'project', 'cases'].includes(k)) || input.schemaVersion !== 7 || !nonempty(input.project) || !Array.isArray(input.cases) || !input.cases.length) fail('Cases require schemaVersion 7, project, and a nonempty cases array. Older files are not migrated.');
   const ids = new Set<string>();
   const cases: Case[] = arrayValue(input.cases, 'cases').map(c => {
     assertClosed(c, ['id', 'title', 'criticalConditions', 'requiredPath', 'stepOrder', 'steps', 'goals'], 'case');
@@ -54,7 +54,7 @@ export function normalizeCases(input: unknown): Baseline {
     if (refs.some(ref => !usedRefs.has(ref))) fail('Necessary plan reference is not linked to any goal: ' + refs.filter(ref => !usedRefs.has(ref)).join(', '));
     return { ...plan, goals };
   });
-  return { schemaVersion: 5, project: input.project, cases };
+  return { schemaVersion: 7, project: input.project, cases };
 }
 export async function readAndValidateBaseline(root: string, manifest: Manifest) {
   const bytes = await fs.readFile(await regularFilePath(path.join(root, 'baseline.json')));

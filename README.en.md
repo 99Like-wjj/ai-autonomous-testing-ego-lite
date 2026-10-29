@@ -8,7 +8,7 @@
 
 ## Current release
 
-The independent development candidate is **0.1.8-rc.1 / resource-readiness-2**, unreleased. It clarifies whole-scope resource communication before starting or resuming execution and partial replies. Main contracts remain v5. The separate v0.1.7 report work is not included. See the [resource-readiness validation](docs/v0.1.8-resource-readiness-validation.md) for the development scope and limitations.
+The independent development candidate is **0.1.8-rc.1 / regression-reuse-1**, unreleased. It clarifies whole-scope resource communication before starting or resuming execution and partial replies. Main contracts are v7; regression assets use regressionVersion 1. The separate v0.1.7 report work is not included. See [resource-readiness validation](docs/v0.1.8-resource-readiness-validation.md) and [regression-reuse validation](docs/v0.1.8-regression-reuse-validation.md) for scope and limitations.
 
 **0.1.6 / native-network-observation-1**. Download the complete package and checksums from [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). The maintainer reported a usable local trial with one requirements document; this is not broad acceptance across products, models or hosts. See [validation](docs/testing.en.md). Builds do not update installed Skills.
 
@@ -21,6 +21,14 @@ Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidan
 
 README shows the latest release plus three previous versions. [Full version history](docs/version-history.en.md) retains older releases; v0.1.7 remains a plan.
 
+## First-run records and two regression modes
+
+The AI preserves normative sources, actual observations, failures and incomplete work, then authors project-specific reusable tasks. Select one or more formal goal statuses from a fixed source run to rerun each matching whole scenario, or select the complete declared scope. Missing tasks and blocked goals remain visible.
+
+Task definition, current resources/authorization and business verdicts are separate. Every regression creates an independent run with frozen task/rule revisions and selection. Unknown side effects require read-only reconciliation, not automatic replay. Comparisons expose conditions and AI comparability reasoning without automatically blaming a newer release.
+
+Local tools only perform data transactions and explicit selection; the current AI owns task authoring and execution. See [regression assets and binding](docs/regression-reuse.md). Main contracts are v7 and regressionVersion is 1. Existing v5/v6 data remains untouched and is not automatically migrated. Separate uncommitted v0.1.7 report work is not included.
+
 ## What changed
 
 - Stage-specific design and execution experience: concise indexes, concrete scenarios and human-maintained, read-only guidance. AI retains method selection within goals and authorization.
@@ -31,7 +39,7 @@ README shows the latest release plus three previous versions. [Full version hist
 - Outcomes and causes are separate. Sufficient evidence of a violation can coexist with an unknown cause; uncertainty about the actual action or result is stated specifically.
 - Parent scenarios show goal distributions. final updates submitted goals incrementally; attempt preserves history. Follow-up links do not overwrite original anomalies or old conclusions.
 
-All current test-asset JSON contracts use **schemaVersion 5**, and execution query viewVersion is 5. Older formats are explicitly rejected, without readers or converters. Keep historical reports, files and runs unchanged; prepare new v5 assets from original sources instead of changing only version fields. See [formats](docs/asset-formats.en.md).
+All current test-asset JSON contracts use **schemaVersion 7**, and execution query viewVersion is 7. Older formats are explicitly rejected, without readers or converters. Keep historical reports, files and runs unchanged; prepare new v7 assets from original sources instead of changing only version fields. See [formats](docs/asset-formats.en.md).
 
 ## Cases, evidence and delivery
 
@@ -43,7 +51,7 @@ Successful tool calls do not prove business success. Key UI findings require rea
 
 Default deliverables are standalone HTML, JSON and Markdown from one result projection. Reports expose expectations, observations, evidence, gaps, diagnosis and history. Screenshot gaps, record completeness and file integrity remain distinct. Hash consistency does not establish business correctness; file verification and actual browser opening are separate.
 
-Network observation implements the v3 design through network start/status/query/stop: a dedicated native context records scoped Fetch/XHR, SSE and WebSocket evidence; the AI chooses queries, evidence and business judgments. It never replays business requests. Network data uses independent networkVersion 1, while the v5 business contracts remain. See [observation guidance (Chinese)](skills/ai-autonomous-testing-ego-lite/references/network-observation.md).
+Network observation implements the v3 design through network start/status/query/stop: a dedicated native context records scoped Fetch/XHR, SSE and WebSocket evidence; the AI chooses queries, evidence and business judgments. It never replays business requests. Network data uses independent networkVersion 1, while current business contracts use v7 and v5 historical runs remain untouched. See [observation guidance (Chinese)](skills/ai-autonomous-testing-ego-lite/references/network-observation.md).
 
 ![Illustrative evidence presentation, not a real test report.](docs/images/result-specimen.png)
 
@@ -59,7 +67,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision resource-readiness-2
+node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision regression-reuse-1
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))
@@ -125,7 +133,7 @@ Original code and documentation in this repository are licensed under the [MIT L
 
 ![Independent workers capture evidence; the coordinator reviews and imports their packets.](docs/images/parallel.svg)
 
-Repair commit 8e6e2d9 is integrated while retaining v5 goal assessment and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-autonomous-testing-ego-lite; Claude Code uses /ai-autonomous-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
+Repair commit 8e6e2d9 is integrated while retaining v7 goal assessment and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-autonomous-testing-ego-lite; Claude Code uses /ai-autonomous-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
 
 The default is **1 (serial)**. Without a user request for concurrency or an explicit setting, execute cases one at a time. Set `start --max-parallel-cases N` or project execution-config.json to opt in; N is a positive safe integer with no fixed 2/4/8 product ceiling. The AI chooses tool calls, batches and worker use within that limit; it need not fill all slots. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.
 
@@ -135,3 +143,5 @@ The default is **1 (serial)**. Without a user request for concurrency or an expl
 - Define reviewable evaluation scenarios and criteria for coverage, judgment accuracy, evidence, authorization boundaries and cost. Engineering test passes do not establish AI testing quality.
 - Improve report summaries, goal outcomes, defects, screenshots and network evidence navigation; preserve unknown/untested outcomes and consistent HTML/JSON/Markdown statistics.
 - Keep README, usage and evaluation/report examples aligned with verified capabilities. Scope, thresholds and schedule remain subject to design review. See the [v0.1.7 preview (Chinese)](docs/v0.1.7-preview.md).
+
+The existing diagrams retain the last released capability overview. Development candidates are not included in the four-release timeline; current v7 action facts and regression contracts are described in the documentation.

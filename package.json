@@ -2,19 +2,20 @@
   "name": "ai-autonomous-testing-ego-lite",
   "version": "0.1.8-rc.1",
   "egoLiteTest": {
-    "toolRevision": "resource-readiness-2",
+    "toolRevision": "regression-reuse-1",
     "formatVersions": {
-      "cases": 5,
-      "manifest": 5,
-      "results": 5,
-      "evidence": 5,
-      "report": 5,
-      "execution": 5,
-      "configuration": 5,
-      "workerPacket": 5,
-      "executionRead": 5
+      "cases": 7,
+      "manifest": 7,
+      "results": 7,
+      "evidence": 7,
+      "report": 7,
+      "execution": 7,
+      "configuration": 7,
+      "workerPacket": 7,
+      "executionRead": 7
     },
-    "networkFormatVersion": 1
+    "networkFormatVersion": 1,
+    "regressionVersion": 1
   },
   "description": "AI autonomous Web test automation with Ego Lite: evidence-driven planning, execution and offline HTML reports.",
   "private": true,

@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "report.schema.json",
-  "title": "Ego Lite generated report v5",
+  "title": "Ego Lite generated report v7",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 7
     },
     "runId": {
       "type": "string",
@@ -216,6 +216,65 @@
     },
     "assessmentComplete": {
       "type": "boolean"
+    },
+    "regressionBinding": {
+      "type": "object",
+      "description": "Frozen regressionVersion 1 binding; validated by regression binding parser, not a business verdict."
+    },
+    "actionAttempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "string"
+          },
+          "actionId": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "eventIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "issuedEventIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dispositionEventIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unresolved": {
+            "type": "boolean"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "caseId",
+          "actionId",
+          "purpose",
+          "eventIds",
+          "issuedEventIds",
+          "dispositionEventIds",
+          "unresolved",
+          "reasons"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [

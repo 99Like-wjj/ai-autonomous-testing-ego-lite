@@ -1,0 +1,381 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "regression-binding.schema.json",
+  "title": "Frozen regression run binding v1",
+  "description": "Exact task and rule snapshots plus current-run AI declarations. Current declarations do not inherit historical readiness or authorization. Compiled cases must preserve every original goal and necessary obligation.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/binding"
+    }
+  ],
+  "$defs": {
+    "condition": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "caseIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "aspect": {
+          "enum": [
+            "identity",
+            "environment",
+            "data",
+            "authorization",
+            "path",
+            "other"
+          ]
+        },
+        "state": {
+          "enum": [
+            "verified",
+            "pending",
+            "deferred"
+          ]
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "ai_declaration",
+                "current_user_statement",
+                "current_evidence"
+              ]
+            },
+            "locator": {
+              "type": "string",
+              "minLength": 1
+            },
+            "file": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sha256": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "locator",
+            "file",
+            "sha256"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "kind": {
+                    "const": "current_evidence"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Za-z]:[\\\\/]|[\\\\/])[^\\u0000]*$",
+                    "description": "Absolute local retained file path; existence, regular-file status, source-run exclusion and content hash are verified by the runtime."
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "file": {
+                    "type": "null"
+                  },
+                  "sha256": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ],
+          "description": "Only current_evidence carries a retained local file and SHA-256. ai_declaration and current_user_statement use the locator to identify their source and must set file and sha256 to null. Structure does not authenticate a declaration or prove file contents."
+        }
+      },
+      "required": [
+        "id",
+        "caseIds",
+        "aspect",
+        "state",
+        "statement",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "conditions": {
+      "type": "object",
+      "properties": {
+        "declaredBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "declaredAt": {
+          "$ref": "common.schema.json#/$defs/timestamp",
+          "description": "Use the original declaration time normalized to UTC with Z, at seconds or exactly three millisecond digits. Offset ISO strings and microseconds are not accepted by the current runtime."
+        },
+        "forCurrentRun": {
+          "const": true
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        }
+      },
+      "required": [
+        "declaredBy",
+        "declaredAt",
+        "forCurrentRun",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "regressionVersion": {
+          "const": 1
+        },
+        "selection": {
+          "$ref": "regression-selection.schema.json#/$defs/selection"
+        },
+        "caseMappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "scopeCaseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "runCaseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              }
+            },
+            "required": [
+              "scopeCaseId",
+              "runCaseId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "deferredCases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "caseId",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        }
+      },
+      "required": [
+        "regressionVersion",
+        "selection",
+        "caseMappings",
+        "deferredCases",
+        "conditions"
+      ],
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "regressionVersion": {
+          "const": 1
+        },
+        "selection": {
+          "$ref": "regression-selection.schema.json#/$defs/selection"
+        },
+        "caseMappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "scopeCaseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "runCaseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              }
+            },
+            "required": [
+              "scopeCaseId",
+              "runCaseId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "deferredCases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "caseId",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "conditions": {
+          "$ref": "#/$defs/conditions"
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baselineSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "regression-artifact.schema.json#/$defs/storedTask"
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "regression-artifact.schema.json#/$defs/storedRule"
+          }
+        },
+        "coverage": {
+          "type": "object",
+          "properties": {
+            "requestedCases": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "requestedGoals": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "selectedCases": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "selectedGoals": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "compiledCases": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "compiledGoals": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "notSelectedCases": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "gaps": {
+              "type": "array",
+              "items": {
+                "$ref": "regression-selection.schema.json#/$defs/gap"
+              }
+            }
+          },
+          "required": [
+            "requestedCases",
+            "requestedGoals",
+            "selectedCases",
+            "selectedGoals",
+            "compiledCases",
+            "compiledGoals",
+            "notSelectedCases",
+            "gaps"
+          ],
+          "additionalProperties": false
+        },
+        "caveat": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contentSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "regressionVersion",
+        "selection",
+        "caseMappings",
+        "deferredCases",
+        "conditions",
+        "runId",
+        "baselineSha256",
+        "tasks",
+        "rules",
+        "coverage",
+        "caveat",
+        "contentSha256"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

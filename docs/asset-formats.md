@@ -1,6 +1,6 @@
-# 本地资产格式与运行约定（schemaVersion 5）
+# 本地资产格式与运行约定（schemaVersion 7）
 
-当前独立开发候选为 0.1.8-rc.1 / resource-readiness-2，未发布。用例、基线、运行、结果、证据、请求、执行台账、配置、worker 包与报告统一使用 schemaVersion 5，执行查询 viewVersion 为 5。新版明确拒绝旧格式，不提供兜底读取、转换或原地迁移；旧报告、运行、截图与来源文件保持原样。重新使用来源时新建 v5 用例与运行，不只修改版本号。
+当前独立开发候选为 0.1.8-rc.1 / regression-reuse-1，未发布。用例、基线、运行、结果、证据、请求、执行台账、配置、worker 包与报告统一使用 schemaVersion 7，执行查询 viewVersion 为 7。新版明确拒绝旧格式，不提供兜底读取、转换或原地迁移；旧报告、运行、截图与来源文件保持原样。重新使用来源时新建 v7 用例与运行，不只修改版本号。
 
 容量 availableWorkers 表示本 run 可占用的总活动分派上限，包含已经占用的名额，不是剩余空闲量。packetId 在整个 run 内唯一，按 assignment 划分命名空间；局部封包不证明其他目录没有重名。冲突保留原包并从已有观察纠正交付，不重做业务。并发指南在完整工具根的 references/parallel-testing.md；源码位于 skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md。
 
@@ -29,7 +29,7 @@ Schema 位于 [schemas](../schemas/)，使用 Draft 2020-12 封闭对象；运�
 
 ```text
 run/
-  baseline.json       # 冻结 v5 用例
+  baseline.json       # 冻结 v7 用例
   manifest.json       # run 身份、基线 hash 与配置
   results.json        # entries；不存 case 级业务状态
   evidence.json       # catalog、revision、操作回执
@@ -40,13 +40,13 @@ run/
 
 start 要求项目存在、run 目录不存在，冻结基线并创建空账本；没有评估不是未测试。真实业务资料置于仓库外。该冻结事务不遍历任意项目数据、不调用浏览器或模型；接口观测由独立 network 命令按授权启动。
 
-evidence-add 请求有 schemaVersion:5、operationId、expectedRevision、caseId、sourceFile、kind、source、description，可选 capturedAt。kind 为 screenshot/dom/tool_receipt/log/other。文件必须是获准使用的普通文件，路径和归属检查拒绝符号链接及覆盖；工具按实际留存字节记录 SHA-256、bytes、collectedAt。未知采集时间省略 capturedAt，登记时间不冒充执行时间。登记不自动脱敏，哈希不证明真实性。
+evidence-add 请求有 schemaVersion:7、operationId、expectedRevision、caseId、sourceFile、kind、source、description，可选 capturedAt。kind 为 screenshot/dom/tool_receipt/log/other。文件必须是获准使用的普通文件，路径和归属检查拒绝符号链接及覆盖；工具按实际留存字节记录 SHA-256、bytes、collectedAt。未知采集时间省略 capturedAt，登记时间不冒充执行时间。登记不自动脱敏，哈希不证明真实性。
 
 ## 统一结果请求
 
 ```json
 {
-  "schemaVersion":5,
+  "schemaVersion":7,
   "operationId":"result-r01-first",
   "expectedRevision":0,
   "caseId":"R-01-empty-title",
@@ -77,7 +77,7 @@ record 的 final 按本次显式 goal 增量更新当前评估，其余目标不
 
 串行直接 record，无需 worker、Space 分派或 goalAssessments。并行 packet 的 record 使用完全相同字段；其中 observations.evidenceIds 和 diagnosis.evidenceIds 使用包中 evidence 声明的 local key，导入映射为 catalog ID。spaceUsage/executionWindow 保留 evidenceKeys。协调者显式 review 后导入同一 results.entries，原包与修订理由保留。
 
-配置 schemaVersion 为 5、maxParallelCases 默认 1，用户未明确要求或配置时不提高。执行查询支持 summary/assignment/full 与 metadata/full integrity，viewVersion 为 5；轻量查询明示未检查部分，不自动恢复或代表 worker 实时状态。完整操作参数见安装包 references/parallel-testing.md，源码对应 并发指南（安装包路径：references/parallel-testing.md）。
+配置 schemaVersion 为 7、maxParallelCases 默认 1，用户未明确要求或配置时不提高。执行查询支持 summary/assignment/full 与 metadata/full integrity，viewVersion 为 7；轻量查询明示未检查部分，不自动恢复或代表 worker 实时状态。完整操作参数见安装包 references/parallel-testing.md，源码对应 并发指南（安装包路径：references/parallel-testing.md）。
 
 ## revision、幂等与文件保护
 
@@ -95,6 +95,6 @@ evidenceCoverage 报告登记截图、不同留存内容和缺少关联截图的
 
 report 校验结构、引用和全部证据 hash/bytes 后写 report.html/json/md，任一目标已存在则拒绝覆盖。HTML 自包含内嵌核验的 PNG/JPEG/WebP，无外链或网络依赖，格式未知或解码失败明示，不造替代图。verify-report 读回并对照当前 run；后续 run 变化时另存新报告。browserOpen:not_checked 不证明实际打开，Ego 视觉/交互验证另记。
 
-历史 run 新工具明确拒绝。事后整理需另建有来源的新 v5 资产，不能假称执行前冻结，不补造动作、时间、截图。原文件与旧报告不覆盖。工具只验证格式和文件一致性，业务真实性、证据充分性与归因仍由 AI 负责。
+历史 run 新工具明确拒绝。事后整理需另建有来源的新 v7 资产，不能假称执行前冻结，不补造动作、时间、截图。原文件与旧报告不覆盖。工具只验证格式和文件一致性，业务真实性、证据充分性与归因仍由 AI 负责。
 
-接口观测独立使用 networkVersion 1，不改变上述 v5 契约。network start 配置见 schemas/network-start.schema.json，network query 请求见 schemas/network-query.schema.json；完整包 references/network-observation.md 说明启停、范围、内容策略、快照分页和不可变证据导出。正文状态区分 saved/empty/in_progress/not_collected/excluded/truncated/failed。session.json 固定身份及策略，runtime.json 发布已提交序号和字节上界；events/gaps 是带顺序哈希的追加记录，正文文件先提交后引用。哈希不证明来源真实或防恶意篡改。旧 protocol-summary 文件保持，不再读取或迁移。
+接口观测独立使用 networkVersion 1，不改变上述 v7 契约。network start 配置见 schemas/network-start.schema.json，network query 请求见 schemas/network-query.schema.json；完整包 references/network-observation.md 说明启停、范围、内容策略、快照分页和不可变证据导出。正文状态区分 saved/empty/in_progress/not_collected/excluded/truncated/failed。session.json 固定身份及策略，runtime.json 发布已提交序号和字节上界；events/gaps 是带顺序哈希的追加记录，正文文件先提交后引用。哈希不证明来源真实或防恶意篡改。旧 protocol-summary 文件保持，不再读取或迁移。

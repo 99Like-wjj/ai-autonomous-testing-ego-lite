@@ -1,0 +1,1113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "regression-artifact.schema.json",
+  "title": "Immutable regression artifact and commit request v1",
+  "description": "Normative sources and historical facts remain separate. Structural validity is not current readiness or product quality. Runtime checks verify exact references, hashes and revision history.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/storedRule"
+    },
+    {
+      "$ref": "#/$defs/storedTask"
+    }
+  ],
+  "$defs": {
+    "ruleRef": {
+      "type": "object",
+      "properties": {
+        "ruleId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "contentSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "ruleId",
+        "revision",
+        "contentSha256"
+      ],
+      "additionalProperties": false
+    },
+    "taskRef": {
+      "type": "object",
+      "properties": {
+        "taskId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "contentSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "taskId",
+        "revision",
+        "contentSha256"
+      ],
+      "additionalProperties": false
+    },
+    "sourceRef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "runDir": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "runId": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "baselineSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "resultsRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resultsSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "caseId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "goalId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "observationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "actionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "evidenceId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "evidenceId",
+              "sha256"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "runDir",
+        "runId",
+        "baselineSha256",
+        "resultsRevision",
+        "resultsSha256",
+        "caseId",
+        "goalId",
+        "observationIds",
+        "actionIds",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "rule": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "rule"
+        },
+        "ruleId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "statement": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "requirement",
+                "user_confirmation",
+                "approved_specification"
+              ]
+            },
+            "contentFile": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "locator": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "excerpt": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "version": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "contentSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "kind",
+            "contentFile",
+            "locator",
+            "excerpt",
+            "version",
+            "contentSha256"
+          ],
+          "additionalProperties": false
+        },
+        "confirmation": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "enum": [
+                "explicit",
+                "confirmed",
+                "pending",
+                "conflict"
+              ]
+            },
+            "basis": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "state",
+            "basis"
+          ],
+          "additionalProperties": false
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ruleRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "kind",
+        "ruleId",
+        "statement",
+        "scope",
+        "source",
+        "confirmation",
+        "supersedes",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "task"
+        },
+        "taskId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "title": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "maturity": {
+          "enum": [
+            "candidate",
+            "incomplete",
+            "defined"
+          ]
+        },
+        "review": {
+          "type": "object",
+          "properties": {
+            "author": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "basis": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "gaps": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            }
+          },
+          "required": [
+            "author",
+            "basis",
+            "gaps"
+          ],
+          "additionalProperties": false
+        },
+        "applicability": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "enum": [
+                "applicable",
+                "uncertain",
+                "inapplicable"
+              ]
+            },
+            "conditions": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "reason": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "replacedBy": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/taskRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "state",
+            "conditions",
+            "reason",
+            "replacedBy"
+          ],
+          "additionalProperties": false
+        },
+        "casePlan": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/case"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ruleBindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "goalId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "ruleRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/ruleRef"
+                }
+              }
+            },
+            "required": [
+              "goalId",
+              "ruleRefs"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "sourceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        },
+        "goalMappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceRefId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "taskGoalId": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reason": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "required": [
+              "sourceRefId",
+              "taskGoalId",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "pathKnowledge": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "planRef": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "state": {
+                "enum": [
+                  "observed",
+                  "required_unreached",
+                  "unknown"
+                ]
+              },
+              "sourceRefIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "uniqueItems": true
+              },
+              "detail": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "gaps": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                }
+              }
+            },
+            "required": [
+              "planRef",
+              "state",
+              "sourceRefIds",
+              "detail",
+              "gaps"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dataConstraints": {
+          "type": "object",
+          "properties": {
+            "requiredRelationships": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "allowedSubstitutions": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "equivalenceRequirements": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            }
+          },
+          "required": [
+            "requiredRelationships",
+            "allowedSubstitutions",
+            "equivalenceRequirements"
+          ],
+          "additionalProperties": false
+        },
+        "risks": {
+          "type": "object",
+          "properties": {
+            "unresolvedSideEffects": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "idempotencyBasis": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "authorizationToRecheck": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            }
+          },
+          "required": [
+            "unresolvedSideEffects",
+            "idempotencyBasis",
+            "authorizationToRecheck"
+          ],
+          "additionalProperties": false
+        },
+        "auxiliaryActions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "purpose": {
+                "enum": [
+                  "preparation",
+                  "exploration",
+                  "recovery",
+                  "cleanup"
+                ]
+              },
+              "intent": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                }
+              },
+              "limits": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                }
+              }
+            },
+            "required": [
+              "purpose",
+              "intent",
+              "conditions",
+              "limits"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/taskRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "kind",
+        "taskId",
+        "title",
+        "maturity",
+        "review",
+        "applicability",
+        "casePlan",
+        "ruleBindings",
+        "sourceRefs",
+        "goalMappings",
+        "pathKnowledge",
+        "dataConstraints",
+        "risks",
+        "auxiliaryActions",
+        "supersedes",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "storedRule": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "rule"
+        },
+        "ruleId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "statement": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/nonempty"
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "requirement",
+                "user_confirmation",
+                "approved_specification"
+              ]
+            },
+            "contentFile": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "locator": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "excerpt": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "version": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "contentSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "kind",
+            "contentFile",
+            "locator",
+            "excerpt",
+            "version",
+            "contentSha256"
+          ],
+          "additionalProperties": false
+        },
+        "confirmation": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "enum": [
+                "explicit",
+                "confirmed",
+                "pending",
+                "conflict"
+              ]
+            },
+            "basis": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "state",
+            "basis"
+          ],
+          "additionalProperties": false
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ruleRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "regressionVersion": {
+          "const": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "payloadSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "contentSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "recordedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "timeSource": {
+          "const": "local_transaction_clock"
+        }
+      },
+      "required": [
+        "kind",
+        "ruleId",
+        "statement",
+        "scope",
+        "source",
+        "confirmation",
+        "supersedes",
+        "reason",
+        "regressionVersion",
+        "revision",
+        "operationId",
+        "expectedRevision",
+        "payloadSha256",
+        "contentSha256",
+        "recordedAt",
+        "timeSource"
+      ],
+      "additionalProperties": false
+    },
+    "storedTask": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "task"
+        },
+        "taskId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "title": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "maturity": {
+          "enum": [
+            "candidate",
+            "incomplete",
+            "defined"
+          ]
+        },
+        "review": {
+          "type": "object",
+          "properties": {
+            "author": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "basis": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "gaps": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            }
+          },
+          "required": [
+            "author",
+            "basis",
+            "gaps"
+          ],
+          "additionalProperties": false
+        },
+        "applicability": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "enum": [
+                "applicable",
+                "uncertain",
+                "inapplicable"
+              ]
+            },
+            "conditions": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "reason": {
+              "$ref": "common.schema.json#/$defs/nonempty"
+            },
+            "replacedBy": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/taskRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "state",
+            "conditions",
+            "reason",
+            "replacedBy"
+          ],
+          "additionalProperties": false
+        },
+        "casePlan": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/case"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ruleBindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "goalId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "ruleRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/ruleRef"
+                }
+              }
+            },
+            "required": [
+              "goalId",
+              "ruleRefs"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "sourceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          }
+        },
+        "goalMappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceRefId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "taskGoalId": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reason": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "required": [
+              "sourceRefId",
+              "taskGoalId",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "pathKnowledge": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "planRef": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "state": {
+                "enum": [
+                  "observed",
+                  "required_unreached",
+                  "unknown"
+                ]
+              },
+              "sourceRefIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "uniqueItems": true
+              },
+              "detail": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "gaps": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                }
+              }
+            },
+            "required": [
+              "planRef",
+              "state",
+              "sourceRefIds",
+              "detail",
+              "gaps"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dataConstraints": {
+          "type": "object",
+          "properties": {
+            "requiredRelationships": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "allowedSubstitutions": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "equivalenceRequirements": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            }
+          },
+          "required": [
+            "requiredRelationships",
+            "allowedSubstitutions",
+            "equivalenceRequirements"
+          ],
+          "additionalProperties": false
+        },
+        "risks": {
+          "type": "object",
+          "properties": {
+            "unresolvedSideEffects": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "idempotencyBasis": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            },
+            "authorizationToRecheck": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              }
+            }
+          },
+          "required": [
+            "unresolvedSideEffects",
+            "idempotencyBasis",
+            "authorizationToRecheck"
+          ],
+          "additionalProperties": false
+        },
+        "auxiliaryActions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "purpose": {
+                "enum": [
+                  "preparation",
+                  "exploration",
+                  "recovery",
+                  "cleanup"
+                ]
+              },
+              "intent": {
+                "$ref": "common.schema.json#/$defs/nonempty"
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                }
+              },
+              "limits": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/nonempty"
+                }
+              }
+            },
+            "required": [
+              "purpose",
+              "intent",
+              "conditions",
+              "limits"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/taskRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "$ref": "common.schema.json#/$defs/nonempty"
+        },
+        "regressionVersion": {
+          "const": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "payloadSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "contentSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "recordedAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "timeSource": {
+          "const": "local_transaction_clock"
+        }
+      },
+      "required": [
+        "kind",
+        "taskId",
+        "title",
+        "maturity",
+        "review",
+        "applicability",
+        "casePlan",
+        "ruleBindings",
+        "sourceRefs",
+        "goalMappings",
+        "pathKnowledge",
+        "dataConstraints",
+        "risks",
+        "auxiliaryActions",
+        "supersedes",
+        "reason",
+        "regressionVersion",
+        "revision",
+        "operationId",
+        "expectedRevision",
+        "payloadSha256",
+        "contentSha256",
+        "recordedAt",
+        "timeSource"
+      ],
+      "additionalProperties": false
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "regressionVersion": {
+          "const": 1
+        },
+        "operationId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "artifact": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/rule"
+            },
+            {
+              "$ref": "#/$defs/task"
+            }
+          ]
+        }
+      },
+      "required": [
+        "regressionVersion",
+        "operationId",
+        "expectedRevision",
+        "artifact"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

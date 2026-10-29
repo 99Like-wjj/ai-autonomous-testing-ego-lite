@@ -1,10 +1,14 @@
 #!/usr/bin/env node
+import { commitArtifact, readArtifact, readLibrary, validateArtifactRequest } from '../regression/store.mjs';
+import { readSourceRun, sourceContext, inspectArtifactSources } from '../regression/sources.mjs';
+import { selectRegression } from '../regression/selection.mjs';
+import { compareRuns, writeComparison } from '../regression/compare.mjs';
 /** Local deterministic transactions only. The host AI owns browser actions and verdicts. */
 import path from 'node:path';
 import { realpath } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { toolInfo } from './toolchain.mjs';
-import { errorInfo, fail, json, readJSON, safePath } from '../core/common.mjs';
+import { errorInfo, fail, hash, json, readJSON, safePath, writeNew } from '../core/common.mjs';
 import { validateCases, init, start } from '../core/cases.mjs';
 import { check, recordResult, registerEvidence, progress } from '../core/records.mjs';
 import { report, verifyReport } from '../report/delivery.mjs';
@@ -24,6 +28,7 @@ export { readExecutionView, readExecutionQuery, executeRequest } from '../execut
 export { sealPacket } from '../execution/packets.mjs';
 
 interface Responses {
+  regression: unknown;
   'tool-info': Omit<Awaited<ReturnType<typeof toolInfo>>, 'files'>;
   'validate-cases': Awaited<ReturnType<typeof validateCases>>;
   init: Awaited<ReturnType<typeof init>>; start: Awaited<ReturnType<typeof start>>;
@@ -51,7 +56,7 @@ export async function main(argv: readonly string[]): Promise<unknown> {
   if (command === '--help' || command === 'help' || !command) return `Usage: node ABS_TOOL_ROOT/scripts/ego.mjs tool-info [--expect-version VERSION] [--expect-revision REVISION]
        node ABS_TOOL_ROOT/scripts/ego.mjs init --project-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS
-       node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS --cases ABS --output-dir ABS [--execution-config ABS_JSON] [--max-parallel-cases N]
+       node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS --cases ABS --output-dir ABS [--execution-config ABS_JSON] [--max-parallel-cases N] [--binding ABS_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS --request ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs record --run-dir ABS --request ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs progress --run-dir ABS
@@ -65,10 +70,17 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs network status --run-dir ABS [--capture-id ID]
        node ABS_TOOL_ROOT/scripts/ego.mjs network query --run-dir ABS --request ABS_JSON [--output-file ABS_NEW_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs network stop --run-dir ABS [--capture-id ID]
+       node ABS_TOOL_ROOT/scripts/ego.mjs regression read --project-dir ABS [--kind rule|task --artifact-id ID --revision N --sha256 HASH]
+       node ABS_TOOL_ROOT/scripts/ego.mjs regression context --project-dir ABS --run-dir ABS [--results-revision N] [--output-file ABS_NEW_JSON]
+       node ABS_TOOL_ROOT/scripts/ego.mjs regression validate --project-dir ABS --request ABS_JSON
+       node ABS_TOOL_ROOT/scripts/ego.mjs regression commit --project-dir ABS --request ABS_JSON
+       node ABS_TOOL_ROOT/scripts/ego.mjs regression select --project-dir ABS --request ABS_JSON [--output-file ABS_NEW_JSON]
+       node ABS_TOOL_ROOT/scripts/ego.mjs regression compare --request ABS_JSON [--output-dir ABS_NEW_DIRECTORY]
+Regression contracts use regressionVersion 1. Selection is derived from explicit scope and frozen source results; it does not execute tests. start --binding reads a binding request and freezes exact task/rule snapshots into the new run. Historical results never become new evidence or current authorization.
 Execution ACTION: inventory, capacity, reserve, attach-space, note, set-limit, reconcile, import.
 execution read defaults to a bounded metadata summary; assignment requires --assignment-id. Use --integrity full for a strictly checked compact view. --view full keeps the previous complete output and requires full checks. Metadata reads do not recover evidence or recheck historical files.
 max-parallel-cases is a positive safe integer; no fixed product ceiling. Host limits are used only when explicitly supplied, never probed or globally configured.
-All current data contracts use v5. Older formats are explicitly rejected; existing data is never migrated or overwritten.
+All current data contracts use v7. Older formats are explicitly rejected; existing data is never migrated or overwritten.
 record commits observations and explicit business-goal assessments through the same transaction as reviewed packet imports.
 Missing assessments are recording gaps, not inconclusive verdicts. Cases group goals and have no separate business verdict.
 packet-seal writes an immutable worker-local packet; it does not commit a verdict. Coordinator import requires an explicit AI review.
@@ -77,6 +89,34 @@ Generation and verify-report read back all three files; browserOpen stays not_ch
 network start/stop manage a scoped native-only Ego observation context. Queries read committed local evidence and make no business requests or verdicts.
 Network format is independently versioned (networkVersion 1). Old experimental protocol summaries are not read or migrated.
 No model calls, automatic UI actions, request replay or automatic business verdicts.`;
+  if (command === 'regression') {
+    const [action, ...rest] = argv.slice(1);
+    if (!action || !['read', 'context', 'validate', 'commit', 'select', 'compare'].includes(action)) fail('Unknown regression action.');
+    const allowed = action === 'read' ? ['project-dir', 'kind', 'artifact-id', 'revision', 'sha256'] : action === 'context' ? ['project-dir', 'run-dir', 'results-revision', 'output-file'] : action === 'compare' ? ['request', 'output-dir'] : action === 'select' ? ['project-dir', 'request', 'output-file'] : ['project-dir', 'request'];
+    const required = action === 'read' ? ['project-dir'] : action === 'context' ? ['project-dir', 'run-dir'] : action === 'compare' ? ['request'] : ['project-dir', 'request'];
+    const flags = parseFlags(rest, allowed, required); await toolInfo();
+    const revision = (value: string) => { if (!/^[0-9]+$/.test(value) || !Number.isSafeInteger(Number(value))) fail('Revision must be a nonnegative safe integer.'); return Number(value); };
+    let result: unknown;
+    if (action === 'read') {
+      if (['kind', 'artifact-id', 'revision', 'sha256'].some(k => flags[k] !== undefined)) {
+        if (!flags.kind || !flags['artifact-id'] || !flags.revision || !flags.sha256 || !['rule', 'task'].includes(flags.kind)) fail('Exact read requires kind, artifact-id, revision and sha256.');
+        result = await readArtifact({ projectDir: flags['project-dir'], kind: flags.kind as 'rule' | 'task', artifactId: flags['artifact-id'], revision: revision(flags.revision), contentSha256: flags.sha256 });
+      } else result = await readLibrary(flags['project-dir']);
+    } else if (action === 'context') {
+      const source = await readSourceRun(flags['run-dir'], flags['results-revision'] === undefined ? {} : { resultsRevision: revision(flags['results-revision']) });
+      const library = await readLibrary(flags['project-dir']);
+      const sourceAvailability = []; for (const artifact of [...library.rules, ...library.tasks]) sourceAvailability.push(...await inspectArtifactSources(artifact));
+      result = { ...sourceContext(source, library), sourceAvailability };
+    } else {
+      const request = await readJSON(await safePath(flags.request, { existing: true }));
+      if (action === 'commit') result = await commitArtifact({ projectDir: flags['project-dir'], request });
+      else if (action === 'validate') result = await validateArtifactRequest({ projectDir: flags['project-dir'], request });
+      else if (action === 'select') result = await selectRegression({ projectDir: flags['project-dir'], request });
+      else { const comparison = await compareRuns({ request }); result = flags['output-dir'] ? await writeComparison({ outputDir: flags['output-dir'], comparison }) : comparison; }
+    }
+    if (flags['output-file']) { const file = await safePath(flags['output-file'], { external: true }), bytes = json(result); await writeNew(file, bytes); return { outputFile: file, sha256: hash(bytes), regressionVersion: 1, businessExecuted: false }; }
+    return result;
+  }
   if (command === 'network') {
     try {
     const [action, ...options] = rest;
@@ -102,7 +142,7 @@ No model calls, automatic UI actions, request replay or automatic business verdi
     if (parseRequest(request).kind !== action) fail('Execution action and request kind disagree.');
     return executeRequest({ runDir: flags['run-dir'], request });
   }
-  const options: Record<string, readonly string[]> = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir', 'execution-config', 'max-parallel-cases'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'context'], 'verify-report': ['run-dir', 'report-dir'] };
+  const options: Record<string, readonly string[]> = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir', 'execution-config', 'max-parallel-cases', 'binding'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'context'], 'verify-report': ['run-dir', 'report-dir'] };
   const allowed = options[command];
   if (!allowed) fail('Unknown command. Use --help.');
   const required = command === 'tool-info' ? [] : command === 'report' ? ['run-dir'] : command === 'start' ? ['project-dir', 'cases', 'output-dir'] : allowed;
@@ -114,7 +154,7 @@ No model calls, automatic UI actions, request replay or automatic business verdi
   }
   if (command === 'validate-cases') return validateCases(flags.cases);
   if (command === 'init') return init(flags['project-dir']);
-  if (command === 'start') return start({ projectDir: flags['project-dir'], casesFile: flags.cases, outputDir: flags['output-dir'], configFile: flags['execution-config'], maxParallelCases: flags['max-parallel-cases'] === undefined ? undefined : cliParallelLimit(flags['max-parallel-cases']) });
+  if (command === 'start') return start({ projectDir: flags['project-dir'], casesFile: flags.cases, outputDir: flags['output-dir'], configFile: flags['execution-config'], bindingFile: flags.binding, maxParallelCases: flags['max-parallel-cases'] === undefined ? undefined : cliParallelLimit(flags['max-parallel-cases']) });
   if (command === 'evidence-add') return registerEvidence({ runDir: flags['run-dir'], request: await readJSON(await safePath(flags.request, { existing: true })) });
   if (command === 'record') return recordResult({ runDir: flags['run-dir'], request: await readJSON(await safePath(flags.request, { existing: true })) });
   if (command === 'progress') return progress(flags['run-dir']);

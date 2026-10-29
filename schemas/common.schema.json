@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "common.schema.json",
-  "title": "Ego Lite shared contracts v5",
+  "title": "Ego Lite shared contracts v7",
   "$defs": {
     "nonempty": {
       "type": "string",
@@ -249,6 +249,16 @@
             "$ref": "#/$defs/safeId"
           },
           "uniqueItems": true
+        },
+        "contextId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "actionEventIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
         }
       },
       "additionalProperties": false
@@ -315,6 +325,18 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/assessment"
+          }
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/runContext"
+          }
+        },
+        "actionEvents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/actionEvent"
           }
         }
       },
@@ -507,6 +529,18 @@
             "$ref": "#/$defs/safeId"
           },
           "uniqueItems": true
+        },
+        "contexts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/runContext"
+          }
+        },
+        "actionEvents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/actionEvent"
+          }
         }
       },
       "additionalProperties": false
@@ -653,6 +687,700 @@
         }
       },
       "additionalProperties": false
+    },
+    "factSource": {
+      "title": "Fact source",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "evidence",
+            "requirement",
+            "user_confirmation",
+            "resource",
+            "other"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind",
+        "reference",
+        "evidenceIds"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "evidence"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "evidenceIds": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "contextFact": {
+      "title": "Context fact",
+      "type": "object",
+      "properties": {
+        "state": {
+          "enum": [
+            "known",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/factSource"
+          }
+        }
+      },
+      "required": [
+        "state",
+        "summary",
+        "sources"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "state"
+            ],
+            "properties": {
+              "state": {
+                "const": "known"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sources": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "runContext": {
+      "title": "Run context",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "environment": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "identity": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "objects": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "initialState": {
+          "$ref": "#/$defs/contextFact"
+        },
+        "authorization": {
+          "$ref": "#/$defs/contextFact"
+        }
+      },
+      "required": [
+        "id",
+        "environment",
+        "identity",
+        "objects",
+        "initialState",
+        "authorization"
+      ],
+      "additionalProperties": false
+    },
+    "actionDisposition": {
+      "title": "Action disposition",
+      "type": "object",
+      "properties": {
+        "state": {
+          "enum": [
+            "confirmed_occurred",
+            "confirmed_not_occurred",
+            "unknown",
+            "deferred",
+            "conflicting"
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "scope": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          },
+          "uniqueItems": true
+        },
+        "resolvesEventIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "state",
+        "rationale",
+        "scope",
+        "limitations",
+        "resolvesEventIds"
+      ],
+      "additionalProperties": false
+    },
+    "actionRetry": {
+      "title": "Action retry",
+      "type": "object",
+      "properties": {
+        "actionId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "rationale": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "authorizationSources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/factSource"
+          },
+          "minItems": 1
+        },
+        "idempotencyBasis": {
+          "$ref": "#/$defs/contextFact"
+        }
+      },
+      "required": [
+        "actionId",
+        "rationale",
+        "authorizationSources"
+      ],
+      "additionalProperties": false
+    },
+    "actionObservationWindow": {
+      "title": "Action observation window",
+      "type": "object",
+      "properties": {
+        "startedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "endedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "limitation": {
+          "$ref": "#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "startedAt",
+        "endedAt",
+        "source",
+        "limitation"
+      ],
+      "additionalProperties": false,
+      "description": "Actual observation bounds and their source. Runtime validation additionally checks that endedAt is not earlier than startedAt; this window does not create a product SLA."
+    },
+    "actionEvent": {
+      "title": "Action event",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "actionId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "kind": {
+          "enum": [
+            "intent",
+            "dispatch",
+            "result",
+            "reconciliation",
+            "disposition"
+          ]
+        },
+        "purpose": {
+          "enum": [
+            "prepare",
+            "test",
+            "reproduce",
+            "recover",
+            "cleanup",
+            "explore"
+          ]
+        },
+        "contextId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "actor": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "summary": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "sideEffectRisk": {
+          "enum": [
+            "none",
+            "possible",
+            "unknown"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "occurredAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timeSource": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "planRef": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "target": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          },
+          "uniqueItems": true
+        },
+        "sideEffects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          },
+          "uniqueItems": true
+        },
+        "dispatchState": {
+          "enum": [
+            "issued",
+            "not_issued",
+            "unknown"
+          ]
+        },
+        "acceptanceState": {
+          "enum": [
+            "accepted",
+            "rejected",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "resultState": {
+          "enum": [
+            "known",
+            "processing",
+            "window_incomplete",
+            "failed",
+            "unknown"
+          ]
+        },
+        "readOnly": {
+          "const": true
+        },
+        "observationWindow": {
+          "$ref": "#/$defs/actionObservationWindow"
+        },
+        "disposition": {
+          "$ref": "#/$defs/actionDisposition"
+        },
+        "conflictsWithEventIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "retry": {
+          "$ref": "#/$defs/actionRetry"
+        }
+      },
+      "required": [
+        "id",
+        "actionId",
+        "kind",
+        "purpose",
+        "contextId",
+        "actor",
+        "summary",
+        "sideEffectRisk",
+        "evidenceIds"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "intent"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "target",
+              "inputs",
+              "sideEffects"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "dispatchState"
+                  ]
+                },
+                {
+                  "required": [
+                    "acceptanceState"
+                  ]
+                },
+                {
+                  "required": [
+                    "resultState"
+                  ]
+                },
+                {
+                  "required": [
+                    "readOnly"
+                  ]
+                },
+                {
+                  "required": [
+                    "observationWindow"
+                  ]
+                },
+                {
+                  "required": [
+                    "disposition"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "dispatch"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "dispatchState",
+              "acceptanceState"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "resultState"
+                  ]
+                },
+                {
+                  "required": [
+                    "readOnly"
+                  ]
+                },
+                {
+                  "required": [
+                    "observationWindow"
+                  ]
+                },
+                {
+                  "required": [
+                    "disposition"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "result"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "resultState"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "dispatchState"
+                  ]
+                },
+                {
+                  "required": [
+                    "acceptanceState"
+                  ]
+                },
+                {
+                  "required": [
+                    "readOnly"
+                  ]
+                },
+                {
+                  "required": [
+                    "disposition"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "reconciliation"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "resultState",
+              "readOnly"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "dispatchState"
+                  ]
+                },
+                {
+                  "required": [
+                    "acceptanceState"
+                  ]
+                },
+                {
+                  "required": [
+                    "disposition"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "disposition"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "disposition"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "dispatchState"
+                  ]
+                },
+                {
+                  "required": [
+                    "acceptanceState"
+                  ]
+                },
+                {
+                  "required": [
+                    "resultState"
+                  ]
+                },
+                {
+                  "required": [
+                    "readOnly"
+                  ]
+                },
+                {
+                  "required": [
+                    "observationWindow"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "occurredAt"
+            ]
+          },
+          "then": {
+            "required": [
+              "timeSource"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "timeSource"
+            ]
+          },
+          "then": {
+            "required": [
+              "occurredAt"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "resultState"
+            ],
+            "properties": {
+              "resultState": {
+                "const": "window_incomplete"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "observationWindow"
+            ]
+          }
+        },
+        {
+          "if": {
+            "anyOf": [
+              {
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "reconciliation",
+                      "disposition"
+                    ]
+                  }
+                }
+              },
+              {
+                "required": [
+                  "dispatchState"
+                ],
+                "properties": {
+                  "dispatchState": {
+                    "enum": [
+                      "issued",
+                      "not_issued"
+                    ]
+                  }
+                }
+              },
+              {
+                "required": [
+                  "resultState"
+                ],
+                "properties": {
+                  "resultState": {
+                    "enum": [
+                      "known",
+                      "processing",
+                      "window_incomplete",
+                      "failed"
+                    ]
+                  }
+                }
+              },
+              {
+                "required": [
+                  "conflictsWithEventIds"
+                ],
+                "properties": {
+                  "conflictsWithEventIds": {
+                    "minItems": 1
+                  }
+                }
+              }
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidenceIds": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ],
+      "description": "One immutable fact event of an action attempt. The kind-specific fields below are conditional requirements, not a fixed execution route. Dispatch acceptance is separate from business result; unknown facts may be recorded without inventing evidence. IDs, source ownership, previous-event references and timestamp ordering are checked by the runtime."
     }
   }
 }

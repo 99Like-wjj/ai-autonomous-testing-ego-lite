@@ -1,0 +1,177 @@
+{
+  "regressionVersion": 1,
+  "selection": {
+    "regressionVersion": 1,
+    "request": {
+      "regressionVersion": 1,
+      "mode": "status",
+      "scope": {
+        "scopeId": "synthetic-scope",
+        "version": "synthetic-placeholder-not-executable",
+        "baseline": {
+          "schemaVersion": 7,
+          "project": "SYNTHETIC EXAMPLE ONLY — replace with a real authorized scope",
+          "cases": [
+            {
+              "id": "synthetic-case",
+              "title": "Synthetic original business scenario",
+              "criticalConditions": [
+                "Synthetic example only; replace with original required conditions."
+              ],
+              "requiredPath": null,
+              "stepOrder": "strict",
+              "steps": [
+                {
+                  "id": "readback",
+                  "action": "Synthetic example: independently read the approved saved value."
+                }
+              ],
+              "goals": [
+                {
+                  "id": "saved-value",
+                  "basis": {
+                    "kind": "explicit",
+                    "source": "SYNTHETIC EXAMPLE ONLY — not a real approved requirement",
+                    "text": "Synthetic requirement text to be replaced."
+                  },
+                  "expected": "Synthetic expected saved value; replace with the actual original requirement.",
+                  "requiredRefs": [
+                    "condition:0",
+                    "step:readback"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "taskBindings": [
+          {
+            "caseId": "synthetic-case",
+            "taskRef": {
+              "taskId": "synthetic-task",
+              "revision": 1,
+              "contentSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          }
+        ],
+        "gaps": [
+          {
+            "caseId": "synthetic-case",
+            "goalId": null,
+            "reason": "SYNTHETIC TEMPLATE: all paths, snapshots and hashes must be replaced using verified context and commit receipts. This file is not an execution authorization."
+          }
+        ]
+      },
+      "source": {
+        "runDir": "C:\\SyntheticOnly\\replace-with-source-run",
+        "runId": "synthetic-source-run",
+        "baselineSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "resultsRevision": 1,
+        "resultsSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "goalMappings": [
+          {
+            "caseId": "synthetic-case",
+            "goalId": "saved-value",
+            "sourceCaseId": "synthetic-case",
+            "sourceGoalId": "saved-value"
+          }
+        ]
+      },
+      "statuses": [
+        "violation"
+      ],
+      "includeUnassessedCases": false
+    },
+    "scopeSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "matchPolicy": "any_goal",
+    "sourceStates": [
+      {
+        "caseId": "synthetic-case",
+        "goalId": "saved-value",
+        "status": "violation",
+        "sourceMapped": true
+      }
+    ],
+    "assetGaps": [
+      {
+        "caseId": "synthetic-case",
+        "goalId": null,
+        "code": "missing_task",
+        "reason": "The exact task revision is unavailable: synthetic-task@1:0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    ],
+    "selectedCaseIds": [
+      "synthetic-case"
+    ],
+    "matchedGoalRefs": [
+      {
+        "caseId": "synthetic-case",
+        "goalId": "saved-value"
+      }
+    ],
+    "plannedGoalRefs": [
+      {
+        "caseId": "synthetic-case",
+        "goalId": "saved-value"
+      }
+    ],
+    "caseMatches": [
+      {
+        "caseId": "synthetic-case",
+        "matchedGoalRefs": [
+          {
+            "caseId": "synthetic-case",
+            "goalId": "saved-value"
+          }
+        ],
+        "unassessedGoalRefs": [],
+        "reason": "status_match"
+      }
+    ],
+    "notSelected": [],
+    "gaps": [
+      {
+        "caseId": "synthetic-case",
+        "goalId": null,
+        "reason": "SYNTHETIC TEMPLATE: all paths, snapshots and hashes must be replaced using verified context and commit receipts. This file is not an execution authorization.",
+        "code": "declared_scope_gap"
+      },
+      {
+        "caseId": "synthetic-case",
+        "goalId": null,
+        "code": "missing_task",
+        "reason": "The exact task revision is unavailable: synthetic-task@1:0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    ],
+    "selectionSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "caseMappings": [
+    {
+      "scopeCaseId": "synthetic-case",
+      "runCaseId": "synthetic-case"
+    }
+  ],
+  "deferredCases": [],
+  "conditions": {
+    "declaredBy": "SYNTHETIC EXAMPLE REVIEWER",
+    "declaredAt": "2026-10-30T00:00:00Z",
+    "forCurrentRun": true,
+    "items": [
+      {
+        "id": "synthetic-current-authorization",
+        "caseIds": [
+          "synthetic-case"
+        ],
+        "aspect": "authorization",
+        "state": "pending",
+        "statement": "SYNTHETIC TEMPLATE ONLY: replace the entire selection with an actual select receipt and independently declare current authorization. Placeholder hashes and hypothetical source states must never be executed.",
+        "source": {
+          "kind": "ai_declaration",
+          "locator": "Synthetic template explanation; not actual user authorization",
+          "file": null,
+          "sha256": null
+        }
+      }
+    ]
+  }
+}

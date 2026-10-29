@@ -8,7 +8,7 @@
 
 ## 当前版本
 
-当前独立开发候选为 **0.1.8-rc.1 / resource-readiness-2**，尚未发布。完善首次/恢复实际测试前的整轮资源沟通及多轮答复承接；主数据契约仍为 v5。未包含另一工作区的 v0.1.7 报告改动。 开发与自测范围见[资源澄清验证](docs/v0.1.8-resource-readiness-validation.md)。
+当前独立开发候选为 **0.1.8-rc.1 / regression-reuse-1**，尚未发布。完善首次/恢复实际测试前的整轮资源沟通及多轮答复承接；主数据契约为 v7，回归资料为 regressionVersion 1。未包含另一工作区的 v0.1.7 报告改动。 开发与自测范围见[资源澄清验证](docs/v0.1.8-resource-readiness-validation.md)与[回归复用验证](docs/v0.1.8-regression-reuse-validation.md)。
 
 当前正式版本为 **0.1.6 / native-network-observation-1**。完整安装包与校验值见 [v0.1.6 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。用户已反馈本地按一份需求试跑可用；这不代表所有业务、模型和宿主均已验收。发布收尾与已有验证分别见[验证记录](docs/testing.md)。构建与测试不会自动替换用户级 Skill。
 
@@ -18,7 +18,15 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 
 ![最近四版：v0.1.3、v0.1.4、v0.1.5、v0.1.6，均为正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 仅展示最新正式版本与前三个历史版本；更早版本继续保留在[完整版本演变](docs/version-history.md)中。v0.1.7 为计划，不计入已发布四版。
+README 仅展示最新正式版本与前三个历史版本；更早版本继续保留在[完整版本演变](docs/version-history.md)中。v0.1.7 工作与本分支分开，开发候选不计入已发布四版。现有示意图保留上一正式版本的能力概览，v7 动作事实与回归资料契约以当前正文为准。
+
+## 首次成果与两种回归范围
+
+首次测试主动保存规则来源、实际事实、失败和未完成部分，并由 AI 整理项目专属回归任务。用户可以指定基准运行，按发现违反、无法判断、未测试、已验证中的一个或多个状态选择；任一目标命中，就重跑整条场景并重新评估全部目标。也可对明确测试集选择全量回归，受阻及未整理目标仍保留。
+
+任务定义完整不等于产品通过或本次资源/授权就绪。每次回归新建独立运行，冻结任务/规则修订和选择范围；未知副作用先只读对账，不自动重放。比较保留来源、条件差异和 AI 可比性说明，不因历史通过、本次失败就自动归因新版。
+
+工具仅保存、校验、筛选明确输入和呈现事实；任务整理与业务执行由当前 AI 完成。具体接口见[回归资料与执行绑定](docs/regression-reuse.md)，行为边界见[回归使用指南](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md)。v5/v6 历史文件保留，新工具不自动迁移；本分支不包含另一工作区的 v0.1.7 报告优化。
 
 ## 本次改进
 
@@ -30,7 +38,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 - **结果与原因分开。** 已足以证明违反时可同时记录根因未知。关键动作或结果本身尚不能确认时，具体说明证据缺口；不要求每个 UI 异常都查明后端根因。
 - **保留部分完成与历史。** 父场景展示目标分布；final 按目标更新，attempt 保留历史。后续澄清/复核可关联原目标，但不覆盖首次异常或旧结论。
 
-当前测试资产 JSON 契约统一为 **schemaVersion 5**，execution read 的 viewVersion 为 5。新版明确拒绝旧格式，不提供兼容读取或转换。旧报告、截图、运行与来源文件保持原样；重新使用来源时创建新的 v5 资产，不只改版本号，也不覆盖历史。具体见[格式说明](docs/asset-formats.md)。
+当前测试资产 JSON 契约统一为 **schemaVersion 7**，execution read 的 viewVersion 为 7。新版明确拒绝旧格式，不提供兼容读取或转换。旧报告、截图、运行与来源文件保持原样；重新使用来源时创建新的 v7 资产，不只改版本号，也不覆盖历史。具体见[格式说明](docs/asset-formats.md)。
 
 ## 用例与证据
 
@@ -42,7 +50,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 
 默认交付独立 HTML、JSON、Markdown。报告显示目标预期、观察、证据、缺口、根因确认程度和历史；三种格式共享统计。缺图与文件完整性单独展示，哈希一致不证明业务判断正确。文件校验与实际浏览器打开分别验证。
 
-接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，v5 结果契约保持。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
+接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，当前结果契约为 v7，原 v5 运行历史保持原样。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
 
 ![报告内容示意：预期、观察、证据与未覆盖范围；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
 
@@ -58,7 +66,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision resource-readiness-2
+node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision regression-reuse-1
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：
@@ -71,7 +79,7 @@ node $Tool init --project-dir $Project
 $Cases = Join-Path $Project 'cases.example.json'
 ```
 
-将示例改成已核对来源和授权的 v5 用例，再冻结：
+将示例改成已核对来源和授权的 v7 用例，再冻结：
 
 ```powershell
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
@@ -146,7 +154,7 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 
 ![独立用例 worker 留证封包，协调者复核后汇总；默认串行，显式配置后安排并发。](docs/images/parallel.zh-CN.svg)
 
-已整合跨宿主修复提交 8e6e2d9，当前保留 v5 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
+已整合跨宿主修复提交 8e6e2d9，当前保留 v7 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
 
 `maxParallelCases` 默认为 **1（逐条执行）**；用户未要求并发且未明确配置时保持串行。用户可用命令行或项目配置指定任意可准确表示的正整数，无固定产品上限。AI 决定工具调用、批次与 worker 使用，配置不要求跑满。宿主明确提供的限制单独记录，未知则保持未知，不主动探测客户端最大子代理数或修改全局配置。
 

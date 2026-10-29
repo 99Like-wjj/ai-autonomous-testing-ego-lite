@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "worker-draft.schema.json",
-  "title": "Ego Lite worker draft v5",
+  "title": "Ego Lite worker draft v7",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 7
     },
     "packetId": {
       "$ref": "common.schema.json#/$defs/safeId"
@@ -57,6 +57,10 @@
           },
           "capturedAt": {
             "$ref": "common.schema.json#/$defs/timestamp"
+          },
+          "reuseEvidenceId": {
+            "$ref": "common.schema.json#/$defs/safeId",
+            "description": "Explicitly reuse this current-run, same-case registered evidence ID after matching the retained file and all source metadata. This is not new collection."
           }
         },
         "required": [

@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface EvidenceRegistrationRequestV5 {
-  schemaVersion: 5;
+export interface EvidenceRegistrationRequestV7 {
+  schemaVersion: 7;
   operationId: string;
   expectedRevision: number;
   caseId: string;

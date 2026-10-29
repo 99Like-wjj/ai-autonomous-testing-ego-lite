@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 7,
   "operationId": "evidence-r01-first",
   "expectedRevision": 0,
   "caseId": "R-01-empty-title",

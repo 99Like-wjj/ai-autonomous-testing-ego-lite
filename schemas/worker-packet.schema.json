@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "worker-packet.schema.json",
-  "title": "Ego Lite worker packet v5",
+  "title": "Ego Lite worker packet v7",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 7
     },
     "runId": {
       "type": "string",
@@ -138,6 +138,10 @@
         },
         "capturedAt": {
           "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "reuseEvidenceId": {
+          "$ref": "common.schema.json#/$defs/safeId",
+          "description": "Explicitly reuse this current-run, same-case registered evidence ID after matching the retained file and all source metadata. This is not new collection."
         }
       },
       "required": [

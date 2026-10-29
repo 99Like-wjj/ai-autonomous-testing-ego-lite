@@ -20,7 +20,7 @@ start 配置示例（替换真实授权 Space、target 和来源）：
 
 路径按段前缀匹配：/api 覆盖 /api 和 /api/items，不覆盖 /api2。只声明 origins 不会自动允许该来源全部路径。ws/wss 来源分别用对应 http/https origin 登记。一个 Run 同时只保留一份活跃采集；配置修改、新页面登记和中断恢复均先 stop，再以明确新配置 start，不覆盖旧段、不追溯接入前流量。
 
-起始配置及查询契约见完整包 schemas/network-start.schema.json、schemas/network-query.schema.json。普通数据继续使用 schemaVersion 5，网络数据独立使用 networkVersion 1。早期 protocol-summary 不再读取、转换或删除。
+起始配置及查询契约见完整包 schemas/network-start.schema.json、schemas/network-query.schema.json。普通数据继续使用 schemaVersion 7，网络数据独立使用 networkVersion 1。早期 protocol-summary 不再读取、转换或删除。
 
 查询示例：
 

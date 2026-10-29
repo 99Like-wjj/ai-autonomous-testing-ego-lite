@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface EgoLiteEvidenceCatalogV5 {
-  schemaVersion: 5;
+export interface EgoLiteEvidenceCatalogV7 {
+  schemaVersion: 7;
   revision: number;
   items: EvidenceItem[];
   operations: EvidenceOperation[];

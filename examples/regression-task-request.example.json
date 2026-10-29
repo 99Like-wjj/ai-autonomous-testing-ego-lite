@@ -1,0 +1,105 @@
+{
+  "regressionVersion": 1,
+  "operationId": "synthetic-replace-operation-id",
+  "expectedRevision": 0,
+  "artifact": {
+    "kind": "task",
+    "taskId": "synthetic-task",
+    "title": "合成条目保存与读回",
+    "maturity": "candidate",
+    "review": {
+      "author": "SYNTHETIC AI example",
+      "basis": "仅示例，不能当已完成首次测试。",
+      "gaps": [
+        "需补当次真实运行、观察及证据引用。"
+      ]
+    },
+    "applicability": {
+      "state": "uncertain",
+      "conditions": [
+        "需核验实际角色、租户、对象及初态"
+      ],
+      "reason": "示例尚未绑定实际项目条件。",
+      "replacedBy": null
+    },
+    "casePlan": {
+      "id": "synthetic-case",
+      "title": "合成条目保存与读回",
+      "criticalConditions": [
+        "当次身份、对象归属及操作授权已核实"
+      ],
+      "requiredPath": null,
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "save-read",
+          "action": "按授权保存合成值并通过独立读取核对同一对象。"
+        }
+      ],
+      "goals": [
+        {
+          "id": "saved",
+          "basis": {
+            "kind": "explicit",
+            "source": "SYNTHETIC requirement",
+            "text": "合成示例：获准创建的条目应能独立读回保存值。"
+          },
+          "expected": "同一对象独立读回值与提交值一致。",
+          "requiredRefs": [
+            "condition:0",
+            "step:save-read"
+          ]
+        }
+      ]
+    },
+    "ruleBindings": [
+      {
+        "goalId": "saved",
+        "ruleRefs": [
+          {
+            "ruleId": "synthetic-rule",
+            "revision": 1,
+            "contentSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ]
+      }
+    ],
+    "sourceRefs": [],
+    "goalMappings": [],
+    "pathKnowledge": [
+      {
+        "planRef": "condition:0",
+        "state": "required_unreached",
+        "sourceRefIds": [],
+        "detail": "来自示例需求，尚未走到或核实。",
+        "gaps": []
+      },
+      {
+        "planRef": "step:save-read",
+        "state": "required_unreached",
+        "sourceRefIds": [],
+        "detail": "来自示例需求，尚未走到或核实。",
+        "gaps": []
+      }
+    ],
+    "dataConstraints": {
+      "requiredRelationships": [
+        "保留原对象必要关系"
+      ],
+      "allowedSubstitutions": [],
+      "equivalenceRequirements": [
+        "替换数据须满足相同关联与状态，不能默认用空对象代替。"
+      ]
+    },
+    "risks": {
+      "unresolvedSideEffects": [],
+      "idempotencyBasis": [],
+      "authorizationToRecheck": [
+        "本次具体对象写入范围"
+      ]
+    },
+    "auxiliaryActions": [],
+    "supersedes": null,
+    "reason": "Synthetic candidate; actual facts must be captured, not inferred."
+  }
+}

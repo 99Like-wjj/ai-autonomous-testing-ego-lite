@@ -8,9 +8,9 @@ import { markdown, htmlReport, htmlReportPayload } from './render.mjs';
 
 export async function validateReportContext(input: unknown, result: Report): Promise<ReportContext> {
   assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds'], 'report context');
-  if (input.schemaVersion !== 5 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
+  if (input.schemaVersion !== 7 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
   const context: ReportContext = {
-    schemaVersion: 5, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
+    schemaVersion: 7, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
     supplementalCaseIds: strings(input.supplementalCaseIds, 'supplemental case IDs'),
     sources: arrayValue(input.sources, 'sources').map(value => { assertClosed(value, ['label', 'file', 'sha256'], 'report source'); return { label: textValue(value.label, 'source label'), file: textValue(value.file, 'source file'), sha256: sha256Value(value.sha256, 'source hash') }; }),
   };
@@ -38,13 +38,13 @@ export async function verifyReportFiles(root: string, reportDir: string, result:
     artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
   }
   if (!matches) fail('Report file does not match the checked records. Historical formats are unsupported and unchanged.');
-  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v5' };
+  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v7' };
 }
 export async function verifyReport(runDir: unknown, reportDir: unknown = runDir) {
   return withRunLock(runDir, async root => {
     const target = await directory(reportDir), saved = await readJSON(path.join(target, 'report.json'));
     if (!object(saved)) fail('Invalid saved report.');
-    if (saved.schemaVersion !== 5) fail('Unsupported saved report format; v5 is required. Historical files remain unchanged.');
+    if (saved.schemaVersion !== 7) fail('Unsupported saved report format; v7 is required. Historical files remain unchanged.');
     const result = await checkUnlocked(root);
     if (saved.context !== undefined) result.context = await validateReportContext(saved.context, result);
     return verifyReportFiles(root, target, result);
