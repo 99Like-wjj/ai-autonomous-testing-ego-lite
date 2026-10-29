@@ -1,6 +1,6 @@
 # 本地资产格式与运行约定（schemaVersion 7）
 
-当前独立开发候选为 0.1.8-rc.1 / regression-reuse-1，未发布。用例、基线、运行、结果、证据、请求、执行台账、配置、worker 包与报告统一使用 schemaVersion 7，执行查询 viewVersion 为 7。新版明确拒绝旧格式，不提供兜底读取、转换或原地迁移；旧报告、运行、截图与来源文件保持原样。重新使用来源时新建 v7 用例与运行，不只修改版本号。
+当前独立开发候选为 0.1.7-rc.1 / regression-reuse-1，未发布。用例、基线、运行、结果、证据、请求、执行台账、配置、worker 包与报告统一使用 schemaVersion 7，执行查询 viewVersion 为 7。新版明确拒绝旧格式，不提供兜底读取、转换或原地迁移；旧报告、运行、截图与来源文件保持原样。重新使用来源时新建 v7 用例与运行，不只修改版本号。
 
 容量 availableWorkers 表示本 run 可占用的总活动分派上限，包含已经占用的名额，不是剩余空闲量。packetId 在整个 run 内唯一，按 assignment 划分命名空间；局部封包不证明其他目录没有重名。冲突保留原包并从已有观察纠正交付，不重做业务。并发指南在完整工具根的 references/parallel-testing.md；源码位于 skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md。
 

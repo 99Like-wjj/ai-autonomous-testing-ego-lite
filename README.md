@@ -8,7 +8,7 @@
 
 ## 当前版本
 
-当前独立开发候选为 **0.1.8-rc.1 / regression-reuse-1**，尚未发布。完善首次/恢复实际测试前的整轮资源沟通及多轮答复承接；主数据契约为 v7，回归资料为 regressionVersion 1。未包含另一工作区的 v0.1.7 报告改动。 开发与自测范围见[资源澄清验证](docs/v0.1.8-resource-readiness-validation.md)与[回归复用验证](docs/v0.1.8-regression-reuse-validation.md)。
+当前独立开发候选为 **0.1.7-rc.1 / regression-reuse-1**，尚未发布。完善首次/恢复实际测试前的整轮资源沟通及多轮答复承接；主数据契约为 v7，回归资料为 regressionVersion 1。未包含另一工作区的 v0.1.7 报告改动。 开发与自测范围见[资源澄清验证](docs/v0.1.8-resource-readiness-validation.md)与[回归复用验证](docs/v0.1.8-regression-reuse-validation.md)。
 
 当前正式版本为 **0.1.6 / native-network-observation-1**。完整安装包与校验值见 [v0.1.6 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。用户已反馈本地按一份需求试跑可用；这不代表所有业务、模型和宿主均已验收。发布收尾与已有验证分别见[验证记录](docs/testing.md)。构建与测试不会自动替换用户级 Skill。
 
@@ -18,7 +18,7 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 
 ![最近四版：v0.1.3、v0.1.4、v0.1.5、v0.1.6，均为正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 仅展示最新正式版本与前三个历史版本；更早版本继续保留在[完整版本演变](docs/version-history.md)中。v0.1.7 工作与本分支分开，开发候选不计入已发布四版。现有示意图保留上一正式版本的能力概览，v7 动作事实与回归资料契约以当前正文为准。
+README 仅展示最新正式版本与前三个历史版本；更早版本继续保留在[完整版本演变](docs/version-history.md)中。0.1.7 的报告优化与本分支分开，开发候选不计入已发布四版。现有示意图保留上一正式版本的能力概览，v7 动作事实与回归资料契约以当前正文为准。
 
 ## 首次成果与两种回归范围
 
@@ -66,7 +66,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision regression-reuse-1
+node $Tool tool-info --expect-version 0.1.7-rc.1 --expect-revision regression-reuse-1
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：

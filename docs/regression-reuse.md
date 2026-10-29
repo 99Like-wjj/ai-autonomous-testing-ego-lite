@@ -1,6 +1,6 @@
 # 项目回归资料与运行绑定
 
-当前为 0.1.8-rc.1 / regression-reuse-1 开发候选；主契约 v7，回归契约 regressionVersion 1，接口观测仍为 networkVersion 1。尚未正式发布，构建不会更新用户安装。
+当前为 0.1.7-rc.1 / regression-reuse-1 开发候选；主契约 v7，回归契约 regressionVersion 1，接口观测仍为 networkVersion 1。尚未正式发布，构建不会更新用户安装。
 
 ## 能力与边界
 

@@ -1,5 +1,5 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.8-rc.1';
+export const TOOL_VERSION = '0.1.7-rc.1';
 export const TOOL_REVISION = 'regression-reuse-1';
 export const FORMAT_VERSIONS = { cases: 7, manifest: 7, results: 7, evidence: 7, report: 7, execution: 7, configuration: 7, workerPacket: 7, executionRead: 7 } as const;
 export const runtimeFiles = [

@@ -8,7 +8,7 @@
 
 ## Current release
 
-The independent development candidate is **0.1.8-rc.1 / regression-reuse-1**, unreleased. It clarifies whole-scope resource communication before starting or resuming execution and partial replies. Main contracts are v7; regression assets use regressionVersion 1. The separate v0.1.7 report work is not included. See [resource-readiness validation](docs/v0.1.8-resource-readiness-validation.md) and [regression-reuse validation](docs/v0.1.8-regression-reuse-validation.md) for scope and limitations.
+The independent development candidate is **0.1.7-rc.1 / regression-reuse-1**, unreleased. It clarifies whole-scope resource communication before starting or resuming execution and partial replies. Main contracts are v7; regression assets use regressionVersion 1. The separate v0.1.7 report work is not included. See [resource-readiness validation](docs/v0.1.8-resource-readiness-validation.md) and [regression-reuse validation](docs/v0.1.8-regression-reuse-validation.md) for scope and limitations.
 
 **0.1.6 / native-network-observation-1**. Download the complete package and checksums from [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). The maintainer reported a usable local trial with one requirements document; this is not broad acceptance across products, models or hosts. See [validation](docs/testing.en.md). Builds do not update installed Skills.
 
@@ -27,7 +27,7 @@ The AI preserves normative sources, actual observations, failures and incomplete
 
 Task definition, current resources/authorization and business verdicts are separate. Every regression creates an independent run with frozen task/rule revisions and selection. Unknown side effects require read-only reconciliation, not automatic replay. Comparisons expose conditions and AI comparability reasoning without automatically blaming a newer release.
 
-Local tools only perform data transactions and explicit selection; the current AI owns task authoring and execution. See [regression assets and binding](docs/regression-reuse.md). Main contracts are v7 and regressionVersion is 1. Existing v5/v6 data remains untouched and is not automatically migrated. Separate uncommitted v0.1.7 report work is not included.
+Local tools only perform data transactions and explicit selection; the current AI owns task authoring and execution. See [regression assets and binding](docs/regression-reuse.md). Main contracts are v7 and regressionVersion is 1. Existing v5/v6 data remains untouched and is not automatically migrated. Separate v0.1.7 report work is not included.
 
 ## What changed
 
@@ -67,7 +67,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision regression-reuse-1
+node $Tool tool-info --expect-version 0.1.7-rc.1 --expect-revision regression-reuse-1
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))

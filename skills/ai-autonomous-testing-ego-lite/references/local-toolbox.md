@@ -1,4 +1,4 @@
-# 本地工具箱调用指南（0.1.8-rc.1）
+# 本地工具箱调用指南（0.1.7-rc.1）
 
 工具负责本地数据事务、结构校验与报告渲染；network 命令还会通过本机 Ego 启动独立 native 采集上下文并查询已授权的接口观察。工具不调用模型、不选择业务执行路线、不发起或重放业务请求、不自动重试业务。业务四态与证据充分性由 AI 判断。完整格式以已确认工具根的 docs/asset-formats.md 和 schemas 为准。
 
@@ -9,7 +9,7 @@
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8-rc.1 --expect-revision regression-reuse-1
+node $Tool tool-info --expect-version 0.1.7-rc.1 --expect-revision regression-reuse-1
 ```
 
 核对 toolRoot、skillFile、formatVersions（统一为 7）和 installationIntegrity: verified。未知修改或混用先报告。本版不接受旧格式，不提供旧 run 读取或自动转换；历史文件保留原样。不要只改 schemaVersion，也不要为升级覆盖旧数据。

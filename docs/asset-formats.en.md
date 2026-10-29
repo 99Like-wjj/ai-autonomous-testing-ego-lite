@@ -1,6 +1,6 @@
 # Asset formats and runtime contract (schemaVersion 7)
 
-Current independent candidate: 0.1.8-rc.1 / regression-reuse-1, unreleased. All JSON contracts use schemaVersion 7; execution query viewVersion is 7. Older formats are explicitly rejected. There is no legacy reader, converter or in-place migration. Keep historical runs, reports, source files and screenshots unchanged; prepare new v7 assets from original sources instead of changing only a version field.
+Current independent candidate: 0.1.7-rc.1 / regression-reuse-1, unreleased. All JSON contracts use schemaVersion 7; execution query viewVersion is 7. Older formats are explicitly rejected. There is no legacy reader, converter or in-place migration. Keep historical runs, reports, source files and screenshots unchanged; prepare new v7 assets from original sources instead of changing only a version field.
 
 availableWorkers caps all active assignments for this run, including existing reservations; it is not the free-slot count. packetId is unique across the entire run; use assignment-scoped namespaces. Local sealing cannot detect duplicates in another worker directory. Preserve original packets and correct delivery from retained observations without repeating business actions. The complete tool root provides references/parallel-testing.md; its source is skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md.
 
