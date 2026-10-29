@@ -12,16 +12,16 @@ import { executeRequest, readExecutionView } from '../src/execution/commands.mjs
 import { sealPacket } from '../src/execution/packets.mjs';
 import { orderedEvidence } from '../src/execution/parse.mjs';
 
-const baseline: Baseline = { schemaVersion: 6, project: 'Synthetic v6 transaction proof', cases: [{ id: 'scene', title: 'Synthetic scene', criticalConditions: [], requiredPath: null, stepOrder: 'adaptive', steps: [{ id: 'save', action: 'Save and independently read a synthetic value.' }], goals: [{ id: 'saved', title: 'Saved value persists', basis: { kind: 'explicit', source: 'Synthetic requirement', text: 'Saved values persist.' }, expected: 'The stored value matches the input.', requiredRefs: ['step:save'] }] }] };
+const baseline: Baseline = { schemaVersion: 7, project: 'Synthetic v7 transaction proof', cases: [{ id: 'scene', title: 'Synthetic scene', criticalConditions: [], requiredPath: null, stepOrder: 'adaptive', steps: [{ id: 'save', action: 'Save and independently read a synthetic value.' }], goals: [{ id: 'saved', title: 'Saved value persists', basis: { kind: 'explicit', source: 'Synthetic requirement', text: 'Saved values persist.' }, expected: 'The stored value matches the input.', requiredRefs: ['step:save'] }] }] };
 async function fixture(t: TestContext) {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-facts-v6-'));
-  t.after(async () => { assert.equal(path.dirname(root), path.resolve(os.tmpdir())); assert.ok(path.basename(root).startsWith('ego-facts-v6-')); await fs.rm(root, { recursive: true, force: true }); });
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-facts-v7-'));
+  t.after(async () => { assert.equal(path.dirname(root), path.resolve(os.tmpdir())); assert.ok(path.basename(root).startsWith('ego-facts-v7-')); await fs.rm(root, { recursive: true, force: true }); });
   const projectDir = path.join(root, 'project'), runDir = path.join(root, 'run'); await init(projectDir);
   const casesFile = path.join(projectDir, 'cases.json'); await fs.writeFile(casesFile, JSON.stringify(baseline));
   await start({ projectDir, casesFile, outputDir: runDir });
   const sourceFile = path.join(root, 'evidence.json'); await fs.writeFile(sourceFile, '{"synthetic":true,"value":"saved"}');
   let operation = 0;
-  const exec = async (kind: string, extra: Record<string, unknown> = {}) => executeRequest({ runDir, request: { schemaVersion: 6, operationId: 'exec-' + ++operation, expectedRevision: (await readExecutionView(runDir)).revision, reason: 'Synthetic data transaction', kind, ...extra } });
+  const exec = async (kind: string, extra: Record<string, unknown> = {}) => executeRequest({ runDir, request: { schemaVersion: 7, operationId: 'exec-' + ++operation, expectedRevision: (await readExecutionView(runDir)).revision, reason: 'Synthetic data transaction', kind, ...extra } });
   return { root, projectDir, runDir, sourceFile, exec };
 }
 function rich(evidenceId: string): RecordPayload {
@@ -31,10 +31,10 @@ function rich(evidenceId: string): RecordPayload {
     assessments: [{ goalId: 'saved', status: 'verified', summary: 'Synthetic persisted value matches.', rationale: 'Expected and actual are equal in the synthetic fixture.', observationIds: ['obs'], gaps: [], phenomena: [{ id: 'match', title: 'Saved value', actual: 'saved', observationIds: ['obs'], evidenceIds: [evidenceId], limitations: ['Not a business test.'] }], reproduction: { preparation: ['Create the synthetic fixture.'], limitations: ['No live system.'], objectState: 'Retained until fixture cleanup.', repeatability: 'One synthetic read.' } }],
     findings: [{ id: 'finding', title: 'Synthetic related observation', goalIds: ['saved'], observationIds: ['obs'], evidenceIds: [evidenceId], relationReason: 'Explicit same synthetic object.', reviewState: 'proposed', scope: 'original' }] };
 }
-test('v6 rich serial facts persist, reuse contexts and preserve immutable history', async t => {
+test('v7 rich serial facts persist, reuse contexts and preserve immutable history', async t => {
   const f = await fixture(t);
-  const ev = await registerEvidence({ runDir: f.runDir, request: { schemaVersion: 6, operationId: 'evidence', expectedRevision: 0, caseId: 'scene', sourceFile: f.sourceFile, kind: 'log', source: 'Synthetic local source', description: 'Readback evidence', metadata: { mediaType: 'application/json', contentState: 'summary', purpose: 'Verify synthetic value' } } });
-  const record = rich(ev.evidenceId), request = { schemaVersion: 6, operationId: 'record', expectedRevision: 0, caseId: 'scene', mode: 'final', record };
+  const ev = await registerEvidence({ runDir: f.runDir, request: { schemaVersion: 7, operationId: 'evidence', expectedRevision: 0, caseId: 'scene', sourceFile: f.sourceFile, kind: 'log', source: 'Synthetic local source', description: 'Readback evidence', metadata: { mediaType: 'application/json', contentState: 'summary', purpose: 'Verify synthetic value' } } });
+  const record = rich(ev.evidenceId), request = { schemaVersion: 7, operationId: 'record', expectedRevision: 0, caseId: 'scene', mode: 'final', record };
   await recordResult({ runDir: f.runDir, request }); assert.equal((await recordResult({ runDir: f.runDir, request })).replayed, true);
   const c = (await check(f.runDir)).cases[0]!; assert.equal(c.contexts[0]!.actor.value, 'Synthetic isolated value'); assert.equal(c.findings.length, 1); assert.equal(c.observations[0]!.actions![0]!.result, 'saved'); assert.equal(c.assessments[0]!.phenomena![0]!.evidenceIds[0], ev.evidenceId);
   const changed = structuredClone(record.contexts![0]!); changed.actor.value = 'Changed actor';
@@ -43,7 +43,7 @@ test('v6 rich serial facts persist, reuse contexts and preserve immutable histor
   const result = await check(f.runDir); assert.equal(result.cases[0]!.entries.length, 2); assert.equal(result.counts.verified, 1); assert.equal(result.cases[0]!.assessments[0]!.previousOperationId, 'record');
 });
 
-test('v6 refuses fabricated references and unresolved structured gaps for verified', () => {
+test('v7 refuses fabricated references and unresolved structured gaps for verified', () => {
   const c = baseline.cases[0]!, payload = rich('proof'), evidence = new Map([['proof', { caseId: 'scene' }]]);
   assert.doesNotThrow(() => validatePayloadAgainstCase(c, payload, [], evidence));
   const action = structuredClone(payload); action.observations[0]!.actions![0]!.planRefs = ['step:never']; assert.throws(() => validatePayloadAgainstCase(c, action, [], evidence), /unknown plan reference/);
@@ -59,14 +59,14 @@ test('v6 refuses fabricated references and unresolved structured gaps for verifi
   assert.throws(() => parsePayload({ observations: [], assessments: [], contexts: [] }), /must contain/);
 });
 
-test('v6 worker import maps all nested evidence and context relations with recoverable commits', async t => {
+test('v7 worker import maps all nested evidence and context relations with recoverable commits', async t => {
   const f = await fixture(t); await f.exec('inventory', { spaceIds: [] });
   const reserved = await f.exec('reserve', { caseId: 'scene', baselineSha256: (await readExecutionView(f.runDir)).baselineSha256 }); assert.ok(reserved.assignmentId);
   const worker = path.join(f.runDir, 'workers', reserved.assignmentId); await fs.writeFile(path.join(worker, 'detail.json'), '{"value":"saved"}'); await fs.writeFile(path.join(worker, 'context.json'), '{"context":"synthetic"}');
   const draftFile = path.join(worker, 'draft.json');
-  await fs.writeFile(draftFile, JSON.stringify({ schemaVersion: 6, packetId: 'packet', mode: 'final', record: rich('detail'), evidence: [{ key: 'detail', path: 'detail.json', kind: 'log', source: 'Synthetic worker', description: 'Detail', metadata: { contentState: 'summary', contextEvidenceIds: ['context'] } }, { key: 'context', path: 'context.json', kind: 'other', source: 'Synthetic worker', description: 'Context' }], spaceUsage: [{ spaceId: null, reason: 'Transaction fixture; no browser', evidenceKeys: [] }] }));
+  await fs.writeFile(draftFile, JSON.stringify({ schemaVersion: 7, packetId: 'packet', mode: 'final', record: rich('detail'), evidence: [{ key: 'detail', path: 'detail.json', kind: 'log', source: 'Synthetic worker', description: 'Detail', metadata: { contentState: 'summary', contextEvidenceIds: ['context'] } }, { key: 'context', path: 'context.json', kind: 'other', source: 'Synthetic worker', description: 'Context' }], spaceUsage: [{ spaceId: null, reason: 'Transaction fixture; no browser', evidenceKeys: [] }] }));
   const sealed = await sealPacket({ runDir: f.runDir, assignment: reserved.assignmentId, draftFile });
-  const request = { schemaVersion: 6, operationId: 'import-once', expectedRevision: (await readExecutionView(f.runDir)).revision, kind: 'import', reason: 'Synthetic explicit review', packetFile: sealed.packetFile, review: { decision: 'accept', reviewer: 'Synthetic AI', rationale: 'Review synthetic facts.' } };
+  const request = { schemaVersion: 7, operationId: 'import-once', expectedRevision: (await readExecutionView(f.runDir)).revision, kind: 'import', reason: 'Synthetic explicit review', packetFile: sealed.packetFile, review: { decision: 'accept', reviewer: 'Synthetic AI', rationale: 'Review synthetic facts.' } };
   await assert.rejects(executeRequest({ runDir: f.runDir, request }, { afterResultCommit: async () => { throw Error('Injected receipt interruption'); } }), /receipt interruption/);
   await executeRequest({ runDir: f.runDir, request });
   const result = await check(f.runDir), c = result.cases[0]!, detail = result.evidenceCatalog.items.find(e => e.description === 'Detail')!, context = result.evidenceCatalog.items.find(e => e.description === 'Context')!;
@@ -75,9 +75,9 @@ test('v6 worker import maps all nested evidence and context relations with recov
   assert.equal(JSON.parse(await fs.readFile(sealed.packetFile, 'utf8')).record.observations[0].evidenceIds[0], 'detail');
 });
 
-test('v6 rejects legacy baseline and cyclic context-image dependency without rewriting inputs', () => {
+test('v7 rejects legacy baseline and cyclic context-image dependency without rewriting inputs', () => {
   const old = { ...baseline, schemaVersion: 5 }, original = JSON.stringify(old);
-  assert.throws(() => normalizeCases(old), /schemaVersion 6/); assert.equal(JSON.stringify(old), original);
+  assert.throws(() => normalizeCases(old), /schemaVersion 7/); assert.equal(JSON.stringify(old), original);
   const missingTitle = structuredClone(baseline) as unknown as { cases: { goals: { title?: string }[] }[] }; delete missingTitle.cases[0]!.goals[0]!.title;
   assert.throws(() => normalizeCases(missingTitle), /goal title/);
   const missingFollowUp = structuredClone(baseline); missingFollowUp.cases[0]!.goals[0]!.followUpOf = { runId: 'self', caseId: 'absent', goalId: 'absent', reason: 'Synthetic reference check.' };
@@ -87,16 +87,16 @@ test('v6 rejects legacy baseline and cyclic context-image dependency without rew
 
 test('explicit draft inspection tolerates only absent screenshots and keeps strict transactions', async t => {
   const f = await fixture(t);
-  const e = await registerEvidence({ runDir: f.runDir, request: { schemaVersion: 6, operationId: 'shot', expectedRevision: 0, caseId: 'scene', sourceFile: f.sourceFile, kind: 'screenshot', source: 'Synthetic fixture', description: 'Missing screenshot fixture' } });
+  const e = await registerEvidence({ runDir: f.runDir, request: { schemaVersion: 7, operationId: 'shot', expectedRevision: 0, caseId: 'scene', sourceFile: f.sourceFile, kind: 'screenshot', source: 'Synthetic fixture', description: 'Missing screenshot fixture' } });
   const file = path.join(f.runDir, ...e.path.split('/')); await fs.unlink(file);
   await assert.rejects(check(f.runDir), /ENOENT/);
   const draft = await withRunLock(f.runDir, root => checkUnlocked(root, { allowMissingScreenshots: true }));
   assert.deepEqual(draft.evidenceIntegrity, { hashVerifiedItems: 0, missingScreenshotIds: [e.evidenceId] });
-  await assert.rejects(recordResult({ runDir: f.runDir, request: { schemaVersion: 6, operationId: 'record', expectedRevision: 0, caseId: 'scene', mode: 'final', record: rich(e.evidenceId) } }), /ENOENT/);
+  await assert.rejects(recordResult({ runDir: f.runDir, request: { schemaVersion: 7, operationId: 'record', expectedRevision: 0, caseId: 'scene', mode: 'final', record: rich(e.evidenceId) } }), /ENOENT/);
   await fs.writeFile(file, 'changed pixels');
   await assert.rejects(withRunLock(f.runDir, root => checkUnlocked(root, { allowMissingScreenshots: true })), /hash or byte count mismatch/);
   await fs.writeFile(file, await fs.readFile(f.sourceFile));
-  const log = await registerEvidence({ runDir: f.runDir, request: { schemaVersion: 6, operationId: 'text', expectedRevision: 1, caseId: 'scene', sourceFile: f.sourceFile, kind: 'log', source: 'Synthetic fixture', description: 'Missing text must fail' } });
+  const log = await registerEvidence({ runDir: f.runDir, request: { schemaVersion: 7, operationId: 'text', expectedRevision: 1, caseId: 'scene', sourceFile: f.sourceFile, kind: 'log', source: 'Synthetic fixture', description: 'Missing text must fail' } });
   await fs.unlink(path.join(f.runDir, ...log.path.split('/')));
   await assert.rejects(withRunLock(f.runDir, root => checkUnlocked(root, { allowMissingScreenshots: true })), /ENOENT/);
 });

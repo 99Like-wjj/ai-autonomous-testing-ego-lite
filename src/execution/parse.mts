@@ -18,7 +18,7 @@ export function executionWindow(value: unknown): ExecutionWindow {
 }
 export function parsePacket(value: unknown): WorkerPacket {
   assertClosed(value, ['schemaVersion', 'runId', 'baselineSha256', 'caseId', 'assignmentId', 'attemptId', 'packetId', 'mode', 'record', 'evidence', 'executionWindow', 'spaceUsage'], 'worker packet');
-  if (value.schemaVersion !== 6) fail('Worker packets require schemaVersion 6.');
+  if (value.schemaVersion !== 7) fail('Worker packets require schemaVersion 7.');
   const evidence = arrayValue(value.evidence, 'packet evidence').map(value => {
     assertClosed(value, ['key', 'path', 'kind', 'source', 'description', 'sha256', 'bytes', 'capturedAt', 'metadata'], 'packet evidence');
     return { key: safeIdentifier(value.key, 'evidence key'), path: textValue(value.path, 'evidence path'), kind: oneOf(value.kind, ['screenshot', 'dom', 'tool_receipt', 'log', 'other'], 'evidence kind'), source: textValue(value.source, 'evidence source'), description: textValue(value.description, 'evidence description'), sha256: sha256Value(value.sha256), bytes: integer(value.bytes, 'evidence bytes'), ...(value.capturedAt === undefined ? {} : { capturedAt: timeValue(value.capturedAt, 'capturedAt') }), ...(value.metadata === undefined ? {} : { metadata: parseEvidenceMetadata(value.metadata) }) };
@@ -30,7 +30,7 @@ export function parsePacket(value: unknown): WorkerPacket {
   if (!spaceUsage.length) fail('Record actual Space usage, or an explicit unknown observation.');
   for (const key of [...payloadEvidenceIds(record), ...evidence.flatMap(e => e.metadata?.contextEvidenceIds ?? []), ...(window?.evidenceKeys ?? []), ...spaceUsage.flatMap(use => use.evidenceKeys)]) if (!keys.has(key)) fail('Unknown packet evidence key: ' + key);
   orderedEvidence(evidence);
-  return { schemaVersion: 6, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), caseId: safeIdentifier(value.caseId, 'case ID'), assignmentId: safeIdentifier(value.assignmentId, 'assignment ID'), attemptId: safeIdentifier(value.attemptId, 'attempt ID'), packetId: safeIdentifier(value.packetId, 'packet ID'), mode, record, evidence, spaceUsage, ...(window ? { executionWindow: window } : {}) };
+  return { schemaVersion: 7, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), caseId: safeIdentifier(value.caseId, 'case ID'), assignmentId: safeIdentifier(value.assignmentId, 'assignment ID'), attemptId: safeIdentifier(value.attemptId, 'attempt ID'), packetId: safeIdentifier(value.packetId, 'packet ID'), mode, record, evidence, spaceUsage, ...(window ? { executionWindow: window } : {}) };
 }
 /** A stable dependency order is a data transaction detail, not a business execution route. */
 export function orderedEvidence<T extends { key: string; metadata?: { contextEvidenceIds?: string[] } }>(evidence: readonly T[]): T[] {
@@ -55,8 +55,8 @@ export function parseReview(value: unknown): PacketReview {
 export function parseRequest(value: unknown): ExecutionRequest {
   const common = ['schemaVersion', 'operationId', 'expectedRevision', 'reason', 'kind'];
   assertClosed(value, [...common, 'spaceIds', 'evidenceFiles', 'availableWorkers', 'caseId', 'baselineSha256', 'resources', 'workerId', 'model', 'reasoning', 'assignmentId', 'spaceId', 'name', 'receiptFile', 'created', 'replaceDefault', 'category', 'remainingSpaceIds', 'maxParallelCases', 'state', 'inFlight', 'packetFile', 'review', 'rebaseOf'], 'execution request');
-  if (value.schemaVersion !== 6) fail('Execution requests require schemaVersion 6.');
-  const base = { schemaVersion: 6 as const, operationId: safeIdentifier(value.operationId, 'operation ID'), expectedRevision: integer(value.expectedRevision, 'execution revision'), reason: textValue(value.reason, 'execution reason') };
+  if (value.schemaVersion !== 7) fail('Execution requests require schemaVersion 7.');
+  const base = { schemaVersion: 7 as const, operationId: safeIdentifier(value.operationId, 'operation ID'), expectedRevision: integer(value.expectedRevision, 'execution revision'), reason: textValue(value.reason, 'execution reason') };
   const kind = oneOf(value.kind, requestKinds, 'execution request kind');
   const files = value.evidenceFiles === undefined ? {} : { evidenceFiles: uniqueStrings(value.evidenceFiles, 'evidence files') };
   const worker = { ...(value.workerId === undefined ? {} : { workerId: textValue(value.workerId, 'worker ID') }), ...(value.model === undefined ? {} : { model: textValue(value.model, 'model') }), ...(value.reasoning === undefined ? {} : { reasoning: textValue(value.reasoning, 'reasoning') }) };

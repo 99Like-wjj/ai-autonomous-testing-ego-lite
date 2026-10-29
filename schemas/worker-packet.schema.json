@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "worker-packet.schema.json",
-  "title": "Ego Lite worker packet v6",
+  "title": "Ego Lite worker packet v7",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 6
+      "const": 7
     },
     "runId": {
       "type": "string",

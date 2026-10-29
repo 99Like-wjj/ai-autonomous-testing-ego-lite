@@ -8,7 +8,7 @@ import { readExecution } from './ledger.mjs';
 
 export async function readExecutionMetadataUnlocked(root: string) {
   const manifest = parseManifest(await readJSON(path.join(root, 'manifest.json')));
-  if (manifest.schemaVersion !== 6) fail('Execution commands require a v6 run; older formats are not supported or migrated.');
+  if (manifest.schemaVersion !== 7) fail('Execution commands require a v7 run; older formats are not supported or migrated.');
   const { baseline } = await readAndValidateBaseline(root, manifest);
   const ledger = await readExecution(root, manifest, baseline);
   const evidenceMarker: 'present' | 'absent' = await existingRegularFile(path.join(root, '.evidence.pending.json')) ? 'present' : 'absent';

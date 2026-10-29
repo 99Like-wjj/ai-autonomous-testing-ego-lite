@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "common.schema.json",
-  "title": "Ego Lite shared contracts v6",
+  "title": "Ego Lite shared contracts v7",
   "$defs": {
     "nonempty": {
       "type": "string",

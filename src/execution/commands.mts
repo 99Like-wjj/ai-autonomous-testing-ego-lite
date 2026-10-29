@@ -13,11 +13,11 @@ import { readExecutionMetadataUnlocked } from './read-context.mjs';
 
 async function context(root: string): Promise<{ ledger: ExecutionLedger; cases: Case[]; project: string }> {
   await recoverEvidence(root); const checked = await checkUnlocked(root);
-  if (checked.schemaVersion !== 6 || !checked.execution) fail('Execution commands require a v6 run; older formats are not supported or migrated.');
+  if (checked.schemaVersion !== 7 || !checked.execution) fail('Execution commands require a v7 run; older formats are not supported or migrated.');
   return { ledger: checked.execution, cases: checked.cases, project: checked.project };
 }
 export async function readExecutionView(runDir: unknown) {
-  return withRunLock(runDir, async root => { const { ledger, cases, project } = await context(root); return { ...ledger, project, summary: summarize(ledger, { schemaVersion: 6, project, cases }) }; });
+  return withRunLock(runDir, async root => { const { ledger, cases, project } = await context(root); return { ...ledger, project, summary: summarize(ledger, { schemaVersion: 7, project, cases }) }; });
 }
 export async function readExecutionQuery(runDir: unknown, view = 'summary', assignmentId?: string, integrity?: string) {
   const options = readOptions(view, assignmentId, integrity);

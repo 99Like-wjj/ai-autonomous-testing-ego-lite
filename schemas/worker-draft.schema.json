@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "worker-draft.schema.json",
-  "title": "Ego Lite worker draft v6",
+  "title": "Ego Lite worker draft v7",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 6
+      "const": 7
     },
     "packetId": {
       "$ref": "common.schema.json#/$defs/safeId"

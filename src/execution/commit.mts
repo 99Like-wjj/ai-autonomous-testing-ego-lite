@@ -62,10 +62,10 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
     }
     if (!job.request) {
       const catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-      job.request = { schemaVersion: 6, operationId: prefix + '-ev-' + i, expectedRevision: catalog.revision, caseId: a.caseId, sourceFile: path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/')), kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata ? { metadata } : {}) };
+      job.request = { schemaVersion: 7, operationId: prefix + '-ev-' + i, expectedRevision: catalog.revision, caseId: a.caseId, sourceFile: path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/')), kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata ? { metadata } : {}) };
       journal.phase = 'evidence'; await checkpoint(root, ledger, { operationId: request.operationId, kind: 'evidence-prepared', reason: request.reason, assignmentId: a.id });
     }
-    const expectedEvidence = { schemaVersion: 6, operationId: prefix + '-ev-' + i, expectedRevision: job.request.expectedRevision, caseId: a.caseId, sourceFile, kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata ? { metadata } : {}) };
+    const expectedEvidence = { schemaVersion: 7, operationId: prefix + '-ev-' + i, expectedRevision: job.request.expectedRevision, caseId: a.caseId, sourceFile, kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata ? { metadata } : {}) };
     if (canonicalHash(job.request) !== canonicalHash(expectedEvidence)) fail('Prepared evidence request changed.');
     job.receipt = await registerEvidenceUnlocked(root, job.request, hooks.afterEvidenceCommit ? { afterCommit: hooks.afterEvidenceCommit } : {});
     await checkpoint(root, ledger, { operationId: request.operationId, kind: 'evidence-committed', reason: request.reason, assignmentId: a.id });
@@ -73,10 +73,10 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
   const mappedRecord = mapPayloadEvidence(record, evidenceId);
   if (!journal.resultRequest) {
     const results = parseResults(await readJSON(path.join(root, 'results.json')));
-    journal.resultRequest = { schemaVersion: 6, operationId: prefix + '-result', expectedRevision: results.revision, caseId: a.caseId, mode, record: mappedRecord };
+    journal.resultRequest = { schemaVersion: 7, operationId: prefix + '-result', expectedRevision: results.revision, caseId: a.caseId, mode, record: mappedRecord };
     journal.phase = 'result'; await checkpoint(root, ledger, { operationId: request.operationId, kind: 'result-prepared', reason: request.reason, assignmentId: a.id });
   }
-  const expectedResult = { schemaVersion: 6, operationId: prefix + '-result', expectedRevision: journal.resultRequest.expectedRevision, caseId: a.caseId, mode, record: mappedRecord };
+  const expectedResult = { schemaVersion: 7, operationId: prefix + '-result', expectedRevision: journal.resultRequest.expectedRevision, caseId: a.caseId, mode, record: mappedRecord };
   if (canonicalHash(journal.resultRequest) !== canonicalHash(expectedResult)) fail('Prepared result association or payload changed.');
   if (hooks.beforeResultCommit) await hooks.beforeResultCommit();
   journal.resultReceipt = await recordResultUnlocked(root, journal.resultRequest, hooks.afterResultCommit ? { afterCommit: hooks.afterResultCommit } : {});

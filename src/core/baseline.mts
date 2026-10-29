@@ -15,7 +15,7 @@ export function newSafeCases(baseline: Baseline) {
   }
 }
 export function normalizeCases(input: unknown): Baseline {
-  if (!object(input) || Object.keys(input).some(k => !['schemaVersion', 'project', 'cases'].includes(k)) || input.schemaVersion !== 6 || !nonempty(input.project) || !Array.isArray(input.cases) || !input.cases.length) fail('Cases require schemaVersion 6, project, and a nonempty cases array. Older files are not migrated.');
+  if (!object(input) || Object.keys(input).some(k => !['schemaVersion', 'project', 'cases'].includes(k)) || input.schemaVersion !== 7 || !nonempty(input.project) || !Array.isArray(input.cases) || !input.cases.length) fail('Cases require schemaVersion 7, project, and a nonempty cases array. Older files are not migrated.');
   const ids = new Set<string>();
   const cases: Case[] = arrayValue(input.cases, 'cases').map(c => {
     assertClosed(c, ['id', 'title', 'criticalConditions', 'requiredPath', 'stepOrder', 'steps', 'goals'], 'case');
@@ -61,7 +61,7 @@ export function normalizeCases(input: unknown): Baseline {
       if (!cases.some(source => source.id === ref.caseId && source.goals.some(g => g.id === ref.goalId))) fail('Unknown same-run follow-up goal: ' + ref.caseId + '/' + ref.goalId);
     }
   }
-  return { schemaVersion: 6, project: input.project, cases };
+  return { schemaVersion: 7, project: input.project, cases };
 }
 export async function readAndValidateBaseline(root: string, manifest: Manifest) {
   const bytes = await fs.readFile(await regularFilePath(path.join(root, 'baseline.json')));
