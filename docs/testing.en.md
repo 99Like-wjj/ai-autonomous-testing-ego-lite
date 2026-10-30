@@ -1,12 +1,12 @@
 # Validation record and coverage limits
 
-## v0.1.8 regression reuse
+## v0.1.7 regression reuse
 
-Engineering regression: 173 tests, 172 passed, 0 failed, 1 environment-privilege skip. Independent AI trials exercised first-run recording, whole-case status reruns and full scope. Original provenance mistakes and corrections are retained; actual Ego report-page checks are separate from synthetic interface behavior. Real UAT and untested counterexamples remain outside coverage. See the [validation record (Chinese)](v0.1.8-regression-reuse-validation.md).
+Engineering regression: 173 tests, 172 passed, 0 failed, 1 environment-privilege skip. Independent AI trials exercised first-run recording, whole-case status reruns and full scope. Original provenance mistakes and corrections are retained; actual Ego report-page checks are separate from synthetic interface behavior. Real UAT and untested counterexamples remain outside coverage. See the [validation record (Chinese)](v0.1.7-regression-reuse-validation.md).
 
-## Independent v0.1.8 development candidate
+## v0.1.7 resource-readiness standalone phase
 
-See [resource-readiness validation](v0.1.8-resource-readiness-validation.md). Separate v0.1.7 report work is not included; older records below retain their historical scope.
+See [resource-readiness validation](v0.1.7-resource-readiness-validation.md). That phase did not yet include report enhancements. See [final integration validation](v0.1.7-integration.md) for the combined scope; older records below retain their historical scope.
 
 ## v0.1.6 release validation (2026-10-29)
 

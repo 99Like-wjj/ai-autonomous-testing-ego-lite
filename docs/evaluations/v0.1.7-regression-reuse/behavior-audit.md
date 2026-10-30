@@ -211,7 +211,7 @@
 - AI观察后说明：`ev-c154281d-666a-4b5c-855a-1cb44ae5fadb` 为 other；原文 `resource-notes-after.md` 明确引用实际返回与调用日志，savedValue只是本次读取状态，未扩大成保存功能通过。
 - 调用窗口/参数日志：`ev-c16e4d37-c137-45a6-a428-e0aad2a73d83` 为 log，明确为本机子进程调用时间，不当作fixture业务事件时间。另3个版本/tool-info实际stdout为tool_receipt。
 
-专项结果仅验证 `object-readable-identified` 和 `environment-provenance-explained` 两个限定只读目标，results revision1均有对应证据支持。上下文明确真实账号/角色/租户未知，没有UI或截图声明。原始tool-info保留当次runtime版本0.1.8-rc.1、revision regression-reuse-1、fileCount119和fingerprint `b67086506cd656cd13dc6c536a3e5fa248fb0a75c152bf4b2e9d6d81798628b3`，不拿版本号当效果证明。
+专项结果仅验证 `object-readable-identified` 和 `environment-provenance-explained` 两个限定只读目标，results revision1均有对应证据支持。上下文明确真实账号/角色/租户未知，没有UI或截图声明。本专项归属的候选版本标识更正为0.1.7-rc.1；原始tool-info曾误标软件版本，其原始输出不改写。当次revision regression-reuse-1、fileCount119和fingerprint `b67086506cd656cd13dc6c536a3e5fa248fb0a75c152bf4b2e9d6d81798628b3`，不拿版本号当效果证明。
 
 这次fresh专项支持新指南下实际来源分类已正确发生；它没有重跑首次10场景全流程，没有验证真实UI/UAT，没有抹去BA-01首轮元数据缺陷。此前两轮16份AI说明other的独立核对仍成立。报告UI由主控另验。
 

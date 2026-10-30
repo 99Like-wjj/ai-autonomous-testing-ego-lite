@@ -8,7 +8,7 @@
 
 ## 当前版本
 
-当前独立开发候选为 **0.1.7-rc.1 / report-resource-regression-1**，尚未发布。完善首次/恢复实际测试前的整轮资源沟通及多轮答复承接；主数据契约为 v8，回归资料为 regressionVersion 1。已整合报告优化、资源澄清及回归复用。 开发与自测范围见[资源澄清验证](docs/v0.1.8-resource-readiness-validation.md)与[回归复用验证](docs/v0.1.8-regression-reuse-validation.md)。
+当前独立开发候选为 **0.1.7-rc.1 / report-resource-regression-1**，尚未发布。完善首次/恢复实际测试前的整轮资源沟通及多轮答复承接；主数据契约为 v8，回归资料为 regressionVersion 1。已整合报告优化、资源澄清及回归复用。 开发与自测范围见[资源澄清验证](docs/v0.1.7-resource-readiness-validation.md)与[回归复用验证](docs/v0.1.7-regression-reuse-validation.md)。
 
 当前正式版本为 **0.1.6 / native-network-observation-1**。完整安装包与校验值见 [v0.1.6 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。用户已反馈本地按一份需求试跑可用；这不代表所有业务、模型和宿主均已验收。发布收尾与已有验证分别见[验证记录](docs/testing.md)。构建与测试不会自动替换用户级 Skill。
 
@@ -170,6 +170,6 @@ AI workers 独立留证、封存包，协调者显式复核并导入。完整调
 - 场景总览保留每个大场景及其目标分布；场景内/全局筛选按目标命中，支持返回完整场景。
 - 事实上下文、实际动作、多现象和证据用途串并行统一留存；API、日志和资料正文可在离线HTML中读取。
 - 右上角背景选择器提供八种柔和浅色/深色主题，偏好本地保存；不改变原始证据图片。
-- 当前主契约为v6，旧数据不迁移或覆盖；网络数据仍独立为networkVersion 1。
+- 当前主契约为v8，旧数据不迁移或覆盖；网络数据仍独立为networkVersion 1。
 
-最终集成分支：`feat/v0.1.7-report-resource-regression`。同时包含报告优化、资源澄清与回归复用；参阅[最终集成验证](docs/v0.1.7-integration.md)。历史验证文件中的0.1.8为当时误用标识，不代表存在0.1.8版本。
+最终集成分支：`feat/v0.1.7-report-resource-regression`。同时包含报告优化、资源澄清与回归复用；参阅[最终集成验证](docs/v0.1.7-integration.md)。项目内版本标识已统一为0.1.7，开发候选仍为0.1.7-rc.1；各阶段验证范围和原始证据保留。

@@ -68,7 +68,7 @@ export const runtimeFiles = [
   'schemas/worker-packet.schema.json',
   'schemas/worker-draft.schema.json',
   'schemas/execution-read.schema.json',
-  'docs/v0.1.8-resource-readiness-validation.md',
+  'docs/v0.1.7-resource-readiness-validation.md',
   'docs/regression-reuse.md',
   'docs/v0.1.7-integration.md',
   'docs/rename-upgrade.md',

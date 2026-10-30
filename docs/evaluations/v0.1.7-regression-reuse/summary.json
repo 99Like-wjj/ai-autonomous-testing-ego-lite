@@ -1,6 +1,7 @@
 {
   "validationVersion": 1,
-  "candidate": "0.1.8-rc.1",
+  "candidate": "0.1.7-rc.1",
+  "versionLabelCorrection": "Candidate label corrected to the intended 0.1.7 development version. Original tool outputs, run records, test results and evidence hashes are unchanged.",
   "toolRevision": "regression-reuse-1",
   "mainFormatVersion": 7,
   "regressionVersion": 1,

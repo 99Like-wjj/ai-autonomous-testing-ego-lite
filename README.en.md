@@ -8,7 +8,7 @@
 
 ## Current release
 
-The independent development candidate is **0.1.7-rc.1 / report-resource-regression-1**, unreleased. It clarifies whole-scope resource communication before starting or resuming execution and partial replies. Main contracts are v8; regression assets use regressionVersion 1. Report enhancements and resource/regression functionality are integrated in this final branch. See [resource-readiness validation](docs/v0.1.8-resource-readiness-validation.md) and [regression-reuse validation](docs/v0.1.8-regression-reuse-validation.md) for scope and limitations.
+The independent development candidate is **0.1.7-rc.1 / report-resource-regression-1**, unreleased. It clarifies whole-scope resource communication before starting or resuming execution and partial replies. Main contracts are v8; regression assets use regressionVersion 1. Report enhancements and resource/regression functionality are integrated in this final branch. See [resource-readiness validation](docs/v0.1.7-resource-readiness-validation.md) and [regression-reuse validation](docs/v0.1.7-regression-reuse-validation.md) for scope and limitations.
 
 **0.1.6 / native-network-observation-1**. Download the complete package and checksums from [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). The maintainer reported a usable local trial with one requirements document; this is not broad acceptance across products, models or hosts. See [validation](docs/testing.en.md). Builds do not update installed Skills.
 
@@ -146,6 +146,6 @@ The default is **1 (serial)**. Without a user request for concurrency or an expl
 
 The existing diagrams retain the last released capability overview. Development candidates are not included in the four-release timeline; current v8 action facts and regression contracts are described in the documentation.
 
-Final integration branch: `feat/v0.1.7-report-resource-regression`, combining report usability, resource clarification and regression reuse. See [integration validation](docs/v0.1.7-integration.md). Historical files retain the mistakenly used 0.1.8 label as provenance, not as an existing release.
+Final integration branch: `feat/v0.1.7-report-resource-regression`, combining report usability, resource clarification and regression reuse. See [integration validation](docs/v0.1.7-integration.md). Project version labels are aligned to 0.1.7, with 0.1.7-rc.1 remaining an unreleased candidate. Phase-specific validation scope and original evidence are preserved.
 
 The report reader retains eight themes, readable evidence bodies, inline/bundle delivery, image context and explicit content gaps.
