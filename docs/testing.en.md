@@ -1,5 +1,10 @@
 # Validation record and coverage limits
 
+## v0.1.7 cloud integration and documentation review (2026-10-31)
+
+All four candidate branch heads are ancestors of `6040a1a`; no duplicate merge was needed. The review branch updates bilingual documentation and twelve illustrations while preserving runtime behavior and v0.1.8 planning boundaries. Linux / Node v24.22.1: strict types, contract drift, build and public-file checks pass; 204 tests, 203 passed, zero failed, one Windows-only checkpoint recovery test skipped. All updated PNGs were visually inspected; 222 SVG text bounds remain inside their canvases. An initially missing review-document package entry was fixed and the full suite rerun. See [cloud review](v0.1.7-cloud-review.md) for scope and publication gates. No real Ego/UAT run, user installation, main merge, Tag or Release in this phase.
+
+
 ## v0.1.7 local closeout and v0.1.8 requirements (2026-10-31)
 
 The `0.1.7-rc.1 / report-step-evidence-1` local review covers source, capability descriptions and requirements. Strict types pass; the full engineering suite reports 203 tests, 202 passed, zero failed and one Windows symlink-privilege skip. Publication/link checks, Skill format, runtime integrity and heuristic checks of current files and local history have distinct scopes. Two historical documentation blobs still retain generalized-away developer paths; this is not a claim that all history is sanitized. See the [closeout record (Chinese)](v0.1.7-local-closeout.md).

@@ -8,18 +8,20 @@
 
 ## Current release
 
-The development candidate is **0.1.7-rc.1 / report-step-evidence-1**, closing at its current local scope and still unreleased. It integrates whole-scope resource clarification, first-run records, immutable task/rule revisions, whole-scenario status reruns, full declared scope and scheme-B report reading. Main contracts are v8, regressionVersion 1 and networkVersion 1. Scheme B places the issue/result and original expectation above actual steps and selected evidence, with independent nested scope disclosures. See [scheme B](docs/v0.1.7-step-evidence.md), [resource-readiness validation](docs/v0.1.7-resource-readiness-validation.md), [regression-reuse validation](docs/v0.1.7-regression-reuse-validation.md) and [local closeout (Chinese)](docs/v0.1.7-local-closeout.md).
+The development candidate is **0.1.7-rc.1 / report-step-evidence-1**, in cloud integration and human-review preparation, still unreleased. It integrates whole-scope resource clarification, first-run records, immutable task/rule revisions, whole-scenario status reruns, full declared scope and scheme-B report reading. Main contracts are v8, regressionVersion 1 and networkVersion 1. Scheme B places the issue/result and original expectation above actual steps and selected evidence, with independent nested scope disclosures. See [scheme B](docs/v0.1.7-step-evidence.md), [resource-readiness validation](docs/v0.1.7-resource-readiness-validation.md), [regression-reuse validation](docs/v0.1.7-regression-reuse-validation.md) and [local closeout (Chinese)](docs/v0.1.7-local-closeout.md).
 
 **0.1.6 / native-network-observation-1**. Download the complete package and checksums from [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). The maintainer reported a usable local trial with one requirements document; this is not broad acceptance across products, models or hosts. See [validation](docs/testing.en.md). Builds do not update installed Skills.
 
 
 Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidance, compiled Node ESM tools, schemas, examples and an integrity manifest. Source is TypeScript; installed use requires Node.js >=22.
 
+See the [cloud integration review](docs/v0.1.7-cloud-review.md) for branch ancestry and review scope. All four branch heads are already included in the latest baseline; no duplicate merge is needed. Main, Tags and Releases remain unchanged until explicit human approval.
+
 ## Version evolution
 
-![Latest four versions: v0.1.3 to v0.1.6, all released. Capability illustration only.](docs/images/readme-version-history.png)
+![Latest four versions: v0.1.4–v0.1.6 released; v0.1.7 is an unreleased candidate. Capability illustration only.](docs/images/readme-version-history.png)
 
-README shows the latest formal release plus three previous releases. [Full version history](docs/version-history.en.md) retains older releases. v0.1.7 report/resource/regression work is integrated but unreleased; v0.1.8 is requirements planning. Neither appears as a released version in the four-version illustration.
+README shows the current version plus three previous versions. v0.1.7 is explicitly marked as a candidate; v0.1.4–v0.1.6 are released. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe the candidate, not real test evidence. v0.1.8 remains requirements planning.
 
 ## First-run records and two regression modes
 
@@ -27,7 +29,7 @@ The AI preserves normative sources, actual observations, failures and incomplete
 
 Task definition, current resources/authorization and business verdicts are separate. Every regression creates an independent run with frozen task/rule revisions and selection. Unknown side effects require read-only reconciliation, not automatic replay. Comparisons expose conditions and AI comparability reasoning without automatically blaming a newer release.
 
-Local tools only perform data transactions and explicit selection; the current AI owns task authoring and execution. See [regression assets and binding](docs/regression-reuse.md). Main contracts are v8 and regressionVersion is 1. Existing v5/v6 data remains untouched and is not automatically migrated. The report enhancements are included.
+Local tools only perform data transactions and explicit selection; the current AI owns task authoring and execution. See [regression assets and binding](docs/regression-reuse.md). Main contracts are v8 and regressionVersion is 1. Existing v5/v6/v7 data remains untouched and is not automatically migrated. The report enhancements are included.
 
 ## Capabilities delivered in v0.1.6
 

@@ -12,9 +12,11 @@ The AI interprets goals and judges business outcomes, Ego operates the browser, 
 
 v0.1.6 also concretized design/execution topics and misjudgment examples, shared observations/assessments across serial and parallel records, retained attempts during incremental goal updates, separated outcomes from causes, handled network content/capacity/stop/handoff and fixed linked CLI startup. Engineering, synthetic and isolated browser checks keep distinct coverage; one owner trial is not general business or host acceptance.
 
-## v0.1.7 · Local development closeout, unreleased
+## v0.1.7 · Cloud integration review, unreleased
 
 The current `0.1.7-rc.1 / report-step-evidence-1` candidate uses schema v8. It integrates whole-scope resource communication, first-run tasks/rules, independent run binding and goal comparisons. The [scheme-B reader](v0.1.7-step-evidence.md) places actual steps beside evidence, retaining all goals, expectations and history without inventing execution or changing outcomes. The [v0.1.7 preview](v0.1.7-preview.md) remains historical; broader quality evaluation is not claimed complete.
+
+Branch verification, documentation/image changes and review gates: [cloud review](v0.1.7-cloud-review.md). The main branch and formal release remain unchanged.
 
 ## v0.1.8 · Testing-quality and test-point regression requirements
 

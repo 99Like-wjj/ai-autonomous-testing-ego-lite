@@ -113,6 +113,7 @@ export const runtimeFiles = [
   'schemas/network-evidence-export.schema.json',
   'docs/v0.1.7-report-design.md',
   'docs/v0.1.7-reader-review.md',
+  'docs/v0.1.7-cloud-review.md',
   'docs/v0.1.7-step-evidence.md',
   'docs/v0.1.7-validation.md'
 ];

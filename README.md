@@ -8,17 +8,19 @@
 
 ## 当前版本
 
-当前开发候选为 **0.1.7-rc.1 / report-step-evidence-1**，本地功能开发在此范围收尾，尚未正式发布。已整合整轮资源沟通、首次成果留存、规则/任务修订、按状态整场景及全量回归、报告方案 B；主契约为 v8，regressionVersion 1，networkVersion 1。报告方案 B 将问题描述和原预期置顶，实际步骤与所选证据并排，范围说明采用独立两层折叠。范围和限制见[报告方案 B](docs/v0.1.7-step-evidence.md)、[资源澄清验证](docs/v0.1.7-resource-readiness-validation.md)、[回归复用验证](docs/v0.1.7-regression-reuse-validation.md)及[本地收尾核验](docs/v0.1.7-local-closeout.md)。
+当前开发候选为 **0.1.7-rc.1 / report-step-evidence-1**，已进入云端整合与人工审阅准备，尚未正式发布。已整合整轮资源沟通、首次成果留存、规则/任务修订、按状态整场景及全量回归、报告方案 B；主契约为 v8，regressionVersion 1，networkVersion 1。报告方案 B 将问题描述和原预期置顶，实际步骤与所选证据并排，范围说明采用独立两层折叠。范围和限制见[报告方案 B](docs/v0.1.7-step-evidence.md)、[资源澄清验证](docs/v0.1.7-resource-readiness-validation.md)、[回归复用验证](docs/v0.1.7-regression-reuse-validation.md)及[本地收尾核验](docs/v0.1.7-local-closeout.md)。
 
 当前正式版本为 **0.1.6 / native-network-observation-1**。完整安装包与校验值见 [v0.1.6 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。用户已反馈本地按一份需求试跑可用；这不代表所有业务、模型和宿主均已验收。发布收尾与已有验证分别见[验证记录](docs/testing.md)。构建与测试不会自动替换用户级 Skill。
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
 
+审阅入口与本轮范围见 [0.1.7 云端整合审阅](docs/v0.1.7-cloud-review.md)。四个工作分支均已包含在最新基线中，不重复应用提交；人工审阅通过前不合入 main、不创建 Tag 或 Release。
+
 ## 版本演变
 
-![最近四版：v0.1.3、v0.1.4、v0.1.5、v0.1.6，均为正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
+![最近四版：v0.1.4、v0.1.5、v0.1.6 为正式版，v0.1.7 为未发布候选。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 仅展示最新正式版本与前三个历史版本；更早版本继续保留在[完整版本演变](docs/version-history.md)中。0.1.7 报告、资源与回归能力已经整合，但开发候选不计入已发布四版；0.1.8 仍为需求规划。现有示意图保留上一正式版本的能力概览，v8 动作事实与回归资料契约以当前正文为准。
+README 展示当前版本与前三个历史版本：0.1.7 明确标为候选，0.1.4–0.1.6 为已发布版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本候选；图片是能力说明，不是真实测试证据。0.1.8 仅为需求规划。
 
 ## 首次成果与两种回归范围
 
@@ -26,7 +28,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 
 任务定义完整不等于产品通过或本次资源/授权就绪。每次回归新建独立运行，冻结任务/规则修订和选择范围；未知副作用先只读对账，不自动重放。比较保留来源、条件差异和 AI 可比性说明，不因历史通过、本次失败就自动归因新版。
 
-工具仅保存、校验、筛选明确输入和呈现事实；任务整理与业务执行由当前 AI 完成。具体接口见[回归资料与执行绑定](docs/regression-reuse.md)，行为边界见[回归使用指南](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md)。v5/v6 历史文件保留，新工具不自动迁移；本最终分支同时包含报告优化与资源/回归功能。
+工具仅保存、校验、筛选明确输入和呈现事实；任务整理与业务执行由当前 AI 完成。具体接口见[回归资料与执行绑定](docs/regression-reuse.md)，行为边界见[回归使用指南](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md)。v5/v6/v7 历史文件保留，新工具不自动迁移；本最终分支同时包含报告优化与资源/回归功能。
 
 ## v0.1.6 已交付的基础能力
 
@@ -60,7 +62,7 @@ README 仅展示最新正式版本与前三个历史版本；更早版本继续�
 
 接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，当前结果契约为 v8，原 v5 运行历史保持原样。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
 
-![报告内容示意：预期、观察、证据与未覆盖范围；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
+![方案 B 布局示意：问题和原预期置顶，实际步骤与所选证据并排，范围及历史折叠；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
 
 ## Windows 快速开始
 
