@@ -2,6 +2,49 @@
 
 本项目由 AI 主导测试规划、执行、页面探索、路径选择和业务判断。AI 可以根据观察调整方法，但必须遵守以下固定要求。
 
+## 项目导航
+
+本节帮助定位源码，不是固定开发步骤；先明确修改目标，再按需读取模块和测试。整体职责与数据流见[架构说明](docs/architecture.md)，数据格式见[契约说明](docs/asset-formats.md)。
+
+```text
+skills/ai-autonomous-testing-ego-lite/  Skill 入口和 AI 使用指南
+src/scripts/       CLI 参数、命令分发和工具身份
+src/core/          用例/目标、冻结基线、结果与证据记录
+src/execution/     名额、任务分配、Space 关联、工作包复核导入
+src/observation/   授权范围内接口采集、查询与证据导出
+src/regression/    项目回归资料、范围选择、运行绑定与比较
+src/report/        报告投影、布局、主题、证据和文件交付
+src/report-ui/     HTML 报告的浏览器交互
+src/contracts/     版本/分发清单、类型、标识及引用规则
+schemas/           外部 JSON 契约源文件
+examples/          合成用例和请求示例，不是真实业务证据
+tests/             工程回归及合成夹具
+tools/             构建、生成、检查和验证辅助，不是第二套业务入口
+docs/              当前说明、历史验证及图片生成源
+```
+
+### 改什么 → 从哪里看 → 对应检查
+
+| 修改目标 | 首看入口 | 相关测试 |
+| --- | --- | --- |
+| CLI 命令与参数 | [ego.mts](src/scripts/ego.mts)、[toolchain.mts](src/scripts/toolchain.mts) | [CLI 入口](tests/cli-entrypoint.test.mts)、[基础命令](tests/ego.test.mts) |
+| 用例、业务目标与冻结 | [cases.mts](src/core/cases.mts)、[baseline.mts](src/core/baseline.mts)、[schemas](schemas/) | [目标评估](tests/goals.test.mts) |
+| 结果、证据与动作事实 | [records.mts](src/core/records.mts)、[action-events.mts](src/core/action-events.mts)、[file-integrity.mts](src/core/file-integrity.mts) | [动作事件](tests/action-events.test.mts)、[事实记录](tests/facts-v6.test.mts) |
+| 并发与任务分配、工作包 | [commands.mts](src/execution/commands.mts)、[ledger.mts](src/execution/ledger.mts)、[packets.mts](src/execution/packets.mts)、[commit.mts](src/execution/commit.mts) | [执行协调](tests/execution.test.mts) |
+| 接口观测与导出 | [commands.mts](src/observation/commands.mts)、[collector.mts](src/observation/collector.mts)、[evidence-export.mts](src/observation/evidence-export.mts) | [接口观测](tests/network.test.mts) |
+| 回归资料、范围与比较 | [store.mts](src/regression/store.mts)、[selection.mts](src/regression/selection.mts)、[run-binding.mts](src/regression/run-binding.mts)、[compare.mts](src/regression/compare.mts) | [范围选择](tests/regression-selection.test.mts)、[跨轮比较](tests/regression-compare.test.mts)、[CLI/报告](tests/regression-cli-report.test.mts) |
+| 报告生成、布局与交互 | [delivery.mts](src/report/delivery.mts)、[render.mts](src/report/render.mts)、[reader-layout.mts](src/report/reader-layout.mts)、[main.ts](src/report-ui/main.ts)、[themes.mts](src/report/themes.mts) | [交付](tests/report-delivery.test.mts)、[阅读器](tests/report-reader-model.test.mts)、[组合回归](tests/combined-report-regression.test.mts) |
+| Skill、文档与图示 | [SKILL.md](skills/ai-autonomous-testing-ego-lite/SKILL.md)、[references](skills/ai-autonomous-testing-ego-lite/references/)、[render.mts](docs/images/render.mts) | [经验](tests/experience.test.mts)、[文档契约](tests/current-document-contracts.test.mts)、[图文](tests/readme-visuals.test.mts) |
+
+### 源文件、生成产物与验证
+
+- `schemas/*.schema.json` 是契约源文件；`src/contracts/generated/*.d.mts` 由 [generate-contracts.mts](tools/generate-contracts.mts) 生成，不直接编辑。改契约后运行 `npm run contracts:write`，再核对生成差异与运行时语义校验。
+- `.build/node/`、`.build/browser/`、`.build/bootstrap/`、`.build/runtime/` 是构建/暂存产物，不在其中修补功能。源码维护 `.mts/.ts`，运行时使用编译后的 `.mjs/.js`。
+- 版本和运行分发清单看 [layout.mts](src/contracts/layout.mts)；暂存与打包分别看 [stage-runtime.mts](tools/stage-runtime.mts)、[build-skill.mts](tools/build-skill.mts)。导航不授予生成或交付安装包的权限，仍遵守下方发布要求。
+- 文档示意图优先修改 `docs/images/render.mts` 后同步 SVG/PNG；真实运行、截图、证据不是源码，不因重构覆盖或删除。
+- 按修改范围先跑相关测试；提交前核对 `npm run typecheck`、`npm test`、`npm run check:public` 和 `git diff --check`。`npm test` 会先构建再测试实际 JS；工程通过不代表真实业务验收。
+- 目录或职责变化时同步更新本导航。只列稳定入口，不维护易失效的行号、全函数清单或固定测试数量；读取当前实现后再决定修改范围。
+
 ## 固定要求
 
 - 用户指定的业务目标、验收要求、事实依据和授权边界保持不变。不能为了得到通过结论而改写目标、降低预期或扩大授权。
