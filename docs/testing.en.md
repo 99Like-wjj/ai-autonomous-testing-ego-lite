@@ -1,5 +1,10 @@
 # Validation record and coverage limits
 
+## v0.1.7 release finalization (2026-10-31)
+
+The owner approved merging and publication. Package and Skill metadata are 0.1.7, revision report-step-evidence-1; the stable package and Codex display names have no dev/rc suffix. Linux / Node.js 24.22.1: 213 tests, 212 passed, 0 failed, 1 Windows-only checkpoint replacement-recovery skip. Type, contract/build, publication and Git diff checks passed. All 312 SVG text elements fit their canvases; 12 changed version illustrations were visually reviewed. See [release validation](v0.1.7-release-validation.md) for complete-package and ZIP verification scope. No real Ego/UAT rerun or automatic user installation; the sections below preserve historical stage results.
+
+
 ## v0.1.7 full documentation and illustration review (2026-10-31)
 
 Reviewed 88 Markdown files, including all 17 Skill references, plus the bilingual illustration set. Current guides were compared with v8 runtime contracts, CLI, report UI and regression selection; historical stage records retain their original evidence. Corrected stale contract prose, missing goal titles, report/context examples and delivery boundaries. Removed duplicate verification sections only after line-by-line equality checks. The README now leads with approved design philosophy and current 0.1.7 changes; v0.1.6 details remain in history, and developed versions run newest-first without v0.1.8 planning entries. All 16 generated illustrations have visual review; 312 SVG text elements remain inside their canvases; the existing contact QR is unchanged. New guards cover prose contracts, real case validation, history ordering, philosophy and relocated architecture images. The final suite has 211 tests: 210 passed, zero failed, one Windows-only checkpoint recovery skip; strict types, contract/build and public/link checks pass. No live Ego/UAT or user installation was rerun; no formal package, main merge, Tag or Release. See [review scope and changes](v0.1.7-cloud-review.md).

@@ -19,7 +19,7 @@ test('both READMEs retain the documented visual sections and historical navigati
   }
 });
 
-test('README timeline contains four versions and labels the current candidate without promoting it', async () => {
+test('README timeline contains four versions and labels the current release consistently', async () => {
   const pkg = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'package.json'), 'utf8')) as { version: string };
   for (const suffix of ['', '.zh-CN']) {
     const svg = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/readme-version-history${suffix}.svg`), 'utf8');
@@ -31,7 +31,11 @@ test('README timeline contains four versions and labels the current candidate wi
     assert.ok(stable, 'README must identify its last stable release');
     const current = pkg.version.split('-')[0];
     assert.equal(versions[0], current);
-    if (!pkg.version.includes('-')) assert.equal(stable, pkg.version);
+    if (!pkg.version.includes('-')) {
+      assert.equal(stable, pkg.version);
+      assert.doesNotMatch(svg, /RC\.1|候选|NOT RELEASED|未发布/);
+      assert.match(svg, /RELEASED|正式发布/);
+    }
     else {
       assert.ok(readme.includes(pkg.version));
       assert.equal(versions[1], stable);
@@ -44,8 +48,9 @@ test('README timeline contains four versions and labels the current candidate wi
  test('current illustrations explain report and regression boundaries in both languages', async () => {
   for (const suffix of ['', '.zh-CN']) {
     const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
-    assert.match(await read('hero'), /0\.1\.7-rc\.1/);
-    assert.match(await read('hero'), /NOT RELEASED|尚未发布/);
+    assert.match(await read('hero'), /0\.1\.7/);
+    assert.match(await read('hero'), /STABLE RELEASE|正式版本/);
+    assert.doesNotMatch(await read('hero'), /rc\.1|NOT RELEASED|尚未发布/);
     assert.match(await read('workflow'), /whole scenarios|整条场景/);
     assert.match(await read('workflow'), /not automatically replayed|不自动重放/);
     assert.match(await read('result-specimen'), /NOT A REAL REPORT SCREENSHOT|非真实报告截图/);

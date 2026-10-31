@@ -1,6 +1,6 @@
 # 本地资产格式与运行约定（schemaVersion 8）
 
-当前独立开发候选为 0.1.7-rc.1 / report-step-evidence-1，未发布。用例、基线、运行、结果、证据、请求、执行台账、配置、worker 包与报告统一使用 schemaVersion 8，执行查询 viewVersion 为 8。新版明确拒绝旧格式，不提供兜底读取、转换或原地迁移；旧报告、运行、截图与来源文件保持原样。重新使用来源时新建 v8 用例与运行，不只修改版本号。
+当前正式版本为 0.1.7 / report-step-evidence-1。用例、基线、运行、结果、证据、请求、执行台账、配置、worker 包与报告统一使用 schemaVersion 8，执行查询 viewVersion 为 8。新版明确拒绝旧格式，不提供兜底读取、转换或原地迁移；旧报告、运行、截图与来源文件保持原样。重新使用来源时新建 v8 用例与运行，不只修改版本号。
 
 本次阅读修复不改变v8业务记录：派生动作投影增加label/detail；retrospective report context可提供有来源的goalNotes（建议复核路线、准备条件和既有证据用途），不允许独立状态或伪造执行。新交付清单的reportSchemaVersion为8，修正旧候选遗留的6；旧报告保留，新输出另存。详见[阅读修复](v0.1.7-reader-review.md)。
 
@@ -107,6 +107,6 @@ report 校验结构、引用和全部证据 hash/bytes 后写 report.html/json/m
 
 同一 v8 账本同时保留上下文、观察动作片段、尝试事件、现象、结构化缺口与复核准备。contexts 使用 environment/identity/objects/initialState/authorization，各项为 state/summary/sources；sources 保留类别、定位和证据引用。观察 actions 用于已观察操作片段，actionEvents 用于意图、发出与核对，工具不自动互拷或重放。
 
-报告保留场景与目标两级导航、证据正文、内容去重、附件交付和八种主题。network export 只从已留存的网络片段导出证据，不重发请求。回归范围、任务版本、当次条件及未决动作与原报告能力共同呈现。软件版本为0.1.7-rc.1，数据契约v8不是软件版本号；详情见[最终整合记录](v0.1.7-integration.md)。
+报告保留场景与目标两级导航、证据正文、内容去重、附件交付和八种主题。network export 只从已留存的网络片段导出证据，不重发请求。回归范围、任务版本、当次条件及未决动作与原报告能力共同呈现。软件版本为0.1.7，数据契约v8不是软件版本号；详情见[最终整合记录](v0.1.7-integration.md)。
 
 报告另外生成 `report-delivery.json` 机器交付清单，用于记录产物与核验；它不替代 HTML、JSON、Markdown 三种阅读产物。已登记截图文件丢失时默认拒绝生成；显式 `--allow-missing-screenshots true` 仅允许标记为不完整的缺图草稿，不放宽其他证据完整性校验。

@@ -1,6 +1,6 @@
 # Asset formats and runtime contract (schemaVersion 8)
 
-Current independent candidate: 0.1.7-rc.1 / report-step-evidence-1, unreleased. All JSON contracts use schemaVersion 8; execution query viewVersion is 8. Older formats are explicitly rejected. There is no legacy reader, converter or in-place migration. Keep historical runs, reports, source files and screenshots unchanged; prepare new v8 assets from original sources instead of changing only a version field.
+Current release: 0.1.7 / report-step-evidence-1. All JSON contracts use schemaVersion 8; execution query viewVersion is 8. Older formats are explicitly rejected. There is no legacy reader, converter or in-place migration. Keep historical runs, reports, source files and screenshots unchanged; prepare new v8 assets from original sources instead of changing only a version field.
 
 This reader fix retains v8 business records. Derived action projections add label/detail; retrospective report context may include sourced goalNotes with suggested review routes, preparation and retained-evidence uses, never independent verdicts or invented execution. New delivery manifests correctly declare reportSchemaVersion 8 instead of the earlier candidate's stale 6. Historical reports remain unchanged and revised outputs use a new directory. See [reader revision](v0.1.7-reader-review.md).
 
@@ -57,6 +57,6 @@ Scheme B adds optional `ReportContext.readerNotes`: sourced reading titles/descr
 
 The v8 ledger retains contexts, observation action excerpts, attempt lifecycle events, phenomena, structured gaps and reproduction preparation. Contexts use environment/identity/objects/initialState/authorization with state/summary/sources. Observation actions and attempt events have distinct purposes and are not automatically copied or replayed.
 
-The integrated reader keeps scene/goal navigation, retained text bodies, content deduplication, attachment delivery and eight themes. Network export reads retained data without replay. Regression scope, exact task revisions and unresolved actions remain visible. Software is 0.1.7-rc.1; data contract v8 is not a software version. See [integration record](v0.1.7-integration.md).
+The integrated reader keeps scene/goal navigation, retained text bodies, content deduplication, attachment delivery and eight themes. Network export reads retained data without replay. Regression scope, exact task revisions and unresolved actions remain visible. Software is 0.1.7; data contract v8 is not a software version. See [integration record](v0.1.7-integration.md).
 
 Reports also write the machine manifest `report-delivery.json` for artifact verification; it does not replace the three reader outputs. A missing registered screenshot rejects report generation by default. Explicit `--allow-missing-screenshots true` permits only an incomplete missing-image draft, without weakening other evidence integrity checks.

@@ -1,6 +1,6 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.7-rc.1",
+  "version": "0.1.7",
   "egoLiteTest": {
     "toolRevision": "report-step-evidence-1",
     "formatVersions": {

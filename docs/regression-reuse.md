@@ -1,6 +1,6 @@
 # 项目回归资料与运行绑定
 
-当前为 0.1.7-rc.1 / report-step-evidence-1 开发候选；主契约 v8，回归契约 regressionVersion 1，接口观测仍为 networkVersion 1。尚未正式发布，构建不会更新用户安装。
+当前为 0.1.7 / report-step-evidence-1 正式版本；主契约 v8，回归契约 regressionVersion 1，接口观测仍为 networkVersion 1。构建不会更新用户安装。
 
 本版按状态选择仍以整条场景为重跑单位，尚无稳定测试点编号或按编号单点回测入口。后续需求及其背景见 [v0.1.8 前瞻](v0.1.8-preview.md)，不将规划当作当前执行能力。
 

@@ -20,17 +20,17 @@
 
 ## 当前版本
 
-当前开发候选为 **0.1.7-rc.1 / report-step-evidence-1**，已进入云端整合与人工审阅准备，尚未正式发布。已整合整轮资源沟通、首次成果留存、规则/任务修订、按状态整场景及全量回归、报告方案 B；主契约为 v8，regressionVersion 1，networkVersion 1。报告方案 B 将问题描述和原预期置顶，实际步骤与所选证据并排，范围说明采用独立两层折叠。范围和限制见[报告方案 B](docs/v0.1.7-step-evidence.md)、[资源澄清验证](docs/v0.1.7-resource-readiness-validation.md)、[回归复用验证](docs/v0.1.7-regression-reuse-validation.md)及[本地收尾核验](docs/v0.1.7-local-closeout.md)。
+当前正式版本为 **0.1.7 / report-step-evidence-1**。已整合整轮资源沟通、首次成果留存、规则/任务修订、按状态整场景及全量回归、报告方案 B；主契约为 v8，regressionVersion 1，networkVersion 1。报告方案 B 将问题描述和原预期置顶，实际步骤与所选证据并排，范围说明采用独立两层折叠。范围和限制见[报告方案 B](docs/v0.1.7-step-evidence.md)、[资源澄清验证](docs/v0.1.7-resource-readiness-validation.md)、[回归复用验证](docs/v0.1.7-regression-reuse-validation.md)及[本地收尾核验](docs/v0.1.7-local-closeout.md)。
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
 
-审阅入口与本轮范围见 [0.1.7 云端整合审阅](docs/v0.1.7-cloud-review.md)。四个工作分支均已包含在最新基线中，不重复应用提交；人工审阅通过前不合入 main、不创建 Tag 或 Release。
+审阅入口与本轮范围见 [0.1.7 云端整合审阅](docs/v0.1.7-cloud-review.md)。四个工作分支均已包含在最新基线中，不重复应用提交；人工审阅已通过，正式收尾与验证边界见[发布验证](docs/v0.1.7-release-validation.md)。
 
 ## 版本演变
 
-![最新在前：v0.1.7 为未发布候选，其后为 v0.1.6、v0.1.5、v0.1.4 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
+![最新在前：v0.1.7 正式版，其后为 v0.1.6、v0.1.5、v0.1.4 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 展示当前版本与前三个历史版本：0.1.7 明确标为候选，0.1.4–0.1.6 为已发布版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本候选；图片是能力说明，不是真实测试证据。0.1.8 仅为需求规划。
+README 展示当前版本与前三个历史版本：0.1.4–0.1.7 均为已发布版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。0.1.8 仅为需求规划。
 
 ## 0.1.7 做了什么
 
@@ -67,9 +67,9 @@ README 展示当前版本与前三个历史版本：0.1.7 明确标为候选，0
 
 ## Windows 快速开始
 
-本节源码示例针对当前开发候选，使用本仓库构建的 .build/runtime；不会自动替换用户安装。正式安装包按其实际版本和 revision 核对。
+本节源码示例针对当前正式版本，使用本仓库构建的 .build/runtime；不会自动替换用户安装。正式安装包按其实际版本和 revision 核对。
 
-0.1.7 仍在人工审阅，尚无正式下载包；当前已发布的完整包仍为 [v0.1.6 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。不要把旧包当作本页 0.1.7 能力。
+完整安装包、SHA-256 校验值与发布说明见 [v0.1.7 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
 
 先按 [Ego 官方 Windows 快速开始](https://lite.ego.app/document/en/docs/windows/quick-start)准备 Ego 与官方 ego-browser Skill。本仓库不安装或替代官方浏览器。仅设计用例无需浏览器连接。
 
@@ -79,7 +79,7 @@ README 展示当前版本与前三个历史版本：0.1.7 明确标为候选，0
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.7-rc.1 --expect-revision report-step-evidence-1
+node $Tool tool-info --expect-version 0.1.7 --expect-revision report-step-evidence-1
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：

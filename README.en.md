@@ -20,18 +20,18 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ## Current release
 
-The development candidate is **0.1.7-rc.1 / report-step-evidence-1**, in cloud integration and human-review preparation, still unreleased. It integrates whole-scope resource clarification, first-run records, immutable task/rule revisions, whole-scenario status reruns, full declared scope and scheme-B report reading. Main contracts are v8, regressionVersion 1 and networkVersion 1. Scheme B places the issue/result and original expectation above actual steps and selected evidence, with independent nested scope disclosures. See [scheme B](docs/v0.1.7-step-evidence.md), [resource-readiness validation](docs/v0.1.7-resource-readiness-validation.md), [regression-reuse validation](docs/v0.1.7-regression-reuse-validation.md) and [local closeout (Chinese)](docs/v0.1.7-local-closeout.md).
+The current release is **0.1.7 / report-step-evidence-1**. It integrates whole-scope resource clarification, first-run records, immutable task/rule revisions, whole-scenario status reruns, full declared scope and scheme-B report reading. Main contracts are v8, regressionVersion 1 and networkVersion 1. Scheme B places the issue/result and original expectation above actual steps and selected evidence, with independent nested scope disclosures. See [scheme B](docs/v0.1.7-step-evidence.md), [resource-readiness validation](docs/v0.1.7-resource-readiness-validation.md), [regression-reuse validation](docs/v0.1.7-regression-reuse-validation.md) and [local closeout (Chinese)](docs/v0.1.7-local-closeout.md).
 
 
 Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidance, compiled Node ESM tools, schemas, examples and an integrity manifest. Source is TypeScript; installed use requires Node.js >=22.
 
-See the [cloud integration review](docs/v0.1.7-cloud-review.md) for branch ancestry and review scope. All four branch heads are already included in the latest baseline; no duplicate merge is needed. Main, Tags and Releases remain unchanged until explicit human approval.
+See the [cloud integration review](docs/v0.1.7-cloud-review.md) for branch ancestry and review scope. All four branch heads are already included in the latest baseline; no duplicate merge is needed. Human review is approved; see the [release validation](docs/v0.1.7-release-validation.md) for scope and limitations.
 
 ## Version evolution
 
-![Newest first: v0.1.7 unreleased candidate, then v0.1.6, v0.1.5 and v0.1.4 released. Capability illustration only.](docs/images/readme-version-history.png)
+![Newest first: v0.1.7 released, then v0.1.6, v0.1.5 and v0.1.4 released. Capability illustration only.](docs/images/readme-version-history.png)
 
-README shows the current version plus three previous versions. v0.1.7 is explicitly marked as a candidate; v0.1.4–v0.1.6 are released. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe the candidate, not real test evidence. v0.1.8 remains requirements planning.
+README shows the current version plus three previous versions. v0.1.4–v0.1.7 are released. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. v0.1.8 remains requirements planning.
 
 ## What changed in 0.1.7
 
@@ -68,9 +68,9 @@ Network observation implements the v3 design through network start/status/query/
 
 ## Quick start on Windows
 
-This source example targets the current development candidate in .build/runtime, without replacing the user installation. Verify a released installation against its actual version and revision.
+This source example targets the current release in .build/runtime, without replacing the user installation. Verify a released installation against its actual version and revision.
 
-v0.1.7 is under human review and has no formal download yet. The last released complete package remains [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6); it does not provide all 0.1.7 capabilities described here.
+Download the full installation package, SHA-256 checksums and release notes from [v0.1.7 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7). GitHub-generated Source code archives are not full installation packages.
 
 Prepare Ego and the official ego-browser Skill using the [official guide](https://lite.ego.app/document/en/docs/windows/quick-start). This project does not install or replace Ego. Case design alone requires no browser connection.
 
@@ -80,7 +80,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.7-rc.1 --expect-revision report-step-evidence-1
+node $Tool tool-info --expect-version 0.1.7 --expect-revision report-step-evidence-1
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))

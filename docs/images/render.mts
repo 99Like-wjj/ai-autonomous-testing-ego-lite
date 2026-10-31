@@ -66,7 +66,7 @@ export async function generateImages(outputDir: string) {
     await save(outputDir, ('design-philosophy' + suffix), p, png);
     p = start(t("AI Autonomous Testing · Ego Lite", "AI 自主自动化测试 · Ego Lite"), 540);
     p.push(...[text(54, 64, t("AI AUTONOMOUS TESTING / EGO LITE", "AI 自主自动化测试 / EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test. Review. Reuse.", "从首次测试，"), 48, "text", 700), text(54, 198, t("Let AI choose the method.", "到有依据的回归。"), 48, "text", 700), text(56, 246, t("New features and regression. Fixed goals, adaptive AI execution.", "AI 自主规划与执行，保留规则、事实和每轮证据"), 20, "muted")]);
-    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW + REUSE", "03  审阅与复用"), 16, "cyan", 700), text(835, 370, t("Evidence + regression", "证据与回归资料"), 23), text(835, 403, t("New run, fresh evidence", "独立新运行，重新核验"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.7-rc.1  /  REVIEW CANDIDATE · NOT RELEASED", "版本 0.1.7-rc.1  /  待人工审阅，尚未发布"), 16, "muted")]);
+    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW + REUSE", "03  审阅与复用"), 16, "cyan", 700), text(835, 370, t("Evidence + regression", "证据与回归资料"), 23), text(835, 403, t("New run, fresh evidence", "独立新运行，重新核验"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.7  /  STABLE RELEASE", "版本 0.1.7  /  正式版本"), 16, "muted")]);
     await save(outputDir, ("hero" + suffix), p, png);
     p = start(t("Who owns what?", "谁负责什么？"), 650);
     p.push(...[text(50, 65, t("AI decides. Ego operates. Tools keep records.", "AI 做判断，Ego 做操作，工具管记录。"), 35, "text", 700), text(50, 103, t("Use the current AI session and Ego. No extra model API service.", "复用当前 AI 会话和 Ego 浏览器，不另建模型 API 服务。"), 20, "muted")]);
@@ -97,10 +97,10 @@ export async function generateImages(outputDir: string) {
     p.push(text(78, 847, t('Status selection → whole scenarios  |  Full → declared complete set', '按历史状态选整条场景  |  全量选择明确测试集，保留受阻与缺口'), 22));
     p.push(text(78, 883, t('Verify current conditions → new run → fresh evidence → compare', '核验本轮条件与授权 → 独立新运行 → 新证据 → 有依据地比较'), 21, 'muted'));
     p.push(text(78, 915, t('AI chooses actions. Unknown side effects are not automatically replayed.', 'AI 自主选择方法；未知副作用先核对，不自动重放。'), 19, 'muted'));
-    p.push(text(50, 974, t('0.1.7-rc.1 / Capability guide, not a mandatory execution sequence.', '0.1.7-rc.1 / 能力示意，非强制执行顺序。'), 17, 'muted'));
+    p.push(text(50, 974, t('0.1.7 / Capability guide, not a mandatory execution sequence.', '0.1.7 / 能力示意，非强制执行顺序。'), 17, 'muted'));
     await save(outputDir, ("workflow" + suffix), p, png);
     p = start(t('Scheme B report reading — illustration', '方案 B 报告阅读 — 能力示意'), 760);
-    p.push(text(50, 52, t('0.1.7-rc.1 / SCHEMATIC, NOT A REAL REPORT SCREENSHOT', '0.1.7-rc.1 / 布局示意，非真实报告截图'), 18, 'violet', 700));
+    p.push(text(50, 52, t('0.1.7 / SCHEMATIC, NOT A REAL REPORT SCREENSHOT', '0.1.7 / 布局示意，非真实报告截图'), 18, 'violet', 700));
     p.push(text(50, 103, t('Start with the issue. Read steps beside evidence.', '先看问题与预期，再对照实际步骤和证据。'), 32, 'text', 700));
     p.push(rect(50, 134, 1100, 120));
     p.push(text(76, 174, t('Issue: a result belongs to another category.', '问题：筛选结果中出现了其他分类的商品。'), 25, 'text', 700));
@@ -139,13 +139,13 @@ export async function generateImages(outputDir: string) {
     }
     p.push(text(50, 454, t("Toolbox records state; it does not schedule business actions or decide bugs.", "工具记录状态与文件，不替 AI 调度业务动作或判断缺陷。"), 20, "cyan"));
     p.push(text(50, 498, t("Spaces do not guarantee separate accounts or backend data.", "Space 不等于账号隔离或后端数据隔离；并发上限不保证跑满。"), 19, "muted"));
-    p.push(text(50, 542, t("0.1.7-rc.1  /  Retained concurrency model · Illustration only", "0.1.7-rc.1  /  沿用并发模型；能力示意，非实测证据"), 16, "muted"));
+    p.push(text(50, 542, t("0.1.7  /  Retained concurrency model · Illustration only", "0.1.7  /  沿用并发模型；能力示意，非实测证据"), 16, "muted"));
     await save(outputDir, ("parallel" + suffix), p, png);
 
     p = start(t('Version history — newest first', '版本演变 — 最新版本在前'), 950, 840);
     p.push(text(48, 65, t('Developed versions, newest first', '已开发版本，最新在前'), 34, 'text', 700));
     const historyVersions = [
-      { version: 'v0.1.7', state: t('RC.1 · NOT RELEASED', '候选 rc.1 · 未发布'), title: t('Report reading + regression reuse', '报告阅读、资源澄清与回归复用') },
+      { version: 'v0.1.7', state: t('RELEASED', '正式发布'), title: t('Report reading + regression reuse', '报告阅读、资源澄清与回归复用') },
       { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') },
       { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
       { version: 'v0.1.4', state: t('RELEASED', '正式版'), title: t('Configurable concurrency', '可配置并发与协调复核') },
@@ -168,10 +168,10 @@ export async function generateImages(outputDir: string) {
       { version: 'v0.1.4', state: t('RELEASED', '正式版'), title: t('Configurable concurrency', '可配置并发与协调复核') },
       { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
       { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') },
-      { version: 'v0.1.7', state: t('RC.1 · NOT RELEASED', '候选 rc.1 · 未发布'), title: t('Report reading + reusable regression', '报告阅读、资源澄清与回归复用') }
+      { version: 'v0.1.7', state: t('RELEASED', '正式发布'), title: t('Report reading + reusable regression', '报告阅读、资源澄清与回归复用') }
     ]).reverse();
     p = start(t('Latest four versions — README overview', '最近四个版本 — README 概览'), 650, 840);
-    p.push(text(48, 65, t('Current candidate + three releases', '当前候选与前三个正式版本'), 32, 'text', 700));
+    p.push(text(48, 65, t('Latest release + three previous versions', '最新正式版与前三个历史版本'), 32, 'text', 700));
     for (const [i, v] of readmeVersions.entries()) {
       const y = 100 + i * 122, color = i === 0 ? 'violet' : 'cyan';
       p.push(rect(48, y, 744, 106, 'panel', color));

@@ -4,13 +4,13 @@
 
 The AI interprets goals and judges business outcomes, Ego operates the browser, and local tools retain evidence and deliver reports.
 
-![Newest first: v0.1.7 candidate, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
+![Newest first: v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
 
-## v0.1.7 · Cloud integration review, unreleased
+## v0.1.7 · Report reading, resource clarification and regression reuse
 
-The current `0.1.7-rc.1 / report-step-evidence-1` candidate uses schema v8. It integrates whole-scope resource communication, first-run tasks/rules, independent run binding and goal comparisons. The [scheme-B reader](v0.1.7-step-evidence.md) places actual steps beside evidence, retaining all goals, expectations and history without inventing execution or changing outcomes. The [v0.1.7 preview](v0.1.7-preview.md) remains historical; broader quality evaluation is not claimed complete.
+The current `0.1.7 / report-step-evidence-1` release uses schema v8. It integrates whole-scope resource communication, first-run tasks/rules, independent run binding and goal comparisons. The [scheme-B reader](v0.1.7-step-evidence.md) places actual steps beside evidence, retaining all goals, expectations and history without inventing execution or changing outcomes. The [v0.1.7 preview](v0.1.7-preview.md) remains historical; broader quality evaluation is not claimed complete.
 
-Branch verification, documentation/image changes and review gates: [cloud review](v0.1.7-cloud-review.md). The main branch and formal release remain unchanged.
+Branch verification, documentation/image changes and review gates: [cloud review](v0.1.7-cloud-review.md). 2026-10-31: [release, full package and checksums](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7). See [release validation](v0.1.7-release-validation.md).
 
 ## v0.1.6 · Experience, goal assessment and network observation
 
@@ -20,7 +20,7 @@ v0.1.6 also concretized design/execution topics and misjudgment examples, shared
 
 ### v0.1.6 detailed capabilities and validation sources
 
-v0.1.6 delivered more than experience documentation: goal assessment, unified serial/parallel records, native network observation and the linked CLI/host handoff fix. The current candidate continues these capabilities. v0.1.6 used schema v5; the current v0.1.7 v8 contract is not attributed retroactively to that release.
+v0.1.6 delivered more than experience documentation: goal assessment, unified serial/parallel records, native network observation and the linked CLI/host handoff fix. The current version continues these capabilities. v0.1.6 used schema v5; the current v0.1.7 v8 contract is not attributed retroactively to that release.
 
 - Stage-specific design and execution experience: concise stable indexes and concrete scenarios for prerequisites, data relationships, boundaries/roles, unknown submissions, drag/download, asynchronous observations and recovery risks. Navigation checks and semantic exercises support human-maintained, read-only guidance; there is no RAG, automatic learning or fixed business route.
 

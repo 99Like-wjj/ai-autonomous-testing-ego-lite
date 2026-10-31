@@ -67,4 +67,4 @@ AI 从可信规范和首次实际事实整理规则/任务，regressionVersion 1
 
 同一 v8 账本同时保留上下文、观察动作片段、尝试事件、现象、结构化缺口与复核准备。contexts 使用 environment/identity/objects/initialState/authorization，各项为 state/summary/sources；sources 保留类别、定位和证据引用。观察 actions 用于已观察操作片段，actionEvents 用于意图、发出与核对，工具不自动互拷或重放。
 
-报告保留场景与目标两级导航、证据正文、内容去重、附件交付和八种主题。network export 只从已留存的网络片段导出证据，不重发请求。回归范围、任务版本、当次条件及未决动作与原报告能力共同呈现。软件版本为0.1.7-rc.1，数据契约v8不是软件版本号；详情见[最终整合记录](v0.1.7-integration.md)。
+报告保留场景与目标两级导航、证据正文、内容去重、附件交付和八种主题。network export 只从已留存的网络片段导出证据，不重发请求。回归范围、任务版本、当次条件及未决动作与原报告能力共同呈现。软件版本为0.1.7，数据契约v8不是软件版本号；详情见[最终整合记录](v0.1.7-integration.md)。
