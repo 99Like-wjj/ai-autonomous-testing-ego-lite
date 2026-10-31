@@ -32,7 +32,7 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
     lines.push('');
   }
   const unresolved = (report.actionAttempts ?? []).filter(a => a.unresolved);
-  if (unresolved.length) lines.push('## 尚待核对的动作', '', ...unresolved.map(a => '- ' + escape(a.caseId + '/' + a.actionId + '：' + a.reasons.join('；'))), '', '不自动重放业务动作；是否重试由 AI 结合事实、幂等依据和授权决定。', '');
+  if (unresolved.length) lines.push('## 尚待核对的动作', '', ...unresolved.flatMap(a => ['### ' + escape(report.cases.find(c => c.id === a.caseId)?.title ?? a.caseId) + ' · ' + escape(a.label) + '（' + escape(a.caseId) + '）', '', escape(a.detail), '', '核对原因：' + escape(a.reasons.join('；')), '', '原始标识：' + escape(a.caseId + '/' + a.actionId), '']), '不自动重放业务动作；是否重试由 AI 结合事实、幂等依据和授权决定。', '');
   if (report.context) {
     lines.push('## 事后整理来源（未重新执行）', '', escape(report.context.summary), '', ...report.context.limitations.map(item => '- ' + escape(item)), '',
       '补充范围用例：' + (report.context.supplementalCaseIds.map(escape).join(', ') || '(none)'), '',
@@ -69,6 +69,22 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
       for (const phenomenon of a.phenomena ?? []) lines.push('#### 现象：' + escape(phenomenon.title), '', escape(phenomenon.actual), '', '观察：' + escape(phenomenon.observationIds.join(', ')), '', '证据：' + escape(phenomenon.evidenceIds.join(', ')), '', '局限：' + escape(phenomenon.limitations.join('；') || '未列出'), '');
       for (const gap of a.gapDetails ?? []) lines.push('- 缺口（' + gap.kind + '）：' + escape(gap.missing) + '；影响：' + escape(gap.impact) + (gap.nextStep ? '；后续所需：' + escape(gap.nextStep) : ''));
       if (a.reproduction) lines.push('#### 根据记录整理的复现准备', '', ...a.reproduction.preparation.map(value => '- ' + escape(value)), '', '对象现状：' + escape(a.reproduction.objectState), '', '重复观察：' + escape(a.reproduction.repeatability), '', '局限：' + escape(a.reproduction.limitations.join('；') || '未列出'), '');
+      const note = report.context?.goalNotes?.find(n => n.caseId === c.id && n.goalId === g.id);
+      if (note) {
+        lines.push('#### 事后复核说明（未重新执行）', '', escape(note.summary), '', '建议复核前提：', '', ...note.preparation.map(s => '- ' + escape(s)), '', '建议复核路线（不是原实际操作记录）：', '', ...note.reviewSteps.map((s, i) => (i + 1) + '. ' + escape(s)), '', '说明局限：' + escape(note.limitations.join('；')), '', '复核说明来源：' + escape(note.sourceLabels.join('；')), '', '优先查看的既有证据：' + escape(note.primaryEvidenceIds.join('；') || '未指定'), '');
+        for (const use of note.evidenceUses) lines.push('- 事后证据说明 ' + escape(use.evidenceId) + '：' + escape(use.purpose) + '；支持事实：' + escape(use.fact) + '；局限：' + escape(use.limitations.join('；') || '未列出'));
+        lines.push('');
+      }
+      const readerNote = report.context?.readerNotes?.find(n => n.caseId === c.id && n.goalId === g.id);
+      if (readerNote) {
+        lines.push('#### 步骤与证据阅读整理（未新增业务执行）', '', escape(readerNote.title), '', escape(readerNote.description), '',
+          '标记位置：' + escape(readerNote.focusAction ? readerNote.focusAction.observationId + '/' + readerNote.focusAction.actionId : '未指定，不自动推断问题步骤'), '',
+          '来源：' + escape(readerNote.sourceLabels.join('；')) + '；限制：' + escape(readerNote.limitations.join('；')), '');
+        for (const action of readerNote.actions) lines.push('- ' + escape(action.observationId + '/' + action.actionId + '：' + action.title),
+          '  留存事实说明：' + escape(action.result ?? '未另行整理'), '  本步证据：' + escape(action.evidenceIds.join(', ') || '未关联独立证据'), ...(action.note ? ['  局限：' + escape(action.note)] : []));
+        lines.push('原实际动作和原评估保持，下列原始记录不是本次重新执行。', '');
+      }
+      if (a.status !== 'not_tested' && (!item.contexts.length || !item.observations.some(o => o.actions?.length || o.actionEventIds?.length) || !a.reproduction)) lines.push('复核资料提示：原记录中的上下文、结构化实际操作或独立复核准备尚有缺项；事后建议不补造执行事实，也不改变原业务状态。', '');
       if (a.revisionReason || a.previousOperationId) lines.push('修订关系：' + escape(a.previousOperationId ?? '未引用前序登记') + '；' + escape(a.revisionReason ?? '未说明原因'), '');
       for (const o of item.observations) lines.push('- 观察 ' + escape(o.id) + '：' + escape(o.summary), '  必要语义覆盖：' + escape(o.coveredRefs.join(', ') || '(none)'), '  证据：' + escape(o.evidenceIds.join(', ') || '(none)'), '');
       for (const o of item.observations) {

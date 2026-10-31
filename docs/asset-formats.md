@@ -1,6 +1,8 @@
 # 本地资产格式与运行约定（schemaVersion 8）
 
-当前独立开发候选为 0.1.7-rc.1 / report-resource-regression-1，未发布。用例、基线、运行、结果、证据、请求、执行台账、配置、worker 包与报告统一使用 schemaVersion 8，执行查询 viewVersion 为 8。新版明确拒绝旧格式，不提供兜底读取、转换或原地迁移；旧报告、运行、截图与来源文件保持原样。重新使用来源时新建 v8 用例与运行，不只修改版本号。
+当前独立开发候选为 0.1.7-rc.1 / report-step-evidence-1，未发布。用例、基线、运行、结果、证据、请求、执行台账、配置、worker 包与报告统一使用 schemaVersion 8，执行查询 viewVersion 为 8。新版明确拒绝旧格式，不提供兜底读取、转换或原地迁移；旧报告、运行、截图与来源文件保持原样。重新使用来源时新建 v8 用例与运行，不只修改版本号。
+
+本次阅读修复不改变v8业务记录：派生动作投影增加label/detail；retrospective report context可提供有来源的goalNotes（建议复核路线、准备条件和既有证据用途），不允许独立状态或伪造执行。新交付清单的reportSchemaVersion为8，修正旧候选遗留的6；旧报告保留，新输出另存。详见[阅读修复](v0.1.7-reader-review.md)。
 
 容量 availableWorkers 表示本 run 可占用的总活动分派上限，包含已经占用的名额，不是剩余空闲量。packetId 在整个 run 内唯一，按 assignment 划分命名空间；局部封包不证明其他目录没有重名。冲突保留原包并从已有观察纠正交付，不重做业务。并发指南在完整工具根的 references/parallel-testing.md；源码位于 skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md。
 
@@ -100,6 +102,8 @@ report 校验结构、引用和全部证据 hash/bytes 后写 report.html/json/m
 接口观测独立使用 networkVersion 1，不改变上述 v8 契约。network start 配置见 schemas/network-start.schema.json，network query 请求见 schemas/network-query.schema.json；完整包 references/network-observation.md 说明启停、范围、内容策略、快照分页和不可变证据导出。正文状态区分 saved/empty/in_progress/not_collected/excluded/truncated/failed。session.json 固定身份及策略，runtime.json 发布已提交序号和字节上界；events/gaps 是带顺序哈希的追加记录，正文文件先提交后引用。哈希不证明来源真实或防恶意篡改。旧 protocol-summary 文件保持，不再读取或迁移。
 
 ## 合并后的报告能力
+
+方案B新增可选`ReportContext.readerNotes`：目标阅读标题/描述、来源与局限、显式`focusAction`及逐步`actions`说明。每步以`observationId/actionId`引用当前目标已登记的真实动作，`evidenceIds`只能来自该目标已关联材料；空数组保留逐步资料缺口。不提供状态，不补计划为执行，不写回原账本。完整结构见schemas/report-context.schema.json，行为说明见[步骤证据报告](v0.1.7-step-evidence.md)。
 
 同一 v8 账本同时保留上下文、观察动作片段、尝试事件、现象、结构化缺口与复核准备。contexts 使用 environment/identity/objects/initialState/authorization，各项为 state/summary/sources；sources 保留类别、定位和证据引用。观察 actions 用于已观察操作片段，actionEvents 用于意图、发出与核对，工具不自动互拷或重放。
 

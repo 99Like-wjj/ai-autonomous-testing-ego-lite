@@ -7,9 +7,10 @@ import { checkUnlocked, recoverEvidence } from '../core/records.mjs';
 import { markdown, htmlReport, htmlReportPayload } from './render.mjs';
 import { evidenceFile } from '../core/file-integrity.mjs';
 import { TEXT_PREVIEW_LIMIT, type PayloadOptions } from './assets.mjs';
+import { caseGoals } from './execution-view.mjs';
 
 export async function validateReportContext(input: unknown, result: Report): Promise<ReportContext> {
-  assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds'], 'report context');
+  assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'goalNotes', 'readerNotes'], 'report context');
   if (input.schemaVersion !== 8 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
   const context: ReportContext = {
     schemaVersion: 8, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
@@ -25,12 +26,65 @@ export async function validateReportContext(input: unknown, result: Report): Pro
     const filename = await safePath(source.file, { existing: true });
     if (!(await fs.lstat(filename)).isFile() || hash(await fs.readFile(filename)) !== source.sha256) fail('Report source hash mismatch or non-regular file.');
   }
+  if (input.goalNotes !== undefined) {
+    const sourceLabels = new Set(context.sources.map(s => s.label)), noteKeys = new Set<string>(), evidenceIds = new Set(result.evidenceCatalog.items.map(e => e.id));
+    if (sourceLabels.size !== context.sources.length) fail('Reading-note source labels must be unique.');
+    context.goalNotes = arrayValue(input.goalNotes, 'goal reading notes').map(value => {
+      assertClosed(value, ['caseId', 'goalId', 'summary', 'preparation', 'reviewSteps', 'limitations', 'sourceLabels', 'primaryEvidenceIds', 'evidenceUses'], 'goal reading note');
+      const caseId = textValue(value.caseId, 'note case ID'), goalId = textValue(value.goalId, 'note goal ID'), key = caseId + '/' + goalId;
+      if (!result.cases.some(c => c.id === caseId && c.goals.some(g => g.id === goalId)) || noteKeys.has(key)) fail('Unknown or duplicate goal reading note.'); noteKeys.add(key);
+      const labels = strings(value.sourceLabels, 'note source labels'), primaryEvidenceIds = strings(value.primaryEvidenceIds, 'primary evidence IDs');
+      if (!labels.length || new Set(labels).size !== labels.length || labels.some(s => !sourceLabels.has(s))) fail('Unknown or duplicate reading-note source.');
+      if (new Set(primaryEvidenceIds).size !== primaryEvidenceIds.length || primaryEvidenceIds.some(id => !evidenceIds.has(id))) fail('Unknown or duplicate reading-note primary evidence.');
+      const limitations = strings(value.limitations, 'note limitations'); if (!limitations.length) fail('Reading notes must declare retrospective limitations.');
+      const evidenceUses = arrayValue(value.evidenceUses, 'note evidence uses').map(item => {
+        assertClosed(item, ['evidenceId', 'purpose', 'fact', 'limitations'], 'reading-note evidence use');
+        const evidenceId = textValue(item.evidenceId, 'note evidence ID'); if (!evidenceIds.has(evidenceId)) fail('Unknown reading-note evidence.');
+        const limitations = strings(item.limitations, 'note evidence limitations');
+        if (result.evidenceCatalog.items.find(e => e.id === evidenceId)?.caseId !== caseId && !limitations.length) fail('Cross-case reading-note evidence must declare its relationship limitations.');
+        return { evidenceId, purpose: textValue(item.purpose, 'note evidence purpose'), fact: textValue(item.fact, 'note supported fact'), limitations };
+      });
+      if (primaryEvidenceIds.some(id => !evidenceUses.some(use => use.evidenceId === id))) fail('Primary reading-note evidence needs an explicit purpose and limitations.');
+      return { caseId, goalId, summary: textValue(value.summary, 'note summary'), preparation: strings(value.preparation, 'note preparation'), reviewSteps: strings(value.reviewSteps, 'suggested review steps'), limitations, sourceLabels: labels, primaryEvidenceIds, evidenceUses };
+    });
+  }
+  if (input.readerNotes !== undefined) {
+    const labels = new Set(context.sources.map(s => s.label)), keys = new Set<string>();
+    if (labels.size !== context.sources.length) fail('Reader-note source labels must be unique.');
+    context.readerNotes = arrayValue(input.readerNotes, 'reader notes').map(value => {
+      assertClosed(value, ['caseId', 'goalId', 'title', 'description', 'focusAction', 'actions', 'sourceLabels', 'limitations'], 'reader note');
+      const caseId = textValue(value.caseId, 'reader case ID'), goalId = textValue(value.goalId, 'reader goal ID'), key = caseId + '/' + goalId;
+      const c = result.cases.find(c => c.id === caseId), a = c?.assessments.find(a => a.goalId === goalId);
+      if (!c?.goals.some(g => g.id === goalId) || keys.has(key)) fail('Unknown or duplicate reader goal.'); keys.add(key);
+      const observations = c.observations.filter(o => a?.observationIds.includes(o.id));
+      const evidence = new Set(caseGoals(result, c).find(item => item.goal.id === goalId)?.evidenceIds ?? []);
+      const sourceLabels = strings(value.sourceLabels, 'reader sources'), limitations = strings(value.limitations, 'reader limitations');
+      if (!sourceLabels.length || new Set(sourceLabels).size !== sourceLabels.length || sourceLabels.some(l => !labels.has(l)) || !limitations.length) fail('Reader notes require valid sources and limitations.');
+      const actionKeys = new Set<string>();
+      const actions = arrayValue(value.actions, 'reader actions').map(item => {
+        assertClosed(item, ['observationId', 'actionId', 'title', 'result', 'note', 'evidenceIds'], 'reader action');
+        const observationId = textValue(item.observationId, 'reader observation ID'), actionId = textValue(item.actionId, 'reader action ID'), actionKey = observationId + '/' + actionId;
+        if (!observations.some(o => o.id === observationId && o.actions?.some(a => a.id === actionId)) || actionKeys.has(actionKey)) fail('Reader actions must uniquely reference actual actions of this current goal.'); actionKeys.add(actionKey);
+        const evidenceIds = strings(item.evidenceIds, 'reader action evidence');
+        if (new Set(evidenceIds).size !== evidenceIds.length || evidenceIds.some(id => !evidence.has(id))) fail('Reader evidence must be linked to this current goal; do not borrow other goals or history.');
+        return { observationId, actionId, title: textValue(item.title, 'reader action title'), evidenceIds, ...(item.result === undefined ? {} : { result: textValue(item.result, 'reader result explanation') }), ...(item.note === undefined ? {} : { note: textValue(item.note, 'reader action note') }) };
+      });
+      let focusAction: { observationId: string; actionId: string } | undefined;
+      if (value.focusAction !== undefined) {
+        assertClosed(value.focusAction, ['observationId', 'actionId'], 'reader focus action');
+        const focus = { observationId: textValue(value.focusAction.observationId, 'focus observation'), actionId: textValue(value.focusAction.actionId, 'focus action') };
+        if (!observations.some(o => o.id === focus.observationId && o.actions?.some(a => a.id === focus.actionId))) fail('Reader focus must reference an actual current-goal action, never a planned step.');
+        focusAction = focus;
+      }
+      return { caseId, goalId, title: textValue(value.title, 'reader title'), description: textValue(value.description, 'reader description'), actions, sourceLabels, limitations, ...(focusAction ? { focusAction } : {}) };
+    });
+  }
   return context;
 }
 
 interface Attachment { path: string; sha256: string; bytes: number; evidenceIds: string[] }
 interface DeliveryManifest {
-  deliveryVersion: 1; reportSchemaVersion: 6; runId: string; revision: number; evidenceRevision: number;
+  deliveryVersion: 1; reportSchemaVersion: 8; runId: string; revision: number; evidenceRevision: number;
   options: { mode: 'inline' | 'bundle'; textPreviewLimitBytes: number; allowMissingScreenshots: boolean };
   complete: boolean; attachments: Attachment[];
 }
@@ -42,14 +96,14 @@ function manifestFor(payload: HtmlPayload): DeliveryManifest {
     if (!attachment) { attachment = { path: filename, sha256: item.sha256, bytes: item.bytes, evidenceIds: [] }; unique.set(filename, attachment); }
     attachment.evidenceIds.push(item.id);
   }
-  return { deliveryVersion: 1, reportSchemaVersion: 6, runId: payload.report.runId, revision: payload.report.revision, evidenceRevision: payload.report.evidenceRevision,
+  return { deliveryVersion: 1, reportSchemaVersion: 8, runId: payload.report.runId, revision: payload.report.revision, evidenceRevision: payload.report.evidenceRevision,
     options: { mode: payload.delivery.mode, textPreviewLimitBytes: payload.delivery.textPreviewLimitBytes, allowMissingScreenshots: payload.delivery.allowMissingScreenshots },
     complete: payload.delivery.complete, attachments: [...unique.values()] };
 }
 async function readDeliveryOptions(target: string): Promise<Required<PayloadOptions>> {
   const value = await readJSON(await safePath(path.join(target, 'report-delivery.json'), { existing: true }));
   assertClosed(value, ['deliveryVersion', 'reportSchemaVersion', 'runId', 'revision', 'evidenceRevision', 'options', 'complete', 'attachments'], 'report delivery');
-  if (value.deliveryVersion !== 1 || value.reportSchemaVersion !== 6) fail('Unsupported report delivery manifest.');
+  if (value.deliveryVersion !== 1 || value.reportSchemaVersion !== 8) fail('Unsupported report delivery manifest.');
   assertClosed(value.options, ['mode', 'textPreviewLimitBytes', 'allowMissingScreenshots'], 'report delivery options');
   const options = value.options;
   if (options.mode !== 'inline' && options.mode !== 'bundle' || !Number.isSafeInteger(options.textPreviewLimitBytes) || typeof options.textPreviewLimitBytes !== 'number' || options.textPreviewLimitBytes < 256 || options.textPreviewLimitBytes > 16 * 1024 * 1024 || typeof options.allowMissingScreenshots !== 'boolean') fail('Invalid report delivery options.');

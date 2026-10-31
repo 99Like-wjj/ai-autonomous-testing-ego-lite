@@ -11,7 +11,7 @@ export type Baseline = EgoLiteCaseInputAndNormalizedBaselineV8;
 export type { Case, Basis, Step, Goal, ResultEntry, RecordPayload, Observation, Assessment, Diagnosis };
 export type RunContext = ExecutionContext;
 export type { ActionEvent, FactSource };
-export interface ActionAttemptProjection { actionId: string; purpose: ActionEvent['purpose']; eventIds: string[]; issuedEventIds: string[]; dispositionEventIds: string[]; unresolved: boolean; reasons: string[] }
+export interface ActionAttemptProjection { actionId: string; label: string; detail: string; purpose: ActionEvent['purpose']; eventIds: string[]; issuedEventIds: string[]; dispositionEventIds: string[]; unresolved: boolean; reasons: string[] }
 export type { ExecutionContext, ContextFact, ActionFact, EvidenceLink, Phenomenon, GapDetail, ReproductionPreparation, Finding, EvidenceMetadata };
 export type Results = EgoLiteRecordedResultsV8;
 export type EvidenceCatalog = EgoLiteEvidenceCatalogV8;
@@ -22,6 +22,7 @@ export type EvidenceKind = EvidenceItem['kind'];
 export type EvidenceRequest = EvidenceRegistrationRequestV8;
 export type Manifest = EgoLiteRunManifestV8;
 export type ReportContext = RetrospectiveReportContextV8NoBusinessExecution;
+export type ReaderNote = NonNullable<ReportContext['readerNotes']>[number];
 export type CommittedAssessment = Assessment & Pick<ResultEntry, 'operationId' | 'revision' | 'recordedAt'>;
 export type CheckedCase = Case & { assessments: CommittedAssessment[]; observations: Observation[]; contexts: ExecutionContext[]; findings: Finding[]; actionEvents: ActionEvent[]; entries: ResultEntry[]; missingGoalIds: string[] };
 export interface Counts { verified: number; violation: number; inconclusive: number; not_tested: number; unassessed: number }

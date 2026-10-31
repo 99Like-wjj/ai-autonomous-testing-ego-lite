@@ -1,8 +1,14 @@
 # Validation record and coverage limits
 
+## v0.1.7 local closeout and v0.1.8 requirements (2026-10-31)
+
+The `0.1.7-rc.1 / report-step-evidence-1` local review covers source, capability descriptions and requirements. Strict types pass; the full engineering suite reports 203 tests, 202 passed, zero failed and one Windows symlink-privilege skip. Publication/link checks, Skill format, runtime integrity and heuristic checks of current files and local history have distinct scopes. Two historical documentation blobs still retain generalized-away developer paths; this is not a claim that all history is sanitized. See the [closeout record (Chinese)](v0.1.7-local-closeout.md).
+
+Earlier scheme-B Ego reading checks and regeneration of existing reports are described in [the reader record](v0.1.7-step-evidence.md). This local review does not rerun UAT. Stable point IDs and reruns by ID remain [v0.1.8 requirements](v0.1.8-preview.en.md), not implemented capabilities. The maintainer handles cloud merging, release and downloadable packages.
+
 ## v0.1.7 regression reuse
 
-Engineering regression: 173 tests, 172 passed, 0 failed, 1 environment-privilege skip. Independent AI trials exercised first-run recording, whole-case status reruns and full scope. Original provenance mistakes and corrections are retained; actual Ego report-page checks are separate from synthetic interface behavior. Real UAT and untested counterexamples remain outside coverage. See the [validation record (Chinese)](v0.1.7-regression-reuse-validation.md).
+Engineering regression: 173 tests, 172 passed, 0 failed, 1 environment-privilege skip. Independent AI trials in controlled synthetic scenarios exercised first-run recording, whole-case status reruns and full scope. Original provenance mistakes and corrections are retained; actual Ego report-page checks are separate from synthetic interface behavior. Real UAT and untested counterexamples remain outside coverage. See the [validation record (Chinese)](v0.1.7-regression-reuse-validation.md).
 
 ## v0.1.7 resource-readiness standalone phase
 

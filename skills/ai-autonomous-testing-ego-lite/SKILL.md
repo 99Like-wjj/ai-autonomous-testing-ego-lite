@@ -3,7 +3,7 @@ name: ai-autonomous-testing-ego-lite
 description: AI 自主 Web 自动化测试：由当前 AI 会话理解需求、设计可独立判断的业务目标，通过已安装的 Ego Lite / Ego Browser 执行并用真实证据验证；接收外部用例或生成用例，区分业务违反、执行问题、证据不足与未测试。适用于新需求、新功能、权限及业务流程测试；不是固定流程自动化器或 Agent 能力评测框架。
 metadata:
   version: "0.1.7-rc.1"
-  tool-revision: "report-resource-regression-1"
+  tool-revision: "report-step-evidence-1"
 ---
 
 # AI 自主自动化测试 · Ego Lite
@@ -24,7 +24,7 @@ metadata:
 
 记录前读[本地工具箱指南](references/local-toolbox.md)。完整安装包的 ToolRoot 是实际加载的 SKILL.md 所在绝对目录，包含 scripts、schemas、docs 和清单。源码先在明确仓库构建，使用该仓库的 .build/runtime；不要把源码 Skill 子目录当作工具根，不猜旧安装路径或自动更新用户安装。
 
-执行 tool-info，核对 0.1.7-rc.1、report-resource-regression-1、formatVersions 和 installationIntegrity。工具缺失或版本混用时保存真实事实并说明交付限制，不能伪造回执。用例校验与冻结只创建本地资产，不执行浏览器动作。
+执行 tool-info，核对 0.1.7-rc.1、report-step-evidence-1、formatVersions 和 installationIntegrity。工具缺失或版本混用时保存真实事实并说明交付限制，不能伪造回执。用例校验与冻结只创建本地资产，不执行浏览器动作。
 
 ## 首次成果与回归
 
@@ -46,6 +46,8 @@ metadata:
 
 关键 UI 结果及缺陷必须留存真实页面截图，DOM、日志和动作回执用于补充。AI 自主决定取证时机，不要求每步截图。取证失败、受限或有隐私问题时记录影响并复核结论；不使用假图、摘要截图或后补现场冒充首次证据。时间来源未知时不补造 capturedAt。
 
+入账时同时考虑读者能否复核：按目标关联实际身份/对象/初态、关键检查或操作及读回、截图/正文所支持的事实和局限。可用 observations.actions、actionEventIds、contextId、evidenceLinks 和 assessments.reproduction 表达，不只提交一句理由及文件名。静态检查不强制制造多步操作，每步也不强制截图；缺少的资料明确声明。计划不能当实际经过，资料缺项不自动改写业务四态。
+
 ## 并发与协作
 
 使用宿主子 Agent 前读[跨宿主协作条件与交接](references/host-compatibility.md)，核对实际工具、权限、可读材料和用户答复，交接 ToolRoot、分派身份、真实执行者及在途调用标识。不默认 worker 已继承父上下文；Skill 加载、reserve 成功和真实并行分别核验，没有完整链路证据不报告宿主已兼容。
@@ -61,3 +63,7 @@ maxParallelCases 默认 1。用户未要求并发且没有明确配置时逐条�
 逐个原目标给出有依据的状态；资源受阻需注明实际问答、答复覆盖范围与用户暂缓事项。缺评估时如实交付未完整入账的报告，不能声称目标已全部评估。额外探索不覆盖原目标，followUpOf 只关联后续复核，不改旧记录。
 
 生成后用 verify-report 核对三种文件与当前运行及证据；浏览器实际打开另行验证，文件校验回执不能冒充已打开。交付绝对路径、结论限制和未覆盖范围。清理数据前保存关键证据和可交付报告；真实项目资料与运行留在仓库外私有目录，不自动上传。
+
+报告采用场景目录及实际步骤/证据并排阅读，默认/重置收起目录，筛选不自动改变正文选择。目标顶部说明问题或验证结果及原预期；实际动作与所选步骤证据就地核对，完整来源与历史折叠保留。问题步骤应由AI依据原事实明确关联，不由代码猜测；原记录缺少动作或逐步证据时如实说明，不从计划补造。
+
+需要整理阅读摘要、问题位置和逐步证据时，可通过 report --context 的 readerNotes 引用当前目标已有的 observationId/actionId 和证据ID，并提供有SHA来源和局限。这只调整展示，不重跑或改原评估。goalNotes 仍仅为事后建议复核路线，不能当实际经过。实际打开后检查步骤/原图/正文、筛选和阅读位置、资料缺口；回归说明超过3条时只先显示3条，其余与精确规则分别折叠。

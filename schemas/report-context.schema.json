@@ -53,6 +53,73 @@
         "additionalProperties": false
       }
     },
+    "readerNotes": {
+      "description": "AI-authored display notes bound to existing goal observations and actual actions. Never new execution, verdicts or plan-derived steps.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["caseId", "goalId", "title", "description", "actions", "sourceLabels", "limitations"],
+        "properties": {
+          "caseId": { "$ref": "common.schema.json#/$defs/safeId" },
+          "goalId": { "$ref": "common.schema.json#/$defs/safeId" },
+          "title": { "$ref": "common.schema.json#/$defs/nonempty" },
+          "description": { "$ref": "common.schema.json#/$defs/nonempty" },
+          "focusAction": { "$ref": "#/$defs/actionRef" },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["observationId", "actionId", "title", "evidenceIds"],
+              "properties": {
+                "observationId": { "$ref": "common.schema.json#/$defs/safeId" },
+                "actionId": { "$ref": "common.schema.json#/$defs/safeId" },
+                "title": { "$ref": "common.schema.json#/$defs/nonempty" },
+                "result": { "$ref": "common.schema.json#/$defs/nonempty" },
+                "note": { "$ref": "common.schema.json#/$defs/nonempty" },
+                "evidenceIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "common.schema.json#/$defs/safeId" } }
+              },
+              "additionalProperties": false
+            }
+          },
+          "sourceLabels": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "common.schema.json#/$defs/nonempty" } },
+          "limitations": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/nonempty" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "goalNotes": {
+      "description": "AI-authored retrospective reading notes. They cannot override verdicts or claim new execution.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["caseId", "goalId", "summary", "preparation", "reviewSteps", "limitations", "sourceLabels", "primaryEvidenceIds", "evidenceUses"],
+        "properties": {
+          "caseId": { "$ref": "common.schema.json#/$defs/safeId" },
+          "goalId": { "$ref": "common.schema.json#/$defs/safeId" },
+          "summary": { "$ref": "common.schema.json#/$defs/nonempty" },
+          "preparation": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/nonempty" } },
+          "reviewSteps": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/nonempty" } },
+          "limitations": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/nonempty" } },
+          "sourceLabels": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "common.schema.json#/$defs/nonempty" } },
+          "primaryEvidenceIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "common.schema.json#/$defs/safeId" } },
+          "evidenceUses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["evidenceId", "purpose", "fact", "limitations"],
+              "properties": {
+                "evidenceId": { "$ref": "common.schema.json#/$defs/safeId" },
+                "purpose": { "$ref": "common.schema.json#/$defs/nonempty" },
+                "fact": { "$ref": "common.schema.json#/$defs/nonempty" },
+                "limitations": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/nonempty" } }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
     "supplementalCaseIds": {
       "type": "array",
       "uniqueItems": true,
@@ -61,5 +128,16 @@
       }
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "actionRef": {
+      "type": "object",
+      "required": ["observationId", "actionId"],
+      "properties": {
+        "observationId": { "$ref": "common.schema.json#/$defs/safeId" },
+        "actionId": { "$ref": "common.schema.json#/$defs/safeId" }
+      },
+      "additionalProperties": false
+    }
+  }
 }

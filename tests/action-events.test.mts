@@ -18,6 +18,17 @@ const payload = (key = 'ev', actionEvents = [event('intent')]): RecordPayload =>
 const disposition = (id: string, resolvesEventIds: string[], key = 'ev', state: NonNullable<ActionEvent['disposition']>['state'] = 'confirmed_occurred'): ActionEvent => event(id, 'disposition', key, { disposition: { state, rationale: 'AI checked the retained synthetic readback.', scope: 'The exact synthetic object and action attempt.', limitations: ['Synthetic evidence validates the recording mechanism only.'], resolvesEventIds } });
 const evidence = new Map([['ev', { caseId: 'one' }]]);
 
+test('pending action summaries expose source-authored business wording without settling the unknown result', () => {
+  const intent=event('intent','intent','ev',{summary:'保存合成日报'}),unknown=disposition('uncertain',['intent'],'ev','unknown');
+  unknown.disposition!.rationale='没有取得最终保存响应，当前仅能确认请求已发出。';
+  const before=JSON.stringify([intent,unknown]),view=projectActionAttempts([intent,unknown])[0]!;
+  assert.equal(view.label,'保存合成日报');
+  assert.equal(view.detail,unknown.disposition!.rationale);
+  assert.equal(view.unresolved,true);
+  assert.ok(view.reasons.every(s=>!s.includes('Unknown, deferred')&&!s.includes('Intent exists')));
+  assert.equal(JSON.stringify([intent,unknown]),before);
+});
+
 test('context facts distinguish known, unknown and not applicable and require known sources', () => {
   assert.equal(parseContextFact({ state: 'unknown', summary: 'Identity not independently verified.', sources: [] }).state, 'unknown');
   assert.equal(parseContextFact({ state: 'not_applicable', summary: 'No tenant in this synthetic fixture.', sources: [] }).state, 'not_applicable');
@@ -89,6 +100,7 @@ test('unknown and deferred dispositions cannot disappear and a new conflict reop
   }
   const conflict = event('conflict', 'reconciliation', 'ev', { resultState: 'known', conflictsWithEventIds: ['result'] });
   assert.equal(projectActionAttempts([...first, conflict])[0]?.unresolved, true);
+  assert.equal(projectActionAttempts([...first, conflict])[0]?.detail, conflict.summary);
   const incompleteResolution = disposition('partial', ['conflict']); assert.equal(projectActionAttempts([...first, conflict, incompleteResolution])[0]?.unresolved, true);
   const explicitResolution = disposition('reconciled', [...first, conflict].map(e => e.id));
   assert.equal(projectActionAttempts([...first, conflict, explicitResolution])[0]?.unresolved, false);

@@ -1,6 +1,8 @@
 # Asset formats and runtime contract (schemaVersion 8)
 
-Current independent candidate: 0.1.7-rc.1 / report-resource-regression-1, unreleased. All JSON contracts use schemaVersion 8; execution query viewVersion is 8. Older formats are explicitly rejected. There is no legacy reader, converter or in-place migration. Keep historical runs, reports, source files and screenshots unchanged; prepare new v8 assets from original sources instead of changing only a version field.
+Current independent candidate: 0.1.7-rc.1 / report-step-evidence-1, unreleased. All JSON contracts use schemaVersion 8; execution query viewVersion is 8. Older formats are explicitly rejected. There is no legacy reader, converter or in-place migration. Keep historical runs, reports, source files and screenshots unchanged; prepare new v8 assets from original sources instead of changing only a version field.
+
+This reader fix retains v8 business records. Derived action projections add label/detail; retrospective report context may include sourced goalNotes with suggested review routes, preparation and retained-evidence uses, never independent verdicts or invented execution. New delivery manifests correctly declare reportSchemaVersion 8 instead of the earlier candidate's stale 6. Historical reports remain unchanged and revised outputs use a new directory. See [reader revision](v0.1.7-reader-review.md).
 
 availableWorkers caps all active assignments for this run, including existing reservations; it is not the free-slot count. packetId is unique across the entire run; use assignment-scoped namespaces. Local sealing cannot detect duplicates in another worker directory. Preserve original packets and correct delivery from retained observations without repeating business actions. The complete tool root provides references/parallel-testing.md; its source is skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md.
 
@@ -50,6 +52,8 @@ Retrospective work creates separate, explicitly sourced v8 records; it never pre
 Network observation has independent networkVersion 1 and leaves the v8 contracts above unchanged. See schemas/network-start.schema.json, schemas/network-query.schema.json and the complete package references/network-observation.md. Committed event/byte cutoffs, chained row hashes and processed body hashes bound local queries. Body states distinguish saved/empty/in_progress/not_collected/excluded/truncated/failed. Hashes do not authenticate evidence. Experimental protocol-summary files are preserved without a reader or migration.
 
 ## Combined reporting capabilities
+
+Scheme B adds optional `ReportContext.readerNotes`: sourced reading titles/descriptions, explicit `focusAction` and action-level evidence placement. Each `observationId/actionId` must reference an actual action of the current goal assessment; evidence cannot be borrowed from other goals or historical attempts. Empty mappings preserve missing step proof. Notes contain no verdict and do not modify the source ledger. See [step/evidence reader](v0.1.7-step-evidence.md).
 
 The v8 ledger retains contexts, observation action excerpts, attempt lifecycle events, phenomena, structured gaps and reproduction preparation. Contexts use environment/identity/objects/initialState/authorization with state/summary/sources. Observation actions and attempt events have distinct purposes and are not automatically copied or replayed.
 

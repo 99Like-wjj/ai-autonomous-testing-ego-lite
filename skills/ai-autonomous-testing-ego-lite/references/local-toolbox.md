@@ -9,10 +9,10 @@
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.7-rc.1 --expect-revision report-resource-regression-1
+node $Tool tool-info --expect-version 0.1.7-rc.1 --expect-revision report-step-evidence-1
 ```
 
-核对 toolRoot、skillFile、formatVersions（统一为 7）和 installationIntegrity: verified。未知修改或混用先报告。本版不接受旧格式，不提供旧 run 读取或自动转换；历史文件保留原样。不要只改 schemaVersion，也不要为升级覆盖旧数据。
+核对 toolRoot、skillFile、formatVersions（统一为 8）和 installationIntegrity: verified。未知修改或混用先报告。本版不接受旧格式，不提供旧 run 读取或自动转换；历史文件保留原样。不要只改 schemaVersion，也不要为升级覆盖旧数据。
 
 链接安装入口先取得非空 tool-info 回执，再使用其返回的真实 toolRoot；退出码 0 不替代回执与产物。各宿主入口、上下文和生命周期条件见[跨宿主指南](host-compatibility.md)。当前整合包使用 v8，不沿用独立修复分支的旧契约。
 

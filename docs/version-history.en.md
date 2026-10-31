@@ -10,7 +10,15 @@ The AI interprets goals and judges business outcomes, Ego operates the browser, 
 
 2026-10-29: [release and full package](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). Separate design/execution experience, unified v5 goal records and reports, scoped native observation and host handoff guidance. Old formats are rejected without conversion; historical files remain unchanged. See [release validation (Chinese)](v0.1.6-release-validation.md). The image above retains the historical v0.1.2–v0.1.5 overview.
 
-See the planned [v0.1.7 preview (Chinese)](v0.1.7-preview.md).
+v0.1.6 also concretized design/execution topics and misjudgment examples, shared observations/assessments across serial and parallel records, retained attempts during incremental goal updates, separated outcomes from causes, handled network content/capacity/stop/handoff and fixed linked CLI startup. Engineering, synthetic and isolated browser checks keep distinct coverage; one owner trial is not general business or host acceptance.
+
+## v0.1.7 · Local development closeout, unreleased
+
+The current `0.1.7-rc.1 / report-step-evidence-1` candidate uses schema v8. It integrates whole-scope resource communication, first-run tasks/rules, independent run binding and goal comparisons. The [scheme-B reader](v0.1.7-step-evidence.md) places actual steps beside evidence, retaining all goals, expectations and history without inventing execution or changing outcomes. The [v0.1.7 preview](v0.1.7-preview.md) remains historical; broader quality evaluation is not claimed complete.
+
+## v0.1.8 · Testing-quality and test-point regression requirements
+
+Not implemented. First-run testing, failed-scope reruns and report review inform stable point IDs, reruns by ID, complete target inventories, precise step evidence, data parameters, AI-selected operation reuse and auditable cost. See the [requirements and background](v0.1.8-preview.en.md). Current software/contracts remain unchanged; this is not a released version.
 
 ## v0.1.5 · Resource clarification
 

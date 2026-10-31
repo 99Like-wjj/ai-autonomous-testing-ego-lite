@@ -107,10 +107,13 @@ export function projectActionAttempts(events: readonly ActionEvent[]): ActionAtt
     const settled = dispositionEvents.some(e => ['confirmed_occurred', 'confirmed_not_occurred'].includes(e.disposition!.state) && e.evidenceIds.length > 0 && !e.conflictsWithEventIds?.length && own.every(other => other.id === e.id || e.disposition!.resolvesEventIds.includes(other.id)));
     const reasons: string[] = [];
     if (pending && !settled) {
-      if (own.some(e => e.kind === 'intent') && !own.some(e => e.kind === 'dispatch')) reasons.push('Intent exists without a dispatch observation; whether it was issued is unresolved.');
-      if (explicitIssues) reasons.push('Unknown, deferred or conflicting facts require an explicit evidenced disposition covering all retained events.');
-      if (!reasons.length) reasons.push('No evidenced disposition covers all recorded facts of this attempt.');
+      if (own.some(e => e.kind === 'intent') && !own.some(e => e.kind === 'dispatch')) reasons.push('只有动作意图，没有派发回执，尚不能确认是否发出。');
+      if (explicitIssues) reasons.push('结果仍为未知、暂缓或相互矛盾，尚无证据核对结论覆盖全部已登记事实。');
+      if (!reasons.length) reasons.push('尚无证据核对结论覆盖这次尝试的全部记录。');
     }
-    return { actionId, purpose: own[0]!.purpose, eventIds: own.map(e => e.id), issuedEventIds: own.filter(e => e.kind === 'dispatch' && e.dispatchState === 'issued').map(e => e.id), dispositionEventIds: dispositionEvents.map(e => e.id), unresolved: pending && !settled, reasons };
+    const label = own.find(e => e.kind === 'intent')?.summary ?? own[0]!.summary;
+    const latestFact = own.filter(e => e.kind === 'disposition' || e.kind === 'result' || e.kind === 'reconciliation').at(-1);
+    const detail = latestFact?.disposition?.rationale ?? latestFact?.summary ?? (reasons.join('；') || '尚未登记可核实的业务结果；操作意图或派发记录不代表业务已经完成。');
+    return { actionId, label, detail, purpose: own[0]!.purpose, eventIds: own.map(e => e.id), issuedEventIds: own.filter(e => e.kind === 'dispatch' && e.dispatchState === 'issued').map(e => e.id), dispositionEventIds: dispositionEvents.map(e => e.id), unresolved: pending && !settled, reasons };
   });
 }

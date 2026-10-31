@@ -188,6 +188,8 @@ export interface EgoLiteGeneratedReportV8 {
   actionAttempts?: {
     caseId: string;
     actionId: string;
+    label: string;
+    detail: string;
     purpose: string;
     eventIds: string[];
     issuedEventIds: string[];
@@ -212,7 +214,62 @@ export interface RetrospectiveReportContextV8NoBusinessExecution {
     file: string;
     sha256: string;
   }[];
+  /**
+   * AI-authored display notes bound to existing goal observations and actual actions. Never new execution, verdicts or plan-derived steps.
+   */
+  readerNotes?: {
+    caseId: string;
+    goalId: string;
+    title: string;
+    description: string;
+    focusAction?: ActionRef;
+    actions: {
+      observationId: string;
+      actionId: string;
+      title: string;
+      result?: string;
+      note?: string;
+      evidenceIds: string[];
+    }[];
+    /**
+     * @minItems 1
+     */
+    sourceLabels: string[];
+    /**
+     * @minItems 1
+     */
+    limitations: string[];
+  }[];
+  /**
+   * AI-authored retrospective reading notes. They cannot override verdicts or claim new execution.
+   */
+  goalNotes?: {
+    caseId: string;
+    goalId: string;
+    summary: string;
+    preparation: string[];
+    reviewSteps: string[];
+    /**
+     * @minItems 1
+     */
+    limitations: string[];
+    /**
+     * @minItems 1
+     */
+    sourceLabels: string[];
+    primaryEvidenceIds: string[];
+    evidenceUses: {
+      evidenceId: string;
+      purpose: string;
+      fact: string;
+      limitations: string[];
+    }[];
+  }[];
   supplementalCaseIds: string[];
+}
+export interface ActionRef {
+  observationId: string;
+  actionId: string;
 }
 export interface EgoLiteEvidenceCatalogV8 {
   schemaVersion: 8;

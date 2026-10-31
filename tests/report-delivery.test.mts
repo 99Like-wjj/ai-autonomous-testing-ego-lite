@@ -50,6 +50,34 @@ function payloadOf(html: string) {
     const encoded = html.match(/<script[^>]*id="report-data"[^>]*>([\s\S]*?)<\/script>/);
     assert.ok(encoded); return objectValue(JSON.parse(at(encoded, 1)));
 }
+
+test('retrospective reading notes are scoped, sourced and cannot override a goal result or fabricate execution', async t => {
+    const f=await fixture(t),ctx=await context(f),checked=await check(f.run),before=JSON.stringify(checked);
+    const note={caseId:'original',goalId:'visible',summary:'根据已留存文件整理的复核说明。',preparation:['核对原对象及权限。'],reviewSteps:['只读检查原文件所记结果。'],limitations:['事后建议，未重新执行，不代表原操作步骤。'],sourceLabels:['Synthetic source'],primaryEvidenceIds:[f.evidenceId],evidenceUses:[{evidenceId:f.evidenceId,purpose:'说明原结果',fact:'来源文件为合成观察。',limitations:['不是真实截图。']}]};
+    const valid=await validateReportContext({...ctx.value,goalNotes:[note]},checked);
+    assert.equal(JSON.stringify(checked),before);
+    checked.context=valid;
+    const payload=await htmlReportPayload(f.run,checked),html=htmlReport(payload),md=markdown(checked,payload);
+    assert.equal(checked.counts.violation,1);assert.equal(checked.counts.not_tested,1);
+    assert.ok(html.includes('事后建议，未重新执行'));
+    assert.ok(md.includes('建议复核路线（不是原实际操作记录）'));
+    for(const bad of [{...note,status:'verified'},{...note,goalId:'missing'},{...note,sourceLabels:['missing']},{...note,primaryEvidenceIds:['missing']},{...note,evidenceUses:[]},{...note,limitations:[]}])await assert.rejects(validateReportContext({...ctx.value,goalNotes:[bad]},checked));
+    await assert.rejects(validateReportContext({...ctx.value,goalNotes:[note,note]},checked),/duplicate/);
+    await assert.rejects(validateReportContext({...ctx.value,sources:[ctx.value.sources[0],ctx.value.sources[0]],goalNotes:[note]},checked),/unique/);
+});
+
+test('scheme B display notes bind actual current-goal actions, preserve verdicts and reject borrowed or planned steps',async t=>{
+    const f=await fixture(t),ctx=await context(f);
+    await recordResult({runDir:f.run,request:{schemaVersion:8,operationId:'actual-actions',expectedRevision:2,caseId:'original',mode:'final',record:{observations:[{id:'actual-observation',summary:'Synthetic original actual result',coveredRefs:['step:inspect'],evidenceIds:[f.evidenceId],actions:[{id:'actual-action',description:'Synthetic actual readback',planRefs:['step:inspect'],evidenceIds:[f.evidenceId]}]}],assessments:[{goalId:'visible',status:'violation',rationale:'Original failure retained',observationIds:['actual-observation'],gaps:[]}]}}});
+    const checked=await check(f.run),before=JSON.stringify(checked);
+    const note={caseId:'original',goalId:'visible',title:'Readable bug title',description:'In the recorded scenario, readback differs.',actions:[{observationId:'actual-observation',actionId:'actual-action',title:'Check the saved result',result:'Reading explanation from original observation',evidenceIds:[f.evidenceId]}],focusAction:{observationId:'actual-observation',actionId:'actual-action'},sourceLabels:['Synthetic source'],limitations:['Post-run display only; no new execution.']};
+    const valid=await validateReportContext({...ctx.value,readerNotes:[note]},checked);assert.equal(valid.readerNotes?.[0]?.title,'Readable bug title');assert.equal(JSON.stringify(checked),before);
+    const invalids=[{...note,status:'verified'},{...note,goalId:'missing'},{...note,sourceLabels:['missing']},{...note,limitations:[]},{...note,focusAction:{observationId:'first',actionId:'inspect'}},{...note,actions:[{...note.actions[0],actionId:'inspect'}]},{...note,actions:[{...note.actions[0],evidenceIds:['unrelated-proof']}]},{...note,actions:[note.actions[0],note.actions[0]]}];
+    for(const invalid of invalids)await assert.rejects(validateReportContext({...ctx.value,readerNotes:[invalid]},checked));
+    await assert.rejects(validateReportContext({...ctx.value,readerNotes:[note,note]},checked),/duplicate/);
+    await write(ctx.filename,{...ctx.value,readerNotes:[note]});const dir=path.join(f.root,'scheme-b');await fs.mkdir(dir);const resultsBefore=await fs.readFile(path.join(f.run,'results.json'));
+    const out=await report(f.run,{outputDir:dir,contextFile:ctx.filename});assert.equal((await verifyReport(f.run,dir)).filesVerified,true);assert.deepEqual(await fs.readFile(path.join(f.run,'results.json')),resultsBefore);assert.equal(objectValue((await read(out.reportJson)).counts).violation,1);
+});
 test('standalone package contains resolvable guides/scripts/schemas and runs from an unrelated cwd', async (t) => {
     const root = await temporary(t), bundle = path.join(root, 'standalone skill');
     const built = await buildSkill(bundle), identity = await toolInfo(bundle);

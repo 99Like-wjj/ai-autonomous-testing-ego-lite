@@ -1,6 +1,6 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
 export const TOOL_VERSION = '0.1.7-rc.1';
-export const TOOL_REVISION = 'report-resource-regression-1';
+export const TOOL_REVISION = 'report-step-evidence-1';
 export const FORMAT_VERSIONS = { cases: 8, manifest: 8, results: 8, evidence: 8, report: 8, execution: 8, configuration: 8, workerPacket: 8, executionRead: 8 } as const;
 export const runtimeFiles = [
   'scripts/ego.mjs',
@@ -44,6 +44,7 @@ export const runtimeFiles = [
   'scripts/network-launcher.mjs',
   'report/render.mjs',
   'report/delivery.mjs',
+  'report/reader-layout.mjs',
   'report/execution-view.mjs',
   'report-ui/main.js',
   'LICENSE',
@@ -77,6 +78,8 @@ export const runtimeFiles = [
   'docs/v0.1.6-goal-assessment-validation.md',
   'docs/v0.1.6-release-validation.md',
   'docs/v0.1.7-preview.md',
+  'docs/v0.1.8-preview.md',
+  'docs/v0.1.8-preview.en.md',
   'docs/version-history.md',
   'docs/version-history.en.md',
   'docs/v0.1.5-local-acceptance.md',
@@ -109,6 +112,8 @@ export const runtimeFiles = [
   'report/themes.mjs',
   'schemas/network-evidence-export.schema.json',
   'docs/v0.1.7-report-design.md',
+  'docs/v0.1.7-reader-review.md',
+  'docs/v0.1.7-step-evidence.md',
   'docs/v0.1.7-validation.md'
 ];
 export const referenceNames = [
