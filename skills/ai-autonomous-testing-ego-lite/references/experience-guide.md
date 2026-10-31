@@ -95,4 +95,4 @@
 
 ## 共用规范
 
-权限、资源和实际澄清见 [资源充分性](resource-readiness.md) 与 [Ego 边界](ego-usage-boundaries.md)；结论与替代解释见 [判断与归因](judgment-and-diagnosis.md)；截图、首次异常和未测范围见 [证据与报告](evidence-and-report.md)。只读是维护约定，不代表 OS 强制保护。没有新接口监控工具，也不为查经验调用额外模型。
+权限、资源和实际澄清见 [资源充分性](resource-readiness.md) 与 [Ego 边界](ego-usage-boundaries.md)；结论与替代解释见 [判断与归因](judgment-and-diagnosis.md)；截图、首次异常和未测范围见 [证据与报告](evidence-and-report.md)。只读是维护约定，不代表 OS 强制保护。经验查阅本身不新增接口监控工具，也不为查经验调用额外模型；项目现有接口观测能力见[接口观测指南](network-observation.md)。

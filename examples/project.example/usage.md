@@ -1,5 +1,7 @@
 # 如何提供私有项目资料
 
+命令中的 `ABS_TOOL_ROOT` 指实际加载的完整 Skill 根目录；源码先构建并使用 `.build/runtime`，不要在源码根目录直接寻找 `scripts/ego.mjs`。
+
 把项目说明写在仓库外的本机私有目录，提供自然语言需求及来源、目标环境、授权边界、关键初始状态、角色和必须路径即可。可以沿用 brief.md 的结构，也可以直接使用已有说明书；不要求用户编写业务脚本、固定 DAG 或完整 cases 文件；也可以直接提交已编写的 schemaVersion 8 用例。两种来源都可用于新功能验证与回归。
 
 可向能操作本机 Ego 的 AI 会话提出：
@@ -14,7 +16,7 @@
 
 首次本机试用应明确记录实际 Ego/系统版本、哪些操作确实完成、哪些受阻。云端文件校验通过不代表这次本机测试已经通过。
 
-执行 `node scripts/ego.mjs report --run-dir ABS_RUN_DIR` 后，合成运行目录会包含 `report.json`、`report.md` 与可单独复制打开的 `report.html`。HTML 中只内嵌实际登记且通过 hash 校验的安全光栅截图，不生成样例图片；缺图和未验证目标会分开展示。
+执行 `node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS_RUN_DIR` 后，合成运行目录会包含 `report.json`、`report.md` 与可单独复制打开的 `report.html`。HTML 中只内嵌实际登记且通过 hash 校验的安全光栅截图，不生成样例图片；缺图和未验证目标会分开展示。
 
 ## 只有新需求，也可以开始
 

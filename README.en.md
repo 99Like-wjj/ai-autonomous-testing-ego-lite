@@ -4,13 +4,23 @@
 
 <p align="center"><strong>English</strong> · <a href="README.md">简体中文</a></p>
 
-**An AI-led Web testing Skill for first delivery and regression.** The current AI session interprets trusted requirements, designs independently assessable business goals, explores through Ego Lite and judges actual outcomes using evidence. Users may provide existing cases or requirements. Methods remain flexible; goals, necessary semantics and authorization do not.
+**An AI-led Web testing Skill built on Ego Lite.** For first launches, new features and regression, using existing cases or cases generated from requirements.
+
+## Design philosophy: AI leads, tools provide capabilities
+
+AI leads the testing: understanding requirements, designing cases, exploring pages, choosing actions and verification methods, and judging results from actual evidence. We provide composable capabilities, testing guidance and experience references to support this work, rather than a fixed process that decides every step for the AI.
+
+- **AI chooses how to test.** It selects tools, organizes steps, gathers evidence, adapts methods or asks for clarification according to the goal and observed situation.
+- **Tools deliver concrete capabilities.** Ego provides browser operations; this project provides test records, evidence retention, network observation, regression assets and reports. Tools do not decide whether the business behavior is correct.
+- **Open methods, explicit requirements.** Methods can change, but business goals, acceptance standards, necessary dependencies and authorization cannot be silently changed or weakened. A successful operation is not a passed test.
+
+As models improve, we aim to let AI use these capabilities more effectively. Actual testing quality must still be verified; a model upgrade does not guarantee improvement.
+
+![AI at the center selects parallel capabilities and adapts to factual feedback, not a fixed execution sequence.](docs/images/design-philosophy.png)
 
 ## Current release
 
 The development candidate is **0.1.7-rc.1 / report-step-evidence-1**, in cloud integration and human-review preparation, still unreleased. It integrates whole-scope resource clarification, first-run records, immutable task/rule revisions, whole-scenario status reruns, full declared scope and scheme-B report reading. Main contracts are v8, regressionVersion 1 and networkVersion 1. Scheme B places the issue/result and original expectation above actual steps and selected evidence, with independent nested scope disclosures. See [scheme B](docs/v0.1.7-step-evidence.md), [resource-readiness validation](docs/v0.1.7-resource-readiness-validation.md), [regression-reuse validation](docs/v0.1.7-regression-reuse-validation.md) and [local closeout (Chinese)](docs/v0.1.7-local-closeout.md).
-
-**0.1.6 / native-network-observation-1**. Download the complete package and checksums from [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). The maintainer reported a usable local trial with one requirements document; this is not broad acceptance across products, models or hosts. See [validation](docs/testing.en.md). Builds do not update installed Skills.
 
 
 Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidance, compiled Node ESM tools, schemas, examples and an integrity manifest. Source is TypeScript; installed use requires Node.js >=22.
@@ -19,33 +29,24 @@ See the [cloud integration review](docs/v0.1.7-cloud-review.md) for branch ances
 
 ## Version evolution
 
-![Latest four versions: v0.1.4–v0.1.6 released; v0.1.7 is an unreleased candidate. Capability illustration only.](docs/images/readme-version-history.png)
+![Newest first: v0.1.7 unreleased candidate, then v0.1.6, v0.1.5 and v0.1.4 released. Capability illustration only.](docs/images/readme-version-history.png)
 
 README shows the current version plus three previous versions. v0.1.7 is explicitly marked as a candidate; v0.1.4–v0.1.6 are released. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe the candidate, not real test evidence. v0.1.8 remains requirements planning.
 
-## First-run records and two regression modes
+## What changed in 0.1.7
 
-The AI preserves normative sources, actual observations, failures and incomplete work, then authors project-specific reusable tasks. Select one or more formal goal statuses from a fixed source run to rerun each matching whole scenario, or select the complete declared scope. Missing tasks and blocked goals remain visible.
+This version brings together **readable reports, whole-scope resource clarification and reusable first-run results** in one record model.
 
-Task definition, current resources/authorization and business verdicts are separate. Every regression creates an independent run with frozen task/rule revisions and selection. Unknown side effects require read-only reconciliation, not automatic replay. Comparisons expose conditions and AI comparability reasoning without automatically blaming a newer release.
+- **Read the issue and reproduction path.** Scheme B leads with the issue and original expectation, then places actual steps beside selected evidence. Scenario/goal navigation and filters help locate problems; scope, original records and history expand on demand.
+- **Inspect evidence in context.** Screenshots, API/log and document bodies retain context, shared-material boundaries and gaps. Offline HTML, JSON, Markdown, attachment delivery and eight reading themes are available.
+- **Clarify resources for the whole requested scope.** Before first execution or resumption, review identities, objects, data, observation conditions and authorization; communicate known gaps together, retain partial answers and verify supplied conditions. Independent authorized goals can continue.
+- **Retain first-run results for regression.** The AI authors project-specific immutable task/rule revisions from normative sources and actual observations, including failures and incomplete work. Historical defects never become correct expectations; general experience guidance remains human-maintained and read-only.
+- **Choose between two regression scopes.** A historical goal-status match selects the entire scenario, or full mode selects the explicitly declared complete test set. This is not test-point-ID rerunning. Verify current conditions and create independent runs without overwriting old evidence.
+- **Compare outcomes with their limits.** Bind task/rule revisions and actual actions to each run, exposing goal changes and condition differences. Reconcile unknown side effects instead of replaying them automatically; a status change alone does not prove a particular bug fix or version regression.
 
-Local tools only perform data transactions and explicit selection; the current AI owns task authoring and execution. See [regression assets and binding](docs/regression-reuse.md). Main contracts are v8 and regressionVersion is 1. Existing v5/v6/v7 data remains untouched and is not automatically migrated. The report enhancements are included.
+See [scheme B](docs/v0.1.7-step-evidence.md), [resource clarification](docs/v0.1.7-resource-readiness-validation.md), [regression validation](docs/v0.1.7-regression-reuse-validation.md) and [cloud review](docs/v0.1.7-cloud-review.md). The expanded v0.1.6 experience, goal-assessment and network-observation descriptions now live in [full version history](docs/version-history.en.md); this overview focuses on 0.1.7.
 
-## Capabilities delivered in v0.1.6
-
-v0.1.6 delivered more than experience documentation: goal assessment, unified serial/parallel records, native network observation and the linked CLI/host handoff fix. The current candidate continues these capabilities. v0.1.6 used schema v5; the current v0.1.7 v8 contract is not attributed retroactively to that release.
-
-- Stage-specific design and execution experience: concise stable indexes and concrete scenarios for prerequisites, data relationships, boundaries/roles, unknown submissions, drag/download, asynchronous observations and recovery risks. Navigation checks and semantic exercises support human-maintained, read-only guidance; there is no RAG, automatic learning or fixed business route.
-
-- Cases group related workflows; source-backed goals hold independently assessable expectations. Steps, conditions and paths retain necessary semantics without becoming extra business goals.
-- Serial record and reviewed worker import write the same observations/assessments/entries. Serial reporting does not require fabricated assignments or packets.
-- Four explicit outcomes are verified, violation, inconclusive and not_tested. Missing assessments are visibly separate recording gaps, never defaulted to inconclusive.
-- Outcomes and causes are separate. Sufficient evidence of a violation can coexist with an unknown cause; uncertainty about the actual action or result is stated specifically.
-- Parent scenarios show goal distributions. final updates submitted goals incrementally; attempt preserves history. Follow-up links do not overwrite original anomalies or old conclusions.
-- Scoped native network observation records authorized Fetch/XHR, SSE and WebSocket content in a separate Ego context, with queries, content/capacity handling, stop and handoff. It never replays business requests or treats HTTP success as business acceptance.
-- The linked CLI entrypoint executes correctly. Host guidance covers real workers, accessible context, permissions, in-flight handles, total active capacity and run-wide packet identifiers. No fixed host dispatcher or general live-host acceptance is implied.
-
-See the source-backed records for [experience development and expansion](docs/v0.1.6-development-validation.md), [goal assessment](docs/v0.1.6-goal-assessment-validation.md), [network observation](docs/v0.1.6-network-validation.md), [host-fix integration](docs/v0.1.6-cross-host-integration.md) and [release closeout](docs/v0.1.6-release-validation.md). Engineering checks, synthetic exercises, isolated browser observations and the owner's single local trial keep their separate validation limits.
+Regression interfaces and behavior are documented in [regression assets](docs/regression-reuse.md) and the [usage guide](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md).
 
 All current test-asset JSON contracts use **schemaVersion 8**, and execution query viewVersion is 8. Older formats are explicitly rejected, without readers or converters. Keep historical reports, files and runs unchanged; prepare new v8 assets from original sources instead of changing only version fields. See [formats](docs/asset-formats.en.md).
 
@@ -68,6 +69,8 @@ Network observation implements the v3 design through network start/status/query/
 ## Quick start on Windows
 
 This source example targets the current development candidate in .build/runtime, without replacing the user installation. Verify a released installation against its actual version and revision.
+
+v0.1.7 is under human review and has no formal download yet. The last released complete package remains [v0.1.6](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6); it does not provide all 0.1.7 capabilities described here.
 
 Prepare Ego and the official ego-browser Skill using the [official guide](https://lite.ego.app/document/en/docs/windows/quick-start). This project does not install or replace Ego. Case design alone requires no browser connection.
 
@@ -106,13 +109,9 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 
 Reports refuse overwrite; use a new directory for later reports. browserOpen:not_checked is not a browser validation claim. Open and inspect the actual HTML through Ego before claiming that validation. Examples contain fictional data only.
 
-## Responsibilities and limits
+## Operational limits
 
-![AI decides, Ego operates, and the toolbox records evidence and generates reports.](docs/images/architecture.png)
-
-The diagram summarizes responsibilities; v0.1.6 also includes the scoped native network collector described below.
-
-AI owns planning, authorized operation and judgment. Ego supplies supported browser primitives. Local tools own freezing, records, references, revisions, evidence-file checks and reports; they do not call models, decide bugs or retry business writes. Network observation starts a scoped Ego native collector; business UI actions remain AI-driven. Space separation is not account/backend isolation. File transactions are not a general multi-file or power-loss guarantee. Registration does not redact evidence. Keep credentials, real sites, screenshots and run data private and outside the repository; do not auto-upload reports. See [privacy](docs/privacy.md).
+Spaces do not guarantee separate accounts or backend data. File updates are not a general multi-file transaction or power-loss guarantee. Evidence registration does not redact data; keep credentials, real sites and screenshots private and do not auto-upload reports. Enable network observation only within authorization; it never replays business requests. See [privacy](docs/privacy.md) and [architecture and responsibilities](docs/architecture.en.md).
 
 ## Configurable concurrency
 
@@ -121,14 +120,6 @@ AI owns planning, authorized operation and judgment. Ego supplies supported brow
 Repair commit 8e6e2d9 is integrated while retaining v8 goal assessment and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-autonomous-testing-ego-lite; Claude Code uses /ai-autonomous-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
 
 The default is **1 (serial)**. Without a user request for concurrency or an explicit setting, execute cases one at a time. Set `start --max-parallel-cases N` or project execution-config.json to opt in; N is a positive safe integer with no fixed 2/4/8 product ceiling. The AI chooses tool calls, batches and worker use within that limit; it need not fill all slots. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.
-
-## Current candidate report improvements
-
-The bilingual illustrations now describe the current candidate. The four-version timeline includes v0.1.7 explicitly marked unreleased, alongside three formal releases. Current v8 action facts and regression contracts are described in the documentation.
-
-The earlier integrated baseline is `feat/v0.1.7-report-resource-regression`; see [its validation](docs/v0.1.7-integration.md). Local reader closeout is on `fix/v0.1.7-report-reader-review`, retaining that baseline and scheme B. Software remains 0.1.7-rc.1, not merged into main or released. Phase-specific validation and original evidence stay intact. The cloud review branch adds documentation and visual updates on top of the latest reader baseline; see [cloud review](docs/v0.1.7-cloud-review.md). Main merging and formal packaging remain pending explicit human approval.
-
-The report reader retains eight themes, readable evidence bodies, inline/bundle delivery, image context and explicit content gaps.
 
 ## v0.1.8 requirements preview (testing quality optimization)
 

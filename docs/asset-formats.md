@@ -21,7 +21,7 @@ Schema 位于 [schemas](../schemas/)，使用 Draft 2020-12 封闭对象；运�
 | steps | 非空数组，每步 id、action；步骤不单独带业务状态 |
 | goals | 非空、ID 唯一的可独立判断业务目标 |
 
-每个 goal 有 id、basis:{kind,source,text}、expected、requiredRefs；basis.kind 是 explicit/interpretation/hypothesis。requiredRefs 可引用 step:步骤ID、condition:从0起的索引、非空 requiredPath。字段引用保持业务依赖；不是每次点击一个目标。
+每个 goal 有 id、title（业务标题）、basis:{kind,source,text}、expected、requiredRefs；basis.kind 是 explicit/interpretation/hypothesis。requiredRefs 可引用 step:步骤ID、condition:从0起的索引、非空 requiredPath。字段引用保持业务依赖；不是每次点击一个目标。
 
 可选 clarificationQuestions 只表示该目标验收标准待澄清，非空时 final 和 attempt 都不能给 verified/violation。资源未具备单独记事实与缺口。可选 followUpOf:{runId,caseId,goalId,reason} 关联澄清或复核目标，原目标不改写；关联本身不证明旧问题已解决。
 
@@ -79,7 +79,7 @@ record 的 final 按本次显式 goal 增量更新当前评估，其余目标不
 
 串行直接 record，无需 worker、Space 分派或 goalAssessments。并行 packet 的 record 使用完全相同字段；其中 observations.evidenceIds 和 diagnosis.evidenceIds 使用包中 evidence 声明的 local key，导入映射为 catalog ID。spaceUsage/executionWindow 保留 evidenceKeys。协调者显式 review 后导入同一 results.entries，原包与修订理由保留。
 
-配置 schemaVersion 为 7、maxParallelCases 默认 1，用户未明确要求或配置时不提高。执行查询支持 summary/assignment/full 与 metadata/full integrity，viewVersion 为 8；轻量查询明示未检查部分，不自动恢复或代表 worker 实时状态。完整操作参数见安装包 references/parallel-testing.md，源码对应 并发指南（安装包路径：references/parallel-testing.md）。
+配置 schemaVersion 为 8、maxParallelCases 默认 1，用户未明确要求或配置时不提高。执行查询支持 summary/assignment/full 与 metadata/full integrity，viewVersion 为 8；轻量查询明示未检查部分，不自动恢复或代表 worker 实时状态。完整操作参数见安装包 references/parallel-testing.md，源码对应 并发指南（安装包路径：references/parallel-testing.md）。
 
 ## revision、幂等与文件保护
 
@@ -108,3 +108,5 @@ report 校验结构、引用和全部证据 hash/bytes 后写 report.html/json/m
 同一 v8 账本同时保留上下文、观察动作片段、尝试事件、现象、结构化缺口与复核准备。contexts 使用 environment/identity/objects/initialState/authorization，各项为 state/summary/sources；sources 保留类别、定位和证据引用。观察 actions 用于已观察操作片段，actionEvents 用于意图、发出与核对，工具不自动互拷或重放。
 
 报告保留场景与目标两级导航、证据正文、内容去重、附件交付和八种主题。network export 只从已留存的网络片段导出证据，不重发请求。回归范围、任务版本、当次条件及未决动作与原报告能力共同呈现。软件版本为0.1.7-rc.1，数据契约v8不是软件版本号；详情见[最终整合记录](v0.1.7-integration.md)。
+
+报告另外生成 `report-delivery.json` 机器交付清单，用于记录产物与核验；它不替代 HTML、JSON、Markdown 三种阅读产物。已登记截图文件丢失时默认拒绝生成；显式 `--allow-missing-screenshots true` 仅允许标记为不完整的缺图草稿，不放宽其他证据完整性校验。

@@ -4,13 +4,7 @@
 
 基于 Ego Lite 的 AI 自主测试 Skill：AI 理解目标、选择方法并判断业务，Ego 操作浏览器，本地工具保存证据和交付报告。
 
-![版本演变：v0.1.2 业务步骤与验收澄清；v0.1.3 图文证据交付；v0.1.4 可配置并发；v0.1.5 补强资源主动澄清。图为能力示意，非测试截图。](images/version-history.zh-CN.png)
-
-## v0.1.6 · 经验指南、目标评估与接口观测
-
-2026-10-29：[完整安装包与发布说明](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。分离设计/执行经验，统一 v5 目标评估与报告，新增独立接口观测和跨宿主交接约定。旧格式拒绝读取、不自动转换，历史数据保持。验证边界见 [发布验证](v0.1.6-release-validation.md)。上图保留 v0.1.2–v0.1.5 历史示意，不表示当前最新版。
-
-0.1.6 的变化还包括设计/执行主题及具体误判场景、串行与并行共用 observations/assessments、按目标增量更新并保留 attempt、结果与根因分离、接口正文/容量/停止交接，以及链接 CLI 入口修复。它们分别有工程、合成和隔离浏览器验证；一次用户试用不代表全部业务或宿主验收，详见上述发布验证。
+![版本演变：0.1.7 候选、0.1.6、0.1.5、0.1.4、0.1.3、0.1.2，按最新在前展示；图为能力示意。](images/version-history.zh-CN.png)
 
 ## v0.1.7 · 云端整合审阅，尚未发布
 
@@ -18,9 +12,27 @@
 
 分支核验、文档图片变更及审阅关口见[云端审阅说明](v0.1.7-cloud-review.md)。main 与正式发布保持不变。
 
-## v0.1.8 · 测试效果与测试点回归需求
+## v0.1.6 · 经验指南、目标评估与接口观测
 
-尚未实现。根据首次测试、失败范围复测及报告审阅规划稳定测试点编号、按编号回测、完整目标清单、精确逐步证据、数据参数化、AI 按需操作复用及可核验成本。完整背景和验收方向见 [需求前瞻](v0.1.8-preview.md)。不改变当前软件或数据契约，不属于已发布版本。
+2026-10-29：[完整安装包与发布说明](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6)。分离设计/执行经验，统一 v5 目标评估与报告，新增独立接口观测和跨宿主交接约定。旧格式拒绝读取、不自动转换，历史数据保持。验证边界见 [发布验证](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-release-validation.md)。
+
+0.1.6 的变化还包括设计/执行主题及具体误判场景、串行与并行共用 observations/assessments、按目标增量更新并保留 attempt、结果与根因分离、接口正文/容量/停止交接，以及链接 CLI 入口修复。它们分别有工程、合成和隔离浏览器验证；一次用户试用不代表全部业务或宿主验收，详见上述发布验证。
+
+### 0.1.6 能力补充与验证依据
+
+0.1.6 不仅增加经验文档，还完成逐目标评估、串并行统一记录、接口观测和跨宿主入口修复。以下能力由当前候选继续使用；0.1.6 当时采用 v5，当前 v0.1.7 的 v8 契约不应倒算为旧版格式。
+
+- **按阶段使用测试经验。** 用例设计与执行经验分别提供简短入口、稳定主题索引和具体场景，覆盖前提与数据关系、边界/权限、提交未知、拖动/下载、异步观察及恢复时的误判风险。增加导航与语义走查；经验由人工维护、运行时只读，AI 根据目标与授权选择方法，不引入 RAG、自动学习或固定业务路线。
+
+- **业务目标可分别判断。** case 保留相关流程，goals 保存有来源的独立预期；步骤、条件、必经路径是必要语义，不按点击次数扩充目标数。
+- **串并行统一入账。** 串行 record 和协调者复核后的 worker import 写同一 observations/assessments/entries，串行无需虚构分派或封包才能生成目标报告。
+- **业务四态与记录缺口分开。** 已验证、发现违反、无法判断、未测试由 AI 显式评估；缺少 assessment 显示为“缺少目标评估记录”，不会自动变成无法判断。
+- **结果与原因分开。** 已足以证明违反时可同时记录根因未知。关键动作或结果本身尚不能确认时，具体说明证据缺口；不要求每个 UI 异常都查明后端根因。
+- **保留部分完成与历史。** 父场景展示目标分布；final 按目标更新，attempt 保留历史。后续澄清/复核可关联原目标，但不覆盖首次异常或旧结论。
+- **按范围观察真实接口。** 独立 Ego native 上下文采集已授权页面的 Fetch/XHR、SSE 与 WebSocket 内容，支持查询、容量控制、内容处理、停止及交接；不重发业务请求，接口成功也不自动等于业务通过。
+- **修复链接入口并明确跨宿主交接。** CLI 通过目录链接启动时能够执行；补齐真实 worker、上下文、权限、在途 handle、总活动容量及全 run 包标识约定。没有固定宿主调度器，完整跨宿主链路仍需分别验收。
+
+真实改动与验证依据见[经验开发及正文扩写](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-development-validation.md)、[目标评估](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-goal-assessment-validation.md)、[接口观测](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-network-validation.md)、[跨宿主修复整合](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-cross-host-integration.md)及[0.1.6 发布收尾](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-release-validation.md)。工程检查、合成演练、隔离浏览器观察及用户单次试用的范围分别保留，不合并成全面业务验收。
 
 ## v0.1.5 · 资源不足时主动澄清
 

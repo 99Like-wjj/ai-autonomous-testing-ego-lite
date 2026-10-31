@@ -16,7 +16,7 @@ node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS_RUN
 node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 ```
 
-All test-asset JSON contracts use schemaVersion 8 and execution query viewVersion 7. Old formats are explicitly rejected; no conversion or in-place update is provided. Preserve old files and prepare separate v8 assets from original sources. Do not auto-update the user's installed Skill.
+All test-asset JSON contracts use schemaVersion 8 and execution query viewVersion 8. Old formats are explicitly rejected; no conversion or in-place update is provided. Preserve old files and prepare separate v8 assets from original sources. Do not auto-update the user's installed Skill.
 
 start creates a frozen baseline and an empty result ledger, not synthetic not_tested results. Evidence requests register permitted regular files, return catalog IDs and verify retained bytes. Unknown capture times are omitted; registration time is not execution time. Files are not automatically redacted and hashes do not establish authenticity.
 

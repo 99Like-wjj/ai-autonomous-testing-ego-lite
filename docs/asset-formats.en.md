@@ -10,7 +10,7 @@ Schemas are closed Draft 2020-12 objects in [schemas](../schemas/). Runtime chec
 
 ## Cases and goals
 
-The root contains schemaVersion, project and nonempty cases. A case has id, title, criticalConditions, requiredPath (null if unspecified), stepOrder (strict/adaptive), nonempty steps and nonempty goals. Each step has id/action only. Each goal has id, basis:{kind,source,text}, expected and requiredRefs. Basis kinds are explicit, interpretation and hypothesis.
+The root contains schemaVersion, project and nonempty cases. A case has id, title, criticalConditions, requiredPath (null if unspecified), stepOrder (strict/adaptive), nonempty steps and nonempty goals. Each step has id/action only. Each goal has id, title (business title), basis:{kind,source,text}, expected and requiredRefs. Basis kinds are explicit, interpretation and hypothesis.
 
 Business goals are independently assessable outcomes. Steps, conditions and paths retain necessary semantics; they are not counted as additional business goals. requiredRefs accepts step:ID, condition:zero-based-index and requiredPath when present. A workflow can share preparation across goals without dropping required dependencies.
 
@@ -58,3 +58,5 @@ Scheme B adds optional `ReportContext.readerNotes`: sourced reading titles/descr
 The v8 ledger retains contexts, observation action excerpts, attempt lifecycle events, phenomena, structured gaps and reproduction preparation. Contexts use environment/identity/objects/initialState/authorization with state/summary/sources. Observation actions and attempt events have distinct purposes and are not automatically copied or replayed.
 
 The integrated reader keeps scene/goal navigation, retained text bodies, content deduplication, attachment delivery and eight themes. Network export reads retained data without replay. Regression scope, exact task revisions and unresolved actions remain visible. Software is 0.1.7-rc.1; data contract v8 is not a software version. See [integration record](v0.1.7-integration.md).
+
+Reports also write the machine manifest `report-delivery.json` for artifact verification; it does not replace the three reader outputs. A missing registered screenshot rejects report generation by default. Explicit `--allow-missing-screenshots true` permits only an incomplete missing-image draft, without weakening other evidence integrity checks.

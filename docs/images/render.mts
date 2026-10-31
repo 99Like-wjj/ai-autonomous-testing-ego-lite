@@ -34,7 +34,37 @@ export async function generateImages(outputDir: string) {
   for (const zh of [false, true]) {
     const suffix = (zh ? ".zh-CN" : "");
     const t = (en: string, cn: string): string => zh ? cn : en;
-    let p = start(t("AI Autonomous Testing · Ego Lite", "AI 自主自动化测试 · Ego Lite"), 540);
+    let p = start(t('AI leads. Tools provide capabilities.', 'AI 主导测试，工具提供能力。'), 900, 1400);
+    p.push(text(60, 65, t('DESIGN PHILOSOPHY', '设计理念'), 20, 'cyan', 700));
+    p.push(text(60, 121, t('AI leads. Tools provide capabilities.', 'AI 主导测试，工具提供能力。'), 46, 'text', 700));
+    p.push(text(60, 161, t('Fixed requirements. Open methods. No fixed business decision tree.', '固定要求，开放方法；不把业务测试写成固定决策树。'), 24, 'muted'));
+    p.push(rect(290, 205, 820, 68, 'panel', 'violet'));
+    p.push(text(zh ? 516 : 420, 248, t('Goals · Acceptance criteria · Authorization', '需求目标 · 验收标准 · 授权边界'), 26, 'violet', 700));
+    p.push(line(700, 283, 700, 316), rect(330, 330, 740, 170, 'panel', 'cyan'));
+    p.push(text(zh ? 592 : 564, 381, t('AI leads testing', 'AI 主导测试'), 36, 'cyan', 700));
+    p.push(text(zh ? 425 : 372, 424, t('Understand · Design · Explore · Evaluate evidence', '理解需求 · 设计用例 · 自主探索 · 判断结果'), zh ? 25 : 24));
+    p.push(text(zh ? 424 : 371, 465, t('Choose tools, combine capabilities, adapt to real evidence', '选择工具、组合能力，并根据真实证据调整方法'), zh ? 23 : 22, 'muted'));
+    p.push(line(700, 518, 700, 554), line(700, 550, 700, 514));
+    p.push(text(730, 544, t('On-demand calls ↔ factual feedback', '按需调用 ↔ 事实反馈'), 19, 'cyan'));
+    p.push('<path d="M170 575 H1230" stroke="#293957" stroke-width="2" fill="none"/>');
+    const capabilities = [
+      [t('Browser actions', '浏览器操作'), t('Ego native tools', 'Ego 原生能力'), t('Read pages and act', '读取页面与执行动作')],
+      [t('Records & evidence', '记录与证据'), t('Project toolbox', '本项目工具'), t('Retain facts and links', '保存事实与证据关联')],
+      [t('Network observation', '接口观测'), t('Project toolbox', '本项目工具'), t('Scoped capture / query', '按授权采集与查询')],
+      [t('Regression assets', '回归资料'), t('Project toolbox', '本项目工具'), t('Tasks, rules, comparison', '任务 / 规则与运行比较')],
+      [t('Report generation', '报告生成'), t('Project toolbox', '本项目工具'), t('Present facts / evidence', '组织事实、证据与结果')]
+    ];
+    for (const [i, rows] of capabilities.entries()) {
+      const x = 50 + i * 265, cx = x + 120;
+      p.push(line(cx, 587, cx, 618), line(cx, 614, cx, 583), rect(x, 635, 240, 136));
+      p.push(text(x + (zh ? 66 : 16), 674, rows[0]!, zh ? 26 : 18, i === 0 ? 'cyan' : 'violet', 700));
+      p.push(text(x + (zh ? 60 : 44), 711, rows[1]!, 20, 'muted'));
+      p.push(text(x + (zh ? 30 : 16), 747, rows[2]!, zh ? 18 : 17));
+    }
+    p.push(text(zh ? 308 : 170, 817, t('Tools handle actions and records; AI owns business routes and judgments.', '工具做好具体操作与确定性记录，不替 AI 选择业务路线或判定业务正确性。'), zh ? 23 : 25, 'muted'));
+    p.push(text(zh ? 365 : 214, 862, t('Adapt methods, not goals, dependencies, acceptance criteria or authorization.', '方法可以调整，目标、必要依赖、验收标准与授权不能擅自改变。'), 23));
+    await save(outputDir, ('design-philosophy' + suffix), p, png);
+    p = start(t("AI Autonomous Testing · Ego Lite", "AI 自主自动化测试 · Ego Lite"), 540);
     p.push(...[text(54, 64, t("AI AUTONOMOUS TESTING / EGO LITE", "AI 自主自动化测试 / EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test. Review. Reuse.", "从首次测试，"), 48, "text", 700), text(54, 198, t("Let AI choose the method.", "到有依据的回归。"), 48, "text", 700), text(56, 246, t("New features and regression. Fixed goals, adaptive AI execution.", "AI 自主规划与执行，保留规则、事实和每轮证据"), 20, "muted")]);
     p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW + REUSE", "03  审阅与复用"), 16, "cyan", 700), text(835, 370, t("Evidence + regression", "证据与回归资料"), 23), text(835, 403, t("New run, fresh evidence", "独立新运行，重新核验"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.7-rc.1  /  REVIEW CANDIDATE · NOT RELEASED", "版本 0.1.7-rc.1  /  待人工审阅，尚未发布"), 16, "muted")]);
     await save(outputDir, ("hero" + suffix), p, png);
@@ -112,29 +142,24 @@ export async function generateImages(outputDir: string) {
     p.push(text(50, 542, t("0.1.7-rc.1  /  Retained concurrency model · Illustration only", "0.1.7-rc.1  /  沿用并发模型；能力示意，非实测证据"), 16, "muted"));
     await save(outputDir, ("parallel" + suffix), p, png);
 
-    p = start(t("Version history — capability illustration", "版本演变 — 能力示意，非测试截图"), 1110, 840);
-    p.push(text(48, 72, t("How the Skill evolves", "每次更新，解决什么问题？"), 38, "text", 700));
-    p.push(text(48, 111, t("Released history · Times in Asia/Shanghai", "已发布历史 · 发布时间为北京时间"), 23, "muted"));
-    const versions = [
-      { y: 148, version: "v0.1.2", state: t("PRERELEASE · 10-22", "预发布 · 10-22"), title: t("Business-intent steps", "业务步骤与验收澄清"), rows: [t("Actions describe the business goal.", "步骤表达业务意图"), t("Unclear acceptance stays unresolved.", "验收不清，保留待确认")] },
-      { y: 357, version: "v0.1.3", state: t("RELEASED · 10-23", "正式版 · 10-23"), title: t("Evidence-rich delivery", "证据与报告完整交付"), rows: [t("Keep evidence and earlier attempts.", "留存证据与历史观察"), t("HTML / JSON / Markdown", "HTML / JSON / Markdown")] },
-      { y: 566, version: "v0.1.4", state: t("RELEASED · 10-24", "正式版 · 10-24"), title: t("Configurable concurrency", "可配置并发与协调复核"), rows: [t("Workers deliver; AI reviews goals.", "分例交付，逐目标复核"), t("Serial by default. Spaces are not isolation.", "默认串行，Space 不保证隔离")] }
+    p = start(t('Version history — newest first', '版本演变 — 最新版本在前'), 950, 840);
+    p.push(text(48, 65, t('Developed versions, newest first', '已开发版本，最新在前'), 34, 'text', 700));
+    const historyVersions = [
+      { version: 'v0.1.7', state: t('RC.1 · NOT RELEASED', '候选 rc.1 · 未发布'), title: t('Report reading + regression reuse', '报告阅读、资源澄清与回归复用') },
+      { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') },
+      { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
+      { version: 'v0.1.4', state: t('RELEASED', '正式版'), title: t('Configurable concurrency', '可配置并发与协调复核') },
+      { version: 'v0.1.3', state: t('RELEASED', '正式版'), title: t('Evidence-rich delivery', '证据与报告完整交付') },
+      { version: 'v0.1.2', state: t('PRERELEASE', '预发布'), title: t('Business-intent steps', '业务步骤与验收澄清') }
     ];
-    p.push(line(67, 186, 67, 735));
-    for (const v of versions) {
-      p.push(`<circle cx="67" cy="${v.y + 37}" r="9" fill="#61e6ed"/>`, rect(100, v.y, 692, 186));
-      p.push(text(126, v.y + 38, v.version, 29, "cyan", 700), text(446, v.y + 36, v.state, 21, "muted"));
-      p.push(text(126, v.y + 82, v.title, 31, "text", 700));
-      p.push(...v.rows.map((row, i) => text(126, v.y + 123 + i * 34, row, 25, "muted")));
+    for (const [i, v] of historyVersions.entries()) {
+      const y = 100 + i * 130, color = i === 0 ? 'violet' : 'cyan';
+      p.push(rect(48, y, 744, 112, 'panel', color));
+      p.push(text(72, y + 35, v.version, 26, color, 700), text(430, y + 34, v.state, 20, 'muted'));
+      p.push(text(72, y + 80, v.title, 27, 'text', 700));
     }
-    p.push(text(48, 805, t("v0.1.5 · RELEASE", "v0.1.5 · 正式版本"), 24, "violet", 700));
-    p.push(rect(48, 830, 744, 200, "panel", "violet").replace("/>", ' stroke-dasharray="8 6"/>'));
-    p.push(text(74, 874, "v0.1.5", 32, "violet", 700));
-    p.push(text(74, 918, t("Clarify missing resources", "资源不足，主动澄清"), 32, "text", 700));
-    p.push(text(74, 960, t("Pause affected actions; verify before resuming.", "暂停依赖动作，补充后核验"), 25, "muted"));
-    p.push(text(74, 997, t("Scoped checks verified; broader use untested.", "限定场景已验证，广泛场景待验证"), 25, "muted"));
-    p.push(text(48, 1075, t("Illustration only. See version cards for limits.", "仅为能力示意；升级影响和验证限制见版本介绍"), 23, "muted"));
-    await save(outputDir, ("version-history" + suffix), p, png);
+    p.push(text(48, 914, t('Capability illustration only. See documents for scope and limits.', '仅为能力示意；验证范围与升级影响见对应版本说明。'), 19, 'muted'));
+    await save(outputDir, ('version-history' + suffix), p, png);
 
     // Chronological source; append future versions here, never trim the full history.
     const readmeVersions = readmeVersionWindow([
@@ -144,11 +169,11 @@ export async function generateImages(outputDir: string) {
       { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
       { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') },
       { version: 'v0.1.7', state: t('RC.1 · NOT RELEASED', '候选 rc.1 · 未发布'), title: t('Report reading + reusable regression', '报告阅读、资源澄清与回归复用') }
-    ]);
+    ]).reverse();
     p = start(t('Latest four versions — README overview', '最近四个版本 — README 概览'), 650, 840);
     p.push(text(48, 65, t('Current candidate + three releases', '当前候选与前三个正式版本'), 32, 'text', 700));
     for (const [i, v] of readmeVersions.entries()) {
-      const y = 100 + i * 122, color = i === readmeVersions.length - 1 ? 'violet' : 'cyan';
+      const y = 100 + i * 122, color = i === 0 ? 'violet' : 'cyan';
       p.push(rect(48, y, 744, 106, 'panel', color));
       p.push(text(72, y + 34, v.version, 25, color, 700), text(430, y + 33, v.state, 19, 'muted'));
       p.push(text(72, y + 78, v.title, 27, 'text', 700));
@@ -158,7 +183,7 @@ export async function generateImages(outputDir: string) {
 
 
   }
-  return { outputDir, svgFiles: 14, pngFiles: png ? 14 : 0, pngExport: png ? 'exported' : 'not_available_inkscape_missing' };
+  return { outputDir, svgFiles: 16, pngFiles: png ? 16 : 0, pngExport: png ? 'exported' : 'not_available_inkscape_missing' };
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.length !== 4 || process.argv[2] !== '--output-dir' || !process.argv[3]) throw new Error('Use --output-dir ABS_NEW_IMAGE_DIRECTORY.');
