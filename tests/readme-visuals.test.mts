@@ -53,3 +53,13 @@ test('README timeline contains four versions and labels the current candidate wi
     assert.match(await read('result-specimen'), /never rewrite business outcomes|不改写业务四态/);
   }
 });
+
+test('feedback follows all project sections and precedes the final license in both READMEs', async () => {
+  for (const [file, contact, license] of [['README.md', '问题反馈与联系', '许可证'], ['README.en.md', 'Feedback and contact', 'License']] as const) {
+    const content = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
+    const headings = [...content.matchAll(/^## (.+)$/gm)].map(match => match[1]);
+    assert.deepEqual(headings.slice(-2), [contact, license]);
+    assert.ok(content.includes('docs/images/wechat-contact-qr.png'));
+    assert.ok(content.includes('https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/issues'));
+  }
+});

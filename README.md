@@ -124,7 +124,30 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 
 工具不调用模型，不自动判 bug、选择业务路线或重试业务。接口观测命令会启动独立 Ego native 采集上下文，仅在授权范围内观察；业务 UI 操作仍由 AI 通过 Ego 执行。Space 不保证账号或后端数据隔离；单文件更新不承诺通用多文件事务或断电持久性。证据登记不自动脱敏，真实账号、凭据、站点和截图放在私有工作区，不自动上传报告。详见[隐私指南](docs/privacy.md)。
 
-## v0.1.8 需求前瞻（测试效果优化，尚未实现）
+## 并发配置与开发
+
+![独立用例 worker 留证封包，协调者复核后汇总；默认串行，显式配置后安排并发。](docs/images/parallel.zh-CN.svg)
+
+已整合跨宿主修复提交 8e6e2d9，当前保留 v8 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
+
+`maxParallelCases` 默认为 **1（逐条执行）**；用户未要求并发且未明确配置时保持串行。用户可用命令行或项目配置指定任意可准确表示的正整数，无固定产品上限。AI 决定工具调用、批次与 worker 使用，配置不要求跑满。宿主明确提供的限制单独记录，未知则保持未知，不主动探测客户端最大子代理数或修改全局配置。
+
+```text
+node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN --max-parallel-cases 3
+```
+
+AI workers 独立留证、封存包，协调者显式复核并导入。完整调用和恢复语义见[并发指南](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md)。所有继续维护的 CLI、报告交互、测试、构建／检查、历史验证工具和图片生成程序以 TS 维护；`.build` 是忽略的编译产物。`npm test` 先构建再测试实际 JS；`npm run check:public` 检查源文件，独立包仍使用严格资源清单。本仓库的构建、测试不注册或更新用户级 Skill，也不推送、创建 Tag 或 Release。
+
+## 当前候选的报告改进
+
+- 场景总览保留每个大场景及其目标分布；场景内/全局筛选按目标命中，支持返回完整场景。
+- 事实上下文、实际动作、多现象和证据用途串并行统一留存；API、日志和资料正文可在离线HTML中读取。
+- 右上角背景选择器提供八种柔和浅色/深色主题，偏好本地保存；不改变原始证据图片。
+- 当前主契约为v8，旧数据不迁移或覆盖；网络数据仍独立为networkVersion 1。
+
+前期整合基线为 `feat/v0.1.7-report-resource-regression`，记录见[集成验证](docs/v0.1.7-integration.md)；本地报告收尾工作位于 `fix/v0.1.7-report-reader-review`，包含整合基线及方案 B。软件仍为 0.1.7-rc.1，尚未合入 main 或发布；各阶段验证范围和原始证据保留。云端审阅分支在该最新基线上补充文档与图片，见[云端审阅](docs/v0.1.7-cloud-review.md)；人工审阅通过前不合入 main 或发布正式包。
+
+## v0.1.8 需求前瞻（测试效果优化）
 
 首次测试、失败范围复测和报告审阅表明：现有回归仍需 AI 重新核对候选任务和当前数据，整场景重跑范围可能大于原问题范围，动作与证据关联也有待更精确。下一版继续以测试效果为目标：
 
@@ -159,27 +182,3 @@ node ABS_TOOL verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 ## 许可证
 
 本仓库原创代码和文档按 [MIT License](LICENSE) 授权，版权声明为 2026 99Like-wjj。此许可不覆盖 Ego、Ego 官方浏览器或其他第三方软件；它们仍受各自许可和官方条款约束。本项目非 Ego 官方项目，未获其背书。源码按 MIT 许可开放；项目仍在持续开发，具体版本能力与验证范围以对应版本说明为准。
-
-## 并发配置与开发
-
-![独立用例 worker 留证封包，协调者复核后汇总；默认串行，显式配置后安排并发。](docs/images/parallel.zh-CN.svg)
-
-已整合跨宿主修复提交 8e6e2d9，当前保留 v8 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
-
-`maxParallelCases` 默认为 **1（逐条执行）**；用户未要求并发且未明确配置时保持串行。用户可用命令行或项目配置指定任意可准确表示的正整数，无固定产品上限。AI 决定工具调用、批次与 worker 使用，配置不要求跑满。宿主明确提供的限制单独记录，未知则保持未知，不主动探测客户端最大子代理数或修改全局配置。
-
-```text
-node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN --max-parallel-cases 3
-```
-
-AI workers 独立留证、封存包，协调者显式复核并导入。完整调用和恢复语义见[并发指南](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md)。所有继续维护的 CLI、报告交互、测试、构建／检查、历史验证工具和图片生成程序以 TS 维护；`.build` 是忽略的编译产物。`npm test` 先构建再测试实际 JS；`npm run check:public` 检查源文件，独立包仍使用严格资源清单。本仓库的构建、测试不注册或更新用户级 Skill，也不推送、创建 Tag 或 Release。
-
-
-## 当前候选的报告改进
-
-- 场景总览保留每个大场景及其目标分布；场景内/全局筛选按目标命中，支持返回完整场景。
-- 事实上下文、实际动作、多现象和证据用途串并行统一留存；API、日志和资料正文可在离线HTML中读取。
-- 右上角背景选择器提供八种柔和浅色/深色主题，偏好本地保存；不改变原始证据图片。
-- 当前主契约为v8，旧数据不迁移或覆盖；网络数据仍独立为networkVersion 1。
-
-前期整合基线为 `feat/v0.1.7-report-resource-regression`，记录见[集成验证](docs/v0.1.7-integration.md)；本地报告收尾工作位于 `fix/v0.1.7-report-reader-review`，包含整合基线及方案 B。软件仍为 0.1.7-rc.1，尚未合入 main 或发布；各阶段验证范围和原始证据保留。本轮不执行分支合并、发布或生成可下载包。
