@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface EgoLiteCaseInputAndNormalizedBaselineV5 {
-  schemaVersion: 5;
+export interface EgoLiteCaseInputAndNormalizedBaselineV8 {
+  schemaVersion: 8;
   project: string;
   /**
    * @minItems 1
@@ -34,11 +34,15 @@ export interface Goal {
   requiredRefs: string[];
   clarificationQuestions?: string[];
   followUpOf?: {
+    /**
+     * Use self for a goal in the same frozen run; otherwise use the explicit source run ID. A relation never resolves or replaces the source verdict.
+     */
     runId: string;
     caseId: string;
     goalId: string;
     reason: string;
   };
+  title: string;
 }
 export interface Basis {
   kind: 'explicit' | 'interpretation' | 'hypothesis';

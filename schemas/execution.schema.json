@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "execution.schema.json",
-  "title": "Ego Lite execution ledger v5",
+  "title": "Ego Lite execution ledger v8",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 8
     },
     "runId": {
       "type": "string",
@@ -46,7 +46,7 @@
           "type": "object",
           "properties": {
             "schemaVersion": {
-              "const": 5
+              "const": 8
             },
             "maxParallelCases": {
               "type": "integer",

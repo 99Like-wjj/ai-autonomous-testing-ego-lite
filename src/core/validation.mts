@@ -1,5 +1,7 @@
+import { parseRunContext, parseContextFact, parseActionEvent, recordEvidenceIds, mapRecordEvidence } from './action-events.mjs';
+export { parseContextFact } from './action-events.mjs';
 /** Parse untrusted JSON before it reaches the transaction layer. */
-import type { Basis, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceRequest, Manifest, PendingEvidence, RecordPayload, RecordRequest, ResultEntry, Results, Observation, Assessment, Diagnosis } from '../contracts/model.mjs';
+import type { Basis, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceRequest, Manifest, PendingEvidence, RecordPayload, RecordRequest, ResultEntry, Results, Observation, Assessment, Diagnosis, ContextFact, ExecutionContext, ActionFact, EvidenceLink, Phenomenon, GapDetail, ReproductionPreparation, Finding, EvidenceMetadata } from '../contracts/model.mjs';
 import { assertClosed, assertTimestamp, fail, nonempty, safeIdentifier } from './common.mjs';
 export const statusValues = ['verified', 'violation', 'inconclusive', 'not_tested'] as const;
 export const causeValues = ['product', 'agent', 'environment', 'spec', 'unknown'] as const;
@@ -32,44 +34,66 @@ export function parseBasis(value: unknown): Basis {
   return { kind: oneOf(value.kind, ['explicit', 'interpretation', 'hypothesis'], 'basis kind'), source: textValue(value.source, 'basis source'), text: textValue(value.text, 'basis text') };
 }
 export function parseObservation(value: unknown): Observation {
-  assertClosed(value, ['id', 'summary', 'coveredRefs', 'evidenceIds'], 'observation');
-  return { id: safeIdentifier(value.id, 'observation ID'), summary: textValue(value.summary, 'observation summary'), coveredRefs: uniqueStrings(value.coveredRefs, 'coveredRefs'), evidenceIds: uniqueStrings(value.evidenceIds, 'evidenceIds', true) };
+  assertClosed(value, ['id', 'summary', 'coveredRefs', 'evidenceIds', 'contextId', 'actual', 'occurredAt', 'actions', 'evidenceLinks', 'actionEventIds'], 'observation');
+  const actions = value.actions === undefined ? undefined : arrayValue(value.actions, 'actions').map(parseActionFact);
+  if (actions && new Set(actions.map(a => a.id)).size !== actions.length) fail('Duplicate action ID in observation.');
+  return { id: safeIdentifier(value.id, 'observation ID'), summary: textValue(value.summary, 'observation summary'), coveredRefs: uniqueStrings(value.coveredRefs, 'coveredRefs'), evidenceIds: uniqueStrings(value.evidenceIds, 'evidenceIds', true),
+    ...(value.contextId === undefined ? {} : { contextId: safeIdentifier(value.contextId, 'context ID') }),
+    ...(value.actionEventIds === undefined ? {} : { actionEventIds: uniqueStrings(value.actionEventIds, 'action event IDs', true) }),
+    ...(value.actual === undefined ? {} : { actual: textValue(value.actual, 'actual observation') }),
+    ...(value.occurredAt === undefined ? {} : { occurredAt: timeValue(value.occurredAt, 'observation occurredAt') }),
+    ...(actions ? { actions } : {}), ...(value.evidenceLinks === undefined ? {} : { evidenceLinks: arrayValue(value.evidenceLinks, 'evidence links').map(parseEvidenceLink) }) };
 }
 export function parseDiagnosis(value: unknown): Diagnosis {
   assertClosed(value, ['state', 'category', 'summary', 'evidenceIds'], 'diagnosis');
   return { state: oneOf(value.state, ['unknown', 'hypothesis', 'confirmed'], 'diagnosis state'), category: oneOf(value.category, causeValues, 'diagnosis category'), summary: textValue(value.summary, 'diagnosis summary'), evidenceIds: uniqueStrings(value.evidenceIds, 'diagnosis evidenceIds', true) };
 }
 export function parseAssessment(value: unknown): Assessment {
-  assertClosed(value, ['goalId', 'status', 'rationale', 'observationIds', 'gaps', 'diagnosis'], 'assessment');
-  return { goalId: safeIdentifier(value.goalId, 'goal ID'), status: oneOf(value.status, statusValues, 'goal status'), rationale: textValue(value.rationale, 'assessment rationale'), observationIds: uniqueStrings(value.observationIds, 'observationIds', true), gaps: strings(value.gaps, 'assessment gaps'), ...(value.diagnosis === undefined ? {} : { diagnosis: parseDiagnosis(value.diagnosis) }) };
+  assertClosed(value, ['goalId', 'status', 'rationale', 'observationIds', 'gaps', 'diagnosis', 'summary', 'phenomena', 'gapDetails', 'revisionReason', 'previousOperationId', 'reproduction'], 'assessment');
+  const phenomena = value.phenomena === undefined ? undefined : arrayValue(value.phenomena, 'phenomena').map(parsePhenomenon);
+  if (phenomena && new Set(phenomena.map(p => p.id)).size !== phenomena.length) fail('Duplicate phenomenon ID in assessment.');
+  if (value.previousOperationId !== undefined && value.revisionReason === undefined) fail('An assessment revision reference requires a reason.');
+  return { goalId: safeIdentifier(value.goalId, 'goal ID'), status: oneOf(value.status, statusValues, 'goal status'), rationale: textValue(value.rationale, 'assessment rationale'), observationIds: uniqueStrings(value.observationIds, 'observationIds', true), gaps: strings(value.gaps, 'assessment gaps'), ...(value.diagnosis === undefined ? {} : { diagnosis: parseDiagnosis(value.diagnosis) }),
+    ...(value.summary === undefined ? {} : { summary: textValue(value.summary, 'assessment summary') }), ...(phenomena ? { phenomena } : {}),
+    ...(value.gapDetails === undefined ? {} : { gapDetails: arrayValue(value.gapDetails, 'gap details').map(parseGapDetail) }),
+    ...(value.revisionReason === undefined ? {} : { revisionReason: textValue(value.revisionReason, 'revision reason') }),
+    ...(value.previousOperationId === undefined ? {} : { previousOperationId: safeIdentifier(value.previousOperationId, 'previous operation') }),
+    ...(value.reproduction === undefined ? {} : { reproduction: parseReproduction(value.reproduction) }) };
 }
 export function parsePayload(value: unknown): RecordPayload {
-  assertClosed(value, ['observations', 'assessments'], 'record payload');
+  assertClosed(value, ['observations', 'assessments', 'contexts', 'findings', 'actionEvents'], 'record payload');
   const observations = arrayValue(value.observations, 'observations').map(parseObservation), assessments = arrayValue(value.assessments, 'assessments').map(parseAssessment);
-  if (!observations.length && !assessments.length) fail('A record must contain observations or explicit goal assessments.');
+  const contexts = value.contexts === undefined ? undefined : arrayValue(value.contexts, 'contexts').map(parseExecutionContext), findings = value.findings === undefined ? undefined : arrayValue(value.findings, 'findings').map(parseFinding);
+  const actionEvents = value.actionEvents === undefined ? undefined : arrayValue(value.actionEvents, 'actionEvents').map(parseActionEvent);
+  if (actionEvents && new Set(actionEvents.map(e => e.id)).size !== actionEvents.length) fail('Duplicate action event ID.');
+  if (!observations.length && !assessments.length && !contexts?.length && !findings?.length && !actionEvents?.length) fail('A record must contain observations, contexts, findings or explicit goal assessments.');
   if (new Set(observations.map(item => item.id)).size !== observations.length) fail('Duplicate observation ID in record.');
   if (new Set(assessments.map(item => item.goalId)).size !== assessments.length) fail('Duplicate goal assessment in record.');
-  return { observations, assessments };
+  if (contexts && new Set(contexts.map(c => c.id)).size !== contexts.length) fail('Duplicate context ID in record.');
+  if (findings && new Set(findings.map(f => f.id)).size !== findings.length) fail('Duplicate finding ID in record.');
+  return { observations, assessments, ...(actionEvents ? { actionEvents } : {}), ...(contexts ? { contexts } : {}), ...(findings ? { findings } : {}) };
 }
 export function parseRecordRequest(value: unknown): RecordRequest {
   assertClosed(value, ['schemaVersion', 'operationId', 'expectedRevision', 'caseId', 'mode', 'record'], 'record request');
-  if (value.schemaVersion !== 5) fail('Record requests require schemaVersion 5.');
-  return { schemaVersion: 5, operationId: safeIdentifier(value.operationId, 'operation ID'), expectedRevision: integer(value.expectedRevision, 'record revision'), caseId: safeIdentifier(value.caseId, 'case ID'), mode: oneOf(value.mode, ['final', 'attempt'], 'record mode'), record: parsePayload(value.record) };
+  if (value.schemaVersion !== 8) fail('Record requests require schemaVersion 8.');
+  return { schemaVersion: 8, operationId: safeIdentifier(value.operationId, 'operation ID'), expectedRevision: integer(value.expectedRevision, 'record revision'), caseId: safeIdentifier(value.caseId, 'case ID'), mode: oneOf(value.mode, ['final', 'attempt'], 'record mode'), record: parsePayload(value.record) };
 }
 export function parseEvidenceRequest(value: unknown): EvidenceRequest {
-  assertClosed(value, ['schemaVersion', 'operationId', 'expectedRevision', 'caseId', 'sourceFile', 'kind', 'capturedAt', 'source', 'description'], 'evidence request');
-  if (value.schemaVersion !== 5) fail('Evidence requests require schemaVersion 5.');
-  return { schemaVersion: 5, operationId: safeIdentifier(value.operationId), expectedRevision: integer(value.expectedRevision, 'evidence revision'), caseId: safeIdentifier(value.caseId), sourceFile: textValue(value.sourceFile, 'sourceFile'), kind: oneOf(value.kind, kindValues, 'evidence kind'), source: textValue(value.source, 'evidence source', { limit: 4096 }), description: textValue(value.description, 'evidence description', { limit: 4096 }), ...(Object.hasOwn(value, 'capturedAt') ? { capturedAt: timeValue(value.capturedAt, 'capturedAt') } : {}) };
+  assertClosed(value, ['schemaVersion', 'operationId', 'expectedRevision', 'caseId', 'sourceFile', 'kind', 'capturedAt', 'source', 'description', 'metadata'], 'evidence request');
+  if (value.schemaVersion !== 8) fail('Evidence requests require schemaVersion 8.');
+  return { schemaVersion: 8, operationId: safeIdentifier(value.operationId), expectedRevision: integer(value.expectedRevision, 'evidence revision'), caseId: safeIdentifier(value.caseId), sourceFile: textValue(value.sourceFile, 'sourceFile'), kind: oneOf(value.kind, kindValues, 'evidence kind'), source: textValue(value.source, 'evidence source', { limit: 4096 }), description: textValue(value.description, 'evidence description', { limit: 4096 }), ...(Object.hasOwn(value, 'capturedAt') ? { capturedAt: timeValue(value.capturedAt, 'capturedAt') } : {}), ...(value.metadata === undefined ? {} : { metadata: parseEvidenceMetadata(value.metadata) }) };
 }
 export function parseManifest(value: unknown): Manifest {
-  assertClosed(value, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256', 'executionFile'], 'manifest');
-  if (value.schemaVersion !== 5 || value.baselineSchemaVersion !== 5) fail('Unsupported run schema version. Only schemaVersion 5 is supported; existing files are not migrated.');
+  assertClosed(value, ['schemaVersion', 'baselineSchemaVersion', 'runId', 'projectDir', 'baselineSha256', 'executionFile', 'regressionBindingFile', 'regressionBindingSha256'], 'manifest');
+  if (value.schemaVersion !== 8 || value.baselineSchemaVersion !== 8) fail('Unsupported run schema version. Only schemaVersion 8 is supported; existing files are not migrated.');
   if (value.executionFile !== 'execution.json') fail('Invalid execution reference.');
-  return { schemaVersion: 5, baselineSchemaVersion: 5, runId: textValue(value.runId, 'run ID'), projectDir: textValue(value.projectDir, 'project directory'), baselineSha256: sha256Value(value.baselineSha256), executionFile: 'execution.json' };
+  if ((value.regressionBindingFile === undefined) !== (value.regressionBindingSha256 === undefined)) fail('Regression binding filename and hash must be supplied together.');
+  if (value.regressionBindingFile !== undefined && value.regressionBindingFile !== 'regression-binding.json') fail('Invalid regression binding reference.');
+  return { schemaVersion: 8, baselineSchemaVersion: 8, runId: textValue(value.runId, 'run ID'), projectDir: textValue(value.projectDir, 'project directory'), baselineSha256: sha256Value(value.baselineSha256), executionFile: 'execution.json', ...(value.regressionBindingFile === undefined ? {} : { regressionBindingFile: 'regression-binding.json', regressionBindingSha256: sha256Value(value.regressionBindingSha256, 'regression binding SHA-256') }) };
 }
 export function parseEvidenceItem(value: unknown): EvidenceItem {
-  assertClosed(value, ['id', 'path', 'caseId', 'kind', 'capturedAt', 'collectedAt', 'source', 'description', 'sha256', 'bytes', 'operationId'], 'evidence item');
-  return { id: safeIdentifier(value.id), path: textValue(value.path, 'evidence path'), caseId: safeIdentifier(value.caseId), kind: oneOf(value.kind, kindValues, 'evidence kind'), collectedAt: timeValue(value.collectedAt, 'collectedAt'), source: textValue(value.source, 'source'), description: textValue(value.description, 'description'), sha256: sha256Value(value.sha256), bytes: integer(value.bytes, 'bytes'), operationId: safeIdentifier(value.operationId), ...(Object.hasOwn(value, 'capturedAt') ? { capturedAt: timeValue(value.capturedAt, 'capturedAt') } : {}) };
+  assertClosed(value, ['id', 'path', 'caseId', 'kind', 'capturedAt', 'collectedAt', 'source', 'description', 'sha256', 'bytes', 'operationId', 'metadata'], 'evidence item');
+  return { id: safeIdentifier(value.id), path: textValue(value.path, 'evidence path'), caseId: safeIdentifier(value.caseId), kind: oneOf(value.kind, kindValues, 'evidence kind'), collectedAt: timeValue(value.collectedAt, 'collectedAt'), source: textValue(value.source, 'source'), description: textValue(value.description, 'description'), sha256: sha256Value(value.sha256), bytes: integer(value.bytes, 'bytes'), operationId: safeIdentifier(value.operationId), ...(Object.hasOwn(value, 'capturedAt') ? { capturedAt: timeValue(value.capturedAt, 'capturedAt') } : {}), ...(value.metadata === undefined ? {} : { metadata: parseEvidenceMetadata(value.metadata) }) };
 }
 function parseEvidenceOperation(value: unknown): EvidenceOperation {
   assertClosed(value, ['operationId', 'payloadSha256', 'revision', 'committedAt', 'caseId', 'evidenceId', 'path', 'sha256', 'bytes'], 'evidence operation');
@@ -77,8 +101,8 @@ function parseEvidenceOperation(value: unknown): EvidenceOperation {
 }
 export function parseCatalog(value: unknown): EvidenceCatalog {
   assertClosed(value, ['schemaVersion', 'revision', 'items', 'operations'], 'evidence catalog');
-  if (value.schemaVersion !== 5) fail('Evidence catalog requires schemaVersion 5.');
-  return { schemaVersion: 5, revision: integer(value.revision, 'evidence revision'), items: arrayValue(value.items, 'evidence items').map(parseEvidenceItem), operations: arrayValue(value.operations, 'evidence operations').map(parseEvidenceOperation) };
+  if (value.schemaVersion !== 8) fail('Evidence catalog requires schemaVersion 8.');
+  return { schemaVersion: 8, revision: integer(value.revision, 'evidence revision'), items: arrayValue(value.items, 'evidence items').map(parseEvidenceItem), operations: arrayValue(value.operations, 'evidence operations').map(parseEvidenceOperation) };
 }
 export function parseResultEntry(value: unknown): ResultEntry {
   assertClosed(value, ['operationId', 'payloadSha256', 'expectedRevision', 'revision', 'recordedAt', 'caseId', 'mode', 'record'], 'result entry');
@@ -86,11 +110,59 @@ export function parseResultEntry(value: unknown): ResultEntry {
 }
 export function parseResults(value: unknown): Results {
   assertClosed(value, ['schemaVersion', 'revision', 'entries'], 'results');
-  if (value.schemaVersion !== 5) fail('Results require schemaVersion 5.');
-  return { schemaVersion: 5, revision: integer(value.revision, 'results revision'), entries: arrayValue(value.entries, 'entries').map(parseResultEntry) };
+  if (value.schemaVersion !== 8) fail('Results require schemaVersion 8.');
+  return { schemaVersion: 8, revision: integer(value.revision, 'results revision'), entries: arrayValue(value.entries, 'entries').map(parseResultEntry) };
 }
 export function parsePendingEvidence(value: unknown): PendingEvidence {
   assertClosed(value, ['schemaVersion', 'operationId', 'payloadSha256', 'evidenceId', 'stagePath', 'finalPath', 'catalogTempPath', 'markerTempPath', 'sha256', 'bytes'], 'pending evidence marker');
-  if (value.schemaVersion !== 5) fail('Pending evidence marker requires schemaVersion 5.');
-  return { schemaVersion: 5, operationId: safeIdentifier(value.operationId), payloadSha256: sha256Value(value.payloadSha256), evidenceId: safeIdentifier(value.evidenceId), stagePath: textValue(value.stagePath, 'stagePath'), finalPath: textValue(value.finalPath, 'finalPath'), catalogTempPath: textValue(value.catalogTempPath, 'catalogTempPath'), markerTempPath: textValue(value.markerTempPath, 'markerTempPath'), ...(value.sha256 === undefined ? {} : { sha256: sha256Value(value.sha256) }), ...(value.bytes === undefined ? {} : { bytes: integer(value.bytes, 'pending bytes') }) };
+  if (value.schemaVersion !== 8) fail('Pending evidence marker requires schemaVersion 8.');
+  return { schemaVersion: 8, operationId: safeIdentifier(value.operationId), payloadSha256: sha256Value(value.payloadSha256), evidenceId: safeIdentifier(value.evidenceId), stagePath: textValue(value.stagePath, 'stagePath'), finalPath: textValue(value.finalPath, 'finalPath'), catalogTempPath: textValue(value.catalogTempPath, 'catalogTempPath'), markerTempPath: textValue(value.markerTempPath, 'markerTempPath'), ...(value.sha256 === undefined ? {} : { sha256: sha256Value(value.sha256) }), ...(value.bytes === undefined ? {} : { bytes: integer(value.bytes, 'pending bytes') }) };
 }
+
+
+export function parseExecutionContext(value: unknown): ExecutionContext { return parseRunContext(value); }
+
+export function parseActionFact(value: unknown): ActionFact {
+  assertClosed(value, ['id', 'description', 'input', 'result', 'planRefs', 'evidenceIds', 'occurredAt'], 'action fact');
+  return { id: safeIdentifier(value.id, 'action ID'), description: textValue(value.description, 'actual action'), planRefs: uniqueStrings(value.planRefs, 'action plan references'), evidenceIds: uniqueStrings(value.evidenceIds, 'action evidence', true),
+    ...(value.input === undefined ? {} : { input: textValue(value.input, 'action input') }), ...(value.result === undefined ? {} : { result: textValue(value.result, 'action result') }),
+    ...(value.occurredAt === undefined ? {} : { occurredAt: timeValue(value.occurredAt, 'action occurredAt') }) };
+}
+export function parseEvidenceLink(value: unknown): EvidenceLink {
+  assertClosed(value, ['evidenceId', 'purpose', 'fact', 'actionId', 'limitations'], 'evidence link');
+  return { evidenceId: safeIdentifier(value.evidenceId, 'linked evidence'), purpose: textValue(value.purpose, 'evidence purpose'), fact: textValue(value.fact, 'supported fact'), limitations: strings(value.limitations, 'evidence limitations'), ...(value.actionId === undefined ? {} : { actionId: safeIdentifier(value.actionId, 'linked action') }) };
+}
+export function parsePhenomenon(value: unknown): Phenomenon {
+  assertClosed(value, ['id', 'title', 'actual', 'observationIds', 'evidenceIds', 'limitations'], 'phenomenon');
+  return { id: safeIdentifier(value.id, 'phenomenon ID'), title: textValue(value.title, 'phenomenon title'), actual: textValue(value.actual, 'phenomenon actual'), observationIds: uniqueStrings(value.observationIds, 'phenomenon observations', true), evidenceIds: uniqueStrings(value.evidenceIds, 'phenomenon evidence', true), limitations: strings(value.limitations, 'phenomenon limitations') };
+}
+export function parseGapDetail(value: unknown): GapDetail {
+  assertClosed(value, ['kind', 'missing', 'impact', 'nextStep'], 'gap detail');
+  return { kind: oneOf(value.kind, ['record', 'evidence', 'environment', 'authorization', 'requirement'], 'gap kind'), missing: textValue(value.missing, 'missing fact'), impact: textValue(value.impact, 'gap impact'), ...(value.nextStep === undefined ? {} : { nextStep: textValue(value.nextStep, 'gap next step') }) };
+}
+export function parseReproduction(value: unknown): ReproductionPreparation {
+  assertClosed(value, ['preparation', 'limitations', 'objectState', 'repeatability'], 'reproduction preparation');
+  return { preparation: strings(value.preparation, 'reproduction preparation'), limitations: strings(value.limitations, 'reproduction limitations'), objectState: textValue(value.objectState, 'object state'), repeatability: textValue(value.repeatability, 'repeatability') };
+}
+export function parseFinding(value: unknown): Finding {
+  assertClosed(value, ['id', 'title', 'goalIds', 'observationIds', 'evidenceIds', 'relationReason', 'reviewState', 'scope'], 'finding');
+  return { id: safeIdentifier(value.id, 'finding ID'), title: textValue(value.title, 'finding title'), goalIds: uniqueStrings(value.goalIds, 'finding goals', true), observationIds: uniqueStrings(value.observationIds, 'finding observations', true), evidenceIds: uniqueStrings(value.evidenceIds, 'finding evidence', true), relationReason: textValue(value.relationReason, 'finding relation reason'), reviewState: oneOf(value.reviewState, ['proposed', 'reviewed'], 'finding review state'), scope: oneOf(value.scope, ['original', 'additional'], 'finding scope') };
+}
+export function parseEvidenceMetadata(value: unknown): EvidenceMetadata {
+  assertClosed(value, ['mediaType', 'encoding', 'scope', 'page', 'object', 'purpose', 'limitations', 'contextEvidenceIds', 'contentState', 'redaction', 'omissionReason', 'width', 'height'], 'evidence metadata');
+  const result: EvidenceMetadata = {};
+  for (const field of ['mediaType', 'encoding', 'page', 'object', 'purpose', 'redaction', 'omissionReason'] as const) if (value[field] !== undefined) result[field] = textValue(value[field], 'evidence ' + field, { limit: 4096 });
+  if (value.scope !== undefined) result.scope = oneOf(value.scope, ['page', 'viewport', 'element', 'document', 'unknown'], 'evidence scope');
+  if (value.contentState !== undefined) result.contentState = oneOf(value.contentState, ['full', 'selected_fields', 'summary', 'truncated', 'excluded', 'failed', 'unknown'], 'evidence content state');
+  if (value.limitations !== undefined) result.limitations = strings(value.limitations, 'evidence limitations');
+  if (value.contextEvidenceIds !== undefined) result.contextEvidenceIds = uniqueStrings(value.contextEvidenceIds, 'context evidence IDs', true);
+  if (value.width !== undefined) result.width = integer(value.width, 'evidence width', 1);
+  if (value.height !== undefined) result.height = integer(value.height, 'evidence height', 1);
+  if ((result.width === undefined) !== (result.height === undefined)) fail('Evidence dimensions require both width and height.');
+  if (['truncated', 'excluded', 'failed'].includes(result.contentState ?? '') && !result.omissionReason) fail('Incomplete evidence content requires an omission reason.');
+  return result;
+}
+
+/** Every new fact relation participates in packet mapping and ownership checks. */
+export function payloadEvidenceIds(payload: RecordPayload): string[] { return recordEvidenceIds(payload); }
+export function mapPayloadEvidence(payload: RecordPayload, map: (id: string) => string): RecordPayload { return mapRecordEvidence(payload,map); }

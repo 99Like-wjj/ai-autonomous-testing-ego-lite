@@ -4,13 +4,35 @@
 
 The AI interprets goals and judges business outcomes, Ego operates the browser, and local tools retain evidence and deliver reports.
 
-![Evolution: v0.1.2 business steps and acceptance questions; v0.1.3 evidence-rich delivery; v0.1.4 configurable concurrency; v0.1.5 guidance for resource clarification. Illustration, not execution evidence.](images/version-history.png)
+![Newest first: v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
+
+## v0.1.7 · Report reading, resource clarification and regression reuse
+
+The current `0.1.7 / report-step-evidence-1` release uses schema v8. It integrates whole-scope resource communication, first-run tasks/rules, independent run binding and goal comparisons. The [scheme-B reader](v0.1.7-step-evidence.md) places actual steps beside evidence, retaining all goals, expectations and history without inventing execution or changing outcomes. The [v0.1.7 preview](v0.1.7-preview.md) remains historical; broader quality evaluation is not claimed complete.
+
+Branch verification, documentation/image changes and review gates: [cloud review](v0.1.7-cloud-review.md). 2026-10-31: [release, full package and checksums](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7). See [release validation](v0.1.7-release-validation.md).
 
 ## v0.1.6 · Experience, goal assessment and network observation
 
-2026-10-29: [release and full package](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). Separate design/execution experience, unified v5 goal records and reports, scoped native observation and host handoff guidance. Old formats are rejected without conversion; historical files remain unchanged. See [release validation (Chinese)](v0.1.6-release-validation.md). The image above retains the historical v0.1.2–v0.1.5 overview.
+2026-10-29: [release and full package](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.6). Separate design/execution experience, unified v5 goal records and reports, scoped native observation and host handoff guidance. Old formats are rejected without conversion; historical files remain unchanged. See [release validation (Chinese)](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-release-validation.md).
 
-See the planned [v0.1.7 preview (Chinese)](v0.1.7-preview.md).
+v0.1.6 also concretized design/execution topics and misjudgment examples, shared observations/assessments across serial and parallel records, retained attempts during incremental goal updates, separated outcomes from causes, handled network content/capacity/stop/handoff and fixed linked CLI startup. Engineering, synthetic and isolated browser checks keep distinct coverage; one owner trial is not general business or host acceptance.
+
+### v0.1.6 detailed capabilities and validation sources
+
+v0.1.6 delivered more than experience documentation: goal assessment, unified serial/parallel records, native network observation and the linked CLI/host handoff fix. The current version continues these capabilities. v0.1.6 used schema v5; the current v0.1.7 v8 contract is not attributed retroactively to that release.
+
+- Stage-specific design and execution experience: concise stable indexes and concrete scenarios for prerequisites, data relationships, boundaries/roles, unknown submissions, drag/download, asynchronous observations and recovery risks. Navigation checks and semantic exercises support human-maintained, read-only guidance; there is no RAG, automatic learning or fixed business route.
+
+- Cases group related workflows; source-backed goals hold independently assessable expectations. Steps, conditions and paths retain necessary semantics without becoming extra business goals.
+- Serial record and reviewed worker import write the same observations/assessments/entries. Serial reporting does not require fabricated assignments or packets.
+- Four explicit outcomes are verified, violation, inconclusive and not_tested. Missing assessments are visibly separate recording gaps, never defaulted to inconclusive.
+- Outcomes and causes are separate. Sufficient evidence of a violation can coexist with an unknown cause; uncertainty about the actual action or result is stated specifically.
+- Parent scenarios show goal distributions. final updates submitted goals incrementally; attempt preserves history. Follow-up links do not overwrite original anomalies or old conclusions.
+- Scoped native network observation records authorized Fetch/XHR, SSE and WebSocket content in a separate Ego context, with queries, content/capacity handling, stop and handoff. It never replays business requests or treats HTTP success as business acceptance.
+- The linked CLI entrypoint executes correctly. Host guidance covers real workers, accessible context, permissions, in-flight handles, total active capacity and run-wide packet identifiers. No fixed host dispatcher or general live-host acceptance is implied.
+
+See the source-backed records for [experience development and expansion](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-development-validation.md), [goal assessment](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-goal-assessment-validation.md), [network observation](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-network-validation.md), [host-fix integration](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-cross-host-integration.md) and [release closeout](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/blob/v0.1.6/docs/v0.1.6-release-validation.md). Engineering checks, synthetic exercises, isolated browser observations and the owner's single local trial keep their separate validation limits.
 
 ## v0.1.5 · Resource clarification
 

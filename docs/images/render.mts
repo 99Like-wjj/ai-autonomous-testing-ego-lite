@@ -34,20 +34,50 @@ export async function generateImages(outputDir: string) {
   for (const zh of [false, true]) {
     const suffix = (zh ? ".zh-CN" : "");
     const t = (en: string, cn: string): string => zh ? cn : en;
-    let p = start(t("AI Autonomous Testing · Ego Lite", "AI 自主自动化测试 · Ego Lite"), 540);
-    p.push(...[text(54, 64, t("AI AUTONOMOUS TESTING / EGO LITE", "AI 自主自动化测试 / EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test new features.", "新功能首次交付，"), 48, "text", 700), text(54, 198, t("Let AI plan the checks.", "让 AI 自主规划测试。"), 48, "text", 700), text(56, 246, t("New web projects and feature launches. Rules, actions, and evidence.", "面向新项目上线前、新功能交付时的 Web 业务验证"), 20, "muted")]);
-    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW", "03  核验与交付"), 16, "cyan", 700), text(835, 370, t("Evidence + verdict", "证据与结论"), 23), text(835, 403, t("Show gaps and evidence", "说明证据与未验证项"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.6  /  RELEASED · SEE VALIDATION SCOPE", "版本 0.1.6  /  正式版，验证范围见文档"), 16, "muted")]);
+    let p = start(t('AI leads. Tools provide capabilities.', 'AI 主导测试，工具提供能力。'), 900, 1400);
+    p.push(text(60, 65, t('DESIGN PHILOSOPHY', '设计理念'), 20, 'cyan', 700));
+    p.push(text(60, 121, t('AI leads. Tools provide capabilities.', 'AI 主导测试，工具提供能力。'), 46, 'text', 700));
+    p.push(text(60, 161, t('Fixed requirements. Open methods. No fixed business decision tree.', '固定要求，开放方法；不把业务测试写成固定决策树。'), 24, 'muted'));
+    p.push(rect(290, 205, 820, 68, 'panel', 'violet'));
+    p.push(text(zh ? 516 : 420, 248, t('Goals · Acceptance criteria · Authorization', '需求目标 · 验收标准 · 授权边界'), 26, 'violet', 700));
+    p.push(line(700, 283, 700, 316), rect(330, 330, 740, 170, 'panel', 'cyan'));
+    p.push(text(zh ? 592 : 564, 381, t('AI leads testing', 'AI 主导测试'), 36, 'cyan', 700));
+    p.push(text(zh ? 425 : 372, 424, t('Understand · Design · Explore · Evaluate evidence', '理解需求 · 设计用例 · 自主探索 · 判断结果'), zh ? 25 : 24));
+    p.push(text(zh ? 424 : 371, 465, t('Choose tools, combine capabilities, adapt to real evidence', '选择工具、组合能力，并根据真实证据调整方法'), zh ? 23 : 22, 'muted'));
+    p.push(line(700, 518, 700, 554), line(700, 550, 700, 514));
+    p.push(text(730, 544, t('On-demand calls ↔ factual feedback', '按需调用 ↔ 事实反馈'), 19, 'cyan'));
+    p.push('<path d="M170 575 H1230" stroke="#293957" stroke-width="2" fill="none"/>');
+    const capabilities = [
+      [t('Browser actions', '浏览器操作'), t('Ego native tools', 'Ego 原生能力'), t('Read pages and act', '读取页面与执行动作')],
+      [t('Records & evidence', '记录与证据'), t('Project toolbox', '本项目工具'), t('Retain facts and links', '保存事实与证据关联')],
+      [t('Network observation', '接口观测'), t('Project toolbox', '本项目工具'), t('Scoped capture / query', '按授权采集与查询')],
+      [t('Regression assets', '回归资料'), t('Project toolbox', '本项目工具'), t('Tasks, rules, comparison', '任务 / 规则与运行比较')],
+      [t('Report generation', '报告生成'), t('Project toolbox', '本项目工具'), t('Present facts / evidence', '组织事实、证据与结果')]
+    ];
+    for (const [i, rows] of capabilities.entries()) {
+      const x = 50 + i * 265, cx = x + 120;
+      p.push(line(cx, 587, cx, 618), line(cx, 614, cx, 583), rect(x, 635, 240, 136));
+      p.push(text(x + (zh ? 66 : 16), 674, rows[0]!, zh ? 26 : 18, i === 0 ? 'cyan' : 'violet', 700));
+      p.push(text(x + (zh ? 60 : 44), 711, rows[1]!, 20, 'muted'));
+      p.push(text(x + (zh ? 30 : 16), 747, rows[2]!, zh ? 18 : 17));
+    }
+    p.push(text(zh ? 308 : 170, 817, t('Tools handle actions and records; AI owns business routes and judgments.', '工具做好具体操作与确定性记录，不替 AI 选择业务路线或判定业务正确性。'), zh ? 23 : 25, 'muted'));
+    p.push(text(zh ? 365 : 214, 862, t('Adapt methods, not goals, dependencies, acceptance criteria or authorization.', '方法可以调整，目标、必要依赖、验收标准与授权不能擅自改变。'), 23));
+    await save(outputDir, ('design-philosophy' + suffix), p, png);
+    p = start(t("AI Autonomous Testing · Ego Lite", "AI 自主自动化测试 · Ego Lite"), 540);
+    p.push(...[text(54, 64, t("AI AUTONOMOUS TESTING / EGO LITE", "AI 自主自动化测试 / EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test. Review. Reuse.", "从首次测试，"), 48, "text", 700), text(54, 198, t("Let AI choose the method.", "到有依据的回归。"), 48, "text", 700), text(56, 246, t("New features and regression. Fixed goals, adaptive AI execution.", "AI 自主规划与执行，保留规则、事实和每轮证据"), 20, "muted")]);
+    p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements and cases", "需求、业务规则与用例"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW + REUSE", "03  审阅与复用"), 16, "cyan", 700), text(835, 370, t("Evidence + regression", "证据与回归资料"), 23), text(835, 403, t("New run, fresh evidence", "独立新运行，重新核验"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("0.1.7  /  STABLE RELEASE", "版本 0.1.7  /  正式版本"), 16, "muted")]);
     await save(outputDir, ("hero" + suffix), p, png);
     p = start(t("Who owns what?", "谁负责什么？"), 650);
     p.push(...[text(50, 65, t("AI decides. Ego operates. Tools keep records.", "AI 做判断，Ego 做操作，工具管记录。"), 35, "text", 700), text(50, 103, t("Use the current AI session and Ego. No extra model API service.", "复用当前 AI 会话和 Ego 浏览器，不另建模型 API 服务。"), 20, "muted")]);
-    const cards: [number, string, string, string[], string][] = [[430, "02", t("Current AI session", "当前 AI 会话"), [t("Interprets the requirement", "理解测试需求"), t("Plans and adapts tests", "规划测试并调整操作"), t("Evaluates evidence", "判断证据是否充分")], "cyan"], [50, "01", t("Our Skill + test inputs", "本项目 Skill + 测试资料"), [t("Boundaries and acceptance", "授权边界与验收条件"), t("Requirements, rules, cases", "需求、业务规则与用例"), t("Flexible workflow guidance", "可灵活调整的流程指南")], "violet"], [810, "03", t("Ego native tools", "Ego 原生浏览器能力"), [t("Reads the current page", "读取当前页面"), t("Performs browser actions", "执行浏览器操作"), t("Returns page state", "返回页面信息与截图")], "cyan"]];
+    const cards: [number, string, string, string[], string][] = [[430, "02", t("Current AI session", "当前 AI 会话"), [t("Interprets the requirement", "理解测试需求"), t("Plans and adapts tests", "规划测试并调整操作"), t("Evaluates evidence", "判断证据是否充分")], "cyan"], [50, "01", t("Our Skill + test inputs", "本项目 Skill + 测试资料"), [t("Boundaries and acceptance", "授权边界与验收条件"), t("Requirements, rules, cases", "需求、业务规则与用例"), t("Task/rule revisions + guidance", "任务 / 规则修订与流程指南")], "violet"], [810, "03", t("Ego native tools", "Ego 原生浏览器能力"), [t("Reads the current page", "读取当前页面"), t("Performs browser actions", "执行浏览器操作"), t("Returns page state", "返回页面信息与截图")], "cyan"]];
     for (const [x, n, head, rows, col] of cards) {
       p.push(...[rect(x, 150, 340, 268), text((x + 24), 192, n, 20, col, 700), text((x + 24), 236, head, 22, "text", 700)]);
       p.push(...rows.map((r, i) => text((x + 24), (284 + (i * 38)), r, 19, "muted")));
     }
-    p.push(...[line(390, 276, 428, 276), line(770, 260, 808, 260), line(808, 302, 770, 302), text(78, 444, t("Supplies rules and goals →", "提供规则与测试目标 →"), 16, "violet"), text(454, 444, t("Choose actions ↔ inspect results", "选择操作 ↔ 读取结果"), 16, "cyan"), rect(50, 462, 1100, 130), text(78, 503, t("Our local toolbox records evidence and builds reports.", "本项目工具箱：登记证据、保存结果、生成报告。"), 23, "cyan", 700), text(78, 543, t("File checks do not decide whether a business feature is correct.", "工具校验文件和记录，不替 AI 判定业务是否正确。"), 21), text(78, 574, t("A successful click is not proof that the requirement was met.", "操作成功不等于测试通过，仍需对照预期核验结果。"), 18, "muted")]);
+    p.push(...[line(390, 276, 428, 276), line(770, 260, 808, 260), line(808, 302, 770, 302), text(78, 444, t("Supplies rules and goals →", "提供规则与测试目标 →"), 16, "violet"), text(454, 444, t("Choose actions ↔ inspect results", "选择操作 ↔ 读取结果"), 16, "cyan"), rect(50, 462, 1100, 130), text(78, 503, t("Local tools: evidence, task revisions, comparisons and reports.", "工具箱：证据与事实、回归资料、比较及报告。"), 23, "cyan", 700), text(78, 543, t("File checks do not decide whether a business feature is correct.", "工具校验文件和记录，不替 AI 判定业务是否正确。"), 21), text(78, 574, t("A successful click is not proof that the requirement was met.", "操作成功不等于测试通过，仍需对照预期核验结果。"), 18, "muted")]);
     await save(outputDir, ("architecture" + suffix), p, png);
-    p = start(t("Adaptive test workflow", "自适应测试流程"), 780);
+    p = start(t("Adaptive test workflow", "自适应测试流程"), 1000);
     p.push(...[text(50, 65, t("Stable goals. Flexible execution.", "目标和规则不变，操作方法灵活调整。"), 34, "text", 700), text(50, 103, t("Two input sources. One case format. New features and regression.", "两种用例来源，一套格式；共同用于新功能与回归验证。"), 20, "muted")]);
     p.push(...[rect(50, 130, 535, 84), text(70, 162, t("External cases → validate format", "接收已有用例 → 校验格式"), 21, "cyan", 700), text(70, 193, t("Business steps + source-backed goals", "业务步骤 + 有依据的独立目标"), 17, "muted"), rect(615, 130, 535, 84), text(635, 162, t("AI drafts cases → validate format", "AI 根据需求生成用例 → 校验格式"), 21, "violet", 700), text(635, 193, t("Business steps, not invented buttons", "描述业务步骤，不编造按钮和页面细节"), 17, "muted"), "<g transform=\"translate(0 120)\">"]);
     const heads = [t("Observe", "观察"), t("Decide", "判断"), t("Act", "行动"), t("Verify", "验证")];
@@ -62,10 +92,35 @@ export async function generateImages(outputDir: string) {
     p.push(...["<path d=\"M1027,324 V368 H173 V324\" fill=\"none\" stroke=\"#ae91ff\" stroke-width=\"2\"/>", text(345, 400, t("AI may gather more evidence or report uncertainty.", "证据不足时，由 AI 决定补充验证或说明无法判断。"), 21, "violet")]);
     p.push(...[rect(50, 443, 1100, 172), text(78, 484, t("Account for every test goal", "每个测试目标，都要有交代"), 24, "cyan", 700), text(78, 524, t("Separate verified, violation, inconclusive and not tested.", "分别说明已验证、发现违反、无法判断和未测试。"), 20), text(78, 558, t("Clarify missing accounts, data or permission; independent goals may continue.", "缺少账号、数据或授权，主动澄清；独立目标可继续。"), 18, "muted"), text(78, 590, t("Verify supplied resources before resuming; keep acceptance questions separate.", "补充后核验再恢复；验收和资源问题分别处理。"), 18, "muted")]);
     p.push(...["</g>"]);
+    p.push(rect(50, 770, 1100, 165, 'panel', 'violet'));
+    p.push(text(78, 807, t('Reuse facts, never freeze defects as expectations.', '复用事实，不把缺陷固化成正确预期。'), 25, 'violet', 700));
+    p.push(text(78, 847, t('Status selection → whole scenarios  |  Full → declared complete set', '按历史状态选整条场景  |  全量选择明确测试集，保留受阻与缺口'), 22));
+    p.push(text(78, 883, t('Verify current conditions → new run → fresh evidence → compare', '核验本轮条件与授权 → 独立新运行 → 新证据 → 有依据地比较'), 21, 'muted'));
+    p.push(text(78, 915, t('AI chooses actions. Unknown side effects are not automatically replayed.', 'AI 自主选择方法；未知副作用先核对，不自动重放。'), 19, 'muted'));
+    p.push(text(50, 974, t('0.1.7 / Capability guide, not a mandatory execution sequence.', '0.1.7 / 能力示意，非强制执行顺序。'), 17, 'muted'));
     await save(outputDir, ("workflow" + suffix), p, png);
-    p = start(t("Illustrative evidence specimen, not a real run", "证据展示示意，非真实运行结果"), 620);
-    p.push(...[text(50, 59, t("ILLUSTRATION / NOT A REAL TEST", "报告内容示意 / 非真实测试结果"), 18, "violet", 700), text(50, 109, t("Show why the result is supported.", "不只告诉你结果，还要说清判断依据。"), 33, "text", 700), rect(50, 145, 1100, 395), text(78, 190, t("CASE  /  Filter products by category", "用例 / 按分类筛选商品"), 24, "text", 700), text(78, 228, t("Expected: visible results belong to the selected category.", "预期：当前展示的商品都属于所选分类。"), 20, "muted")]);
-    p.push(...[rect(78, 261, 500, 188, "bg"), text(100, 300, t("OBSERVED", "实际观察"), 15, "cyan", 700), text(100, 342, t("The result list is visible.", "结果列表已显示。"), 23), text(100, 381, t("Visible categories match the selection.", "当前商品分类与筛选条件一致。"), 20, "muted"), text(100, 418, t("Evidence: saved page capture, if available", "证据：对应页面截图（如已保存）"), 17, "muted"), rect(602, 261, 520, 188, "bg"), text(624, 300, t("NOT COVERED", "本次未覆盖"), 15, "violet", 700), text(624, 342, t("Database consistency.", "数据库内容是否一致。"), 23), text(624, 381, t("Results on other pages.", "其他分页中的商品。"), 20, "muted"), text(624, 418, t("No evidence → no wider claim", "没有证据，不扩大结论"), 17, "muted"), text(78, 496, t("Scope: visible results only; do not infer untested behavior.", "结论范围：仅针对当前可见结果，不推断未测试部分。"), 22, "cyan"), text(50, 583, t("Synthetic design specimen only. No product execution, screenshot, or benchmark is represented.", "仅为人工设计示意，不代表产品实测、真实截图或基准测试。"), 17, "muted")]);
+    p = start(t('Scheme B report reading — illustration', '方案 B 报告阅读 — 能力示意'), 760);
+    p.push(text(50, 52, t('0.1.7 / SCHEMATIC, NOT A REAL REPORT SCREENSHOT', '0.1.7 / 布局示意，非真实报告截图'), 18, 'violet', 700));
+    p.push(text(50, 103, t('Start with the issue. Read steps beside evidence.', '先看问题与预期，再对照实际步骤和证据。'), 32, 'text', 700));
+    p.push(rect(50, 134, 1100, 120));
+    p.push(text(76, 174, t('Issue: a result belongs to another category.', '问题：筛选结果中出现了其他分类的商品。'), 25, 'text', 700));
+    p.push(text(76, 215, t('Expected: all visible results match the selected category.', '原预期：当前可见商品均属于所选分类。'), 21, 'muted'));
+    p.push(rect(50, 278, 530, 280), rect(602, 278, 548, 280));
+    p.push(text(76, 318, t('ACTUAL STEPS / ONE SELECTED GOAL', '实际步骤 / 当前选中目标'), 20, 'cyan', 700));
+    p.push(text(76, 364, t('1. Select category A.', '1. 选择分类 A。'), 23));
+    p.push(rect(70, 385, 490, 85, 'bg', 'violet'));
+    p.push(text(88, 419, t('2. Inspect visible results.', '2. 读取当前结果。'), 23, 'violet', 700));
+    p.push(text(88, 451, t('One item is category B.', '发现一条分类 B 的商品。'), 20));
+    p.push(text(76, 514, t('No plan is invented as an actual step.', '不把计划步骤补成实际经过。'), 19, 'muted'));
+    p.push(text(628, 318, t('EVIDENCE FOR THE SELECTED STEP', '所选步骤的证据'), 20, 'cyan', 700));
+    p.push(rect(628, 342, 496, 128, 'bg'));
+    p.push(text(650, 388, t('Page capture / supporting text', '页面截图 / 支持材料'), 23));
+    p.push(text(650, 428, t('Illustrative placeholder — not evidence', '示意占位，不是真实证据'), 20, 'muted'));
+    p.push(text(628, 514, t('Shared material and gaps stay explicit.', '共享资料、关联范围及缺口明确说明。'), 19, 'muted'));
+    p.push(rect(50, 582, 1100, 104));
+    p.push(text(76, 622, t('Scope disclosures ▸ task/rule details ▸ original records and history', '范围说明 ▸ 任务 / 规则明细 ▸ 原始记录与历史'), 22, 'cyan'));
+    p.push(text(76, 660, t('Reader notes organize sourced facts; they never rewrite business outcomes.', '阅读整理仅组织有来源的事实，不改写业务四态。'), 20, 'muted'));
+    p.push(text(50, 733, t('Synthetic illustration only. No real product execution or benchmark is claimed.', '纯合成示意；不代表真实产品执行、缺陷或基准测试。'), 18, 'muted'));
     await save(outputDir, ("result-specimen" + suffix), p, png);
     p = start(t("Configurable parallel testing", "可配置的并行测试"), 580);
     p.push(text(50, 62, t("AI coordinates. Workers deliver evidence.", "AI 自主协调，分例执行，证据汇总。"), 34, "text", 700));
@@ -84,32 +139,27 @@ export async function generateImages(outputDir: string) {
     }
     p.push(text(50, 454, t("Toolbox records state; it does not schedule business actions or decide bugs.", "工具记录状态与文件，不替 AI 调度业务动作或判断缺陷。"), 20, "cyan"));
     p.push(text(50, 498, t("Spaces do not guarantee separate accounts or backend data.", "Space 不等于账号隔离或后端数据隔离；并发上限不保证跑满。"), 19, "muted"));
-    p.push(text(50, 542, t("v0.1.4  /  Design illustration, not execution evidence", "v0.1.4  /  设计示意，非实际测试证据"), 16, "muted"));
+    p.push(text(50, 542, t("0.1.7  /  Retained concurrency model · Illustration only", "0.1.7  /  沿用并发模型；能力示意，非实测证据"), 16, "muted"));
     await save(outputDir, ("parallel" + suffix), p, png);
 
-    p = start(t("Version history — capability illustration", "版本演变 — 能力示意，非测试截图"), 1110, 840);
-    p.push(text(48, 72, t("How the Skill evolves", "每次更新，解决什么问题？"), 38, "text", 700));
-    p.push(text(48, 111, t("Released history · Times in Asia/Shanghai", "已发布历史 · 发布时间为北京时间"), 23, "muted"));
-    const versions = [
-      { y: 148, version: "v0.1.2", state: t("PRERELEASE · 10-22", "预发布 · 10-22"), title: t("Business-intent steps", "业务步骤与验收澄清"), rows: [t("Actions describe the business goal.", "步骤表达业务意图"), t("Unclear acceptance stays unresolved.", "验收不清，保留待确认")] },
-      { y: 357, version: "v0.1.3", state: t("RELEASED · 10-23", "正式版 · 10-23"), title: t("Evidence-rich delivery", "证据与报告完整交付"), rows: [t("Keep evidence and earlier attempts.", "留存证据与历史观察"), t("HTML / JSON / Markdown", "HTML / JSON / Markdown")] },
-      { y: 566, version: "v0.1.4", state: t("RELEASED · 10-24", "正式版 · 10-24"), title: t("Configurable concurrency", "可配置并发与协调复核"), rows: [t("Workers deliver; AI reviews goals.", "分例交付，逐目标复核"), t("Serial by default. Spaces are not isolation.", "默认串行，Space 不保证隔离")] }
+    p = start(t('Version history — newest first', '版本演变 — 最新版本在前'), 950, 840);
+    p.push(text(48, 65, t('Developed versions, newest first', '已开发版本，最新在前'), 34, 'text', 700));
+    const historyVersions = [
+      { version: 'v0.1.7', state: t('RELEASED', '正式发布'), title: t('Report reading + regression reuse', '报告阅读、资源澄清与回归复用') },
+      { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') },
+      { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
+      { version: 'v0.1.4', state: t('RELEASED', '正式版'), title: t('Configurable concurrency', '可配置并发与协调复核') },
+      { version: 'v0.1.3', state: t('RELEASED', '正式版'), title: t('Evidence-rich delivery', '证据与报告完整交付') },
+      { version: 'v0.1.2', state: t('PRERELEASE', '预发布'), title: t('Business-intent steps', '业务步骤与验收澄清') }
     ];
-    p.push(line(67, 186, 67, 735));
-    for (const v of versions) {
-      p.push(`<circle cx="67" cy="${v.y + 37}" r="9" fill="#61e6ed"/>`, rect(100, v.y, 692, 186));
-      p.push(text(126, v.y + 38, v.version, 29, "cyan", 700), text(446, v.y + 36, v.state, 21, "muted"));
-      p.push(text(126, v.y + 82, v.title, 31, "text", 700));
-      p.push(...v.rows.map((row, i) => text(126, v.y + 123 + i * 34, row, 25, "muted")));
+    for (const [i, v] of historyVersions.entries()) {
+      const y = 100 + i * 130, color = i === 0 ? 'violet' : 'cyan';
+      p.push(rect(48, y, 744, 112, 'panel', color));
+      p.push(text(72, y + 35, v.version, 26, color, 700), text(430, y + 34, v.state, 20, 'muted'));
+      p.push(text(72, y + 80, v.title, 27, 'text', 700));
     }
-    p.push(text(48, 805, t("v0.1.5 · RELEASE", "v0.1.5 · 正式版本"), 24, "violet", 700));
-    p.push(rect(48, 830, 744, 200, "panel", "violet").replace("/>", ' stroke-dasharray="8 6"/>'));
-    p.push(text(74, 874, "v0.1.5", 32, "violet", 700));
-    p.push(text(74, 918, t("Clarify missing resources", "资源不足，主动澄清"), 32, "text", 700));
-    p.push(text(74, 960, t("Pause affected actions; verify before resuming.", "暂停依赖动作，补充后核验"), 25, "muted"));
-    p.push(text(74, 997, t("Scoped checks verified; broader use untested.", "限定场景已验证，广泛场景待验证"), 25, "muted"));
-    p.push(text(48, 1075, t("Illustration only. See version cards for limits.", "仅为能力示意；升级影响和验证限制见版本介绍"), 23, "muted"));
-    await save(outputDir, ("version-history" + suffix), p, png);
+    p.push(text(48, 914, t('Capability illustration only. See documents for scope and limits.', '仅为能力示意；验证范围与升级影响见对应版本说明。'), 19, 'muted'));
+    await save(outputDir, ('version-history' + suffix), p, png);
 
     // Chronological source; append future versions here, never trim the full history.
     const readmeVersions = readmeVersionWindow([
@@ -117,12 +167,13 @@ export async function generateImages(outputDir: string) {
       { version: 'v0.1.3', state: t('RELEASED', '正式版'), title: t('Evidence-rich delivery', '证据与报告完整交付') },
       { version: 'v0.1.4', state: t('RELEASED', '正式版'), title: t('Configurable concurrency', '可配置并发与协调复核') },
       { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
-      { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') }
-    ]);
+      { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') },
+      { version: 'v0.1.7', state: t('RELEASED', '正式发布'), title: t('Report reading + reusable regression', '报告阅读、资源澄清与回归复用') }
+    ]).reverse();
     p = start(t('Latest four versions — README overview', '最近四个版本 — README 概览'), 650, 840);
-    p.push(text(48, 65, t('Latest + three previous versions', '最新版本与前三个历史版本'), 32, 'text', 700));
+    p.push(text(48, 65, t('Latest release + three previous versions', '最新正式版与前三个历史版本'), 32, 'text', 700));
     for (const [i, v] of readmeVersions.entries()) {
-      const y = 100 + i * 122, color = i === readmeVersions.length - 1 ? 'violet' : 'cyan';
+      const y = 100 + i * 122, color = i === 0 ? 'violet' : 'cyan';
       p.push(rect(48, y, 744, 106, 'panel', color));
       p.push(text(72, y + 34, v.version, 25, color, 700), text(430, y + 33, v.state, 19, 'muted'));
       p.push(text(72, y + 78, v.title, 27, 'text', 700));
@@ -132,7 +183,7 @@ export async function generateImages(outputDir: string) {
 
 
   }
-  return { outputDir, svgFiles: 14, pngFiles: png ? 14 : 0, pngExport: png ? 'exported' : 'not_available_inkscape_missing' };
+  return { outputDir, svgFiles: 16, pngFiles: png ? 16 : 0, pngExport: png ? 'exported' : 'not_available_inkscape_missing' };
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.length !== 4 || process.argv[2] !== '--output-dir' || !process.argv[3]) throw new Error('Use --output-dir ABS_NEW_IMAGE_DIRECTORY.');

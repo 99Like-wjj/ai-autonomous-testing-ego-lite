@@ -15,6 +15,7 @@
     "tools/synthetic-server.mts",
     "tools/observation-fixture.mts",
     "tools/network-fixture.mts",
+    "tools/report-v017-fixture.mts",
     "docs/images/render.mts"
   ]
 }

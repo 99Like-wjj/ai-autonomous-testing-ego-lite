@@ -1,0 +1,32 @@
+{
+  "regressionVersion": 1,
+  "left": {
+    "runDir": "C:\\SyntheticOnly\\replace-with-source-run",
+    "runId": "synthetic-source-run",
+    "baselineSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "resultsRevision": 1,
+    "resultsSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "right": {
+    "runDir": "C:\\SyntheticOnly\\replace-with-new-run",
+    "runId": "synthetic-new-run",
+    "baselineSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "resultsRevision": 1,
+    "resultsSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "mappings": [
+    {
+      "id": "synthetic-goal-mapping",
+      "left": {
+        "caseId": "synthetic-case",
+        "goalId": "saved-value"
+      },
+      "right": {
+        "caseId": "synthetic-case",
+        "goalId": "saved-value"
+      },
+      "reason": "SYNTHETIC TEMPLATE ONLY: replace with an explicit, evidence-backed mapping and exact source receipts; these placeholders cannot be executed."
+    }
+  ],
+  "comparability": []
+}

@@ -1,8 +1,61 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export type EgoLiteExecutionRequestV5 =
+export type EvidenceMetadata = {
+  mediaType?: string;
+  encoding?: string;
+  scope?: 'page' | 'viewport' | 'element' | 'document' | 'unknown';
+  page?: string;
+  object?: string;
+  purpose?: string;
+  limitations?: string[];
+  contextEvidenceIds?: string[];
+  contentState?: 'full' | 'selected_fields' | 'summary' | 'truncated' | 'excluded' | 'failed' | 'unknown';
+  redaction?: string;
+  omissionReason?: string;
+  width?: number;
+  height?: number;
+};
+export type ContextFact = {
+  state: 'known' | 'unknown' | 'not_applicable';
+  summary: string;
+  sources: FactSource[];
+};
+export type FactSource = {
+  kind: 'evidence' | 'requirement' | 'user_confirmation' | 'resource' | 'other';
+  reference: string;
+  evidenceIds: string[];
+};
+/**
+ * One immutable fact event of an action attempt. The kind-specific fields below are conditional requirements, not a fixed execution route. Dispatch acceptance is separate from business result; unknown facts may be recorded without inventing evidence. IDs, source ownership, previous-event references and timestamp ordering are checked by the runtime.
+ */
+export type ActionEvent = {
+  id: string;
+  actionId: string;
+  kind: 'intent' | 'dispatch' | 'result' | 'reconciliation' | 'disposition';
+  purpose: 'prepare' | 'test' | 'reproduce' | 'recover' | 'cleanup' | 'explore';
+  contextId: string;
+  actor: string;
+  summary: string;
+  sideEffectRisk: 'none' | 'possible' | 'unknown';
+  evidenceIds: string[];
+  occurredAt?: string;
+  timeSource?: string;
+  planRef?: string;
+  target?: string;
+  inputs?: string[];
+  sideEffects?: string[];
+  dispatchState?: 'issued' | 'not_issued' | 'unknown';
+  acceptanceState?: 'accepted' | 'rejected' | 'unknown' | 'not_applicable';
+  resultState?: 'known' | 'processing' | 'window_incomplete' | 'failed' | 'unknown';
+  readOnly?: true;
+  observationWindow?: ActionObservationWindow;
+  disposition?: ActionDisposition;
+  conflictsWithEventIds?: string[];
+  retry?: ActionRetry;
+};
+export type EgoLiteExecutionRequestV8 =
   | {
-      schemaVersion: 5;
+      schemaVersion: 8;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -11,7 +64,7 @@ export type EgoLiteExecutionRequestV5 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 5;
+      schemaVersion: 8;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -20,7 +73,7 @@ export type EgoLiteExecutionRequestV5 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 5;
+      schemaVersion: 8;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -33,7 +86,7 @@ export type EgoLiteExecutionRequestV5 =
       reasoning?: string;
     }
   | {
-      schemaVersion: 5;
+      schemaVersion: 8;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -46,7 +99,7 @@ export type EgoLiteExecutionRequestV5 =
       replaceDefault?: boolean;
     }
   | {
-      schemaVersion: 5;
+      schemaVersion: 8;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -58,7 +111,7 @@ export type EgoLiteExecutionRequestV5 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 5;
+      schemaVersion: 8;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -66,7 +119,7 @@ export type EgoLiteExecutionRequestV5 =
       maxParallelCases: number;
     }
   | {
-      schemaVersion: 5;
+      schemaVersion: 8;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -80,7 +133,7 @@ export type EgoLiteExecutionRequestV5 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 5;
+      schemaVersion: 8;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -90,8 +143,8 @@ export type EgoLiteExecutionRequestV5 =
       rebaseOf?: string;
     };
 
-export interface EgoLiteGeneratedReportV5 {
-  schemaVersion: 5;
+export interface EgoLiteGeneratedReportV8 {
+  schemaVersion: 8;
   runId: string;
   project: string;
   structurallyValid: true;
@@ -106,6 +159,7 @@ export interface EgoLiteGeneratedReportV5 {
   };
   evidenceIntegrity: {
     hashVerifiedItems: number;
+    missingScreenshotIds?: string[];
   };
   evidenceCoverage: {
     registeredScreenshots: number;
@@ -115,21 +169,37 @@ export interface EgoLiteGeneratedReportV5 {
       goalId: string;
     }[];
   };
-  context?: RetrospectiveReportContextV5NoBusinessExecution;
+  context?: RetrospectiveReportContextV8NoBusinessExecution;
   caveat: string;
-  evidenceCatalog: EgoLiteEvidenceCatalogV5;
+  evidenceCatalog: EgoLiteEvidenceCatalogV8;
   /**
    * @minItems 1
    */
   cases: CheckedCase[];
-  execution?: EgoLiteExecutionLedgerV5;
+  execution?: EgoLiteExecutionLedgerV8;
   executionSummary?: ExecutionSummary;
   caseCount: number;
   goalCount: number;
   assessmentComplete: boolean;
+  /**
+   * Frozen regressionVersion 1 binding; validated by regression binding parser, not a business verdict.
+   */
+  regressionBinding?: {};
+  actionAttempts?: {
+    caseId: string;
+    actionId: string;
+    label: string;
+    detail: string;
+    purpose: string;
+    eventIds: string[];
+    issuedEventIds: string[];
+    dispositionEventIds: string[];
+    unresolved: boolean;
+    reasons: string[];
+  }[];
 }
-export interface RetrospectiveReportContextV5NoBusinessExecution {
-  schemaVersion: 5;
+export interface RetrospectiveReportContextV8NoBusinessExecution {
+  schemaVersion: 8;
   kind: 'retrospective';
   summary: string;
   /**
@@ -144,10 +214,65 @@ export interface RetrospectiveReportContextV5NoBusinessExecution {
     file: string;
     sha256: string;
   }[];
+  /**
+   * AI-authored display notes bound to existing goal observations and actual actions. Never new execution, verdicts or plan-derived steps.
+   */
+  readerNotes?: {
+    caseId: string;
+    goalId: string;
+    title: string;
+    description: string;
+    focusAction?: ActionRef;
+    actions: {
+      observationId: string;
+      actionId: string;
+      title: string;
+      result?: string;
+      note?: string;
+      evidenceIds: string[];
+    }[];
+    /**
+     * @minItems 1
+     */
+    sourceLabels: string[];
+    /**
+     * @minItems 1
+     */
+    limitations: string[];
+  }[];
+  /**
+   * AI-authored retrospective reading notes. They cannot override verdicts or claim new execution.
+   */
+  goalNotes?: {
+    caseId: string;
+    goalId: string;
+    summary: string;
+    preparation: string[];
+    reviewSteps: string[];
+    /**
+     * @minItems 1
+     */
+    limitations: string[];
+    /**
+     * @minItems 1
+     */
+    sourceLabels: string[];
+    primaryEvidenceIds: string[];
+    evidenceUses: {
+      evidenceId: string;
+      purpose: string;
+      fact: string;
+      limitations: string[];
+    }[];
+  }[];
   supplementalCaseIds: string[];
 }
-export interface EgoLiteEvidenceCatalogV5 {
-  schemaVersion: 5;
+export interface ActionRef {
+  observationId: string;
+  actionId: string;
+}
+export interface EgoLiteEvidenceCatalogV8 {
+  schemaVersion: 8;
   revision: number;
   items: EvidenceItem[];
   operations: EvidenceOperation[];
@@ -164,6 +289,7 @@ export interface EvidenceItem {
   sha256: string;
   bytes: number;
   operationId: string;
+  metadata?: EvidenceMetadata;
 }
 export interface EvidenceOperation {
   operationId: string;
@@ -194,6 +320,9 @@ export interface CheckedCase {
   observations: Observation[];
   entries: ResultEntry[];
   missingGoalIds: string[];
+  contexts: ExecutionContext[];
+  findings: Finding[];
+  actionEvents?: ActionEvent[];
 }
 export interface Step {
   id: string;
@@ -206,11 +335,15 @@ export interface Goal {
   requiredRefs: string[];
   clarificationQuestions?: string[];
   followUpOf?: {
+    /**
+     * Use self for a goal in the same frozen run; otherwise use the explicit source run ID. A relation never resolves or replaces the source verdict.
+     */
     runId: string;
     caseId: string;
     goalId: string;
     reason: string;
   };
+  title: string;
 }
 export interface Basis {
   kind: 'explicit' | 'interpretation' | 'hypothesis';
@@ -227,6 +360,12 @@ export interface CommittedAssessment {
   operationId: string;
   revision: number;
   recordedAt: string;
+  summary?: string;
+  phenomena?: Phenomenon[];
+  gapDetails?: GapDetail[];
+  revisionReason?: string;
+  previousOperationId?: string;
+  reproduction?: ReproductionPreparation;
 }
 export interface Diagnosis {
   state: 'unknown' | 'hypothesis' | 'confirmed';
@@ -234,11 +373,53 @@ export interface Diagnosis {
   summary: string;
   evidenceIds: string[];
 }
+export interface Phenomenon {
+  id: string;
+  title: string;
+  actual: string;
+  observationIds: string[];
+  evidenceIds: string[];
+  limitations: string[];
+}
+export interface GapDetail {
+  kind: 'record' | 'evidence' | 'environment' | 'authorization' | 'requirement';
+  missing: string;
+  impact: string;
+  nextStep?: string;
+}
+export interface ReproductionPreparation {
+  preparation: string[];
+  limitations: string[];
+  objectState: string;
+  repeatability: string;
+}
 export interface Observation {
   id: string;
   summary: string;
   coveredRefs: string[];
   evidenceIds: string[];
+  contextId?: string;
+  actual?: string;
+  occurredAt?: string;
+  actions?: ActionFact[];
+  evidenceLinks?: EvidenceLink[];
+  actionEventIds?: string[];
+}
+export interface ActionFact {
+  id: string;
+  description: string;
+  input?: string;
+  result?: string;
+  planRefs: string[];
+  evidenceIds: string[];
+  occurredAt?: string;
+}
+export interface EvidenceLink {
+  evidenceId: string;
+  purpose: string;
+  fact: string;
+  actionId?: string;
+  limitations: string[];
 }
 export interface ResultEntry {
   operationId: string;
@@ -253,6 +434,9 @@ export interface ResultEntry {
 export interface RecordPayload {
   observations: Observation[];
   assessments: Assessment[];
+  contexts?: ExecutionContext[];
+  findings?: Finding[];
+  actionEvents?: ActionEvent[];
 }
 export interface Assessment {
   goalId: string;
@@ -261,9 +445,62 @@ export interface Assessment {
   observationIds: string[];
   gaps: string[];
   diagnosis?: Diagnosis;
+  summary?: string;
+  phenomena?: Phenomenon[];
+  gapDetails?: GapDetail[];
+  revisionReason?: string;
+  previousOperationId?: string;
+  reproduction?: ReproductionPreparation;
 }
-export interface EgoLiteExecutionLedgerV5 {
-  schemaVersion: 5;
+export interface ExecutionContext {
+  id: string;
+  environment: ContextFact;
+  identity: ContextFact;
+  objects: ContextFact;
+  initialState: ContextFact;
+  authorization: ContextFact;
+  notes?: string;
+}
+export interface Finding {
+  id: string;
+  title: string;
+  goalIds: string[];
+  observationIds: string[];
+  evidenceIds: string[];
+  relationReason: string;
+  reviewState: 'proposed' | 'reviewed';
+  scope: 'original' | 'additional';
+}
+/**
+ * Actual observation bounds and their source. Runtime validation additionally checks that endedAt is not earlier than startedAt; this window does not create a product SLA.
+ */
+export interface ActionObservationWindow {
+  startedAt: string;
+  endedAt: string;
+  source: string;
+  limitation: string;
+}
+export interface ActionDisposition {
+  state: 'confirmed_occurred' | 'confirmed_not_occurred' | 'unknown' | 'deferred' | 'conflicting';
+  rationale: string;
+  scope: string;
+  limitations: string[];
+  /**
+   * @minItems 1
+   */
+  resolvesEventIds: string[];
+}
+export interface ActionRetry {
+  actionId: string;
+  rationale: string;
+  /**
+   * @minItems 1
+   */
+  authorizationSources: FactSource[];
+  idempotencyBasis?: ContextFact;
+}
+export interface EgoLiteExecutionLedgerV8 {
+  schemaVersion: 8;
   runId: string;
   baselineSha256: string;
   revision: number;
@@ -282,7 +519,7 @@ export interface ExecutionConfigurationSnapshot {
   initialMaxParallelCases: number;
   requestedMaxParallelCases: number;
   configuration: {
-    schemaVersion: 5;
+    schemaVersion: 8;
     maxParallelCases: number;
   };
   configFile?: string;
@@ -337,18 +574,18 @@ export interface PacketImport {
   packetId: string;
   packetSha256: string;
   packetFile: string;
-  originalPacket: EgoLiteWorkerPacketV5;
+  originalPacket: EgoLiteWorkerPacketV8;
   review: PacketReview;
   evidenceJobs: EvidenceImportJob[];
-  resultRequest?: ResultOrAttemptRequestV5;
+  resultRequest?: ResultOrAttemptRequestV8;
   resultReceipt?: ImportedResultReceipt;
   phase: 'prepared' | 'evidence' | 'result' | 'complete' | 'superseded';
   startedAt: string;
   completedAt?: string;
   supersededBy?: string;
 }
-export interface EgoLiteWorkerPacketV5 {
-  schemaVersion: 5;
+export interface EgoLiteWorkerPacketV8 {
+  schemaVersion: 8;
   runId: string;
   baselineSha256: string;
   caseId: string;
@@ -377,6 +614,11 @@ export interface PacketEvidence {
   sha256: string;
   bytes: number;
   capturedAt?: string;
+  metadata?: EvidenceMetadata;
+  /**
+   * Explicitly reuse this current-run, same-case registered evidence ID after matching the retained file and all source metadata. This is not new collection.
+   */
+  reuseEvidenceId?: string;
 }
 export interface ExecutionWindow1 {
   startedAt: string;
@@ -395,11 +637,11 @@ export interface PacketReview {
 }
 export interface EvidenceImportJob {
   key: string;
-  request?: EvidenceRegistrationRequestV5;
+  request?: EvidenceRegistrationRequestV8;
   receipt?: ImportedEvidenceReceipt;
 }
-export interface EvidenceRegistrationRequestV5 {
-  schemaVersion: 5;
+export interface EvidenceRegistrationRequestV8 {
+  schemaVersion: 8;
   operationId: string;
   expectedRevision: number;
   caseId: string;
@@ -408,6 +650,7 @@ export interface EvidenceRegistrationRequestV5 {
   capturedAt?: string;
   source: string;
   description: string;
+  metadata?: EvidenceMetadata;
 }
 export interface ImportedEvidenceReceipt {
   operationId: string;
@@ -420,8 +663,8 @@ export interface ImportedEvidenceReceipt {
   collectedAt: string;
   replayed: boolean;
 }
-export interface ResultOrAttemptRequestV5 {
-  schemaVersion: 5;
+export interface ResultOrAttemptRequestV8 {
+  schemaVersion: 8;
   operationId: string;
   expectedRevision: number;
   caseId: string;
@@ -438,7 +681,7 @@ export interface ImportedResultReceipt {
 export interface ExecutionOperation {
   operationId: string;
   payloadSha256: string;
-  request: EgoLiteExecutionRequestV5;
+  request: EgoLiteExecutionRequestV8;
   startedAt: string;
   receipt?: ExecutionReceipt;
 }

@@ -113,9 +113,9 @@ test('new-run validation is read-only and rejects old versions without rewriting
   assert.equal((await validateCases(f.casesFile)).goalCount, 4); assert.equal(await fs.readFile(f.casesFile, 'utf8'), before);
   const older = path.join(f.root, 'old-cases.json'); await writeJSON(older, { schemaVersion: 3, project: 'Old', cases: [] });
   const oldBytes = await fs.readFile(older, 'utf8'), target = path.join(f.root, 'not-created');
-  await assert.rejects(start({ projectDir: f.projectDir, casesFile: older, outputDir: target }), /schemaVersion 5/);
+  await assert.rejects(start({ projectDir: f.projectDir, casesFile: older, outputDir: target }), /schemaVersion 8/);
   await assert.rejects(fs.stat(target), /ENOENT/); assert.equal(await fs.readFile(older, 'utf8'), oldBytes);
-  assert.throws(() => parseManifest({ schemaVersion: 3 }), /Only schemaVersion 5/);
+  assert.throws(() => parseManifest({ schemaVersion: 3 }), /Only schemaVersion 8/);
   assert.throws(() => parseResults({ schemaVersion: 3, revision: 0, cases: [], operations: [] }));
 });
 test('init and start refuse to overwrite existing project or run records', async t => {
@@ -126,8 +126,8 @@ test('init and start refuse to overwrite existing project or run records', async
 });
 test('closed ledgers reject unknown fields and invalid version metadata', async t => {
   const f = await fixture(t), file = path.join(f.runDir, 'results.json'), original = await readJSON(file);
-  await writeJSON(file, { schemaVersion: 5, revision: 0, entries: [], inferredStatus: 'pass' }); await assert.rejects(check(f.runDir), /Unexpected/);
+  await writeJSON(file, { schemaVersion: 8, revision: 0, entries: [], inferredStatus: 'pass' }); await assert.rejects(check(f.runDir), /Unexpected/);
   await writeJSON(file, original);
   const manifestFile = path.join(f.runDir, 'manifest.json'), manifest = parseManifest(await readJSON(manifestFile));
-  await writeJSON(manifestFile, { ...manifest, baselineSchemaVersion: 3 }); await assert.rejects(check(f.runDir), /Only schemaVersion 5/);
+  await writeJSON(manifestFile, { ...manifest, baselineSchemaVersion: 3 }); await assert.rejects(check(f.runDir), /Only schemaVersion 8/);
 });

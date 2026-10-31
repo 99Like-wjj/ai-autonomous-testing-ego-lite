@@ -1,0 +1,29 @@
+{
+  "synthetic": true,
+  "sourceCommit": "287534ef37cba9c3ab638a0acd7ba878cdba5b85",
+  "executingHost": "local Codex; inherited model configuration, no model override; service model identity not independently verified",
+  "sources": {
+    "fixture.py": "20206d972d380585a4bf1436a01499eaf35f79bc451a42e78a2c7a015b20dab0",
+    "fixture-v2.py": "e80e4993d8ccfb0af82da370691812ec9c5fc7f70923cbeba5a042888810895c",
+    "raw-scenarios.json": "c708b7bc1f6d258b145afd8b8462799854dcca15561b563e1ad48d4d5676063c",
+    "raw-scenarios-v2.json": "d5abccf73ab72a68f6e650c2b17b82dc064cf06d3d7c00c6a6118adac35b5929",
+    "reviewer-rubric.md": "55c69961fc7b4121bc43ea80935346a084f76e6c3903d61841adeffd36dc3a6c",
+    "skills/ai-autonomous-testing-ego-lite/SKILL.md": "cfbcd410be94d9756f8ad315c51aa325286353bc7337a34a0b8b6f0cec78a019",
+    "skills/ai-autonomous-testing-ego-lite/references/case-authoring.md": "46d6935e62f2aa6aac96861a0018aa6da5f9475567ba437893ce5c5441e90c83",
+    "skills/ai-autonomous-testing-ego-lite/references/case-design-guide.md": "bf25f6a8b1aa3c4034b93a02bf253dfc86b2cd0de3914466031e296faae57961",
+    "skills/ai-autonomous-testing-ego-lite/references/case-design-methods.md": "1b8743eb9d98ddf92c85e7bc6211c4b7aaf69b7386761f8806164895dfa358b5",
+    "skills/ai-autonomous-testing-ego-lite/references/ego-usage-boundaries.md": "eb2c7c322fc5724059006fdeb839857d2bf62742532e4b7b853ee6581e63b29d",
+    "skills/ai-autonomous-testing-ego-lite/references/evidence-and-report.md": "dd4fc27988d6ee3877d479bd93e78c21a797348f58864eef47bb7dfde3deb63b",
+    "skills/ai-autonomous-testing-ego-lite/references/experience-data-safety.md": "ddd20744029153ffcf09c324ef4f3c7b5ef7205012a6a0d741d7bf4e208f01c5",
+    "skills/ai-autonomous-testing-ego-lite/references/experience-execution.md": "46b0a8055c72afac96026e863d7e1b9e53753959a6fe6e88dcf712aa7535737c",
+    "skills/ai-autonomous-testing-ego-lite/references/experience-guide.md": "e06eb8a926b7dd0c29a609509fb9ca07c870071c0b8e8e3cafa5cbd5c9e3e0b4",
+    "skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md": "30f92c5908006ce673d6ebf41a99419c1567839577f72880b694b035d0e492ac",
+    "skills/ai-autonomous-testing-ego-lite/references/judgment-and-diagnosis.md": "ab238abe2a8517116ac9846236310ba3857549439c5d6498cec8f0bac95145f9",
+    "skills/ai-autonomous-testing-ego-lite/references/local-toolbox.en.md": "5208cf114bd79de54373e865b297797eb5c6020419f61a58956e8289ac4a0d09",
+    "skills/ai-autonomous-testing-ego-lite/references/local-toolbox.md": "0095f8e877e796416a78539ae8a311a001bbe9cfa56f3d91322dc4e4ba6ec51a",
+    "skills/ai-autonomous-testing-ego-lite/references/network-observation.md": "b0fba209309788e6abd681502f84ae5e1c9b4706229fcca0fc62c40b12ccce52",
+    "skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md": "4066d606d3a01b3f4096d2816362cb6dec6128b56309ee302663c4c4f1549ef2",
+    "skills/ai-autonomous-testing-ego-lite/references/resource-readiness.md": "8ff0a3f282bd372eff760ab67cefd5b089bc6286f21d32b8db4b87a27f52252f",
+    "skills/ai-autonomous-testing-ego-lite/references/test-strategy.md": "1ffb735566595758679aed7a623853485840a20005734879ff9090a048dfc9ec"
+  }
+}

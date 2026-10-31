@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "evidence.schema.json",
-  "title": "Ego Lite evidence catalog v5",
+  "title": "Ego Lite evidence catalog v8",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -11,7 +11,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 5
+      "const": 8
     },
     "revision": {
       "type": "integer",

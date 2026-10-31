@@ -1,4 +1,4 @@
-# 本地工具箱调用指南（0.1.6）
+# 本地工具箱调用指南（0.1.7）
 
 工具负责本地数据事务、结构校验与报告渲染；network 命令还会通过本机 Ego 启动独立 native 采集上下文并查询已授权的接口观察。工具不调用模型、不选择业务执行路线、不发起或重放业务请求、不自动重试业务。业务四态与证据充分性由 AI 判断。完整格式以已确认工具根的 docs/asset-formats.md 和 schemas 为准。
 
@@ -9,16 +9,16 @@
 ```powershell
 $ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
 $Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
+node $Tool tool-info --expect-version 0.1.7 --expect-revision report-step-evidence-1
 ```
 
-核对 toolRoot、skillFile、formatVersions（统一为 5）和 installationIntegrity: verified。未知修改或混用先报告。本版不接受旧格式，不提供旧 run 读取或自动转换；历史文件保留原样。不要只改 schemaVersion，也不要为升级覆盖旧数据。
+核对 toolRoot、skillFile、formatVersions（统一为 8）和 installationIntegrity: verified。未知修改或混用先报告。本版不接受旧格式，不提供旧 run 读取或自动转换；历史文件保留原样。不要只改 schemaVersion，也不要为升级覆盖旧数据。
 
-链接安装入口先取得非空 tool-info 回执，再使用其返回的真实 toolRoot；退出码 0 不替代回执与产物。各宿主入口、上下文和生命周期条件见[跨宿主指南](host-compatibility.md)。当前整合包使用 v5，不沿用独立修复分支的旧契约。
+链接安装入口先取得非空 tool-info 回执，再使用其返回的真实 toolRoot；退出码 0 不替代回执与产物。各宿主入口、上下文和生命周期条件见[跨宿主指南](host-compatibility.md)。当前整合包使用 v8，不沿用独立修复分支的旧契约。
 
 ## 创建运行与保存证据
 
-真实项目和运行放在仓库外私有目录；命令使用绝对路径。先生成/审阅 v5 用例，再校验与冻结：
+真实项目和运行放在仓库外私有目录；命令使用绝对路径。先生成/审阅 v8 用例，再校验与冻结：
 
 ```text
 node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS_CASES_JSON
@@ -28,7 +28,7 @@ node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS_RUN_DIR --request 
 
 start 只保存基线与空结果账本，不执行业务，也不自动填 not_tested。并发默认 1；需要分派时读[并发指南](parallel-testing.md)，串行直接 record，不需要 worker 或初始 Space 清单才能记录目标结果。
 
-证据请求使用 schemaVersion 5、唯一 operationId、当前 evidence revision、caseId、sourceFile、kind、source、description；capturedAt 仅在来源已知时提供。工具复制普通文件、核对留存字节并返回 evidenceId。登记前检查敏感内容，工具不自动脱敏；哈希不证明来源真实性。
+证据请求使用 schemaVersion 8、唯一 operationId、当前 evidence revision、caseId、sourceFile、kind、source、description；capturedAt 仅在来源已知时提供。工具复制普通文件、核对留存字节并返回 evidenceId。登记前检查敏感内容，工具不自动脱敏；哈希不证明来源真实性。
 
 ## 串行目标结果
 
@@ -36,7 +36,7 @@ start 只保存基线与空结果账本，不执行业务，也不自动填 not_
 
 ```json
 {
-  "schemaVersion":5,
+  "schemaVersion":8,
   "operationId":"config-first-observation",
   "expectedRevision":0,
   "caseId":"CONFIG-01",
@@ -87,9 +87,14 @@ node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS_RUN_DIR --report-
 
 report 校验关联与全部证据字节后生成 HTML、JSON、Markdown，拒绝覆盖。HTML 内嵌可安全预览的真实截图，不依赖网络；缺图与记录缺口明确展示。verify-report 读回核对当前运行与报告，browserOpen: not_checked 不是实际打开证明。实际打开与视觉/交互检查另记，交付三份绝对路径。
 
-另存报告用 --output-dir 指向已准备的新私有目录。事后整理只使用有来源的新 v5 记录，不声称旧运行被兼容读取，不改原文件、不补造采集时间或执行前冻结。报告整理上下文按当前 schema 提供，并与业务评估分开；工具核对文件一致性不证明语义正确。详见[证据与报告](evidence-and-report.md)。
+另存报告用 --output-dir 指向已准备的新私有目录。事后整理只使用有来源的新 v8 记录，不声称旧运行被兼容读取，不改原文件、不补造采集时间或执行前冻结。报告整理上下文按当前 schema 提供，并与业务评估分开；工具核对文件一致性不证明语义正确。详见[证据与报告](evidence-and-report.md)。
 
 
 ## 接口观测与按需查询
 
 在需覆盖的操作前按授权范围启用 network start，后台自动记录；network status/query/stop 管理状态、离线查询和有序停止。保存反馈不明、报错、数据不一致或异步处理时，AI 可按需查询，不要求每步执行。完整配置、流正文、分页、内容策略、导出和交接语义见[接口观测](network-observation.md)。不读取旧 protocol-summary，也不删除历史。
+
+
+## 回归资料工具
+
+首次留痕、自动整理和两种重跑方式见[回归使用指南](regression-reuse.md)。`regression read/context/validate/commit/select/compare` 处理本地项目资料，`start --binding` 冻结本次精确任务与规则。完整命令见 `node ABS_TOOL_ROOT/scripts/ego.mjs --help`。examples 下的 regression-*.example.json 是合成占位，不可直接执行；以实际 context、select 和 commit 回执替换来源与哈希。

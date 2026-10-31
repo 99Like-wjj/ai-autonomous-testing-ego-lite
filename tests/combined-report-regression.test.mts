@@ -1,0 +1,26 @@
+import test from 'node:test';
+import { main } from '../src/scripts/ego.mjs';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { regressionFixture, bindingRequest } from './regression-fixture.mjs';
+import { selectRegression } from '../src/regression/selection.mjs';
+import { start } from '../src/core/cases.mjs';
+import { check, recordResult, registerEvidence } from '../src/core/records.mjs';
+import { report, verifyReport } from '../src/report/delivery.mjs';
+import type { ContextFact, RecordPayload } from '../src/contracts/model.mjs';
+test('final 0.1.7 branch retains rich report facts, themes and regression binding in one run', async t => {
+  const f = await regressionFixture(t), selection = await selectRegression({projectDir:f.projectDir,request:f.selectionRequest});
+  const bindingFile=path.join(f.root,'binding.json'),run=path.join(f.root,'combined');
+  await fs.writeFile(bindingFile,JSON.stringify(bindingRequest(selection)));
+  await start({projectDir:f.projectDir,casesFile:f.casesFile,outputDir:run,bindingFile});
+  const ev=await registerEvidence({runDir:run,request:{schemaVersion:8,operationId:'proof',expectedRevision:0,caseId:'one',sourceFile:f.sourceFile,kind:'log',source:'Synthetic combination fixture',description:'Retained readback',metadata:{contentState:'full',mediaType:'text/plain',purpose:'Synthetic independent readback'}}});
+  const fact:ContextFact={state:'known',summary:'Synthetic current condition',sources:[{kind:'evidence',reference:'Synthetic readback',evidenceIds:[ev.evidenceId]}]};
+  const payload:RecordPayload={contexts:[{id:'ctx',environment:fact,identity:fact,objects:fact,initialState:fact,authorization:fact}],actionEvents:[{id:'result',actionId:'attempt',kind:'result',purpose:'test',contextId:'ctx',actor:'Synthetic tester',summary:'Independent value read',sideEffectRisk:'none',evidenceIds:[ev.evidenceId],resultState:'known'}],observations:[{id:'readback',summary:'Synthetic result',actual:'Saved value is readable',contextId:'ctx',actionEventIds:['result'],coveredRefs:['condition:0','step:create'],evidenceIds:[ev.evidenceId],actions:[{id:'read',description:'Read the value',result:'Saved value',planRefs:['step:create'],evidenceIds:[ev.evidenceId]}],evidenceLinks:[{evidenceId:ev.evidenceId,actionId:'read',purpose:'Readback',fact:'Synthetic retained value',limitations:['Synthetic only']}]}],assessments:[{goalId:'saved',status:'verified',rationale:'Synthetic readback matches the fixed goal.',observationIds:['readback'],gaps:[],phenomena:[{id:'p',title:'Preserved phenomenon',actual:'Saved value',observationIds:['readback'],evidenceIds:[ev.evidenceId],limitations:[]}]}],findings:[{id:'f',title:'Related result',goalIds:['saved'],observationIds:['readback'],evidenceIds:[ev.evidenceId],relationReason:'Same synthetic object',reviewState:'reviewed',scope:'original'}]};
+  await recordResult({runDir:run,request:{schemaVersion:8,operationId:'facts',expectedRevision:0,caseId:'one',mode:'final',record:payload}});
+  await assert.rejects(main(['network','export','--run-dir',run,'--request',bindingFile]),/Missing required option/);
+  const c=await check(run);assert.equal(c.cases[0]?.findings.length,1);assert.equal(c.cases[0]?.actionEvents.length,1);assert.equal(c.counts.verified,1);assert.ok(c.regressionBinding);
+  const output=path.join(f.root,'report');await fs.mkdir(output);await report(run,{outputDir:output});assert.equal((await verifyReport(run,output)).filesVerified,true);
+  const html=await fs.readFile(path.join(output,'report.html'),'utf8'),md=await fs.readFile(path.join(output,'report.md'),'utf8');
+  assert.equal((html.match(/class="theme-option"/g)??[]).length,8);assert.match(html,/Synthetic observation/);assert.match(md,/回归范围与任务版本/);assert.match(md,/Preserved phenomenon/);assert.match(md,/动作 attempt/);
+});

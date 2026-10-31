@@ -1,6 +1,7 @@
+import { recordEvidenceIds } from '../core/action-events.mjs';
 import type { ExecutionRequest, PacketRecord, PacketReview, WorkerPacket, ExecutionWindow } from '../contracts/execution-model.mjs';
 import { assertClosed, fail, safeIdentifier } from '../core/common.mjs';
-import { arrayValue, integer, oneOf, parsePayload, sha256Value, strings, textValue, timeValue } from '../core/validation.mjs';
+import { arrayValue, integer, oneOf, parsePayload, parseEvidenceMetadata, sha256Value, strings, textValue, timeValue } from '../core/validation.mjs';
 import { parallelLimit } from './config.mjs';
 
 export const requestKinds = ['inventory', 'capacity', 'reserve', 'attach-space', 'note', 'set-limit', 'reconcile', 'import'] as const;
@@ -18,18 +19,21 @@ export function executionWindow(value: unknown): ExecutionWindow {
 }
 export function parsePacket(value: unknown): WorkerPacket {
   assertClosed(value, ['schemaVersion', 'runId', 'baselineSha256', 'caseId', 'assignmentId', 'attemptId', 'packetId', 'mode', 'record', 'evidence', 'executionWindow', 'spaceUsage'], 'worker packet');
-  if (value.schemaVersion !== 5) fail('Worker packets require schemaVersion 5.');
+  if (value.schemaVersion !== 8) fail('Worker packets require schemaVersion 8.');
   const evidence = arrayValue(value.evidence, 'packet evidence').map(value => {
-    assertClosed(value, ['key', 'path', 'kind', 'source', 'description', 'sha256', 'bytes', 'capturedAt'], 'packet evidence');
-    return { key: safeIdentifier(value.key, 'evidence key'), path: textValue(value.path, 'evidence path'), kind: oneOf(value.kind, ['screenshot', 'dom', 'tool_receipt', 'log', 'other'], 'evidence kind'), source: textValue(value.source, 'evidence source'), description: textValue(value.description, 'evidence description'), sha256: sha256Value(value.sha256), bytes: integer(value.bytes, 'evidence bytes'), ...(value.capturedAt === undefined ? {} : { capturedAt: timeValue(value.capturedAt, 'capturedAt') }) };
+    assertClosed(value, ['key', 'path', 'kind', 'source', 'description', 'sha256', 'bytes', 'capturedAt', 'reuseEvidenceId', 'metadata'], 'packet evidence');
+    return { key: safeIdentifier(value.key, 'evidence key'), path: textValue(value.path, 'evidence path'), kind: oneOf(value.kind, ['screenshot', 'dom', 'tool_receipt', 'log', 'other'], 'evidence kind'), source: textValue(value.source, 'evidence source'), description: textValue(value.description, 'evidence description'), sha256: sha256Value(value.sha256), bytes: integer(value.bytes, 'evidence bytes'), ...(value.capturedAt === undefined ? {} : { capturedAt: timeValue(value.capturedAt, 'capturedAt') }), ...(value.metadata === undefined ? {} : {metadata:parseEvidenceMetadata(value.metadata)}), ...(value.reuseEvidenceId === undefined ? {} : { reuseEvidenceId: safeIdentifier(value.reuseEvidenceId, 'reused evidence ID') }) };
   });
+  orderedEvidence(evidence);
   const keys = new Set(evidence.map(item => item.key)); if (keys.size !== evidence.length) fail('Duplicate packet evidence key.');
+  const reused = evidence.flatMap(item => item.reuseEvidenceId ? [item.reuseEvidenceId] : []);
+  if (new Set(reused).size !== reused.length) fail('Each reused evidence ID must have one packet-local key.');
   const record = packetRecord(value.record), mode = oneOf(value.mode, ['attempt', 'final'], 'packet mode');
   const window = value.executionWindow === undefined ? undefined : executionWindow(value.executionWindow);
   const spaceUsage = arrayValue(value.spaceUsage, 'actual Space usage').map(raw => { assertClosed(raw, ['spaceId', 'reason', 'evidenceKeys'], 'Space usage'); return { spaceId: raw.spaceId === null ? null : integer(raw.spaceId, 'actual Space ID'), reason: textValue(raw.reason, 'Space usage reason'), evidenceKeys: uniqueStrings(raw.evidenceKeys, 'Space usage evidence') }; });
   if (!spaceUsage.length) fail('Record actual Space usage, or an explicit unknown observation.');
-  for (const key of [...record.observations.flatMap(o => o.evidenceIds), ...record.assessments.flatMap(a => a.diagnosis?.evidenceIds ?? []), ...(window?.evidenceKeys ?? []), ...spaceUsage.flatMap(use => use.evidenceKeys)]) if (!keys.has(key)) fail('Unknown packet evidence key: ' + key);
-  return { schemaVersion: 5, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), caseId: safeIdentifier(value.caseId, 'case ID'), assignmentId: safeIdentifier(value.assignmentId, 'assignment ID'), attemptId: safeIdentifier(value.attemptId, 'attempt ID'), packetId: safeIdentifier(value.packetId, 'packet ID'), mode, record, evidence, spaceUsage, ...(window ? { executionWindow: window } : {}) };
+  for (const key of [...recordEvidenceIds(record), ...(window?.evidenceKeys ?? []), ...spaceUsage.flatMap(use => use.evidenceKeys)]) if (!keys.has(key)) fail('Unknown packet evidence key: ' + key);
+  return { schemaVersion: 8, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), caseId: safeIdentifier(value.caseId, 'case ID'), assignmentId: safeIdentifier(value.assignmentId, 'assignment ID'), attemptId: safeIdentifier(value.attemptId, 'attempt ID'), packetId: safeIdentifier(value.packetId, 'packet ID'), mode, record, evidence, spaceUsage, ...(window ? { executionWindow: window } : {}) };
 }
 export function parseReview(value: unknown): PacketReview {
   assertClosed(value, ['decision', 'reviewer', 'rationale', 'record', 'mode'], 'packet review');
@@ -41,8 +45,8 @@ export function parseReview(value: unknown): PacketReview {
 export function parseRequest(value: unknown): ExecutionRequest {
   const common = ['schemaVersion', 'operationId', 'expectedRevision', 'reason', 'kind'];
   assertClosed(value, [...common, 'spaceIds', 'evidenceFiles', 'availableWorkers', 'caseId', 'baselineSha256', 'resources', 'workerId', 'model', 'reasoning', 'assignmentId', 'spaceId', 'name', 'receiptFile', 'created', 'replaceDefault', 'category', 'remainingSpaceIds', 'maxParallelCases', 'state', 'inFlight', 'packetFile', 'review', 'rebaseOf'], 'execution request');
-  if (value.schemaVersion !== 5) fail('Execution requests require schemaVersion 5.');
-  const base = { schemaVersion: 5 as const, operationId: safeIdentifier(value.operationId, 'operation ID'), expectedRevision: integer(value.expectedRevision, 'execution revision'), reason: textValue(value.reason, 'execution reason') };
+  if (value.schemaVersion !== 8) fail('Execution requests require schemaVersion 8.');
+  const base = { schemaVersion: 8 as const, operationId: safeIdentifier(value.operationId, 'operation ID'), expectedRevision: integer(value.expectedRevision, 'execution revision'), reason: textValue(value.reason, 'execution reason') };
   const kind = oneOf(value.kind, requestKinds, 'execution request kind');
   const files = value.evidenceFiles === undefined ? {} : { evidenceFiles: uniqueStrings(value.evidenceFiles, 'evidence files') };
   const worker = { ...(value.workerId === undefined ? {} : { workerId: textValue(value.workerId, 'worker ID') }), ...(value.model === undefined ? {} : { model: textValue(value.model, 'model') }), ...(value.reasoning === undefined ? {} : { reasoning: textValue(value.reasoning, 'reasoning') }) };
@@ -63,4 +67,17 @@ export function parseRequest(value: unknown): ExecutionRequest {
     }
     case 'import': closed(['packetFile', 'review', 'rebaseOf']); return { ...base, kind, packetFile: textValue(value.packetFile, 'packet file'), review: parseReview(value.review), ...(value.rebaseOf === undefined ? {} : { rebaseOf: safeIdentifier(value.rebaseOf, 'superseded import') }) };
   }
+}
+
+export function orderedEvidence<T extends { key: string; metadata?: { contextEvidenceIds?: string[] } }>(evidence: readonly T[]): T[] {
+  const byKey = new Map(evidence.map(e => [e.key, e])), active = new Set<string>(), seen = new Set<string>(), result: T[] = [];
+  const visit = (e: T): void => {
+    if (seen.has(e.key)) return;
+    if (active.has(e.key)) fail('Cyclic evidence context references.');
+    active.add(e.key);
+    for (const key of e.metadata?.contextEvidenceIds ?? []) { const target = byKey.get(key); if (!target) fail('Unknown packet context evidence key: ' + key); visit(target); }
+    active.delete(e.key); seen.add(e.key); result.push(e);
+  };
+  for (const e of evidence) visit(e);
+  return result;
 }

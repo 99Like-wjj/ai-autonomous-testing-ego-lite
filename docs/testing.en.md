@@ -1,12 +1,45 @@
 # Validation record and coverage limits
 
+## v0.1.7 release finalization (2026-10-31)
+
+The owner approved merging and publication. Package and Skill metadata are 0.1.7, revision report-step-evidence-1; the stable package and Codex display names have no dev/rc suffix. Linux / Node.js 24.22.1: 213 tests, 212 passed, 0 failed, 1 Windows-only checkpoint replacement-recovery skip. Type, contract/build, publication and Git diff checks passed. All 312 SVG text elements fit their canvases; 12 changed version illustrations were visually reviewed. See [release validation](v0.1.7-release-validation.md) for complete-package and ZIP verification scope. No real Ego/UAT rerun or automatic user installation; the sections below preserve historical stage results.
+
+
+## v0.1.7 full documentation and illustration review (2026-10-31)
+
+Reviewed 88 Markdown files, including all 17 Skill references, plus the bilingual illustration set. Current guides were compared with v8 runtime contracts, CLI, report UI and regression selection; historical stage records retain their original evidence. Corrected stale contract prose, missing goal titles, report/context examples and delivery boundaries. Removed duplicate verification sections only after line-by-line equality checks. The README now leads with approved design philosophy and current 0.1.7 changes; v0.1.6 details remain in history, and developed versions run newest-first without v0.1.8 planning entries. All 16 generated illustrations have visual review; 312 SVG text elements remain inside their canvases; the existing contact QR is unchanged. New guards cover prose contracts, real case validation, history ordering, philosophy and relocated architecture images. The final suite has 211 tests: 210 passed, zero failed, one Windows-only checkpoint recovery skip; strict types, contract/build and public/link checks pass. No live Ego/UAT or user installation was rerun; no formal package, main merge, Tag or Release. See [review scope and changes](v0.1.7-cloud-review.md).
+
+
+## v0.1.7 first cloud integration and documentation review (2026-10-31)
+
+All four candidate branch heads are ancestors of `6040a1a`; no duplicate merge was needed. The review branch updates bilingual documentation and twelve illustrations while preserving runtime behavior and v0.1.8 planning boundaries. Linux / Node v24.22.1: strict types, contract drift, build and public-file checks pass; 204 tests, 203 passed, zero failed, one Windows-only checkpoint recovery test skipped. All updated PNGs were visually inspected; 222 SVG text bounds remain inside their canvases. An initially missing review-document package entry was fixed and the full suite rerun. See [cloud review](v0.1.7-cloud-review.md) for scope and publication gates. No real Ego/UAT run, user installation, main merge, Tag or Release in this phase.
+
+
+## v0.1.7 local closeout and v0.1.8 requirements (2026-10-31)
+
+The `0.1.7-rc.1 / report-step-evidence-1` local review covers source, capability descriptions and requirements. Strict types pass; the full engineering suite reports 203 tests, 202 passed, zero failed and one Windows symlink-privilege skip. Publication/link checks, Skill format, runtime integrity and heuristic checks of current files and local history have distinct scopes. Two historical documentation blobs still retain generalized-away developer paths; this is not a claim that all history is sanitized. See the [closeout record (Chinese)](v0.1.7-local-closeout.md).
+
+Earlier scheme-B Ego reading checks and regeneration of existing reports are described in [the reader record](v0.1.7-step-evidence.md). This local review does not rerun UAT. Stable point IDs and reruns by ID remain [v0.1.8 requirements](v0.1.8-preview.en.md), not implemented capabilities. The maintainer handles cloud merging, release and downloadable packages.
+
+## v0.1.7 regression reuse
+
+Engineering regression: 173 tests, 172 passed, 0 failed, 1 environment-privilege skip. Independent AI trials in controlled synthetic scenarios exercised first-run recording, whole-case status reruns and full scope. Original provenance mistakes and corrections are retained; actual Ego report-page checks are separate from synthetic interface behavior. Real UAT and untested counterexamples remain outside coverage. See the [validation record (Chinese)](v0.1.7-regression-reuse-validation.md).
+
+## v0.1.7 resource-readiness standalone phase
+
+See [resource-readiness validation](v0.1.7-resource-readiness-validation.md). That phase did not yet include report enhancements. See [final integration validation](v0.1.7-integration.md) for the combined scope; older records below retain their historical scope.
+
+## v0.1.7 report candidate (historical report-usability phase)
+
+The v6 facts, evidence delivery, scene-first report and eight themes in 0.1.7-rc.1 / report-usability-1 are tracked in the [current candidate validation](v0.1.7-validation.md). The v0.1.6 results below remain historical and do not validate this candidate.
+
 ## v0.1.6 release validation (2026-10-29)
 
 See the [release validation record (Chinese)](v0.1.6-release-validation.md) for the cloud checks and the maintainer’s scoped local trial. Candidate results below remain historical.
 
 
 
-## Current network-observation candidate (2026-10-28)
+## v0.1.6 historical network-observation candidate (2026-10-28)
 
 0.1.6-rc.1 / native-network-observation-1 implements the v3 design. Regression: 115 tests, 114 passed, 0 failed, 1 Windows file-symlink privilege skip; 34 network tests. See [network validation (Chinese)](v0.1.6-network-validation.md) for real Ego, loopback data, standalone packaging and limits. Older results below remain historical.
 
@@ -134,7 +167,7 @@ Invoke-Item $Copy
 
 This only checks local synthetic files and the ability to open the report. Continue with a visual and interaction review of content, image decoding, filters, enlargement, and Escape-to-close. Report outputs refuse overwrites; use a new GUID directory for another run. The operator can remove the temporary folder after retaining any needed acceptance notes.
 
-## Windows and external systems
+## v0.1.3 historical Windows and external-system checks
 
 The implementation uses Node.js built-ins and platform path APIs; it does not depend on shell commands or third-party runtime packages. On 2026-10-22, commit `8af375474352442428190af21a0318fdadf9f3ce` was exercised on Windows: `npm test` reported 52 PASS, 0 FAIL, and 4 SKIP because synthetic symlink creation was not permitted. The 64-file publication check passed. A fresh temporary run exercised case validation, run creation, two synthetic PNG evidence registrations, attempt/status recording, integrity checking, and HTML generation. This does not cover the skipped symlink cases or all Windows filesystem, locking, and permission combinations.
 
@@ -142,7 +175,7 @@ The local browser tool refused to open the `file://` report; no local server or 
 
 No Ego, real application, account, real business data, or business write operation was used. AI defect-finding accuracy, false positives, and model-upgrade effects were not measured. Tests support only limited claims about local structured-record and file behavior. This historical check does not represent later owner trial use or final release verification; see the newer sections above.
 
-## Runtime and record limitations
+## v0.1.3 historical runtime and record limitations
 
 - `pass` / `fail` are caller-provided outcomes. The helper checks fields, evidence associations, and file hashes; it does not independently confirm observed facts.
 - Matching SHA-256 values do not prove source authenticity or evidence completeness and do not detect sensitive information.

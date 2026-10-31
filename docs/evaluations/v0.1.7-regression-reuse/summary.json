@@ -1,0 +1,172 @@
+{
+  "validationVersion": 1,
+  "candidate": "0.1.7-rc.1",
+  "versionLabelCorrection": "Candidate label corrected to the intended 0.1.7 development version. Original tool outputs, run records, test results and evidence hashes are unchanged.",
+  "toolRevision": "regression-reuse-1",
+  "mainFormatVersion": 7,
+  "regressionVersion": 1,
+  "phase1Commit": "7660bc4be71e12de600e2f6560c33bff73c6ad37",
+  "engineering": {
+    "tests": 173,
+    "passed": 172,
+    "failed": 0,
+    "skipped": 1,
+    "skip": "Windows file-symlink privilege unavailable"
+  },
+  "syntheticRuns": [
+    {
+      "name": "first",
+      "scenes": 10,
+      "goals": 11,
+      "verified": 5,
+      "violation": 4,
+      "inconclusive": 1,
+      "not_tested": 1,
+      "runId": "f534b8ac-6f64-40b5-8f90-984d98c70355",
+      "resultsRevision": 46
+    },
+    {
+      "name": "status",
+      "scenes": 6,
+      "goals": 7,
+      "verified": 7,
+      "violation": 0,
+      "inconclusive": 0,
+      "not_tested": 0,
+      "runId": "f26946a0-2baf-4097-a21e-36273cb56928",
+      "resultsRevision": 20
+    },
+    {
+      "name": "full",
+      "scenes": 10,
+      "goals": 11,
+      "verified": 10,
+      "violation": 0,
+      "inconclusive": 0,
+      "not_tested": 1,
+      "runId": "8deb6b75-9945-4f93-b2d9-f9cb298e68fd",
+      "resultsRevision": 31
+    }
+  ],
+  "history": {
+    "firstRunFilesUnchanged": 57,
+    "ruleRevisions": 20,
+    "taskRevisions": 36,
+    "originalRuleRevisionsPreserved": 10,
+    "originalTaskRevisionsPreserved": 10
+  },
+  "ui": {
+    "recordType": "assistant-summary-of-observed-Ego-tool-results",
+    "dateLocal": "2026-10-30",
+    "timezone": "Asia/Shanghai",
+    "scope": "Local generated report UI only; not business UI/UAT evidence.",
+    "browser": "Ego Lite 0.6.1.13; official CLI guide 2.1.0",
+    "spaces": [
+      {
+        "id": 7,
+        "initialOwnership": "agent",
+        "outcome": "Later task space not found; reason unknown. No recovery space was created until user explicitly approved."
+      },
+      {
+        "id": 8,
+        "initialOwnership": "agent",
+        "outcome": "finish({keep:[]}) completed; no managed pages retained."
+      }
+    ],
+    "checks": [
+      {
+        "status": "verified",
+        "check": "First report 10 scenes/11 goals and mixed states; untested filter retains both S04 goals",
+        "scripts": [
+          "ego-report-02.mjs",
+          "ego-report-03.mjs",
+          "ego-report-04.mjs",
+          "ego-report-05.mjs"
+        ]
+      },
+      {
+        "status": "verified",
+        "check": "Status rerun shows 6 scenes/7 goals, original 10/11 and 4 unselected",
+        "scripts": [
+          "ego-report-06.mjs"
+        ]
+      },
+      {
+        "status": "verified",
+        "check": "Full report retains all 10 scenes/11 goals and S09 not tested",
+        "scripts": [
+          "ego-report-08.mjs",
+          "ego-report-09.mjs"
+        ]
+      },
+      {
+        "status": "verified",
+        "check": "Comparison source tables rendered; changed S10 rule and unselected right-hand goals explicitly explained",
+        "scripts": [
+          "ego-report-10.mjs",
+          "ego-report-11.mjs",
+          "ego-report-12.mjs"
+        ]
+      }
+    ],
+    "screenshots": [
+      {
+        "file": "comparison-full-sources.png",
+        "sha256": "f4f0af01b0c815bc30f2f2e39bda32ec9985e49512c39a74848b7fa0fabcff17",
+        "visualInspection": "viewed via local image tool"
+      },
+      {
+        "file": "comparison-rule-change.png",
+        "sha256": "1fd4ed1fd62090a0bb16e3d318ea79fa8f6443b6cc741993ab8f7e3c6bc5a161",
+        "visualInspection": "viewed via local image tool"
+      },
+      {
+        "file": "comparison-status-unselected.png",
+        "sha256": "83bae09ba5f96a26c06a3b4405fdff3b3e20c80f6ddbfcb1e61cdb5258dd98e6",
+        "visualInspection": "viewed via local image tool"
+      },
+      {
+        "file": "report-full-scope.png",
+        "sha256": "0ca205691bce1bfa9ca1f17824880b745ee2e035171f2f868197293c75a78d99",
+        "visualInspection": "viewed via local image tool"
+      },
+      {
+        "file": "report-full-stale-object.png",
+        "sha256": "fa71d0a8ca41c632110135841941dc378346cbf6612945b8a3fc22f817d8c5c6",
+        "visualInspection": "viewed via local image tool"
+      },
+      {
+        "file": "report-round1-export-gap.png",
+        "sha256": "82f1b90101c4d9e9d6a414e5de7bf041c6a9ff8cebcf5c43e070f0ce947ac380",
+        "visualInspection": "viewed via local image tool"
+      },
+      {
+        "file": "report-round1-mixed-case.png",
+        "sha256": "302c7d041b9cb334fa2d032928399b87d8e44c6830da8f50243d1820c9469fe2",
+        "visualInspection": "viewed via local image tool"
+      },
+      {
+        "file": "report-round1-overview.png",
+        "sha256": "159d5e9a38efed8a9164f938e3dcfea9404a41b5002e274ade04e2126542996e",
+        "visualInspection": "viewed via local image tool"
+      },
+      {
+        "file": "report-status-scope.png",
+        "sha256": "15994f49711d5c9e4f18b94fac705715b87009b9f9ef52a7df22ec2f89364a8e",
+        "visualInspection": "viewed via local image tool"
+      }
+    ],
+    "cleanupScript": "ego-report-13.mjs",
+    "captureTimes": "Not asserted; scripts and actual tool outputs identify the observed rounds."
+  },
+  "knownHistory": [
+    "BA-01: ten AI notes mislabeled as tool receipts in the first run; preserved and explained separately; later classification and fresh targeted test verified.",
+    "BA-02: status comparability source declarations were incomplete, and the renderer did not show sources; corrected in new artifacts; original files unchanged."
+  ],
+  "limits": [
+    "No real UAT or production execution.",
+    "Synthetic business verdict counts are not the feature acceptance rate.",
+    "Dedicated cleanup-failure, cache-reset, actual process-kill, all interruption windows and asynchronous SLA AI counterexamples were not executed.",
+    "Some counterexamples have engineering validation only; do not report them as real AI/browser business execution."
+  ]
+}

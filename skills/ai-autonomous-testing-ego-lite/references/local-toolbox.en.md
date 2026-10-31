@@ -1,11 +1,11 @@
-# Local toolbox guide (0.1.6)
+# Local toolbox guide (0.1.7)
 
 The toolbox performs deterministic local data transactions, validation and report rendering. The network commands also start a scoped native collector through the local Ego installation. Business UI actions and judgments remain AI-driven; the collector does not issue or replay business requests. Read docs/asset-formats.md from the actual complete tool root; in source, build first and use .build/runtime.
 
-For linked installations, obtain a nonempty tool-info receipt and use its resolved toolRoot. Exit code zero alone does not prove execution. See [host conditions and handoff (Chinese)](host-compatibility.md) for host entrypoints, context and lifecycle. This release uses v5 rather than the isolated repair branch formats.
+For linked installations, obtain a nonempty tool-info receipt and use its resolved toolRoot. Exit code zero alone does not prove execution. See [host conditions and handoff (Chinese)](host-compatibility.md) for host entrypoints, context and lifecycle. This release uses v8 rather than the isolated repair branch formats.
 
 ```text
-node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.6 --expect-revision native-network-observation-1
+node ABS_TOOL_ROOT/scripts/ego.mjs tool-info --expect-version 0.1.7 --expect-revision report-step-evidence-1
 node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS_CASES
 node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN
 node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS_RUN --request ABS_EVIDENCE_REQUEST
@@ -16,7 +16,7 @@ node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS_RUN
 node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS_RUN --report-dir ABS_REPORT_DIR
 ```
 
-All test-asset JSON contracts use schemaVersion 5 and execution query viewVersion 5. Old formats are explicitly rejected; no conversion or in-place update is provided. Preserve old files and prepare separate v5 assets from original sources. Do not auto-update the user's installed Skill.
+All test-asset JSON contracts use schemaVersion 8 and execution query viewVersion 8. Old formats are explicitly rejected; no conversion or in-place update is provided. Preserve old files and prepare separate v8 assets from original sources. Do not auto-update the user's installed Skill.
 
 start creates a frozen baseline and an empty result ledger, not synthetic not_tested results. Evidence requests register permitted regular files, return catalog IDs and verify retained bytes. Unknown capture times are omitted; registration time is not execution time. Files are not automatically redacted and hashes do not establish authenticity.
 
@@ -32,3 +32,8 @@ Reports count business goals, show parent scenario distributions, and distinguis
 ## Network observation
 
 Use network start/status/query/stop for scoped background recording, committed local queries and orderly shutdown. The AI decides when to query and how to assess UI plus interface evidence. Fetch/XHR, SSE and bidirectional text/binary WebSockets are included. See [configuration and lifecycle (Chinese)](network-observation.md). Network data uses independent version 1; experimental protocol-summary files are not read, converted or deleted.
+
+
+## Regression assets
+
+Use `regression read/context/validate/commit/select/compare` for project-local data and `start --binding` for exact task/rule snapshots. See [behavior boundaries](regression-reuse.md) and CLI `--help`. Regression examples are synthetic placeholders; replace references and hashes with actual context/select/commit receipts before execution. These commands do not launch browser actions.
