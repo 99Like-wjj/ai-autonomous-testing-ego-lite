@@ -1,4 +1,11 @@
 import type {RetainedReportHistoryV1} from './generated/report-history.mjs';
+import type { ConversationEvidenceV1 } from './generated/conversation.mjs';
+export type ConversationArtifact = ConversationEvidenceV1;
+export type ConversationMessage = ConversationArtifact['messages'][number];
+export type ConversationSourceRef = ConversationMessage['sourceRefs'][number];
+export type ConversationSourceBinding = NonNullable<EvidenceMetadata['conversationSources']>[number];
+export interface ConversationSourceView { sourceId: string; label: string; sha256: string; evidenceId?: string; text?: string; truncated?: boolean; mediaType?: string; attachmentPath?:string }
+export interface ConversationView { id: string; artifact: ConversationArtifact; sources: ConversationSourceView[]; caseId: string; goalId?: string; evidenceId?: string; retrospective: boolean; limitations: string[]; actions: { observationId: string; actionId: string; messageIds: string[] }[]; artifactSource?:{label:string;sha256:string;attachmentPath?:string} }
 /** External schemas define structure; runtime checks validate references and evidence semantics. */
 import type { EgoLiteCaseInputAndNormalizedBaselineV9, Case, Basis, Step, Goal, SourceReference, ParameterDefinition } from './generated/cases.mjs';
 import type { CaseReviewV9, CasesReference } from './generated/case-review.mjs';
@@ -40,6 +47,7 @@ export interface Report {
   revision: number; evidenceRevision: number; caseCount: number; goalCount: number;
   sourceCaseCount?:number;sourceGoalCount?:number;projectId?:string;caseVersion?:number;history?:ReportHistory;
   counts: Counts; assessmentComplete: boolean; cases: CheckedCase[]; evidenceCatalog: EvidenceCatalog;
+  conversationEvidence?: Record<string, ConversationArtifact>;
   evidenceIntegrity: { hashVerifiedItems: number; missingScreenshotIds?: string[] };
   evidenceCoverage: { registeredScreenshots: number; distinctRetainedContents: number; goalsWithoutScreenshots: { caseId: string; goalId: string }[] };
   execution?: ExecutionLedger; executionSummary?: ExecutionSummary; context?: ReportContext; regressionBinding?: unknown; actionAttempts?: (ActionAttemptProjection & { caseId: string })[]; caveat: string;
@@ -66,6 +74,8 @@ export interface ReportDelivery {
 export interface HtmlPayload {
   htmlPayloadVersion: 9; report: Report; previews: Record<string, Preview>;
   assets: Record<string, ReportAsset>; delivery: ReportDelivery;
+  conversations?: Record<string, ConversationView>;
+  conversationFiles?:Record<string,{sha256:string;bytes:number;attachmentPath:string}>;
 }
 export type EvidenceReceipt = Pick<EvidenceOperation, 'operationId' | 'revision' | 'caseId' | 'evidenceId' | 'path' | 'sha256' | 'bytes'> & { collectedAt: string; replayed: boolean };
 export type ResultReceipt = Pick<ResultEntry, 'operationId' | 'revision' | 'caseId' | 'mode'> & { replayed: boolean };

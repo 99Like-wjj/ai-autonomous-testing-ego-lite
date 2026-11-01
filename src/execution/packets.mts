@@ -1,5 +1,6 @@
 /** Worker-local sealing; does not take the shared run lock or make browser/AI decisions. */
 import fs from 'node:fs/promises';
+import { mapConversationMetadata } from '../core/conversations.mjs';
 import path from 'node:path';
 import type { Case, CheckedCase, EvidenceCatalog } from '../contracts/model.mjs';
 import type { Assignment, WorkerPacket, PacketReview } from '../contracts/execution-model.mjs';
@@ -35,7 +36,7 @@ export function validateAssessment(packet: WorkerPacket, c: Case, review?: Packe
     if (importedId && item.reuseEvidenceId && importedId !== item.reuseEvidenceId) fail('Resumed import changed its explicit evidence reuse ID.');
     if (existingId) {
       if (!committed) fail('Explicit evidence reuse requires verified current-run facts.');
-      const meta=item.metadata?{...item.metadata,...(item.metadata.contextEvidenceIds?{contextEvidenceIds:item.metadata.contextEvidenceIds.map(k=>packet.evidence.find(e=>e.key===k)?.reuseEvidenceId??committed.evidenceIds?.get(k)??k)}:{})}:undefined;
+      const meta=mapConversationMetadata(item.metadata,k=>packet.evidence.find(e=>e.key===k)?.reuseEvidenceId??committed.evidenceIds?.get(k)??k);
       matchRegisteredEvidence({...item,...(meta?{metadata:meta}:{})}, existingId, c.id, committed.catalog);
     }
     const id = existingId ?? 'packet-local-' + canonicalHash({ packetId: packet.packetId, key: item.key }).slice(0, 40);

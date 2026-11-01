@@ -1,5 +1,13 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
+export type ReadingConversationSourceBinding = {
+  [k: string]: unknown;
+} & {
+  sourceId: string;
+  evidenceId?: string;
+  sourceLabel?: string;
+};
+
 export interface RetrospectiveReportContextV9NoBusinessExecution {
   schemaVersion: 9;
   kind: 'retrospective';
@@ -32,6 +40,8 @@ export interface RetrospectiveReportContextV9NoBusinessExecution {
       result?: string;
       note?: string;
       evidenceIds: string[];
+      inputSummary?: string;
+      replySummary?: string;
     }[];
     /**
      * @minItems 1
@@ -41,6 +51,8 @@ export interface RetrospectiveReportContextV9NoBusinessExecution {
      * @minItems 1
      */
     limitations: string[];
+    impact?: string;
+    dimension?: 'business' | 'interaction' | 'wording' | 'content' | 'presentation';
   }[];
   /**
    * AI-authored retrospective reading notes. They cannot override verdicts or claim new execution.
@@ -68,8 +80,31 @@ export interface RetrospectiveReportContextV9NoBusinessExecution {
     }[];
   }[];
   supplementalCaseIds: string[];
+  conversations?: ReadingConversationDeclaration[];
 }
 export interface ActionRef {
   observationId: string;
   actionId: string;
+}
+export interface ReadingConversationDeclaration {
+  caseId: string;
+  goalId: string;
+  sourceLabel: string;
+  /**
+   * @minItems 1
+   */
+  sourceBindings: ReadingConversationSourceBinding[];
+  actions: ReadingConversationActionBinding[];
+  /**
+   * @minItems 1
+   */
+  limitations: string[];
+}
+export interface ReadingConversationActionBinding {
+  observationId: string;
+  actionId: string;
+  /**
+   * @minItems 1
+   */
+  messageIds: string[];
 }

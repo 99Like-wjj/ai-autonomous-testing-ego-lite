@@ -18,6 +18,7 @@
     "tools/report-v017-fixture.mts",
     "docs/images/render.mts",
     "tools/bundle-file-readers.mts",
-    "tools/bundle-review-ui.mts"
+    "tools/bundle-review-ui.mts",
+    "tools/bundle-report-ui.mts"
   ]
 }

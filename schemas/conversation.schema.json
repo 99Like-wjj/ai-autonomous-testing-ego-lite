@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "conversation.schema.json",
+  "title": "Conversation evidence v1",
+  "$ref": "common.schema.json#/$defs/conversationArtifact"
+}

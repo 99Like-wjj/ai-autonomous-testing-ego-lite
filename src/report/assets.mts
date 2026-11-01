@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { EvidenceItem, HtmlPayload, Preview, Report, ReportAsset } from '../contracts/model.mjs';
 import { errorInfo, fail, hash, safePath } from '../core/common.mjs';
 import { evidenceFile } from '../core/file-integrity.mjs';
+import { readingConversationViews, registeredConversationViews } from './conversations.mjs';
 
 export const TEXT_PREVIEW_LIMIT = 256 * 1024;
 export interface PayloadOptions { mode?: 'inline' | 'bundle'; textPreviewLimitBytes?: number; allowMissingScreenshots?: boolean }
@@ -100,5 +101,20 @@ export async function htmlReportPayload(root: string, report: Report, options: P
     if (mode === 'bundle') p.attachmentPath = attachmentName(item.sha256, p.mediaType);
     else if(meta?.deliveryRequired || meta?.artifactRole==='download_original'){complete=false;p.previewNote+=' 原件要求随报告交付；当前 inline 未携带独立原件。';}
   }
-  return { htmlPayloadVersion: 9, report, previews, assets, delivery: { mode, textPreviewLimitBytes, complete, allowMissingScreenshots: options.allowMissingScreenshots === true } };
+  const conversations={...await registeredConversationViews(root,report,reportEvidence(report),historyFiles),...(report.context?await readingConversationViews(report.context,report,root):{})};
+  for(const {key,item}of reportEvidence(report))if(item.kind==='conversation'&&key!==item.id&&!conversations[key]&&!['excluded','failed'].includes(item.metadata?.contentState??'')){complete=false;previews[key]!.previewNote+=' 历史对话或其原始来源未能完整核验，未生成可信聊天视图。';}
+  const conversationFiles:NonNullable<HtmlPayload['conversationFiles']>={};
+  for(const reading of report.context?.conversations??[]){
+    const view=Object.values(conversations).find(v=>v.retrospective&&v.caseId===reading.caseId&&v.goalId===reading.goalId&&v.artifactSource?.label===reading.sourceLabel);if(!view)continue;
+    for(const label of [reading.sourceLabel,...reading.sourceBindings.flatMap(b=>b.sourceLabel?[b.sourceLabel]:[])]){
+      const source=report.context!.sources.find(s=>s.label===label)!;
+      if(mode==='bundle'){
+        const bytes=await fs.readFile(await safePath(source.file,{existing:true}));if(hash(bytes)!==source.sha256)fail('Conversation source changed during delivery.');
+        conversationFiles[label]={sha256:source.sha256,bytes:bytes.length,attachmentPath:attachmentName(source.sha256,'text/plain')};
+      }else complete=false;
+    }
+    if(view.artifactSource&&conversationFiles[reading.sourceLabel])view.artifactSource.attachmentPath=conversationFiles[reading.sourceLabel]!.attachmentPath;
+    for(const binding of reading.sourceBindings)if(binding.sourceLabel&&conversationFiles[binding.sourceLabel]){const source=view.sources.find(s=>s.sourceId===binding.sourceId);if(source)source.attachmentPath=conversationFiles[binding.sourceLabel]!.attachmentPath;}
+  }
+  return { htmlPayloadVersion: 9, report, previews, assets, ...(Object.keys(conversations).length?{conversations}:{}),...(Object.keys(conversationFiles).length?{conversationFiles}:{}), delivery: { mode, textPreviewLimitBytes, complete, allowMissingScreenshots: options.allowMissingScreenshots === true } };
 }

@@ -115,6 +115,14 @@
                   "items": {
                     "$ref": "common.schema.json#/$defs/safeId"
                   }
+                },
+                "inputSummary": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "replySummary": {
+                  "type": "string",
+                  "minLength": 1
                 }
               },
               "additionalProperties": false
@@ -134,6 +142,19 @@
             "items": {
               "$ref": "common.schema.json#/$defs/nonempty"
             }
+          },
+          "impact": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dimension": {
+            "enum": [
+              "business",
+              "interaction",
+              "wording",
+              "content",
+              "presentation"
+            ]
           }
         },
         "additionalProperties": false
@@ -238,6 +259,117 @@
       "uniqueItems": true,
       "items": {
         "$ref": "common.schema.json#/$defs/nonempty"
+      }
+    },
+    "conversations": {
+      "type": "array",
+      "items": {
+        "title": "Reading conversation declaration",
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "goalId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "sourceLabel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceBindings": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "title": "Reading conversation source binding",
+              "type": "object",
+              "properties": {
+                "sourceId": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "evidenceId": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "sourceLabel": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "sourceId"
+              ],
+              "additionalProperties": false,
+              "oneOf": [
+                {
+                  "required": [
+                    "evidenceId"
+                  ],
+                  "not": {
+                    "required": [
+                      "sourceLabel"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "sourceLabel"
+                  ],
+                  "not": {
+                    "required": [
+                      "evidenceId"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "title": "Reading conversation action binding",
+              "type": "object",
+              "properties": {
+                "observationId": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "actionId": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "messageIds": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  "uniqueItems": true,
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "observationId",
+                "actionId",
+                "messageIds"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "limitations": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "caseId",
+          "goalId",
+          "sourceLabel",
+          "sourceBindings",
+          "actions",
+          "limitations"
+        ],
+        "additionalProperties": false
       }
     }
   },

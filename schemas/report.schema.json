@@ -309,6 +309,12 @@
     },
     "history": {
       "$ref": "report-history.schema.json"
+    },
+    "conversationEvidence": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "common.schema.json#/$defs/conversationArtifact"
+      }
     }
   },
   "required": [

@@ -46,7 +46,8 @@
               "dom",
               "tool_receipt",
               "log",
-              "other"
+              "other",
+              "conversation"
             ]
           },
           "source": {

@@ -1,5 +1,12 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
+export type ReadingConversationSourceBinding = {
+  [k: string]: unknown;
+} & {
+  sourceId: string;
+  evidenceId?: string;
+  sourceLabel?: string;
+};
 export type EvidenceMetadata = {
   mediaType?: string;
   encoding?: string;
@@ -16,6 +23,10 @@ export type EvidenceMetadata = {
   height?: number;
   artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
   deliveryRequired?: boolean;
+  /**
+   * @minItems 1
+   */
+  conversationSources?: ConversationSourceBinding[];
 };
 export type OriginalProblemReference = {
   [k: string]: unknown;
@@ -181,6 +192,38 @@ export type ParameterBindings = {
       };
   source: SourceReference;
 }[];
+export type ConversationMessage = (
+  | {
+      content?: string;
+    }
+  | {
+      /**
+       * @minItems 1
+       */
+      attachmentSourceIds: string[];
+    }
+) & {
+  id: string;
+  role: 'user' | 'assistant' | 'tool' | 'notice';
+  displayName?: string;
+  format: 'text' | 'markdown' | 'json' | 'code';
+  content: string;
+  language?: string;
+  presentation: 'verbatim' | 'normalized' | 'summary';
+  completeness: 'complete' | 'partial' | 'unknown';
+  state: 'final' | 'streaming' | 'interrupted' | 'waiting_confirmation' | 'unknown';
+  completionBasis: string;
+  /**
+   * @minItems 1
+   * @maxItems 32
+   */
+  sourceRefs: ConversationSourceReference[];
+  attachmentSourceIds?: string[];
+  sentAt?: string;
+  observedAt?: string;
+  displayTime?: string;
+  limitations: string[];
+};
 
 export interface EgoLiteGeneratedReportV9 {
   schemaVersion: 9;
@@ -241,6 +284,9 @@ export interface EgoLiteGeneratedReportV9 {
   projectId?: string;
   caseVersion?: number;
   history?: RetainedReportHistoryV1;
+  conversationEvidence?: {
+    [k: string]: ConversationArtifact;
+  };
 }
 export interface RetrospectiveReportContextV9NoBusinessExecution {
   schemaVersion: 9;
@@ -274,6 +320,8 @@ export interface RetrospectiveReportContextV9NoBusinessExecution {
       result?: string;
       note?: string;
       evidenceIds: string[];
+      inputSummary?: string;
+      replySummary?: string;
     }[];
     /**
      * @minItems 1
@@ -283,6 +331,8 @@ export interface RetrospectiveReportContextV9NoBusinessExecution {
      * @minItems 1
      */
     limitations: string[];
+    impact?: string;
+    dimension?: 'business' | 'interaction' | 'wording' | 'content' | 'presentation';
   }[];
   /**
    * AI-authored retrospective reading notes. They cannot override verdicts or claim new execution.
@@ -310,10 +360,33 @@ export interface RetrospectiveReportContextV9NoBusinessExecution {
     }[];
   }[];
   supplementalCaseIds: string[];
+  conversations?: ReadingConversationDeclaration[];
 }
 export interface ActionRef {
   observationId: string;
   actionId: string;
+}
+export interface ReadingConversationDeclaration {
+  caseId: string;
+  goalId: string;
+  sourceLabel: string;
+  /**
+   * @minItems 1
+   */
+  sourceBindings: ReadingConversationSourceBinding[];
+  actions: ReadingConversationActionBinding[];
+  /**
+   * @minItems 1
+   */
+  limitations: string[];
+}
+export interface ReadingConversationActionBinding {
+  observationId: string;
+  actionId: string;
+  /**
+   * @minItems 1
+   */
+  messageIds: string[];
 }
 export interface EgoLiteEvidenceCatalogV9 {
   schemaVersion: 9;
@@ -325,7 +398,7 @@ export interface EvidenceItem {
   id: string;
   path: string;
   caseId: string;
-  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
   capturedAt?: string;
   collectedAt: string;
   source: string;
@@ -334,6 +407,10 @@ export interface EvidenceItem {
   bytes: number;
   operationId: string;
   metadata?: EvidenceMetadata;
+}
+export interface ConversationSourceBinding {
+  sourceId: string;
+  evidenceId: string;
 }
 export interface EvidenceOperation {
   operationId: string;
@@ -454,6 +531,7 @@ export interface Observation {
   actions?: ActionFact[];
   evidenceLinks?: EvidenceLink[];
   actionEventIds?: string[];
+  phase?: ObservationPhase;
 }
 export interface ActionFact {
   id: string;
@@ -463,6 +541,20 @@ export interface ActionFact {
   planRefs: string[];
   evidenceIds: string[];
   occurredAt?: string;
+  inputSummary?: string;
+  replySummary?: string;
+  inputPresentation?: 'verbatim' | 'summary' | 'unknown';
+  /**
+   * @minItems 1
+   */
+  conversations?: ConversationActionReference[];
+}
+export interface ConversationActionReference {
+  evidenceId: string;
+  /**
+   * @minItems 1
+   */
+  messageIds: string[];
 }
 export interface EvidenceLink {
   evidenceId: string;
@@ -470,6 +562,11 @@ export interface EvidenceLink {
   fact: string;
   actionId?: string;
   limitations: string[];
+}
+export interface ObservationPhase {
+  expected: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  observed: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  basis: string;
 }
 export interface ResultEntry {
   operationId: string;
@@ -508,6 +605,13 @@ export interface Assessment {
     observationIds: string[];
     gaps: string[];
   }[];
+  display?: ReadingPresentation;
+}
+export interface ReadingPresentation {
+  title: string;
+  actual: string;
+  impact: string;
+  dimension: 'business' | 'interaction' | 'wording' | 'content' | 'presentation';
 }
 export interface ExecutionContext {
   id: string;
@@ -666,7 +770,7 @@ export interface EgoLiteWorkerPacketV9 {
 export interface PacketEvidence {
   key: string;
   path: string;
-  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
   source: string;
   description: string;
   sha256: string;
@@ -704,7 +808,7 @@ export interface EvidenceRegistrationRequestV9 {
   expectedRevision: number;
   caseId: string;
   sourceFile: string;
-  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
   capturedAt?: string;
   source: string;
   description: string;
@@ -890,4 +994,20 @@ export interface CurrentConditions {
       sha256: string | null;
     };
   }[];
+}
+export interface ConversationArtifact {
+  conversationVersion: 1;
+  id: string;
+  title: string;
+  /**
+   * @minItems 1
+   * @maxItems 1000
+   */
+  messages: ConversationMessage[];
+  limitations: string[];
+}
+export interface ConversationSourceReference {
+  sourceId: string;
+  jsonPointer?: string;
+  quote?: string;
 }

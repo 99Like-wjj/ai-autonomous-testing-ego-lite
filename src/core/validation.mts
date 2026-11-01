@@ -1,11 +1,12 @@
 import { parseRunContext, parseContextFact, parseActionEvent, recordEvidenceIds, mapRecordEvidence } from './action-events.mjs';
+import { parseConversationSourceBindings } from './conversations.mjs';
 export { parseContextFact } from './action-events.mjs';
 /** Parse untrusted JSON before it reaches the transaction layer. */
 import type { Basis, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceRequest, Manifest, PendingEvidence, RecordPayload, RecordRequest, ResultEntry, Results, Observation, Assessment, Diagnosis, ContextFact, ExecutionContext, ActionFact, EvidenceLink, Phenomenon, GapDetail, ReproductionPreparation, Finding, EvidenceMetadata, SourceRef } from '../contracts/model.mjs';
 import { assertClosed, assertTimestamp, fail, nonempty, safeIdentifier } from './common.mjs';
 export const statusValues = ['verified', 'violation', 'inconclusive', 'not_tested'] as const;
 export const causeValues = ['product', 'agent', 'environment', 'spec', 'unknown'] as const;
-export const kindValues = ['screenshot', 'dom', 'tool_receipt', 'log', 'other'] as const;
+export const kindValues = ['screenshot', 'dom', 'tool_receipt', 'log', 'other', 'conversation'] as const;
 export function oneOf<const T extends readonly string[]>(value: unknown, values: T, label: string): T[number] {
   if (typeof value !== 'string' || !values.some(item => item === value)) fail('Invalid ' + label + '.');
   return value as T[number];
@@ -41,7 +42,7 @@ export function parseSourceRef(value: unknown): SourceRef {
   return { id: safeIdentifier(value.id, 'source ID'), locator: textValue(value.locator, 'source locator'), file, sha256, excerpt: textValue(value.excerpt, 'source excerpt', {empty:true}), limitations: strings(value.limitations, 'source limitations') };
 }
 export function parseObservation(value: unknown): Observation {
-  assertClosed(value, ['id', 'summary', 'coveredRefs', 'evidenceIds', 'contextId', 'actual', 'occurredAt', 'actions', 'evidenceLinks', 'actionEventIds'], 'observation');
+  assertClosed(value, ['id', 'summary', 'coveredRefs', 'evidenceIds', 'contextId', 'actual', 'occurredAt', 'actions', 'evidenceLinks', 'actionEventIds', 'phase'], 'observation');
   const actions = value.actions === undefined ? undefined : arrayValue(value.actions, 'actions').map(parseActionFact);
   if (actions && new Set(actions.map(a => a.id)).size !== actions.length) fail('Duplicate action ID in observation.');
   return { id: safeIdentifier(value.id, 'observation ID'), summary: textValue(value.summary, 'observation summary'), coveredRefs: uniqueStrings(value.coveredRefs, 'coveredRefs'), evidenceIds: uniqueStrings(value.evidenceIds, 'evidenceIds', true),
@@ -49,7 +50,16 @@ export function parseObservation(value: unknown): Observation {
     ...(value.actionEventIds === undefined ? {} : { actionEventIds: uniqueStrings(value.actionEventIds, 'action event IDs', true) }),
     ...(value.actual === undefined ? {} : { actual: textValue(value.actual, 'actual observation') }),
     ...(value.occurredAt === undefined ? {} : { occurredAt: timeValue(value.occurredAt, 'observation occurredAt') }),
-    ...(actions ? { actions } : {}), ...(value.evidenceLinks === undefined ? {} : { evidenceLinks: arrayValue(value.evidenceLinks, 'evidence links').map(parseEvidenceLink) }) };
+    ...(actions ? { actions } : {}), ...(value.phase === undefined ? {} : { phase: parsePhase(value.phase) }), ...(value.evidenceLinks === undefined ? {} : { evidenceLinks: arrayValue(value.evidenceLinks, 'evidence links').map(parseEvidenceLink) }) };
+}
+export function parsePhase(value: unknown): NonNullable<Observation['phase']> {
+  assertClosed(value,['expected','observed','basis'],'observation phase');
+  const values = ['before','during','after','static','unknown'] as const;
+  return { expected: oneOf(value.expected,values,'expected phase'), observed: oneOf(value.observed,values,'observed phase'), basis: textValue(value.basis,'phase basis') };
+}
+export function parseReadingDisplay(value: unknown): NonNullable<Assessment['display']> {
+  assertClosed(value,['title','actual','impact','dimension'],'reading display');
+  return { title: textValue(value.title,'reading title'), actual: textValue(value.actual,'reading actual'), impact: textValue(value.impact,'reading impact'), dimension: oneOf(value.dimension,['business','interaction','wording','content','presentation'],'check dimension') };
 }
 export function parseDiagnosis(value: unknown): Diagnosis {
   assertClosed(value, ['state', 'category', 'summary', 'evidenceIds'], 'diagnosis');
@@ -62,7 +72,7 @@ export function parseProblemCheck(value:unknown):NonNullable<Assessment['problem
   return{source:{run:{runDir:textValue(r.runDir,'problem run directory'),runId:textValue(r.runId,'problem run ID'),baselineSha256:sha256Value(r.baselineSha256),resultsRevision:integer(r.resultsRevision,'problem source revision'),resultsSha256:sha256Value(r.resultsSha256)},caseId:safeIdentifier(s.caseId),...(s.findingId===undefined?{}:{findingId:safeIdentifier(s.findingId)}),...(s.goalId===undefined?{}:{goalId:safeIdentifier(s.goalId)}),...(s.operationId===undefined?{}:{operationId:safeIdentifier(s.operationId)}),...(s.phenomenonId===undefined?{}:{phenomenonId:safeIdentifier(s.phenomenonId)})},state:oneOf(value.state,['reproduced','not_observed','unclear','not_checked'],'original problem state'),rationale:textValue(value.rationale,'problem check rationale'),observationIds:uniqueStrings(value.observationIds,'problem observations',true),gaps:strings(value.gaps,'problem gaps')};
 }
 export function parseAssessment(value: unknown): Assessment {
-  assertClosed(value, ['goalId', 'status', 'rationale', 'observationIds', 'gaps', 'diagnosis', 'summary', 'phenomena', 'gapDetails', 'revisionReason', 'previousOperationId', 'reproduction', 'problemChecks'], 'assessment');
+  assertClosed(value, ['goalId', 'status', 'rationale', 'observationIds', 'gaps', 'diagnosis', 'summary', 'phenomena', 'gapDetails', 'revisionReason', 'previousOperationId', 'reproduction', 'problemChecks', 'display'], 'assessment');
   const phenomena = value.phenomena === undefined ? undefined : arrayValue(value.phenomena, 'phenomena').map(parsePhenomenon);
   if (phenomena && new Set(phenomena.map(p => p.id)).size !== phenomena.length) fail('Duplicate phenomenon ID in assessment.');
   if (value.previousOperationId !== undefined && value.revisionReason === undefined) fail('An assessment revision reference requires a reason.');
@@ -71,7 +81,7 @@ export function parseAssessment(value: unknown): Assessment {
     ...(value.gapDetails === undefined ? {} : { gapDetails: arrayValue(value.gapDetails, 'gap details').map(parseGapDetail) }),
     ...(value.revisionReason === undefined ? {} : { revisionReason: textValue(value.revisionReason, 'revision reason') }),
     ...(value.previousOperationId === undefined ? {} : { previousOperationId: safeIdentifier(value.previousOperationId, 'previous operation') }),
-    ...(value.reproduction === undefined ? {} : { reproduction: parseReproduction(value.reproduction) }) };
+    ...(value.reproduction === undefined ? {} : { reproduction: parseReproduction(value.reproduction) }), ...(value.display === undefined ? {} : { display: parseReadingDisplay(value.display) }) };
 }
 export function parsePayload(value: unknown): RecordPayload {
   assertClosed(value, ['observations', 'assessments', 'contexts', 'findings', 'actionEvents'], 'record payload');
@@ -136,9 +146,14 @@ export function parsePendingEvidence(value: unknown): PendingEvidence {
 export function parseExecutionContext(value: unknown): ExecutionContext { return parseRunContext(value); }
 
 export function parseActionFact(value: unknown): ActionFact {
-  assertClosed(value, ['id', 'description', 'input', 'result', 'planRefs', 'evidenceIds', 'occurredAt'], 'action fact');
+  assertClosed(value, ['id', 'description', 'input', 'result', 'planRefs', 'evidenceIds', 'occurredAt', 'inputSummary', 'replySummary', 'inputPresentation', 'conversations'], 'action fact');
+  const conversations = value.conversations === undefined ? undefined : arrayValue(value.conversations,'action conversations').map(v => { assertClosed(v,['evidenceId','messageIds'],'action conversation'); const messageIds = uniqueStrings(v.messageIds,'conversation messages',true); if (!messageIds.length) fail('Action conversation needs message IDs.'); return { evidenceId: safeIdentifier(v.evidenceId), messageIds }; });
+  if (conversations && (!conversations.length || new Set(conversations.map(c => c.evidenceId)).size !== conversations.length)) fail('Action conversations must be nonempty and unique.');
+  if (value.inputPresentation !== undefined && value.input === undefined) fail('Input presentation requires the input record itself.');
   return { id: safeIdentifier(value.id, 'action ID'), description: textValue(value.description, 'actual action'), planRefs: uniqueStrings(value.planRefs, 'action plan references'), evidenceIds: uniqueStrings(value.evidenceIds, 'action evidence', true),
     ...(value.input === undefined ? {} : { input: textValue(value.input, 'action input') }), ...(value.result === undefined ? {} : { result: textValue(value.result, 'action result') }),
+    ...(value.inputSummary === undefined ? {} : { inputSummary: textValue(value.inputSummary,'input summary') }), ...(value.replySummary === undefined ? {} : { replySummary: textValue(value.replySummary,'reply summary') }),
+    ...(value.inputPresentation === undefined ? {} : { inputPresentation: oneOf(value.inputPresentation,['verbatim','summary','unknown'],'input presentation') }), ...(conversations === undefined ? {} : { conversations }),
     ...(value.occurredAt === undefined ? {} : { occurredAt: timeValue(value.occurredAt, 'action occurredAt') }) };
 }
 export function parseEvidenceLink(value: unknown): EvidenceLink {
@@ -162,7 +177,7 @@ export function parseFinding(value: unknown): Finding {
   return { id: safeIdentifier(value.id, 'finding ID'), title: textValue(value.title, 'finding title'), goalIds: uniqueStrings(value.goalIds, 'finding goals', true), observationIds: uniqueStrings(value.observationIds, 'finding observations', true), evidenceIds: uniqueStrings(value.evidenceIds, 'finding evidence', true), relationReason: textValue(value.relationReason, 'finding relation reason'), reviewState: oneOf(value.reviewState, ['proposed', 'reviewed'], 'finding review state'), scope: oneOf(value.scope, ['original', 'additional'], 'finding scope') };
 }
 export function parseEvidenceMetadata(value: unknown): EvidenceMetadata {
-  assertClosed(value, ['mediaType', 'encoding', 'scope', 'page', 'object', 'purpose', 'limitations', 'contextEvidenceIds', 'contentState', 'redaction', 'omissionReason', 'width', 'height', 'artifactRole', 'deliveryRequired'], 'evidence metadata');
+  assertClosed(value, ['mediaType', 'encoding', 'scope', 'page', 'object', 'purpose', 'limitations', 'contextEvidenceIds', 'contentState', 'redaction', 'omissionReason', 'width', 'height', 'artifactRole', 'deliveryRequired', 'conversationSources'], 'evidence metadata');
   const result: EvidenceMetadata = {};
   if (value.artifactRole !== undefined) result.artifactRole = oneOf(value.artifactRole, ['download_original', 'inspection', 'capture_receipt'], 'artifact role');
   if (value.deliveryRequired !== undefined) { if (typeof value.deliveryRequired !== 'boolean') fail('Invalid deliveryRequired.'); result.deliveryRequired = value.deliveryRequired; }
@@ -171,6 +186,7 @@ export function parseEvidenceMetadata(value: unknown): EvidenceMetadata {
   if (value.contentState !== undefined) result.contentState = oneOf(value.contentState, ['full', 'selected_fields', 'summary', 'truncated', 'excluded', 'failed', 'unknown'], 'evidence content state');
   if (value.limitations !== undefined) result.limitations = strings(value.limitations, 'evidence limitations');
   if (value.contextEvidenceIds !== undefined) result.contextEvidenceIds = uniqueStrings(value.contextEvidenceIds, 'context evidence IDs', true);
+  if (value.conversationSources !== undefined) { result.conversationSources = parseConversationSourceBindings(value.conversationSources); result.contextEvidenceIds = [...new Set([...(result.contextEvidenceIds ?? []), ...result.conversationSources.map(s => s.evidenceId)])]; }
   if (value.width !== undefined) result.width = integer(value.width, 'evidence width', 1);
   if (value.height !== undefined) result.height = integer(value.height, 'evidence height', 1);
   if ((result.width === undefined) !== (result.height === undefined)) fail('Evidence dimensions require both width and height.');

@@ -13,6 +13,8 @@ import crypto from 'node:crypto';
 import { assertClosed, fail, json, nonempty, now, randomId, safeIdentifier, canonicalHash, canonical, safePath, readJSON, writeNew, removeRegularIfPresent, atomicReplace, withRunLock, errorInfo } from './common.mjs';
 import { evidenceReference, evidenceFile, hashFile } from './file-integrity.mjs';
 import { requiredRefs, goalRequiredRefs } from '../contracts/targets.mjs';
+import { readConversationCatalog, validateRegisteredConversation } from './conversation-store.mjs';
+import { validateConversationActions } from './conversations.mjs';
 export { evidenceReference, evidenceFile, hashFile } from './file-integrity.mjs';
 export { readAndValidateBaseline } from './baseline.mjs';
 
@@ -54,6 +56,7 @@ function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availab
     for (const action of o.actions ?? []) {
       if (action.planRefs.some(ref => !refs.has(ref))) fail('Action refers to an unknown plan reference: ' + action.id);
       if (action.evidenceIds.some(id => !o.evidenceIds.includes(id))) fail('Action evidence must be included in its observation: ' + action.id);
+      for (const ref of action.conversations ?? []) if (!action.evidenceIds.includes(ref.evidenceId)) fail('Conversation evidence must belong to its actual action.');
     }
     for (const link of o.evidenceLinks ?? []) {
       if (!o.evidenceIds.includes(link.evidenceId)) fail('Evidence link must belong to its observation.');
@@ -230,6 +233,8 @@ export async function checkUnlocked(root: string, options: {allowMissingScreensh
   const evidenceCatalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
   const { evidenceById, operationIds, missingScreenshotIds } = await validateEvidenceCatalog(root, evidenceCatalog, baseline.cases, options);
   const results = parseResults(await readJSON(path.join(root, 'results.json')));
+  const conversationEvidence = await readConversationCatalog(root,evidenceCatalog);
+  for (const entry of results.entries) validateConversationActions(entry.record,conversationEvidence);
   const cases = validateResultEntries(baseline, results, evidenceById, operationIds,regressionBinding), counts = countsFor(cases);
   const execution = await readExecution(root, manifest, baseline); await verifyExecutionFiles(root, execution);
   return {
@@ -238,6 +243,7 @@ export async function checkUnlocked(root: string, options: {allowMissingScreensh
     sourceCaseCount:baseline.cases.length,sourceGoalCount:baseline.cases.reduce((n,c)=>n+c.goals.length,0),
     goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
     execution, executionSummary: summarize(execution, baseline), cases, evidenceCatalog,
+    ...(Object.keys(conversationEvidence).length ? {conversationEvidence} : {}),
     ...(regressionBinding ? { regressionBinding } : {}),
     actionAttempts: cases.flatMap(c => projectActionAttempts(c.actionEvents).map(a => ({ caseId: c.id, ...a }))),
     evidenceIntegrity: { hashVerifiedItems: evidenceCatalog.items.length - missingScreenshotIds.length, ...(missingScreenshotIds.length ? {missingScreenshotIds}: {}) },
@@ -323,6 +329,7 @@ export async function recordResultUnlocked(root: string, input: unknown, testHoo
   for (const priorCase of checked.cases) validateFactOwnership(priorCase.id, { observations: [], assessments: [], contexts: priorCase.contexts, actionEvents: priorCase.actionEvents }, factOwners);
   validateFactOwnership(c.id, request.record, factOwners);
   validatePayloadAgainstCase(c, request.record, checkedCase.observations, new Map(checked.evidenceCatalog.items.map(item => [item.id, item])), checkedCase);
+  validateConversationActions(request.record,checked.conversationEvidence ?? {});
   await verifyOriginalProblems(root,baseline,c,request.record.assessments);
   const entry: ResultEntry = { operationId: request.operationId, payloadSha256, expectedRevision: request.expectedRevision, revision: results.revision + 1, recordedAt: now(), caseId: request.caseId, mode: request.mode, record: request.record };
   await atomicReplace(resultsPath, json({ schemaVersion: 9, revision: entry.revision, entries: [...results.entries, entry] }));
@@ -397,6 +404,7 @@ export async function registerEvidenceUnlocked(root: string, request: unknown, t
   let committed = false;
   try {
     const copied = await copyAndHashSource(source, stage);
+    if (request.kind === 'conversation') await validateRegisteredConversation(root,await fs.readFile(stage),request.caseId,request.metadata?.conversationSources,catalog);
     if (typeof testHooks.afterCopy === 'function') await testHooks.afterCopy();
     marker.sha256 = copied.sha256; marker.bytes = copied.bytes;
     await atomicReplace(markerFile, json(marker), markerTemp);

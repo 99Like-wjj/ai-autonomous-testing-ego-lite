@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { TOOL_ROOT } from '../scripts/toolchain.mjs';
 import { fail } from '../core/common.mjs';
 import { reportShell } from './shell.mjs';
+import { reviewPrompts } from './reviewability.mjs';
 export const escape = (value: unknown): string => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\\*_{}\[\]()#+.!|~-]/g, '\\$&').split(String.fromCharCode(96)).join('\\' + String.fromCharCode(96)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, character => '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')).replace(/\r?\n/g, '  \n');
 export function markdown(report: Report, payload?: HtmlPayload): string {
   if (report.schemaVersion !== 9) fail('Unsupported report format; v9 is required.');
@@ -57,6 +58,7 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
       for(const p of a.problemChecks??[])lines.push('原问题检查：'+escape(p.state+'；'+p.rationale)+'；原来源 '+escape(p.source.run.runId+'/'+p.source.caseId+'/'+(p.source.findingId??p.source.goalId??''))+'；本轮观察 '+escape(p.observationIds.join(', '))+'；缺口 '+escape(p.gaps.join('；')),'');
       if (a.diagnosis) lines.push('归因：' + a.diagnosis.state + ' / ' + a.diagnosis.category + '；' + escape(a.diagnosis.summary) + '。根因状态与业务四态独立。', '');
       if (a.summary) lines.push('阅读摘要：' + escape(a.summary), '');
+      if(a.display)lines.push('可读标题：'+escape(a.display.title),'','实际现象：'+escape(a.display.actual),'','影响范围：'+escape(a.display.impact),'');
       for (const context of item.contexts) {
         lines.push('#### 实际上下文 ' + escape(context.id), '');
         for (const [key, label] of [['environment', '环境'], ['identity', '实际身份'], ['objects', '对象'], ['initialState', '初态'], ['authorization', '授权条件']] as const) {
@@ -89,8 +91,12 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
       for (const o of item.observations) lines.push('- 观察 ' + escape(o.id) + '：' + escape(o.summary), '  必要语义覆盖：' + escape(o.coveredRefs.join(', ') || '(none)'), '  证据：' + escape(o.evidenceIds.join(', ') || '(none)'), '');
       for (const o of item.observations) {
         if (o.actual) lines.push('实际结果：' + escape(o.actual), '');
+        if(o.phase)lines.push('检查阶段声明：预期 '+escape(o.phase.expected)+'；实际 '+escape(o.phase.observed)+'；依据 '+escape(o.phase.basis),'');
         lines.push('观察发生时间：' + escape(o.occurredAt ?? '未记录（不使用登记时间替代）'), '');
-        for (const action of o.actions ?? []) lines.push('- 实际操作 ' + escape(action.id) + '：' + escape(action.description), '  输入：' + escape(action.input ?? '未记录/不适用'), '  读回结果：' + escape(action.result ?? '未记录'), '  操作发生时间：' + escape(action.occurredAt ?? '未记录'), '  证据：' + escape(action.evidenceIds.join(', ') || '未关联'), '');
+        for (const action of o.actions ?? []) {
+          const reading=readerNote?.actions.find(s=>s.observationId===o.id&&s.actionId===action.id),input=reading?.inputSummary??action.inputSummary,reply=reading?.replySummary??action.replySummary;
+          lines.push('- 实际操作 ' + escape(action.id) + '：' + escape(action.description), '  输入记录：' + escape(action.input ?? '未记录/不适用'), ...(input?['  输入摘要：'+escape(input)]:[]),...(reply?['  AI回复摘要：'+escape(reply)]:[]),'  实际结果记录：' + escape(action.result ?? '未记录'), '  操作发生时间：' + escape(action.occurredAt ?? '未记录'), '  证据：' + escape(action.evidenceIds.join(', ') || '未关联'), '');
+        }
         for (const link of o.evidenceLinks ?? []) lines.push('- 证据用途 ' + escape(link.evidenceId) + '：' + escape(link.purpose) + '；支持事实：' + escape(link.fact) + '；局限：' + escape(link.limitations.join('；') || '未列出'), '');
       }
       lines.push('关联证据：' + escape(item.evidenceIds.join(', ') || '(none)'), '');
@@ -151,6 +157,18 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
     }
     for(const g of h.gaps)lines.push('- 历史资料缺口 '+escape(g.run.runId+'：'+g.reason));
     lines.push('',escape(h.caveat),'');
+  }
+  const prompts=reviewPrompts(report);if(prompts.length)lines.push('## 记录可读性与取证提示','','仅为结构提示，不改变业务四态。','',...prompts.map(p=>'- '+escape(p.caseId+'/'+p.goalId+'：'+p.detail)),'');
+  const conversations=Object.values(payload?.conversations??{});
+  if(conversations.length)lines.push('## 已留存的完整对话阅读','','以下逐条保留来源整理内容；完整性、结束状态和业务成功分别核验。HTML提供消息定位与来源查看。','');
+  for(const view of conversations){
+    lines.push('### '+escape(view.artifact.title),'','关联：'+escape(view.caseId+(view.goalId?'/'+view.goalId:''))+'；'+(view.retrospective?'事后来源整理':'本轮登记对话'),'');
+    for(const m of view.artifact.messages){
+      const presentation={verbatim:'逐字原文',normalized:'来源整理',summary:'仅摘要'}[m.presentation],complete={complete:'原文覆盖完整',partial:'原文部分留存',unknown:'原文覆盖未确定'}[m.completeness];
+      lines.push('#### '+escape(({user:'测试输入',assistant:'被测AI',tool:'工具可见消息',notice:'通知'}[m.role])+' · '+m.id),'',escape(presentation+'；'+complete+'；结束状态 '+m.state),'',escape(m.content),'','结束依据：'+escape(m.completionBasis),'','来源：'+escape(m.sourceRefs.map(r=>r.sourceId).join('、')),'',...(m.limitations.length?['局限：'+escape(m.limitations.join('；')),'']:[]));
+    }
+    for(const source of view.sources)lines.push('- 来源 '+escape(source.sourceId+'：'+source.label+'；SHA256 '+source.sha256+(source.evidenceId?'；证据 '+source.evidenceId:'')));
+    lines.push('',escape(view.limitations.join('；')),'');
   }
   return lines.join('\n') + '\n';
 }

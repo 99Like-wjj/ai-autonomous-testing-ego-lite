@@ -1,4 +1,4 @@
-# 架构与职责（v9 / 0.1.8-rc.1）
+# 架构与职责（v9 / 0.1.8-rc.2）
 
 ![架构职责示意：AI、Ego 与本地工具的分工。](images/architecture.zh-CN.png)
 
@@ -31,6 +31,8 @@ core/records 和 action-events 统一管理实际上下文、动作、观察、�
 ego-helpers/download 由 AI 显式组合官方监听与保存，在同轮取回原件；下载管理页适配是显式补证。execution note 保存一个本轮在途标记，不做自动业务重试或超时释放。files/inspect 在受限子进程只读解析，读取结果不判业务通过。
 
 report/history 只读收集精确父运行，旧证据单独包装、不进当前目录和计数。report/assets、delivery 同源生成 HTML/Markdown/JSON、附件和校验清单；历史损坏可局部交付并明确缺口。report-ui 与 review-ui 分别负责报告阅读和离线用例审阅，不执行业务或回写账本。
+
+core/conversations和conversation-store验证独立conversationVersion 1的消息、原件映射、精确引文和动作归属；并行导入只映射外部证据ID，不重写消息文件。ego-helpers/capture-text仅由AI显式调用，读取明确节点、保存长文本及采集范围，不识别站点协议或判断结束/业务成功。report/conversations构造注册或事后来源视图，report-ui/conversations按方案2显示步骤摘要、聊天侧栏/全屏、来源和完整性。Markdown解析与净化被打入离线脚本，不执行外来HTML或加载外部图片。reviewability只给结构提示，不替AI判定或规划补测。
 
 用例审阅通过case-reader提供场景总览和三栏工作台。可选review-session只监听带随机会话路径的127.0.0.1入口，限定CLI给定的用例和输出目录；review-export校验后原生保存可读HTML/JSON，避免Blob下载区域标记。它不调用模型、不操控浏览器、不登记确认。离线副本与兼容备份仍保留，浏览器草稿和正式审阅分开；见[审阅保存说明](v0.1.8-case-review.md)。
 

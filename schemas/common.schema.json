@@ -330,6 +330,9 @@
             "$ref": "#/$defs/safeId"
           },
           "uniqueItems": true
+        },
+        "phase": {
+          "$ref": "#/$defs/observationPhase"
         }
       },
       "additionalProperties": false
@@ -440,6 +443,9 @@
             ],
             "additionalProperties": false
           }
+        },
+        "display": {
+          "$ref": "#/$defs/readingPresentation"
         }
       },
       "additionalProperties": false
@@ -751,7 +757,8 @@
             "dom",
             "tool_receipt",
             "log",
-            "other"
+            "other",
+            "conversation"
           ]
         },
         "capturedAt": {
@@ -982,6 +989,28 @@
         },
         "occurredAt": {
           "$ref": "#/$defs/timestamp"
+        },
+        "inputSummary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "replySummary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputPresentation": {
+          "enum": [
+            "verbatim",
+            "summary",
+            "unknown"
+          ]
+        },
+        "conversations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/conversationActionRef"
+          }
         }
       },
       "required": [
@@ -1262,6 +1291,13 @@
         },
         "deliveryRequired": {
           "type": "boolean"
+        },
+        "conversationSources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/conversationSourceBinding"
+          }
         }
       },
       "required": [],
@@ -2435,6 +2471,334 @@
           "uniqueItems": true
         }
       },
+      "additionalProperties": false
+    },
+    "conversationSourceRef": {
+      "title": "Conversation source reference",
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "jsonPointer": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 262144
+        }
+      },
+      "required": [
+        "sourceId"
+      ],
+      "additionalProperties": false
+    },
+    "conversationMessage": {
+      "title": "Conversation message",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "role": {
+          "enum": [
+            "user",
+            "assistant",
+            "tool",
+            "notice"
+          ]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "enum": [
+            "text",
+            "markdown",
+            "json",
+            "code"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 262144
+        },
+        "language": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "presentation": {
+          "enum": [
+            "verbatim",
+            "normalized",
+            "summary"
+          ]
+        },
+        "completeness": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ]
+        },
+        "state": {
+          "enum": [
+            "final",
+            "streaming",
+            "interrupted",
+            "waiting_confirmation",
+            "unknown"
+          ]
+        },
+        "completionBasis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/conversationSourceRef"
+          }
+        },
+        "attachmentSourceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "sentAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "displayTime": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "format",
+        "content",
+        "presentation",
+        "completeness",
+        "state",
+        "completionBasis",
+        "sourceRefs",
+        "limitations"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            {
+              "required": [
+                "attachmentSourceIds"
+              ],
+              "properties": {
+                "attachmentSourceIds": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/safeId"
+                  },
+                  "minItems": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "presentation": {
+                "const": "summary"
+              }
+            },
+            "required": [
+              "presentation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "completeness": {
+                "enum": [
+                  "partial",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "conversationArtifact": {
+      "title": "Conversation artifact",
+      "type": "object",
+      "properties": {
+        "conversationVersion": {
+          "const": 1
+        },
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "messages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/conversationMessage"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "conversationVersion",
+        "id",
+        "title",
+        "messages",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "conversationSourceBinding": {
+      "title": "Conversation source binding",
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "evidenceId": {
+          "$ref": "#/$defs/safeId"
+        }
+      },
+      "required": [
+        "sourceId",
+        "evidenceId"
+      ],
+      "additionalProperties": false
+    },
+    "conversationActionRef": {
+      "title": "Conversation action reference",
+      "type": "object",
+      "properties": {
+        "evidenceId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "messageIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "evidenceId",
+        "messageIds"
+      ],
+      "additionalProperties": false
+    },
+    "readingPresentation": {
+      "title": "Reading presentation",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actual": {
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dimension": {
+          "enum": [
+            "business",
+            "interaction",
+            "wording",
+            "content",
+            "presentation"
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "actual",
+        "impact",
+        "dimension"
+      ],
+      "additionalProperties": false
+    },
+    "observationPhase": {
+      "title": "Observation phase",
+      "type": "object",
+      "properties": {
+        "expected": {
+          "enum": [
+            "before",
+            "during",
+            "after",
+            "static",
+            "unknown"
+          ]
+        },
+        "observed": {
+          "enum": [
+            "before",
+            "during",
+            "after",
+            "static",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "expected",
+        "observed",
+        "basis"
+      ],
       "additionalProperties": false
     }
   }

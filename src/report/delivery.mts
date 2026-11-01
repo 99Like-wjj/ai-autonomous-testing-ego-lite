@@ -2,16 +2,18 @@ import fs, { type FileHandle } from 'node:fs/promises';
 import path from 'node:path';
 import type { FileIdentity, HtmlPayload, Report, ReportContext } from '../contracts/model.mjs';
 import { assertClosed, directory, errorInfo, fail, hash, json, object, readJSON, removeOwnedFileIfPresent, safePath, syncDirectory, withRunLock, writeNew } from '../core/common.mjs';
-import { arrayValue, sha256Value, strings, textValue } from '../core/validation.mjs';
+import { arrayValue, oneOf, sha256Value, strings, textValue } from '../core/validation.mjs';
+import { parseReadingConversations, readingConversationViews } from './conversations.mjs';
 import { checkUnlocked, recoverEvidence } from '../core/records.mjs';
 import { markdown, htmlReport, htmlReportPayload } from './render.mjs';
 import { evidenceFile } from '../core/file-integrity.mjs';
 import { reportEvidence, TEXT_PREVIEW_LIMIT, type PayloadOptions } from './assets.mjs';
 import { collectHistory, parseHistoryLocations, validateHistory } from './history.mjs';
 import { caseGoals } from './execution-view.mjs';
+import { reviewPrompts } from './reviewability.mjs';
 
-export async function validateReportContext(input: unknown, result: Report): Promise<ReportContext> {
-  assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'goalNotes', 'readerNotes'], 'report context');
+export async function validateReportContext(input: unknown, result: Report, runRoot?: string): Promise<ReportContext> {
+  assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'goalNotes', 'readerNotes', 'conversations'], 'report context');
   if (input.schemaVersion !== 9 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
   const context: ReportContext = {
     schemaVersion: 9, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
@@ -53,7 +55,7 @@ export async function validateReportContext(input: unknown, result: Report): Pro
     const labels = new Set(context.sources.map(s => s.label)), keys = new Set<string>();
     if (labels.size !== context.sources.length) fail('Reader-note source labels must be unique.');
     context.readerNotes = arrayValue(input.readerNotes, 'reader notes').map(value => {
-      assertClosed(value, ['caseId', 'goalId', 'title', 'description', 'focusAction', 'actions', 'sourceLabels', 'limitations'], 'reader note');
+      assertClosed(value, ['caseId', 'goalId', 'title', 'description', 'focusAction', 'actions', 'sourceLabels', 'limitations', 'impact', 'dimension'], 'reader note');
       const caseId = textValue(value.caseId, 'reader case ID'), goalId = textValue(value.goalId, 'reader goal ID'), key = caseId + '/' + goalId;
       const c = result.cases.find(c => c.id === caseId), a = c?.assessments.find(a => a.goalId === goalId);
       if (!c?.goals.some(g => g.id === goalId) || keys.has(key)) fail('Unknown or duplicate reader goal.'); keys.add(key);
@@ -63,12 +65,12 @@ export async function validateReportContext(input: unknown, result: Report): Pro
       if (!sourceLabels.length || new Set(sourceLabels).size !== sourceLabels.length || sourceLabels.some(l => !labels.has(l)) || !limitations.length) fail('Reader notes require valid sources and limitations.');
       const actionKeys = new Set<string>();
       const actions = arrayValue(value.actions, 'reader actions').map(item => {
-        assertClosed(item, ['observationId', 'actionId', 'title', 'result', 'note', 'evidenceIds'], 'reader action');
+        assertClosed(item, ['observationId', 'actionId', 'title', 'result', 'note', 'evidenceIds', 'inputSummary', 'replySummary'], 'reader action');
         const observationId = textValue(item.observationId, 'reader observation ID'), actionId = textValue(item.actionId, 'reader action ID'), actionKey = observationId + '/' + actionId;
         if (!observations.some(o => o.id === observationId && o.actions?.some(a => a.id === actionId)) || actionKeys.has(actionKey)) fail('Reader actions must uniquely reference actual actions of this current goal.'); actionKeys.add(actionKey);
         const evidenceIds = strings(item.evidenceIds, 'reader action evidence');
         if (new Set(evidenceIds).size !== evidenceIds.length || evidenceIds.some(id => !evidence.has(id))) fail('Reader evidence must be linked to this current goal; do not borrow other goals or history.');
-        return { observationId, actionId, title: textValue(item.title, 'reader action title'), evidenceIds, ...(item.result === undefined ? {} : { result: textValue(item.result, 'reader result explanation') }), ...(item.note === undefined ? {} : { note: textValue(item.note, 'reader action note') }) };
+        return { observationId, actionId, title: textValue(item.title, 'reader action title'), evidenceIds, ...(item.result === undefined ? {} : { result: textValue(item.result, 'reader result explanation') }), ...(item.note === undefined ? {} : { note: textValue(item.note, 'reader action note') }), ...(item.inputSummary === undefined ? {} : {inputSummary:textValue(item.inputSummary,'reader input summary')}), ...(item.replySummary === undefined ? {} : {replySummary:textValue(item.replySummary,'reader reply summary')}) };
       });
       let focusAction: { observationId: string; actionId: string } | undefined;
       if (value.focusAction !== undefined) {
@@ -77,13 +79,14 @@ export async function validateReportContext(input: unknown, result: Report): Pro
         if (!observations.some(o => o.id === focus.observationId && o.actions?.some(a => a.id === focus.actionId))) fail('Reader focus must reference an actual current-goal action, never a planned step.');
         focusAction = focus;
       }
-      return { caseId, goalId, title: textValue(value.title, 'reader title'), description: textValue(value.description, 'reader description'), actions, sourceLabels, limitations, ...(focusAction ? { focusAction } : {}) };
+      return { caseId, goalId, title: textValue(value.title, 'reader title'), description: textValue(value.description, 'reader description'), actions, sourceLabels, limitations, ...(focusAction ? { focusAction } : {}), ...(value.impact === undefined ? {} : {impact:textValue(value.impact,'reader impact')}), ...(value.dimension === undefined ? {} : {dimension:oneOf(value.dimension,['business','interaction','wording','content','presentation'],'reader dimension')}) };
     });
   }
+  if(input.conversations!==undefined){context.conversations=parseReadingConversations(input.conversations,context,result);await readingConversationViews(context,result,runRoot);}
   return context;
 }
 
-interface Attachment { path: string; sha256: string; bytes: number; evidenceIds: string[] }
+interface Attachment { path: string; sha256: string; bytes: number; evidenceIds: string[]; contextSourceLabels?:string[] }
 interface DeliveryManifest {
   deliveryVersion: 1; reportSchemaVersion: 9; runId: string; revision: number; evidenceRevision: number; historySha256:string|null;
   options: { mode: 'inline' | 'bundle'; textPreviewLimitBytes: number; allowMissingScreenshots: boolean };
@@ -96,6 +99,10 @@ function manifestFor(payload: HtmlPayload): DeliveryManifest {
     let attachment = unique.get(filename);
     if (!attachment) { attachment = { path: filename, sha256: item.sha256, bytes: item.bytes, evidenceIds: [] }; unique.set(filename, attachment); }
     attachment.evidenceIds.push(key);
+  }
+  for(const [label,file]of Object.entries(payload.conversationFiles??{})){
+    let attachment=unique.get(file.attachmentPath);if(!attachment){attachment={path:file.attachmentPath,sha256:file.sha256,bytes:file.bytes,evidenceIds:[]};unique.set(file.attachmentPath,attachment);}
+    (attachment.contextSourceLabels??=[]).push(label);
   }
   return { deliveryVersion: 1, reportSchemaVersion: 9, runId: payload.report.runId, revision: payload.report.revision, evidenceRevision: payload.report.evidenceRevision, historySha256:payload.report.history?.contentSha256??null,
     options: { mode: payload.delivery.mode, textPreviewLimitBytes: payload.delivery.textPreviewLimitBytes, allowMissingScreenshots: payload.delivery.allowMissingScreenshots },
@@ -148,14 +155,14 @@ export async function verifyReportFiles(root: string, reportDir: string, result:
     if (hash(bytes) !== attachment.sha256 || bytes.length !== attachment.bytes) fail('Report attachment hash or byte count mismatch: ' + attachment.path);
     artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
   }
-  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v9', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete };
+  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v9', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete, reviewPrompts:reviewPrompts(result) };
 }
 export async function verifyReport(runDir: unknown, reportDir: unknown = runDir) {
   return withRunLock(runDir, async root => {
     const target = await directory(reportDir), saved = await readJSON(path.join(target, 'report.json'));
     if (!object(saved) || saved.schemaVersion !== 9) fail('Unsupported saved report format; v9 is required. Historical files remain unchanged.');
     const options = await readDeliveryOptions(target), result = await checkUnlocked(root, { allowMissingScreenshots: options.allowMissingScreenshots });
-    if (saved.context !== undefined) result.context = await validateReportContext(saved.context, result);
+    if (saved.context !== undefined) result.context = await validateReportContext(saved.context, result, root);
     if (saved.history !== undefined) result.history=validateHistory(saved.history as unknown as NonNullable<Report['history']>,result);
     else if((await collectHistory(root,result))!==undefined)fail('Saved report omitted its historical references.');
     const historicalFiles=new Map<string,string>();
@@ -175,8 +182,8 @@ export async function report(runDir: unknown, { outputDir = runDir, contextFile,
     const target = await directory(outputDir), result = await checkUnlocked(root, { allowMissingScreenshots });
     const locations=historyLocationsFile?parseHistoryLocations(await readJSON(await safePath(historyLocationsFile,{existing:true}))):undefined;
     const history=await collectHistory(root,result,locations);if(history)result.history=history;
-    if (contextFile !== undefined) result.context = await validateReportContext(await readJSON(contextFile), result);
-    const mode = deliveryMode === 'auto' ? ((result.history?.evidence.length??0)>0 || result.evidenceCatalog.items.some(e => e.metadata?.deliveryRequired || e.metadata?.artifactRole === 'download_original') ? 'bundle' : 'inline') : deliveryMode;
+    if (contextFile !== undefined) result.context = await validateReportContext(await readJSON(contextFile), result, root);
+    const mode = deliveryMode === 'auto' ? ((result.history?.evidence.length??0)>0 || (result.context?.conversations?.length??0)>0 || result.evidenceCatalog.items.some(e => e.kind==='conversation' || e.metadata?.deliveryRequired || e.metadata?.artifactRole === 'download_original') ? 'bundle' : 'inline') : deliveryMode;
     const payload = await htmlReportPayload(root, result, { mode, textPreviewLimitBytes, allowMissingScreenshots }), manifest = manifestFor(payload);
     const contents = [json(result), markdown(result, payload), htmlReport(payload), json(manifest)];
     const filenames = ['report.json', 'report.md', 'report.html', 'report-delivery.json'].map(name => path.join(target, name));
@@ -191,8 +198,9 @@ export async function report(runDir: unknown, { outputDir = runDir, contextFile,
       if (manifest.attachments.length) { await fs.mkdir(attachmentDir); const stat = await fs.lstat(attachmentDir); createdDir = { dev: stat.dev, ino: stat.ino }; }
       for (const attachment of manifest.attachments) {
         const source = reportEvidence(result).find(e => e.key === attachment.evidenceIds[0]);
-        if (!source) fail('Missing report attachment source.');
-        const bytes = await fs.readFile(await evidenceFile(source.runDir??root, source.item.path));
+        const contextual=attachment.contextSourceLabels?.[0],external=contextual?result.context?.sources.find(s=>s.label===contextual):undefined;
+        if (!source&&!external) fail('Missing report attachment source.');
+        const bytes = await fs.readFile(source?await evidenceFile(source.runDir??root, source.item.path):await safePath(external!.file,{existing:true}));
         if (hash(bytes) !== attachment.sha256 || bytes.length !== attachment.bytes) fail('Evidence changed during bundle generation.');
         const filename = path.join(target, ...attachment.path.split('/')); created.push({ filename, identity: await writeBinaryNew(filename, bytes) });
       }

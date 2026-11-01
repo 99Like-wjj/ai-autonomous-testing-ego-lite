@@ -1,4 +1,4 @@
-# Architecture — v9 / 0.1.8-rc.1
+# Architecture — v9 / 0.1.8-rc.2
 
 ![Architecture responsibilities: AI, Ego and deterministic tools.](images/architecture.png)
 
@@ -13,6 +13,8 @@ core/records and execution packets share immutable observations, action/context 
 ego-helpers/download composes official Ego events and saveAs in the same SDK round. Explicit downloads-manager reconciliation is a version-specific fallback. An existing execution note tracks one active/unknown run capture; clocks do not clear it. files/inspect reads bounded files in a separate process and never decides business success.
 
 report/history retains exact source-run provenance outside current evidence/counts. Delivery uses one JSON/HTML/Markdown model plus referenced attachments. Complete history bundles remain verifiable when source directories move; missing history is explicit. review-ui exports review data without running tests or authenticating a reviewer.
+
+core/conversations and conversation-store validate conversationVersion 1, retained-source mappings, exact quotations and actual-action ownership. Imports remap external IDs without rewriting message bytes. The explicit capture-text helper reads AI-selected DOM nodes and records scope rather than detecting site protocols or deciding completion/business success. report/conversations produces registered or retrospective views; the selected conversation drawer/fullscreen reader presents step summaries, message/source fidelity and coverage. Markdown parsing/sanitization is bundled offline; foreign HTML and remote images are not executed/loaded. reviewability emits structural prompts without choosing verdicts or further actions.
 
 case-reader provides the scene/case overview and three-column review workbench. The optional review-session listens only on a private capability-scoped 127.0.0.1 path, with case input and output directory fixed by the CLI. review-export validates and writes readable HTML/JSON natively, avoiding browser download-zone metadata. It makes no model calls, browser actions or approval registrations. Offline reading and browser drafts remain separate from formal reviews; see [review saving](v0.1.8-case-review.md).
 

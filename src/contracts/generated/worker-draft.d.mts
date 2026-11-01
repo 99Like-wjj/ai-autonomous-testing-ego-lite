@@ -70,6 +70,10 @@ export type EvidenceMetadata = {
   height?: number;
   artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
   deliveryRequired?: boolean;
+  /**
+   * @minItems 1
+   */
+  conversationSources?: ConversationSourceBinding[];
 };
 
 export interface EgoLiteWorkerDraftV9 {
@@ -106,6 +110,7 @@ export interface Observation {
   actions?: ActionFact[];
   evidenceLinks?: EvidenceLink[];
   actionEventIds?: string[];
+  phase?: ObservationPhase;
 }
 export interface ActionFact {
   id: string;
@@ -115,6 +120,20 @@ export interface ActionFact {
   planRefs: string[];
   evidenceIds: string[];
   occurredAt?: string;
+  inputSummary?: string;
+  replySummary?: string;
+  inputPresentation?: 'verbatim' | 'summary' | 'unknown';
+  /**
+   * @minItems 1
+   */
+  conversations?: ConversationActionReference[];
+}
+export interface ConversationActionReference {
+  evidenceId: string;
+  /**
+   * @minItems 1
+   */
+  messageIds: string[];
 }
 export interface EvidenceLink {
   evidenceId: string;
@@ -122,6 +141,11 @@ export interface EvidenceLink {
   fact: string;
   actionId?: string;
   limitations: string[];
+}
+export interface ObservationPhase {
+  expected: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  observed: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  basis: string;
 }
 export interface Assessment {
   goalId: string;
@@ -143,6 +167,7 @@ export interface Assessment {
     observationIds: string[];
     gaps: string[];
   }[];
+  display?: ReadingPresentation;
 }
 export interface Diagnosis {
   state: 'unknown' | 'hypothesis' | 'confirmed';
@@ -169,6 +194,12 @@ export interface ReproductionPreparation {
   limitations: string[];
   objectState: string;
   repeatability: string;
+}
+export interface ReadingPresentation {
+  title: string;
+  actual: string;
+  impact: string;
+  dimension: 'business' | 'interaction' | 'wording' | 'content' | 'presentation';
 }
 export interface ExecutionContext {
   id: string;
@@ -220,7 +251,7 @@ export interface ActionRetry {
 export interface PacketEvidence {
   key: string;
   path: string;
-  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
   source: string;
   description: string;
   capturedAt?: string;
@@ -229,6 +260,10 @@ export interface PacketEvidence {
    * Explicitly reuse this current-run, same-case registered evidence ID after matching the retained file and all source metadata. This is not new collection.
    */
   reuseEvidenceId?: string;
+}
+export interface ConversationSourceBinding {
+  sourceId: string;
+  evidenceId: string;
 }
 export interface ExecutionWindow {
   startedAt: string;

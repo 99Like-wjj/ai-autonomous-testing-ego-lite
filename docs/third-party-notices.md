@@ -1,4 +1,4 @@
-# 第三方文件读取依赖
+# 第三方文件读取与报告依赖
 
 0.1.8 开发版通过构建生成 vendor/file-readers.mjs。运行时使用该明确列入完整性清单的 bundle，不执行 npm install。
 
@@ -9,3 +9,5 @@
 构建还生成 vendor/THIRD-PARTY-LICENSES.txt，列出实际 bundle 输入包版本及完整许可文本，并纳入完整性清单。worker-f 0.1.21 的 npm 包声明 MIT/作者但未附独立许可文件，使用源码 docs/third-party-licenses/worker-f-0.1.21.txt 中明确标注来源的标准许可文本，不推断版权年份。
 
 依赖审计只反映当次已知公告，不能认证输入安全、文件内容正确或业务结论成立。读取范围、精度及格式限制由实际工具输出说明。
+
+报告Markdown使用 marked 18.1.2（MIT）解析、DOMPurify 3.4.17（Apache-2.0 OR MPL-2.0）净化，版本和integrity锁定在package-lock.json；均打入离线report-ui/main.js，无CDN或运行时安装。raw HTML转义，外部图片不加载，链接仅允许http/https且不自动访问。第三方完整许可追加到同一vendor/THIRD-PARTY-LICENSES.txt。解析库及净化库的上游说明分别见 [Marked](https://marked.js.org/) 与 [DOMPurify](https://github.com/cure53/DOMPurify)。

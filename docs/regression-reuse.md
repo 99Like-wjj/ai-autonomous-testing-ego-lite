@@ -1,4 +1,4 @@
-# 用例版本与回归复用（0.1.8-rc.1）
+# 用例版本与回归复用（0.1.8-rc.2）
 
 当前开发格式：主契约 v9、regressionVersion 2、networkVersion 1，尚未正式发布。完整方法与命令见Skill 的 references/regression-reuse.md 与 references/local-toolbox.md。
 

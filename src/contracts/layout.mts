@@ -1,8 +1,17 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.8-rc.1';
-export const TOOL_REVISION = 'case-review-native-export-1';
+export const TOOL_VERSION = '0.1.8-rc.2';
+export const TOOL_REVISION = 'conversation-review-1';
 export const FORMAT_VERSIONS = { cases: 9, manifest: 9, results: 9, evidence: 9, report: 9, execution: 9, configuration: 9, workerPacket: 9, executionRead: 9 } as const;
 export const runtimeFiles = [
+  'core/conversations.mjs',
+  'core/conversation-store.mjs',
+  'report/conversations.mjs',
+  'report/reviewability.mjs',
+  'report/conversation-layout.mjs',
+  'ego-helpers/capture-text.mjs',
+  'schemas/conversation.schema.json',
+  'examples/conversation.example.json',
+  'docs/v0.1.8-conversation-review.md',
   'core/case-versions.mjs',
   'core/case-review.mjs',
   'report/case-documents.mjs',
@@ -150,6 +159,7 @@ export const runtimeFiles = [
   'docs/v0.1.7-validation.md'
 ];
 export const referenceNames = [
+  'conversation-evidence',
   'case-authoring',
   'case-design-guide',
   'case-design-methods',

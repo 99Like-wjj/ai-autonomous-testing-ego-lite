@@ -1,4 +1,4 @@
-# 数据契约（v9 / 0.1.8-rc.1）
+# 数据契约（v9 / 0.1.8-rc.2）
 
 当前开发版主契约 v9、regressionVersion 2、networkVersion 1。源码 Schema 是外部结构定义，运行时同时验证引用、内容指纹与事务语义；类型从 Schema 生成，不直接改生成文件。工程通过不是业务验收。
 
@@ -45,5 +45,11 @@ Report/HTML payload 使用 v9。报告仅统计本轮选中点，另列源清单
 HTML、Markdown、JSON 同源。delivery=auto 需要下载原件或历史附件时使用 bundle；其他为 inline。附件按实际引用收集，交付清单保存路径、字节、指纹与历史摘要指纹。完整 bundle 可使用已保管历史附件校验，无需旧目录仍在原位置；摘要不能代替缺失原件。
 
 ## 格式影响
+
+0.1.8-rc.2 在主v9中增加可选字段：Observation.phase记录预期/实际阶段及依据；Assessment.display记录可读标题、实际现象、影响和维度；ActionFact.inputSummary/replySummary/inputPresentation/conversations记录真实步骤输入、回复及消息引用。旧字段和业务四态不变，未填写的新信息显示缺口，不从计划推断。
+
+独立conversationVersion 1见schemas/conversation.schema.json和examples/conversation.example.json。每条消息声明role、format、content、presentation、completeness、state、completionBasis、sourceRefs、limitations。kind=conversation的metadata.conversationSources将局部sourceId映射到同用例原件evidenceId；contextEvidenceIds自动包含这些原件。消息逐字内容及引文校验不等于AI语义校验。源文件上限8MiB；单条正文上限262144个UTF-16代码单元；大对话由AI按明确范围拆分，不静默截断。
+
+report --context 的可选conversations引用带SHA的规范化文件，以sourceBindings指定原件、actions指定当前目标既有实际动作和消息。不能覆盖业务状态或从计划补造动作。HTML payload提供经过来源核验的对话视图，report.conversationEvidence包含本轮已登记规范化内容。auto在含对话时使用bundle，交付包含原始文件；单独搬走HTML会失去原件附件。verify-report增加reviewPrompts，只提示缺描述、重复文案、阶段不一致和缺输入/回复摘要，不改变业务结论。详见Skill中的“通用对话证据”指南。
 
 旧用例、规则/任务、run 和报告不自动迁移、重写或删除；新版不提供旧格式兜底。需要复用时显式从原始来源整理并说明映射。网络格式保持 1。源 Schema 见 schemas/，可用输入见 examples/cases-save-request.example.json、regression-selection.example.json、regression-binding-request.example.json、file-inspection-request.example.json。

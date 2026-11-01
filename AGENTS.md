@@ -14,7 +14,7 @@ src/execution/     名额、任务分配、Space 关联、工作包复核导入
 src/observation/   授权范围内接口采集、查询与证据导出
 src/regression/    范围选择、运行绑定、历史来源与比较
 src/files/         受限进程中的只读文件检查
-src/ego-helpers/   AI 显式调用的 Ego 下载辅助
+src/ego-helpers/   AI 显式调用的 Ego 下载、只读文本取证辅助
 src/review-ui/     离线用例审阅页面交互
 src/report/        报告投影、布局、主题、证据和文件交付
 src/report-ui/     HTML 报告的浏览器交互
@@ -32,12 +32,12 @@ docs/              当前说明、历史验证及图片生成源
 | --- | --- | --- |
 | CLI 命令与参数 | [ego.mts](src/scripts/ego.mts)、[toolchain.mts](src/scripts/toolchain.mts) | [CLI 入口](tests/cli-entrypoint.test.mts)、[基础命令](tests/ego.test.mts) |
 | 用例、业务目标与冻结 | [cases.mts](src/core/cases.mts)、[baseline.mts](src/core/baseline.mts)、[schemas](schemas/) | [目标评估](tests/goals.test.mts) |
-| 结果、证据与动作事实 | [records.mts](src/core/records.mts)、[action-events.mts](src/core/action-events.mts)、[file-integrity.mts](src/core/file-integrity.mts) | [动作事件](tests/action-events.test.mts)、[事实记录](tests/facts-v6.test.mts) |
+| 结果、证据与动作事实 | [records.mts](src/core/records.mts)、[action-events.mts](src/core/action-events.mts)、[file-integrity.mts](src/core/file-integrity.mts)、[conversations.mts](src/core/conversations.mts) | [动作事件](tests/action-events.test.mts)、[事实记录](tests/facts-v6.test.mts)、[对话来源](tests/conversations.test.mts) |
 | 并发与任务分配、工作包 | [commands.mts](src/execution/commands.mts)、[ledger.mts](src/execution/ledger.mts)、[packets.mts](src/execution/packets.mts)、[commit.mts](src/execution/commit.mts) | [执行协调](tests/execution.test.mts) |
 | 接口观测与导出 | [commands.mts](src/observation/commands.mts)、[collector.mts](src/observation/collector.mts)、[evidence-export.mts](src/observation/evidence-export.mts) | [接口观测](tests/network.test.mts) |
 | 回归资料、范围与比较 | [case-versions.mts](src/core/case-versions.mts)、[case-review.mts](src/core/case-review.mts)、[selection.mts](src/regression/selection.mts)、[run-binding.mts](src/regression/run-binding.mts)、[compare.mts](src/regression/compare.mts) | [用例版本与审阅](tests/case-versions.test.mts)、[范围与历史](tests/regression-v2.test.mts) |
 | 用例审阅、总览与本机保存 | [case-documents.mts](src/report/case-documents.mts)、[app.ts](src/review-ui/app.ts)、[review-export.mts](src/report/review-export.mts)、[review-session.mts](src/report/review-session.mts) | [用例版本](tests/case-versions.test.mts)、[审阅保存](tests/review-export.test.mts) |
-| 报告生成、布局与交互 | [delivery.mts](src/report/delivery.mts)、[render.mts](src/report/render.mts)、[reader-layout.mts](src/report/reader-layout.mts)、[main.ts](src/report-ui/main.ts)、[themes.mts](src/report/themes.mts) | [交付](tests/report-delivery.test.mts)、[阅读器](tests/report-reader-model.test.mts)、[历史交付](tests/regression-v2.test.mts) |
+| 报告生成、布局与交互 | [delivery.mts](src/report/delivery.mts)、[render.mts](src/report/render.mts)、[reader-layout.mts](src/report/reader-layout.mts)、[main.ts](src/report-ui/main.ts)、[conversations.ts](src/report-ui/conversations.ts)、[themes.mts](src/report/themes.mts) | [交付](tests/report-delivery.test.mts)、[阅读器](tests/report-reader-model.test.mts)、[对话来源](tests/conversations.test.mts)、[历史交付](tests/regression-v2.test.mts) |
 | 下载与文件检查 | [download.mts](src/ego-helpers/download.mts)、[inspect.mts](src/files/inspect.mts)、[inspect-worker.mts](src/files/inspect-worker.mts) | [下载与文件](tests/download-files.test.mts) |
 | Skill、文档与图示 | [SKILL.md](skills/ai-autonomous-testing-ego-lite/SKILL.md)、[references](skills/ai-autonomous-testing-ego-lite/references/)、[render.mts](docs/images/render.mts) | [经验](tests/experience.test.mts)、[文档契约](tests/current-document-contracts.test.mts)、[图文](tests/readme-visuals.test.mts) |
 

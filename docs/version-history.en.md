@@ -6,7 +6,9 @@ The AI interprets goals and judges business outcomes, Ego operates the browser, 
 
 ![Newest first: v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
 
-## v0.1.8 · RC.1 development candidate (not released)
+## v0.1.8 · RC.2 development candidate (not released)
+
+This candidate adds provider-neutral conversation evidence, step input/reply summaries, the selected drawer/fullscreen reader and four quality layers. See the [conversation design and validation](v0.1.8-conversation-review.md). Earlier candidate validation remains historical; optional v9 fields and conversationVersion 1 do not rewrite existing data.
 
 Implements the approved lean case/review/run design, stable-point scope, download originals/file inspection and historical comparisons. Contracts v9, regressionVersion 2, networkVersion 1. Historical data stays unchanged without automatic migration/fallback. See [development validation](v0.1.8-development-validation.md); 0.1.7 remains the last stable release.
 

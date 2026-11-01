@@ -74,6 +74,10 @@ export type EvidenceMetadata = {
   height?: number;
   artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
   deliveryRequired?: boolean;
+  /**
+   * @minItems 1
+   */
+  conversationSources?: ConversationSourceBinding[];
 };
 
 export interface RetainedReportHistoryV1 {
@@ -194,6 +198,7 @@ export interface Observation {
   actions?: ActionFact[];
   evidenceLinks?: EvidenceLink[];
   actionEventIds?: string[];
+  phase?: ObservationPhase;
 }
 export interface ActionFact {
   id: string;
@@ -203,6 +208,20 @@ export interface ActionFact {
   planRefs: string[];
   evidenceIds: string[];
   occurredAt?: string;
+  inputSummary?: string;
+  replySummary?: string;
+  inputPresentation?: 'verbatim' | 'summary' | 'unknown';
+  /**
+   * @minItems 1
+   */
+  conversations?: ConversationActionReference[];
+}
+export interface ConversationActionReference {
+  evidenceId: string;
+  /**
+   * @minItems 1
+   */
+  messageIds: string[];
 }
 export interface EvidenceLink {
   evidenceId: string;
@@ -210,6 +229,11 @@ export interface EvidenceLink {
   fact: string;
   actionId?: string;
   limitations: string[];
+}
+export interface ObservationPhase {
+  expected: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  observed: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  basis: string;
 }
 export interface ExecutionContext {
   id: string;
@@ -322,7 +346,7 @@ export interface EvidenceItem {
   id: string;
   path: string;
   caseId: string;
-  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
   capturedAt?: string;
   collectedAt: string;
   source: string;
@@ -331,4 +355,8 @@ export interface EvidenceItem {
   bytes: number;
   operationId: string;
   metadata?: EvidenceMetadata;
+}
+export interface ConversationSourceBinding {
+  sourceId: string;
+  evidenceId: string;
 }

@@ -1,6 +1,6 @@
-# 本地确定性工具箱（0.1.8-rc.1）
+# 本地确定性工具箱（0.1.8-rc.2）
 
-ToolRoot 为实际加载的 Skill 根目录；源码先构建，再使用 .build/runtime。tool-info 核对 0.1.8-rc.1 / case-review-native-export-1、主契约 v9、regressionVersion 2、networkVersion 1 和 installationIntegrity。本地工具不调用模型，不选择业务路线或自动重试。
+ToolRoot 为实际加载的 Skill 根目录；源码先构建，再使用 .build/runtime。tool-info 核对 0.1.8-rc.2 / conversation-review-1、主契约 v9、regressionVersion 2、networkVersion 1 和 installationIntegrity。本地工具不调用模型，不选择业务路线或自动重试。
 
 ## 用例与范围
 
@@ -45,7 +45,7 @@ files inspect 从独立 Node CLI 调用；Ego 脚本的 process.execPath 是 ego
 
 ## 交付
 
-report --run-dir <RUN> --output-dir <NEW_REPORT_DIR> --delivery auto 输出 HTML/Markdown/JSON 与清单。auto 需要下载原件或历史附件时使用 bundle，移动时保留 attachments。显式 inline 未携带必需原件时交付不完整。
+report --run-dir <RUN> --output-dir <EXISTING_EMPTY_REPORT_DIR> --delivery auto 输出 HTML/Markdown/JSON 与清单。先显式创建新的空输出目录；report要求目录已存在，且拒绝覆盖已有目标文件。auto 需要下载原件、对话原件或历史附件时使用 bundle，移动时保留 attachments。显式 inline 未携带必需原件时交付不完整。
 
 verify-report --run-dir <RUN> --report-dir <REPORT_DIR> 校验三格式和附件；不是浏览器打开证明。实际打开检查正文、原图、筛选、阅读位置及历史来源。当前证据严格校验，历史缺失明确标示，不补造现场。
 

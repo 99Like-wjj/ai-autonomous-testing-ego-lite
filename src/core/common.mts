@@ -8,7 +8,7 @@ import { SOURCE_ROOT } from '../scripts/toolchain.mjs';
 export { SOURCE_ROOT };
 export const statuses = new Set(['verified', 'violation', 'inconclusive', 'not_tested']);
 export const causes = new Set(['product', 'agent', 'environment', 'spec', 'unknown']);
-export const evidenceKinds = new Set(['screenshot', 'dom', 'tool_receipt', 'log', 'other']);
+export const evidenceKinds = new Set(['screenshot', 'dom', 'tool_receipt', 'log', 'other', 'conversation']);
 export const reservedIds = new Set(['__proto__', 'prototype', 'constructor']);
 export const idPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 export function fail(message: string): never { throw new Error(message); }

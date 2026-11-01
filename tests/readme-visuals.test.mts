@@ -33,13 +33,13 @@ test('README timeline contains four versions and labels the current release cons
     assert.equal(versions[0], current);
     if (!pkg.version.includes('-')) {
       assert.equal(stable, pkg.version);
-      assert.doesNotMatch(svg, /RC\.1|候选|NOT RELEASED|未发布/);
+      assert.doesNotMatch(svg, /RC\.2|候选|NOT RELEASED|未发布/);
       assert.match(svg, /RELEASED|正式发布/);
     }
     else {
       assert.ok(readme.includes(pkg.version));
       assert.equal(versions[1], stable);
-      assert.match(svg, /RC\.1 · NOT RELEASED|候选 rc\.1 · 未发布/);
+      assert.match(svg, /RC\.2 · NOT RELEASED|候选 rc\.2 · 未发布/);
     }
     assert.ok((await fs.stat(path.join(SOURCE_ROOT, `docs/images/version-history${suffix}.svg`))).size > 0);
   }
@@ -48,7 +48,7 @@ test('README timeline contains four versions and labels the current release cons
  test('current illustrations explain report and regression boundaries in both languages', async () => {
   for (const suffix of ['', '.zh-CN']) {
     const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
-    assert.match(await read('hero'), /0\.1\.8-rc\.1/);
+    assert.match(await read('hero'), /0\.1\.8-rc\.2/);
     assert.match(await read('hero'), /NOT RELEASED|未发布/);
     assert.doesNotMatch(await read('hero'), /STABLE RELEASE|正式版本/);
     assert.match(await read('workflow'), /whole scenarios|整条场景/);
@@ -91,7 +91,7 @@ test('version history pages and diagrams list developed versions newest first, e
     assert.deepEqual(versions(recent), ['0.1.8', '0.1.7', '0.1.6', '0.1.5']);
     const page = await fs.readFile(path.join(SOURCE_ROOT, suffix ? 'docs/version-history.md' : 'docs/version-history.en.md'), 'utf8');
     assert.deepEqual([...page.matchAll(/^## v(\d+\.\d+\.\d+)/gm)].map(match => match[1]), ['0.1.8', '0.1.7', '0.1.6', '0.1.5']);
-    assert.match(page,/0\.1\.8.*(?:rc\.1|RC\.1)/);
+    assert.match(page,/0\.1\.8.*(?:rc\.2|RC\.2)/);
   }
 });
 

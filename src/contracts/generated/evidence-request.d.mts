@@ -16,6 +16,10 @@ export type EvidenceMetadata = {
   height?: number;
   artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
   deliveryRequired?: boolean;
+  /**
+   * @minItems 1
+   */
+  conversationSources?: ConversationSourceBinding[];
 };
 
 export interface EvidenceRegistrationRequestV9 {
@@ -24,9 +28,13 @@ export interface EvidenceRegistrationRequestV9 {
   expectedRevision: number;
   caseId: string;
   sourceFile: string;
-  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
   capturedAt?: string;
   source: string;
   description: string;
   metadata?: EvidenceMetadata;
+}
+export interface ConversationSourceBinding {
+  sourceId: string;
+  evidenceId: string;
 }

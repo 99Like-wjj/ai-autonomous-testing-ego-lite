@@ -1,6 +1,7 @@
 import { mapRecordEvidence } from '../core/action-events.mjs';
 /** Recoverable file import under the caller's run lock. Never retries business actions. */
 import fs from 'node:fs/promises';
+import { mapConversationMetadata } from '../core/conversations.mjs';
 import path from 'node:path';
 import type { Case } from '../contracts/model.mjs';
 import type { ExecutionLedger, ExecutionRequest, ImportState, Receipt, Operation } from '../contracts/execution-model.mjs';
@@ -60,7 +61,7 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
   const evidenceId = (key: string): string => { const receipt = journal.evidenceJobs.find(job => job.key === key)?.receipt; if (!receipt) fail('Evidence has not committed: ' + key); return receipt.evidenceId; };
   for (const item of orderedEvidence(packet.evidence)) {
     const i=packet.evidence.indexOf(item);
-    const metadata=item.metadata?{...item.metadata,...(item.metadata.contextEvidenceIds?{contextEvidenceIds:item.metadata.contextEvidenceIds.map(evidenceId)}:{})}:undefined;
+    const metadata=mapConversationMetadata(item.metadata,evidenceId);
     const job = journal.evidenceJobs.find(job => job.key === item.key); if (!job) fail('Missing evidence import job.');
     const sourceFile = path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/'));
     if (item.reuseEvidenceId) {
