@@ -1,70 +1,43 @@
-# 架构与职责（v8）
+# 架构与职责（v9 / 0.1.8-rc.1）
 
 ![架构职责示意：AI、Ego 与本地工具的分工。](images/architecture.zh-CN.png)
 
-当前 AI 负责理解需求、目标拆分、选择方法、执行浏览器操作和判断结果。Ego 提供原生浏览器能力；本地工具负责确定性数据事务、结构校验和报告呈现；接口观测组件还负责启动独立 native 采集上下文、按授权范围记录以及提供本地查询。默认并发 1，用户配置是上限，不是要求跑满；工具不自动调度业务、重试业务或调用模型；纯文件事务的有界重试不代表业务重试。
-
-跨宿主执行时，宿主负责真实执行者、上下文、工具权限和生命周期，本地工具只保存分派与复核交付；不新增宿主调度器或权限沙箱。链接 CLI 入口按真实路径识别，运行/证据路径保护保持。参阅[宿主条件与交接](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。
+AI 理解需求、设计目标、探索页面、选择方法并判断业务四态；Ego 提供浏览器原语。固定代码负责准确的文件事务、引用、证据保管、确定性读取和同源呈现，不调用模型或替 AI 选择业务路径。默认并发 1，上限不是必须跑满。
 
 ```mermaid
 flowchart LR
-  R[可信需求与授权] --> C[AI 设计 case 与业务 goals]
-  C --> B[冻结 v8 基线]
-  B --> A[AI 使用 Ego 执行]
+  R[可信需求与授权] --> C[用例整份版本与稳定编号]
+  C --> V[HTML与Markdown人工审阅]
+  V --> B[原件与范围绑定]
+  B --> A[AI使用Ego执行]
   A --> O[真实观察与证据]
-  A -. AI 按授权启用 .-> N[独立 native 接口采集]
-  N --> Q[本地查询与片段导出]
-  Q -. AI 选择并登记 .-> O
-  O --> S[串行 record]
-  O --> P[worker packet 与协调者复核]
-  S --> E[统一 results.entries]
-  P --> E
-  E --> V[当前目标评估与完整历史]
-  V --> H[同源 HTML / JSON / Markdown]
-  R --> T[AI 整理不可变规则与任务]
-  E --> T
-  T --> F[明确状态筛选或全量范围]
-  F --> U[本次条件核对与新运行绑定]
-  U --> B
-  E --> D[有来源的跨运行比较]
+  A -. 授权范围内 .-> N[接口观测与文件检查]
+  N --> O
+  O --> S[串行record或复核工作包]
+  S --> E[统一results与evidence]
+  E --> H[三格式报告]
+  E --> D[精确历史引用与独立重测]
+  D --> B
 ```
 
-## 业务目标与必要语义
+## 资料与模块
 
-case 组织相关业务流程；goals 承载有来源、可独立判断的预期。steps、criticalConditions、requiredPath 保留必要语义，goal.requiredRefs 建立依赖。工具不把每个点击变成验收目标，不由父场景状态复制子目标通过。
+core/case-versions 负责整份版本、编号和不可变发布；core/case-review 保存相邻实际意见/确认及内容指纹。资料只有用例、审阅、运行，不抽象通用 AssetStore。定义不变直接复用，规则/任务内嵌语义，问题保留原记录。
 
-observations 记录实际事实、coveredRefs 与证据 ID。assessments 引用观察并给出四态、理由、缺口及可选 diagnosis。结果与根因分离：发现违反可以根因未知；缺少目标评估是记录完整性缺口，不自动变成业务无法判断。
+regression/selection 计算 points/status/full 与已声明依赖闭包，binding 冻结引用、审阅、当前条件、参数和历史；sources 只读验证精确结果前缀，compare 展示事实差异。baseline.json 是完整原件，run-binding.json 不另造用例定义。未选点不产生本轮四态。
 
-## 唯一结果渠道
+core/records 和 action-events 统一管理实际上下文、动作、观察、原问题检查、额外发现和四态。操作成功不等于业务成功，attempt/首次异常不被后续 final 覆盖。串行与并行使用同一验证器；宿主负责真实执行者和生命周期，不声称工具提供权限沙箱或账号隔离。
 
-串行 record 与并行 import 写入同形 record 和同一 entries。final 对本次提交目标增量更新，attempt 仅留历史；当前状态是 final entries 的投影，原始条目不覆写。没有额外的并行专属目标评估来源，串行不依赖 worker 或 Space 分派才能形成报告。
+ego-helpers/download 由 AI 显式组合官方监听与保存，在同轮取回原件；下载管理页适配是显式补证。execution note 保存一个本轮在途标记，不做自动业务重试或超时释放。files/inspect 在受限子进程只读解析，读取结果不判业务通过。
 
-worker 在专属目录封存不可变 packet，协调者复核后将 local evidence key 映射为 catalog ID。分派、容量、Space 所有权、在途调用和导入恢复保留在 execution 台账，属于执行元数据，不能代替业务四态。工具不提供宿主权限沙箱，Space 不保证账号或后端隔离。
+report/history 只读收集精确父运行，旧证据单独包装、不进当前目录和计数。report/assets、delivery 同源生成 HTML/Markdown/JSON、附件和校验清单；历史损坏可局部交付并明确缺口。report-ui 与 review-ui 分别负责报告阅读和离线用例审阅，不执行业务或回写账本。
 
-## 项目回归资料
+用例审阅通过case-reader提供场景总览和三栏工作台。可选review-session只监听带随机会话路径的127.0.0.1入口，限定CLI给定的用例和输出目录；review-export校验后原生保存可读HTML/JSON，避免Blob下载区域标记。它不调用模型、不操控浏览器、不登记确认。离线副本与兼容备份仍保留，浏览器草稿和正式审阅分开；见[审阅保存说明](v0.1.8-case-review.md)。
 
-v8 在同一结果账本中追加 contexts/actionEvents，区分意图、发出、结果与只读核对/处置。未决动作由明确事实及有证据的处置投影，不自动重试；串并行共用校验与证据引用，显式 reuseEvidenceId 只复用当前 run/case 的原证据，不把同哈希当作同次采集。
+observation 继续按明确授权采集接口，AI 自主决定何时查询。网络格式保持 1。分发使用 layout 清单、预打包读取库和完整第三方许可，用户运行时无需 npm install。
 
-AI 从可信规范和首次实际事实整理规则/任务，regressionVersion 1 的资料库只保存不可变修订及来源，不生成正确预期或调用模型。状态筛选使用精确历史结果前缀，任一目标命中即选择整条场景；full保留完整指定范围及缺口。新run冻结选择、任务/规则和本轮条件，未选中没有本次结论。比较展示显式映射、条件差异与AI可比性说明，不自动归因版本。详见[回归资料](regression-reuse.md)。
+## 约束与验证
 
-## 文件与校验
+Schema 源文件、生成类型、代码和当前指南保持一致。旧格式不兜底读取，旧资料不搬迁或覆盖。工程、合成与实际 Ego 验证分别说明；实际业务验收需其明确授权。
 
-源码维护 TypeScript，完整包提供 Node ESM 与 Skill、schema、示例、文件清单。tool-info 校验实际根、版本、revision 和安装完整性。测试资产 JSON 契约为 v8；接口观测独立使用 networkVersion 1。旧格式明确拒绝，不提供兼容或自动转换，历史文件不改写。
-
-基线指纹保护冻结内容；单写者锁、expectedRevision、operationId 和回执保护数据事务，原请求重放仅恢复回执。证据按普通文件复制、留存字节哈希和归属核验，报告拒绝覆盖。工具不认证证据真实性，也不承诺通用多文件事务或断电持久性。
-
-## 报告与按需观测
-
-三种报告共享当前目标投影：四态分布、unassessed 记录缺口、实际观察、必要语义、截图、历史及后续复核引用。父场景只呈现目标分布；文件完整性、缺图和根因假设单列。followUpOf 关联澄清/复测来源，不自动改变旧结论。
-
-浏览器按需观测仍通过当前 Ego 官方能力。AI 可查询与目标相关的动作、请求/错误或下载文件，不采集全站流量或将工具超时自动判产品失败。具体能力须以当前版本和隔离验证为据，不能因 API 名称存在便宣称支持。参考执行经验（安装包路径：references/experience-execution.md）。
-
-代码能力和合成回归不代替实际业务验收；当前开发验证见[验证记录](testing.md)。用户级已安装 Skill 不自动替换，候选构建不冒充正式发布。
-
-接口观测采用独立 native-only 上下文，经官方 TaskSpace 控制权门禁只附着已登记页面与接口范围。network start/status/query/stop 管理后台记录、已提交事实查询和有序停止；流内容在安全完整单元处理后保存，恢复另建采集段。工具不做业务请求重发、自动业务轮询或业务判断；按需查询及证据选择由 AI 决定。正文、队列、关联表、输出和 Run 磁盘预算均有边界，缺口可见。
-
-## 合并后的报告能力
-
-同一 v8 账本同时保留上下文、观察动作片段、尝试事件、现象、结构化缺口与复核准备。contexts 使用 environment/identity/objects/initialState/authorization，各项为 state/summary/sources；sources 保留类别、定位和证据引用。观察 actions 用于已观察操作片段，actionEvents 用于意图、发出与核对，工具不自动互拷或重放。
-
-报告保留场景与目标两级导航、证据正文、内容去重、附件交付和八种主题。network export 只从已留存的网络片段导出证据，不重发请求。回归范围、任务版本、当次条件及未决动作与原报告能力共同呈现。软件版本为0.1.7，数据契约v8不是软件版本号；详情见[最终整合记录](v0.1.7-integration.md)。
+参见[契约](asset-formats.md)、[最终设计](v0.1.8-design.md)、[开发自测](v0.1.8-development-validation.md)及[宿主边界](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。

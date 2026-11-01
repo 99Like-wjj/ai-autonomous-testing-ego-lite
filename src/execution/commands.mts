@@ -2,7 +2,7 @@ import { retainReference } from '../core/file-integrity.mjs';
 import type { Case } from '../contracts/model.mjs';
 import type { Assignment, ExecutionLedger, FileReference, Receipt, Operation } from '../contracts/execution-model.mjs';
 import { assignmentId, caseId } from '../contracts/ids.mjs';
-import { canonicalHash, fail, now, withRunLock } from '../core/common.mjs';
+import { canonical, canonicalHash, fail, now, withRunLock } from '../core/common.mjs';
 import { checkUnlocked, recoverEvidence } from '../core/records.mjs';
 import { parseRequest } from './parse.mjs';
 import { activeCount, assignment, checkpoint, checkSlot, ensureWorkerDirectory, isActive, summarize } from './ledger.mjs';
@@ -13,11 +13,11 @@ import { readExecutionMetadataUnlocked } from './read-context.mjs';
 
 async function context(root: string): Promise<{ ledger: ExecutionLedger; cases: Case[]; project: string }> {
   await recoverEvidence(root); const checked = await checkUnlocked(root);
-  if (checked.schemaVersion !== 8 || !checked.execution) fail('Execution commands require a v8 run; older formats are not supported or migrated.');
+  if (checked.schemaVersion !== 9 || !checked.execution) fail('Execution commands require a v9 run; older formats are not supported or migrated.');
   return { ledger: checked.execution, cases: checked.cases, project: checked.project };
 }
 export async function readExecutionView(runDir: unknown) {
-  return withRunLock(runDir, async root => { const { ledger, cases, project } = await context(root); return { ...ledger, project, summary: summarize(ledger, { schemaVersion: 8, project, cases }) }; });
+  return withRunLock(runDir, async root => { const { ledger, project } = await context(root); return { ...ledger, project, summary: summarize(ledger) }; });
 }
 export async function readExecutionQuery(runDir: unknown, view = 'summary', assignmentId?: string, integrity?: string) {
   const options = readOptions(view, assignmentId, integrity);
@@ -80,6 +80,14 @@ export async function executeRequest({ runDir, request: input }: { runDir: unkno
       }
       case 'note': {
         if (request.assignmentId !== undefined) { a = assignment(ledger, assignmentId(request.assignmentId)); receipt.assignmentId = a.id; }
+        if(request.category==='download'){
+          const next=request.download;if(!next)fail('Missing download marker.');
+          const c=cases.find(c=>c.id===next.caseId);if(!c||next.pointIds.some(id=>!c.goals.some(g=>g.pointId===id))||a&&a.caseId!==next.caseId)fail('Download marker is outside the selected case/point scope.');
+          const active=ledger.activeDownload;
+          if(next.state==='active'){if(active)fail('A download remains active or unknown; reconcile the original capture before arming another.');if(ledger.operations.some(op=>op.request.kind==='note'&&op.request.category==='download'&&op.request.download?.captureId===next.captureId))fail('Download capture ID was already used; preserve its original action and receipts.');ledger.activeDownload=next;}
+          else{if(!active||canonical({...active,state:''})!==canonical({...next,state:''}))fail('Download reconciliation must match the exact in-flight capture.');if(next.state==='resolved'){if(!evidenceFiles.length)fail('Resolving a download requires retained reconciliation evidence.');ledger.activeDownload=null;}else ledger.activeDownload=next;}
+          receipt.state=next.state;receipt.caseId=next.caseId;
+        }
         if (request.category === 'space-deviation') {
           if (!a || !request.spaceIds?.length) fail('A Space deviation needs an assignment and actual IDs or an explicit unknown.');
           for (const id of request.spaceIds) a.spaceHistory.push({ spaceId: id, kind: 'deviation', at: now(), reason: request.reason });

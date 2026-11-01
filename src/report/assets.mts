@@ -1,8 +1,8 @@
 /** Safe, deterministic presentation of already retained files. No capture or business requests. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { HtmlPayload, Preview, Report, ReportAsset } from '../contracts/model.mjs';
-import { errorInfo, fail, hash } from '../core/common.mjs';
+import type { EvidenceItem, HtmlPayload, Preview, Report, ReportAsset } from '../contracts/model.mjs';
+import { errorInfo, fail, hash, safePath } from '../core/common.mjs';
 import { evidenceFile } from '../core/file-integrity.mjs';
 
 export const TEXT_PREVIEW_LIMIT = 256 * 1024;
@@ -48,20 +48,29 @@ export function attachmentName(sha256: string, mediaType?: string): string {
   const extension = mediaType === 'image/png' ? '.png' : mediaType === 'image/jpeg' ? '.jpg' : mediaType === 'image/webp' ? '.webp' : mediaType?.startsWith('text/') || mediaType === 'application/json' ? '.txt' : '.bin';
   return 'attachments/' + sha256 + extension;
 }
-export async function htmlReportPayload(root: string, report: Report, options: PayloadOptions = {}): Promise<HtmlPayload> {
-  if (report.schemaVersion !== 8) fail('Unsupported report format; v8 is required. Historical files remain unchanged.');
+export function reportEvidence(report:Report) {
+  return [...report.evidenceCatalog.items.map(item=>({key:item.id,item,runDir:null as string|null})),...(report.history?.evidence??[]).map(e=>({key:e.key,item:e.item,runDir:e.resolvedRunDir}))];
+}
+export async function htmlReportPayload(root: string, report: Report, options: PayloadOptions = {}, historyFiles?:ReadonlyMap<string,string>): Promise<HtmlPayload> {
+  if (report.schemaVersion !== 9) fail('Unsupported report format; v9 is required. Historical files remain unchanged.');
   const mode = options.mode ?? 'inline', textPreviewLimitBytes = options.textPreviewLimitBytes ?? TEXT_PREVIEW_LIMIT;
   if (!['inline', 'bundle'].includes(mode) || !Number.isSafeInteger(textPreviewLimitBytes) || textPreviewLimitBytes < 256 || textPreviewLimitBytes > 16 * 1024 * 1024) fail('Invalid report delivery options.');
   const previews: Record<string, Preview> = {}, assets: Record<string, ReportAsset> = {};
-  let complete = true;
-  for (const item of report.evidenceCatalog.items) {
+  let complete = report.history?.complete ?? true;
+  for (const {key,item,runDir} of reportEvidence(report)) {
     const meta = item.metadata, p: Preview = { preview: null, previewNote: '', contentState: meta?.contentState ?? 'unknown' };
-    previews[item.id] = p;
+    previews[key] = p;
     let bytes: Buffer;
-    try { bytes = await fs.readFile(await evidenceFile(root, item.path)); }
+    try {
+      const archive=historyFiles?.get(key);
+      const filename=archive?await safePath(archive,{existing:true}):await evidenceFile(runDir??root,item.path);
+      if(!(await fs.lstat(filename)).isFile())fail('Evidence is not a regular file.');
+      bytes = await fs.readFile(filename);
+      if(hash(bytes)!==item.sha256||bytes.length!==item.bytes)fail('Evidence content hash or byte count mismatch: '+key);
+    }
     catch (error) {
-      if (options.allowMissingScreenshots && item.kind === 'screenshot' && errorInfo(error).code === 'ENOENT') {
-        p.contentState = 'missing'; p.previewNote = '原始截图文件缺失；此草稿不完整，不能查看或补造现场。'; complete = false; continue;
+      if (runDir!==null || options.allowMissingScreenshots && item.kind === 'screenshot' && errorInfo(error).code === 'ENOENT') {
+        p.contentState = 'missing'; p.previewNote = (runDir!==null?'历史原件不可用；历史交付不完整。':'原始截图文件缺失；此草稿不完整，不能查看或补造现场。')+errorInfo(error).message; complete = false; continue;
       }
       throw error;
     }
@@ -89,6 +98,7 @@ export async function htmlReportPayload(root: string, report: Report, options: P
       } else { p.contentState = 'unsupported'; p.previewNote = '该证据为二进制或不支持的文字编码，未作为文本/HTML执行或猜测解码。'; if (mode === 'inline') complete = false; }
     }
     if (mode === 'bundle') p.attachmentPath = attachmentName(item.sha256, p.mediaType);
+    else if(meta?.deliveryRequired || meta?.artifactRole==='download_original'){complete=false;p.previewNote+=' 原件要求随报告交付；当前 inline 未携带独立原件。';}
   }
-  return { htmlPayloadVersion: 8, report, previews, assets, delivery: { mode, textPreviewLimitBytes, complete, allowMissingScreenshots: options.allowMissingScreenshots === true } };
+  return { htmlPayloadVersion: 9, report, previews, assets, delivery: { mode, textPreviewLimitBytes, complete, allowMissingScreenshots: options.allowMissingScreenshots === true } };
 }

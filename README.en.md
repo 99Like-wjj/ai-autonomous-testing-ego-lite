@@ -20,7 +20,7 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ## Current release
 
-The current release is **0.1.7 / report-step-evidence-1**. It integrates whole-scope resource clarification, first-run records, immutable task/rule revisions, whole-scenario status reruns, full declared scope and scheme-B report reading. Main contracts are v8, regressionVersion 1 and networkVersion 1. Scheme B places the issue/result and original expectation above actual steps and selected evidence, with independent nested scope disclosures. See [scheme B](docs/v0.1.7-step-evidence.md), [resource-readiness validation](docs/v0.1.7-resource-readiness-validation.md), [regression-reuse validation](docs/v0.1.7-regression-reuse-validation.md) and [local closeout (Chinese)](docs/v0.1.7-local-closeout.md).
+Current source is **0.1.8-rc.1 / case-review-native-export-1**, not a formal release. It implements the approved lean case/review/run design, stable-point reruns, official Ego download evidence/file inspection and historical comparisons. The case reader now provides a scene/case overview, three-column review workbench, shared report themes and native feedback files that avoid browser download-zone metadata. Contracts are v9, regressionVersion 2 and networkVersion 1. The last stable release remains [0.1.7](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7). See [development validation](docs/v0.1.8-development-validation.md) and [review save details](docs/v0.1.8-case-review.md); builds do not update installed Skills.
 
 
 Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidance, compiled Node ESM tools, schemas, examples and an integrity manifest. Source is TypeScript; installed use requires Node.js >=22.
@@ -29,11 +29,22 @@ See the [cloud integration review](docs/v0.1.7-cloud-review.md) for branch ances
 
 ## Version evolution
 
-![Newest first: v0.1.7 released, then v0.1.6, v0.1.5 and v0.1.4 released. Capability illustration only.](docs/images/readme-version-history.png)
+![Newest first: v0.1.8 development candidate, then v0.1.7, v0.1.6 and v0.1.5 released. Capability illustration only.](docs/images/readme-version-history.png)
 
-README shows the current version plus three previous versions. v0.1.4–v0.1.7 are released. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. v0.1.8 remains requirements planning.
+README shows the current version plus three previous versions. 0.1.8-rc.1 is a development candidate, followed by stable 0.1.7–0.1.5. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. 0.1.8 is in authorized development/self-test, not released.
+
+## What changed in 0.1.8
+
+- Whole case versions, stable IDs and same-source review; unchanged reruns add only a run.
+- points/status/full scope retains dependencies and never inherits unselected passes.
+- Official Ego download/saveAs, explicit manager reconciliation and read-only file facts.
+- Exact parent runs, original-problem checks and historical media; verdict and repair attribution stay separate.
+
+See [final design](docs/v0.1.8-design.md) and [contracts](docs/asset-formats.en.md).
 
 ## What changed in 0.1.7
+
+The following retains the last stable release description; its rule/task write interfaces are not current v9 entry points.
 
 This version brings together **readable reports, whole-scope resource clarification and reusable first-run results** in one record model.
 
@@ -48,7 +59,7 @@ See [scheme B](docs/v0.1.7-step-evidence.md), [resource clarification](docs/v0.1
 
 Regression interfaces and behavior are documented in [regression assets](docs/regression-reuse.md) and the [usage guide](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md).
 
-All current test-asset JSON contracts use **schemaVersion 8**, and execution query viewVersion is 8. Older formats are explicitly rejected, without readers or converters. Keep historical reports, files and runs unchanged; prepare new v8 assets from original sources instead of changing only version fields. See [formats](docs/asset-formats.en.md).
+All current test-asset JSON contracts use **schemaVersion 9**, and execution query viewVersion is 9. Older formats are explicitly rejected, without readers or converters. Keep historical reports, files and runs unchanged; prepare new v9 cases from original sources instead of changing only version fields. See [formats](docs/asset-formats.en.md).
 
 ## Cases, evidence and delivery
 
@@ -60,9 +71,9 @@ Successful tool calls do not prove business success. Key UI findings require rea
 
 Default deliverables are standalone HTML, JSON and Markdown from one result projection. Reports expose expectations, observations, evidence, gaps, diagnosis and history. Screenshot gaps, record completeness and file integrity remain distinct. Hash consistency does not establish business correctness; file verification and actual browser opening are separate.
 
-Scheme B retains every goal entrance in a scene and focuses on one goal at a time. The issue/result and full original expectation lead, actual steps occupy the middle and selected evidence appears alongside them. The directory starts/resets collapsed and filters preserve the selection. Scope notes show three items before an outer disclosure; exact task/rule details stay independently collapsed inside. Pending actions use Chinese business descriptions. Sourced readerNotes organize existing actions and evidence without inventing execution or overriding verdicts; shared material and missing step evidence are explicit. Original records/history and old reports remain intact under v8. See [the current reader design](docs/v0.1.7-step-evidence.md) and [the preceding reader revision](docs/v0.1.7-reader-review.md). Builds do not update the installed Skill.
+Scheme B retains every goal entrance in a scene and focuses on one goal at a time. The issue/result and full original expectation lead, actual steps occupy the middle and selected evidence appears alongside them. The directory starts/resets collapsed and filters preserve the selection. Scope notes show three items before an outer disclosure; exact task/rule details stay independently collapsed inside. Pending actions use Chinese business descriptions. Sourced readerNotes organize existing actions and evidence without inventing execution or overriding verdicts; shared material and missing step evidence are explicit. Original records/history and old reports remain intact under v9. See [the current reader design](docs/v0.1.7-step-evidence.md) and [the preceding reader revision](docs/v0.1.7-reader-review.md). Builds do not update the installed Skill.
 
-Network observation implements the v3 design through network start/status/query/stop: a dedicated native context records scoped Fetch/XHR, SSE and WebSocket evidence; the AI chooses queries, evidence and business judgments. It never replays business requests. Network data uses independent networkVersion 1, while current business contracts use v8 and v5 historical runs remain untouched. See [observation guidance (Chinese)](skills/ai-autonomous-testing-ego-lite/references/network-observation.md).
+Network observation implements the v3 design through network start/status/query/stop: a dedicated native context records scoped Fetch/XHR, SSE and WebSocket evidence; the AI chooses queries, evidence and business judgments. It never replays business requests. Network data uses independent networkVersion 1, while current business contracts use v9 and v5 historical runs remain untouched. See [observation guidance (Chinese)](skills/ai-autonomous-testing-ego-lite/references/network-observation.md).
 
 ![Illustrative evidence presentation, not a real test report.](docs/images/result-specimen.png)
 
@@ -90,11 +101,20 @@ node $Tool init --project-dir $Project
 For a complete installed package, use scripts/ego.mjs under the actual loaded Skill root. Keep real assets outside source control. Review the generated example against trusted requirements before freezing:
 
 ```powershell
-$Cases = Join-Path $Project 'cases.example.json'
+$SaveRequest = Join-Path $Project 'cases-save-request.example.json'
+# Edit against trusted requirements before saving and human review.
+node $Tool cases save --work-dir $Project --request $SaveRequest
+$Cases = Join-Path $Project 'cases/v001.json'
+node $Tool cases render --cases $Cases --output-dir (Join-Path $Project 'case-documents')
+node $Tool cases serve --cases $Cases --output-dir (Join-Path $Project 'review-files')
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
 node $Tool validate-cases --cases $Cases
-node $Tool start --project-dir $Project --cases $Cases --output-dir $Run
+# AI prepares this file from actual review, scope and current conditions.
+$Binding = Join-Path $Project 'run-binding-request.json'
+node $Tool start --project-dir $Project --cases $Cases --binding $Binding --output-dir $Run
 ```
+
+Open the actual private loopback URL returned by serve in Ego. Native feedback saves write readable HTML/JSON without registering approval or running tests. Offline HTML remains readable and can restore opinions. cases export-review provides the same writer for a received JSON/HTML file. See [review save details](docs/v0.1.8-case-review.md).
 
 start creates local assets, not browser actions. Use the [toolbox guide](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.en.md) and [synthetic requests](examples/record-request.example.json) to register evidence and goal assessments. Unique operation IDs and revisions protect data transactions; replaying a request recovers its receipt, not a business action.
 
@@ -123,14 +143,17 @@ The default is **1 (serial)**. Without a user request for concurrency or an expl
 
 ## v0.1.8 requirements preview (testing quality optimization)
 
-First-run testing, failed-scope reruns and report review exposed candidate-task/data review costs, wider whole-scenario selection and imprecise step/evidence associations. The next requirements target those testing-quality gaps:
+First-run testing, failed-scope reruns and report review exposed repeated candidate-task/data checks, wider whole-scenario selection and imprecise step/evidence associations. The next requirements target those testing-quality gaps:
 
 - Stable IDs for every minimum independently assessable test point across all four outcomes. IDs persist across runs, separately from revisions and attempts; users can request a point rerun by ID while retaining required dependencies. IDs are not reserved for bugs.
 - Separate original-defect recurrence, new findings and goal outcomes. Full regression checks a current confirmed target inventory, retaining new, blocked, unorganized and unassessed scope.
 - Precise action/input/readback/evidence links at record time, explicit data parameters and reusable Ego operation fragments selected by AI under stated conditions.
-- Auditable available usage and time by run/point/phase, with unavailable tokens marked missing. Do not infer savings from target counts. Preserve coverage, judgment, evidence, authorization and completion evaluation work.
+- Evaluate testing effectiveness and design quality using comparable goals, actual evidence, coverage, useful findings, misjudgments, authorization and completion. Review capability reuse, responsibilities and maintainability when comparing designs.
+- Download observation and content checks on the installed version: associate the actual current file and distinguish download completion, readability and business correctness, with explicit capability limits and observation gaps.
+- Report retest history: keep first-run reports free of empty comparisons, then link initial, subsequent and current results/evidence while separating original issues, new findings, record revisions and points not retested.
+- Visual HTML/Markdown case documents with a human review pause after points or case drafts are generated. Preserve comments, revisions and the confirmed version/scope; AI owns design/judgment, code handles documents, checks and records.
 
-See the [v0.1.8 requirements and background](docs/v0.1.8-preview.en.md). Identifier, dependency, parameter and usage designs require review before development. Software/contracts remain unchanged; the [v0.1.7 preview](docs/v0.1.7-preview.md) remains historical rather than a claim that all quality-evaluation work shipped.
+The twelve [confirmed requirements (Chinese)](docs/v0.1.8-requirements.md) now have a [final simplified design (Chinese)](docs/v0.1.8-design.md), with [lean data/API details](docs/v0.1.8-contract-design.md) and [downloads/file inspection](docs/v0.1.8-download-design.md), based on [research](docs/v0.1.8-feasibility-research.md). Keep case versions, review records and runs instead of a generic asset repository. See the [English preview](docs/v0.1.8-preview.en.md). Software/contracts remain unchanged; the [v0.1.7 preview](docs/v0.1.7-preview.md) remains historical, and designs are not shipped features.
 
 ## Further reading
 

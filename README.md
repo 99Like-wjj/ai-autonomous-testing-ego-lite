@@ -20,7 +20,7 @@
 
 ## 当前版本
 
-当前正式版本为 **0.1.7 / report-step-evidence-1**。已整合整轮资源沟通、首次成果留存、规则/任务修订、按状态整场景及全量回归、报告方案 B；主契约为 v8，regressionVersion 1，networkVersion 1。报告方案 B 将问题描述和原预期置顶，实际步骤与所选证据并排，范围说明采用独立两层折叠。范围和限制见[报告方案 B](docs/v0.1.7-step-evidence.md)、[资源澄清验证](docs/v0.1.7-resource-readiness-validation.md)、[回归复用验证](docs/v0.1.7-regression-reuse-validation.md)及[本地收尾核验](docs/v0.1.7-local-closeout.md)。
+当前源码为 **0.1.8-rc.1 / case-review-native-export-1**，尚未正式发布。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。最近正式版本仍为 [0.1.7](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
 
@@ -28,11 +28,22 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 
 ## 版本演变
 
-![最新在前：v0.1.7 正式版，其后为 v0.1.6、v0.1.5、v0.1.4 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
+![最新在前：v0.1.8 开发候选，其后为 v0.1.7、v0.1.6、v0.1.5 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 展示当前版本与前三个历史版本：0.1.4–0.1.7 均为已发布版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。0.1.8 仅为需求规划。
+README 展示当前版本与前三个历史版本：0.1.8-rc.1 为开发候选，0.1.7–0.1.5 为正式版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。0.1.8 已进入获准开发与自测，尚未发布。
+
+## 0.1.8 做了什么
+
+- 用例整份版本、内嵌稳定编号及同源 HTML/Markdown 审阅；定义不变复测只增 run。
+- points/status/full 三种范围，局部重测保留必要依赖，不继承未选点通过。
+- 官方 Ego 下载监听/saveAs、显式管理页补证、原件及只读 JSON/CSV/XLSX 检查。
+- 精确父运行、原问题检查及历史原图/附件；当前四态与修复归因分开。
+
+详见[最终设计](docs/v0.1.8-design.md)及[当前契约](docs/asset-formats.md)。
 
 ## 0.1.7 做了什么
+
+以下保留上一正式版的能力介绍；其规则/任务写入接口不属于当前 v9 入口。
 
 这一版围绕 **报告更好读、测试资源先沟通、首次成果可回归复用** 三个方向，把报告优化与资源/回归能力整合到同一套记录中。
 
@@ -47,7 +58,7 @@ README 展示当前版本与前三个历史版本：0.1.4–0.1.7 均为已发�
 
 回归接口与行为边界见[回归资料](docs/regression-reuse.md)和[回归使用指南](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md)。
 
-当前测试资产 JSON 契约统一为 **schemaVersion 8**，execution read 的 viewVersion 为 8。新版明确拒绝旧格式，不提供兼容读取或转换。旧报告、截图、运行与来源文件保持原样；重新使用来源时创建新的 v8 资产，不只改版本号，也不覆盖历史。具体见[格式说明](docs/asset-formats.md)。
+当前测试资产 JSON 契约统一为 **schemaVersion 9**，execution read 的 viewVersion 为 9。新版明确拒绝旧格式，不提供兼容读取或转换。旧报告、截图、运行与来源文件保持原样；重新使用来源时创建新的 v9 用例，不只改版本号，也不覆盖历史。具体见[格式说明](docs/asset-formats.md)。
 
 ## 用例与证据
 
@@ -59,9 +70,9 @@ README 展示当前版本与前三个历史版本：0.1.4–0.1.7 均为已发�
 
 默认交付独立 HTML、JSON、Markdown。报告显示目标预期、观察、证据、缺口、根因确认程度和历史；三种格式共享统计。缺图与文件完整性单独展示，哈希一致不证明业务判断正确。文件校验与实际浏览器打开分别验证。
 
-当前报告采用方案 B：场景保留全部目标入口，一次聚焦一个目标；顶部呈现问题描述/验证结果及完整原预期，中间呈现实际步骤，右侧展示所选步骤证据。目录默认/重置收起，筛选保留正文选择；范围说明超过三条时外层折叠，其内精确任务/规则明细仍独立收起。未决动作使用中文业务说明，原始记录和历史保留。可选 readerNotes 只整理有来源的既有事实与问题位置，不能补造步骤、现场或改写四态；共享证据和逐步资料缺口明确说明。业务契约仍为 v8，旧报告不覆盖。见[最终阅读设计](docs/v0.1.7-step-evidence.md)及[此前阅读修复](docs/v0.1.7-reader-review.md)。开发构建不会自动替换用户安装。
+当前报告采用方案 B：场景保留全部目标入口，一次聚焦一个目标；顶部呈现问题描述/验证结果及完整原预期，中间呈现实际步骤，右侧展示所选步骤证据。目录默认/重置收起，筛选保留正文选择；范围说明超过三条时外层折叠，其内精确任务/规则明细仍独立收起。未决动作使用中文业务说明，原始记录和历史保留。可选 readerNotes 只整理有来源的既有事实与问题位置，不能补造步骤、现场或改写四态；共享证据和逐步资料缺口明确说明。业务契约为 v9，旧报告不覆盖。见[最终阅读设计](docs/v0.1.7-step-evidence.md)及[此前阅读修复](docs/v0.1.7-reader-review.md)。开发构建不会自动替换用户安装。
 
-接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，当前结果契约为 v8，原 v5 运行历史保持原样。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
+接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，当前结果契约为 v9，原 v5 运行历史保持原样。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
 
 ![方案 B 布局示意：问题和原预期置顶，实际步骤与所选证据并排，范围及历史折叠；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
 
@@ -89,15 +100,24 @@ $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))
 node $Tool init --project-dir $Project
-$Cases = Join-Path $Project 'cases.example.json'
+$SaveRequest = Join-Path $Project 'cases-save-request.example.json'
+# Edit against trusted requirements before saving and human review.
+node $Tool cases save --work-dir $Project --request $SaveRequest
+$Cases = Join-Path $Project 'cases/v001.json'
+node $Tool cases render --cases $Cases --output-dir (Join-Path $Project 'case-documents')
+node $Tool cases serve --cases $Cases --output-dir (Join-Path $Project 'review-files')
 ```
 
-将示例改成已核对来源和授权的 v8 用例，再冻结：
+用Ego打开serve实际返回的本机私有URL，页面保存意见时由本地工具写入可读HTML/JSON；不会登记正式确认或执行业务。原来的离线HTML仍可阅读和恢复意见。需要不经浏览器保存已有意见时，使用 cases export-review；命令和边界见[审阅保存说明](docs/v0.1.8-case-review.md)。
+
+实际人工审阅后登记确认，选择范围并填写本轮条件和绑定请求，再冻结：
 
 ```powershell
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
 node $Tool validate-cases --cases $Cases
-node $Tool start --project-dir $Project --cases $Cases --output-dir $Run
+# AI prepares this file from actual review, scope and current conditions.
+$Binding = Join-Path $Project 'run-binding-request.json'
+node $Tool start --project-dir $Project --cases $Cases --binding $Binding --output-dir $Run
 ```
 
 start 只创建本地基线与空账本，不自动执行浏览器。按[工具箱指南](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.md)登记真实文件与显式目标评估：
@@ -121,12 +141,12 @@ Space 不保证账号或后端数据隔离；文件更新不承诺通用多文�
 
 ![独立用例 worker 留证封包，协调者复核后汇总；默认串行，显式配置后安排并发。](docs/images/parallel.zh-CN.svg)
 
-已整合跨宿主修复提交 8e6e2d9，当前保留 v8 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
+已整合跨宿主修复提交 8e6e2d9，当前保留 v9 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
 
 `maxParallelCases` 默认为 **1（逐条执行）**；用户未要求并发且未明确配置时保持串行。用户可用命令行或项目配置指定任意可准确表示的正整数，无固定产品上限。AI 决定工具调用、批次与 worker 使用，配置不要求跑满。宿主明确提供的限制单独记录，未知则保持未知，不主动探测客户端最大子代理数或修改全局配置。
 
 ```text
-node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN --max-parallel-cases 3
+node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --binding ABS_BINDING --output-dir ABS_NEW_RUN --max-parallel-cases 3
 ```
 
 AI workers 独立留证、封存包，协调者显式复核并导入。完整调用和恢复语义见[并发指南](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md)。所有继续维护的 CLI、报告交互、测试、构建／检查、历史验证工具和图片生成程序以 TS 维护；`.build` 是忽略的编译产物。`npm test` 先构建再测试实际 JS；`npm run check:public` 检查源文件，独立包仍使用严格资源清单。本仓库的构建、测试不注册或更新用户级 Skill，也不推送、创建 Tag 或 Release。
@@ -138,9 +158,12 @@ AI workers 独立留证、封存包，协调者显式复核并导入。完整调
 1. **稳定测试点编号：** 每个最小可独立判断目标都有编号，包含全部四态；同一目标跨运行沿用编号，内容修订与执行次数另记。支持用户给出编号后单点回测，保留必要依赖，不只给 Bug 编号。
 2. **缺陷与全量回归：** 区分原问题是否复现、新发现及目标四态；全量对照最新已确认需求的完整目标清单，保留新增、受阻、未整理和缺少评估的范围。
 3. **精确证据与任务复用：** 在入账时关联具体动作、输入、读回及证据；参数化日期和对象，按需复用有适用条件的稳定 Ego 操作片段，保持 AI 自主方法和业务判断。
-4. **效果和成本实测：** 记录可取得的运行/测试点/阶段用量与耗时；拿不到 token 时明确缺失，不用目标数量推算节省比例。保留覆盖、误判、证据、授权和完成情况的评测方向。
+4. **测试效果与方案质量：** 通过对等目标与实际证据核对覆盖、有效问题、误判、授权及完成情况，结合能力复用、职责和可维护性评审设计取舍。
+5. **下载观察与数据检查：** 调研当前安装版本的相关下载路径，准确关联本次实际文件，分别验证下载完成、文件可读取及数据符合业务预期，明确观察缺口和支持限制。
+6. **报告复测历史：** 首次报告保持纯净，后续连贯展示首次、历次和当前结果及证据，区分原问题、新发现、记录修订和本次未重测范围。
+7. **用例文档与人工审阅：** 同源交付 HTML/Markdown，生成测试点或用例草案后暂停审阅，记录意见、修订及确认版本；AI 负责设计和判断，代码沉淀文档、校验与记录。
 
-完整背景、七项需求及验收方向见 [v0.1.8 需求前瞻](docs/v0.1.8-preview.md)。编号/依赖/参数/用量等具体设计须审核后开发；当前软件与契约不升级。原 [v0.1.7 前瞻](docs/v0.1.7-preview.md)作为历史保留，未完成的效果评测不写成已交付能力。
+原七项前瞻、三项新增需求及旧前瞻的设计质量、经验适用性合并为十二项，[需求文档已获确认](docs/v0.1.8-requirements.md)。依据[调研](docs/v0.1.8-feasibility-research.md)已形成[最终设计（收敛版）](docs/v0.1.8-design.md)，配套[轻量数据与接口](docs/v0.1.8-contract-design.md)及[下载设计](docs/v0.1.8-download-design.md)。资料仅按用例版本、审阅依据和历次运行保存，不建设通用项目资产库；背景见[需求前瞻](docs/v0.1.8-preview.md)。当前软件与契约不升级，研究原型和设计不写成已交付能力，原[v0.1.7 前瞻](docs/v0.1.7-preview.md)继续保留。
 
 ## 继续阅读
 

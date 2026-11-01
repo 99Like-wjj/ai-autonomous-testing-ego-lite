@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "execution-request.schema.json",
-  "title": "Ego Lite execution request v8",
+  "title": "Ego Lite execution request v9",
   "oneOf": [
     {
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 8
+          "const": 9
         },
         "operationId": {
           "$ref": "common.schema.json#/$defs/safeId"
@@ -54,7 +54,7 @@
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 8
+          "const": 9
         },
         "operationId": {
           "$ref": "common.schema.json#/$defs/safeId"
@@ -104,7 +104,7 @@
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 8
+          "const": 9
         },
         "operationId": {
           "$ref": "common.schema.json#/$defs/safeId"
@@ -159,7 +159,7 @@
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 8
+          "const": 9
         },
         "operationId": {
           "$ref": "common.schema.json#/$defs/safeId"
@@ -214,7 +214,7 @@
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 8
+          "const": 9
         },
         "operationId": {
           "$ref": "common.schema.json#/$defs/safeId"
@@ -239,7 +239,8 @@
             "space-deviation",
             "skill-bug",
             "external-change",
-            "cleanup"
+            "cleanup",
+            "download"
           ]
         },
         "spaceIds": {
@@ -272,6 +273,9 @@
             "$ref": "common.schema.json#/$defs/nonempty"
           },
           "uniqueItems": true
+        },
+        "download": {
+          "$ref": "common.schema.json#/$defs/downloadMarker"
         }
       },
       "required": [
@@ -282,13 +286,36 @@
         "kind",
         "category"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "category": {
+                "const": "download"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "download"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "download"
+              ]
+            }
+          }
+        }
+      ]
     },
     {
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 8
+          "const": 9
         },
         "operationId": {
           "$ref": "common.schema.json#/$defs/safeId"
@@ -324,7 +351,7 @@
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 8
+          "const": 9
         },
         "operationId": {
           "$ref": "common.schema.json#/$defs/safeId"
@@ -390,7 +417,7 @@
       "type": "object",
       "properties": {
         "schemaVersion": {
-          "const": 8
+          "const": 9
         },
         "operationId": {
           "$ref": "common.schema.json#/$defs/safeId"

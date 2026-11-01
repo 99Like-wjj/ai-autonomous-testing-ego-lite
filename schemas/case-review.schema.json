@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "case-review.schema.json",
+  "title": "Case review v9",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 9
+    },
+    "cases": {
+      "$ref": "common.schema.json#/$defs/casesRef"
+    },
+    "reviewNumber": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "decision": {
+      "enum": [
+        "comment_only",
+        "changes_requested",
+        "approved"
+      ]
+    },
+    "pointIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "pointId",
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "source": {
+      "$ref": "common.schema.json#/$defs/sourceRef"
+    },
+    "sourceKind": {
+      "enum": [
+        "user_statement",
+        "delegated_review",
+        "feedback_file"
+      ]
+    },
+    "delegationSource": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/sourceRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reviewedTargets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "definitionSha256": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "pointId",
+          "definitionSha256"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "recordedAt": {
+      "$ref": "common.schema.json#/$defs/timestamp"
+    },
+    "writeRequestSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "cases",
+    "reviewNumber",
+    "decision",
+    "pointIds",
+    "comments",
+    "source",
+    "sourceKind",
+    "delegationSource",
+    "reviewedTargets",
+    "recordedAt",
+    "writeRequestSha256"
+  ],
+  "additionalProperties": false
+}

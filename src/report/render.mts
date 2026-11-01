@@ -8,7 +8,7 @@ import { fail } from '../core/common.mjs';
 import { reportShell } from './shell.mjs';
 export const escape = (value: unknown): string => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/[\\*_{}\[\]()#+.!|~-]/g, '\\$&').split(String.fromCharCode(96)).join('\\' + String.fromCharCode(96)).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, character => '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0')).replace(/\r?\n/g, '  \n');
 export function markdown(report: Report, payload?: HtmlPayload): string {
-  if (report.schemaVersion !== 8) fail('Unsupported report format; v8 is required.');
+  if (report.schemaVersion !== 9) fail('Unsupported report format; v9 is required.');
   const lines: string[] = ['# 本地测试报告', '', escape(report.project), '', escape(report.caveat), '',
     '业务目标总数：' + report.goalCount + '；用例／场景数：' + report.caseCount + '。', '',
     Object.entries(report.counts).map(([state, count]) => labels[state as keyof typeof labels] + '：' + count).join('；') + '。', '',
@@ -18,17 +18,16 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
     '评估未关联截图的目标：' + (report.evidenceCoverage.goalsWithoutScreenshots.map(item => escape(item.caseId + '/' + item.goalId)).join(', ') || '(none)') + '。关键 UI 结论需要真实页面截图，文件哈希不证明业务结论。', ''];
   if (report.regressionBinding) {
     const b = report.regressionBinding as RegressionBinding, c = b.coverage;
-    lines.push('## 回归范围与任务版本', '', '模式：' + (b.selection.request.mode === 'full' ? '全量回归' : '按历史目标状态选择，整条场景重跑'), '',
+    lines.push('## 本轮范围与用例版本', '', '模式：' + ({ full: '全量回归', points: '按稳定编号选择目标', status: '按历史目标状态选择，整条场景重跑' }[b.selection.request.mode]), '',
       '原范围 ' + c.requestedCases + ' 场景 / ' + c.requestedGoals + ' 目标；选中 ' + c.selectedCases + ' 场景 / ' + c.selectedGoals + ' 目标；本次冻结 ' + c.compiledCases + ' 场景 / ' + c.compiledGoals + ' 目标；未选中 ' + c.notSelectedCases + ' 场景。', '',
       '本报告四态仅对应本次冻结范围；未选中不是未测试，不继承历史通过。全量选择不等于全量执行完成。', '',
-      '选择依据：' + escape(b.selection.request.scope.scopeId + ' @ ' + b.selection.request.scope.version) + '；固定筛选状态：' + escape(b.selection.request.statuses.join(', ') || '(全量不按状态筛选)'), '',
-      '来源运行：' + escape(b.selection.request.source?.runId ?? '(未指定历史状态基准)') + '；源结果版本：' + (b.selection.request.source?.resultsRevision ?? '无') + '。', '');
-    for (const t of b.tasks) lines.push('- 任务 ' + escape(t.taskId) + ' @ ' + t.revision + '：' + escape(t.title) + '；定义 ' + t.maturity + '；适用性 ' + t.applicability.state);
-    for (const r of b.rules) lines.push('- 规则 ' + escape(r.ruleId) + ' @ ' + r.revision + '：' + escape(r.statement) + '；依据确认 ' + r.confirmation.state);
-    for (const g of c.gaps) lines.push('- 范围/资产缺口 ' + escape(g.caseId + (g.goalId ? '/' + g.goalId : '') + '：' + g.reason));
-    for (const n of b.selection.notSelected) lines.push('- 本轮未选中 ' + escape(n.caseId) + '；无本次结果，历史仅供参考。');
+      '用例版本：v' + b.selection.request.cases.caseVersion + '；指纹：' + b.selection.request.cases.sha256 + '；筛选状态：' + escape(b.selection.request.statuses.join(', ') || '(不按状态筛选)'), '',
+      '来源运行：' + escape(b.selection.request.sourceRun?.runId ?? '(未指定历史状态基准)') + '；源结果版本：' + (b.selection.request.sourceRun?.resultsRevision ?? '无') + '。', '');
+    for (const g of c.gaps) lines.push('- 范围缺口 ' + escape((g.pointId ?? '来源覆盖') + '：' + g.reason));
+    if (b.selection.notSelectedPointIds.length) lines.push('- 本轮未选中：' + b.selection.notSelectedPointIds.map(escape).join(', ') + '；无本次结果，历史仅供参考。');
     lines.push('', '当次条件是有来源的 AI 核验说明，工具不认证真实就绪或授权；待核验项仍需处理。', '');
-    for (const i of b.conditions.items) lines.push('- ' + escape(i.caseIds.join(', ') + ' / ' + i.aspect + ' / ' + i.state + '：' + i.statement) + '；来源 ' + escape(i.source.locator));
+    for (const i of b.currentConditions.items) lines.push('- ' + escape(i.caseIds.join(', ') + ' / ' + i.aspect + ' / ' + i.state + '：' + i.statement) + '；来源 ' + escape(i.source.locator));
+    for (const p of b.parameterBindings) lines.push('- 参数 ' + escape(p.caseId + '/' + p.parameterId) + '：' + escape(JSON.stringify(p.value)) + '；来源 ' + escape(p.source.locator));
     lines.push('');
   }
   const unresolved = (report.actionAttempts ?? []).filter(a => a.unresolved);
@@ -55,6 +54,7 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
       if (!a) { lines.push('完整性缺口：未登记目标评估，不能据此推断未测试、无法判断或其他业务结论。', ''); continue; }
       lines.push('判断理由：' + escape(a.rationale), '', '剩余缺口：' + (a.gaps.map(escape).join('；') || '(none recorded)'), '',
         '评估来源：' + escape(a.operationId) + '；revision ' + a.revision + '；' + escape(a.recordedAt), '');
+      for(const p of a.problemChecks??[])lines.push('原问题检查：'+escape(p.state+'；'+p.rationale)+'；原来源 '+escape(p.source.run.runId+'/'+p.source.caseId+'/'+(p.source.findingId??p.source.goalId??''))+'；本轮观察 '+escape(p.observationIds.join(', '))+'；缺口 '+escape(p.gaps.join('；')),'');
       if (a.diagnosis) lines.push('归因：' + a.diagnosis.state + ' / ' + a.diagnosis.category + '；' + escape(a.diagnosis.summary) + '。根因状态与业务四态独立。', '');
       if (a.summary) lines.push('阅读摘要：' + escape(a.summary), '');
       for (const context of item.contexts) {
@@ -143,6 +143,14 @@ export function markdown(report: Report, payload?: HtmlPayload): string {
         else { shown.add(preview.assetId); lines.push('```text', (asset.text ?? '').replace(/```/g, '\\u0060\\u0060\\u0060'), '```', ''); }
       }
     }
+  }
+  if(report.history){const h=report.history;lines.push('## 历次运行对照','','历史仅说明原运行，不计入本轮四态；状态变化不自动证明代码修复。','');
+    for(const n of h.nodes){lines.push('### '+escape(n.ref.runId)+(h.primaryBaseline?.runId===n.ref.runId&&h.primaryBaseline.resultsSha256===n.ref.resultsSha256?'（主要比较基准）':''),'','用例版本 v'+n.caseVersion+'；结果 revision '+n.ref.resultsRevision+'；原结果指纹 '+n.ref.resultsSha256,'');
+      for(const p of n.points){lines.push('#### '+escape(p.pointId+'：'+p.title),'','原运行：'+(p.selected?p.status?labels[p.status]:'缺少评估':'未选中')+'；对应本次 '+p.forPointIds.map(escape).join(', '),'','原预期：'+escape(p.expected),'','原依据：'+escape(p.definition.basis.source+'；'+p.definition.basis.text),'','原必要计划：'+escape(JSON.stringify(p.plan)),'','该运行条件与参数：'+escape(JSON.stringify({conditions:p.declaredConditions,parameters:p.parameterBindings})),'','原判断：'+escape(p.rationale??'无'),'','缺口：'+escape(p.gaps.join('；')),'');
+        for(const key of p.evidenceKeys){const e=h.evidence.find(e=>e.key===key),preview=payload?.previews[key];if(!e)continue;lines.push('- 历史证据 '+escape(e.item.id)+'：'+escape(e.item.description)+(preview?.attachmentPath?'；[原件]('+preview.attachmentPath+')':''));}lines.push('');}
+    }
+    for(const g of h.gaps)lines.push('- 历史资料缺口 '+escape(g.run.runId+'：'+g.reason));
+    lines.push('',escape(h.caveat),'');
   }
   return lines.join('\n') + '\n';
 }

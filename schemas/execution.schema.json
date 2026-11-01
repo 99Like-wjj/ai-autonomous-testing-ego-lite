@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "execution.schema.json",
-  "title": "Ego Lite execution ledger v8",
+  "title": "Ego Lite execution ledger v9",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 8
+      "const": 9
     },
     "runId": {
       "type": "string",
@@ -46,7 +46,7 @@
           "type": "object",
           "properties": {
             "schemaVersion": {
-              "const": 8
+              "const": 9
             },
             "maxParallelCases": {
               "type": "integer",
@@ -670,6 +670,16 @@
         ],
         "additionalProperties": false
       }
+    },
+    "activeDownload": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/downloadMarker"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "required": [

@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "case-review-request.schema.json",
+  "title": "Case review request v9",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 9
+    },
+    "cases": {
+      "$ref": "common.schema.json#/$defs/casesRef"
+    },
+    "expectedReviewNumber": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "decision": {
+      "enum": [
+        "comment_only",
+        "changes_requested",
+        "approved"
+      ]
+    },
+    "pointIds": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/safeId"
+      }
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "pointId",
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "source": {
+      "$ref": "common.schema.json#/$defs/sourceRef"
+    },
+    "sourceKind": {
+      "enum": [
+        "user_statement",
+        "delegated_review",
+        "feedback_file"
+      ]
+    },
+    "delegationSource": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/sourceRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "cases",
+    "expectedReviewNumber",
+    "decision",
+    "pointIds",
+    "comments",
+    "source",
+    "sourceKind",
+    "delegationSource"
+  ],
+  "additionalProperties": false
+}

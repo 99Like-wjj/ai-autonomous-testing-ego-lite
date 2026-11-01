@@ -6,6 +6,10 @@ The AI interprets goals and judges business outcomes, Ego operates the browser, 
 
 ![Newest first: v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
 
+## v0.1.8 · RC.1 development candidate (not released)
+
+Implements the approved lean case/review/run design, stable-point scope, download originals/file inspection and historical comparisons. Contracts v9, regressionVersion 2, networkVersion 1. Historical data stays unchanged without automatic migration/fallback. See [development validation](v0.1.8-development-validation.md); 0.1.7 remains the last stable release.
+
 ## v0.1.7 · Report reading, resource clarification and regression reuse
 
 The current `0.1.7 / report-step-evidence-1` release uses schema v8. It integrates whole-scope resource communication, first-run tasks/rules, independent run binding and goal comparisons. The [scheme-B reader](v0.1.7-step-evidence.md) places actual steps beside evidence, retaining all goals, expectations and history without inventing execution or changing outcomes. The [v0.1.7 preview](v0.1.7-preview.md) remains historical; broader quality evaluation is not claimed complete.

@@ -1,147 +1,139 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "regression-binding.schema.json",
-  "title": "Frozen regression run binding v1",
-  "description": "Exact task and rule snapshots plus current-run AI declarations. Current declarations do not inherit historical readiness or authorization. Compiled cases must preserve every original goal and necessary obligation.",
-  "oneOf": [
-    {
-      "$ref": "#/$defs/request"
+  "title": "Run binding request v2",
+  "type": "object",
+  "properties": {
+    "regressionVersion": {
+      "const": 2
     },
-    {
-      "$ref": "#/$defs/binding"
-    }
-  ],
-  "$defs": {
-    "condition": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "caseIds": {
-          "type": "array",
-          "items": {
+    "selection": {
+      "$ref": "regression-selection.schema.json#/$defs/selection"
+    },
+    "reviewFiles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "plans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "caseId": {
             "$ref": "common.schema.json#/$defs/safeId"
           },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "aspect": {
-          "enum": [
-            "identity",
-            "environment",
-            "data",
-            "authorization",
-            "path",
-            "other"
-          ]
-        },
-        "state": {
-          "enum": [
-            "verified",
-            "pending",
-            "deferred"
-          ]
-        },
-        "statement": {
-          "type": "string",
-          "minLength": 1
-        },
-        "source": {
-          "type": "object",
-          "properties": {
-            "kind": {
-              "enum": [
-                "ai_declaration",
-                "current_user_statement",
-                "current_evidence"
-              ]
-            },
-            "locator": {
-              "type": "string",
-              "minLength": 1
-            },
-            "file": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "minLength": 1
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "sha256": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "pattern": "^[a-f0-9]{64}$"
-                },
-                {
-                  "type": "null"
-                }
-              ]
+          "pointIds": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/safeId"
             }
           },
-          "required": [
-            "kind",
-            "locator",
-            "file",
-            "sha256"
-          ],
-          "additionalProperties": false,
-          "allOf": [
-            {
-              "if": {
+          "conditionIds": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/safeId"
+            }
+          },
+          "stepIds": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/safeId"
+            }
+          },
+          "includeRequiredPath": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "caseId",
+          "pointIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "deferred": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "pointId",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "parameterBindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "parameterId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "object",
                 "properties": {
-                  "kind": {
-                    "const": "current_evidence"
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "label": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
-                  "kind"
-                ]
-              },
-              "then": {
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "pattern": "^(?:[A-Za-z]:[\\\\/]|[\\\\/])[^\\u0000]*$",
-                    "description": "Absolute local retained file path; existence, regular-file status, source-run exclusion and content hash are verified by the runtime."
-                  },
-                  "sha256": {
-                    "type": "string",
-                    "pattern": "^[a-f0-9]{64}$"
-                  }
-                }
-              },
-              "else": {
-                "properties": {
-                  "file": {
-                    "type": "null"
-                  },
-                  "sha256": {
-                    "type": "null"
-                  }
-                }
+                  "id",
+                  "label"
+                ],
+                "additionalProperties": false
               }
-            }
-          ],
-          "description": "Only current_evidence carries a retained local file and SHA-256. ai_declaration and current_user_statement use the locator to identify their source and must set file and sha256 to null. Structure does not authenticate a declaration or prove file contents."
-        }
-      },
-      "required": [
-        "id",
-        "caseIds",
-        "aspect",
-        "state",
-        "statement",
-        "source"
-      ],
-      "additionalProperties": false
+            ]
+          },
+          "source": {
+            "$ref": "common.schema.json#/$defs/sourceRef"
+          }
+        },
+        "required": [
+          "caseId",
+          "parameterId",
+          "value",
+          "source"
+        ],
+        "additionalProperties": false
+      }
     },
-    "conditions": {
+    "currentConditions": {
       "type": "object",
       "properties": {
         "declaredBy": {
@@ -149,8 +141,7 @@
           "minLength": 1
         },
         "declaredAt": {
-          "$ref": "common.schema.json#/$defs/timestamp",
-          "description": "Use the original declaration time normalized to UTC with Z, at seconds or exactly three millisecond digits. Offset ISO strings and microseconds are not accepted by the current runtime."
+          "$ref": "common.schema.json#/$defs/timestamp"
         },
         "forCurrentRun": {
           "const": true
@@ -158,7 +149,93 @@
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/condition"
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "caseIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                }
+              },
+              "aspect": {
+                "enum": [
+                  "identity",
+                  "environment",
+                  "data",
+                  "authorization",
+                  "path",
+                  "other"
+                ]
+              },
+              "state": {
+                "enum": [
+                  "verified",
+                  "pending",
+                  "deferred"
+                ]
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "ai_declaration",
+                      "current_user_statement",
+                      "current_evidence"
+                    ]
+                  },
+                  "locator": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "file": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "sha256": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "locator",
+                  "file",
+                  "sha256"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "id",
+              "caseIds",
+              "aspect",
+              "state",
+              "statement",
+              "source"
+            ],
+            "additionalProperties": false
           }
         }
       },
@@ -170,212 +247,107 @@
       ],
       "additionalProperties": false
     },
-    "request": {
+    "history": {
       "type": "object",
       "properties": {
-        "regressionVersion": {
-          "const": 1
-        },
-        "selection": {
-          "$ref": "regression-selection.schema.json#/$defs/selection"
-        },
-        "caseMappings": {
+        "parents": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "scopeCaseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "runCaseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              }
-            },
-            "required": [
-              "scopeCaseId",
-              "runCaseId"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "deferredCases": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "caseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "reason": {
+              "runDir": {
                 "type": "string",
                 "minLength": 1
-              }
-            },
-            "required": [
-              "caseId",
-              "reason"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "conditions": {
-          "$ref": "#/$defs/conditions"
-        }
-      },
-      "required": [
-        "regressionVersion",
-        "selection",
-        "caseMappings",
-        "deferredCases",
-        "conditions"
-      ],
-      "additionalProperties": false
-    },
-    "binding": {
-      "type": "object",
-      "properties": {
-        "regressionVersion": {
-          "const": 1
-        },
-        "selection": {
-          "$ref": "regression-selection.schema.json#/$defs/selection"
-        },
-        "caseMappings": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "scopeCaseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
               },
-              "runCaseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              }
-            },
-            "required": [
-              "scopeCaseId",
-              "runCaseId"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "deferredCases": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "caseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "reason": {
+              "runId": {
                 "type": "string",
                 "minLength": 1
+              },
+              "baselineSha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "resultsRevision": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "resultsSha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
               }
             },
             "required": [
-              "caseId",
-              "reason"
+              "runDir",
+              "runId",
+              "baselineSha256",
+              "resultsRevision",
+              "resultsSha256"
             ],
             "additionalProperties": false
           }
         },
-        "conditions": {
-          "$ref": "#/$defs/conditions"
-        },
-        "runId": {
-          "type": "string",
-          "minLength": 1
-        },
-        "baselineSha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "tasks": {
-          "type": "array",
-          "items": {
-            "$ref": "regression-artifact.schema.json#/$defs/storedTask"
-          }
-        },
-        "rules": {
-          "type": "array",
-          "items": {
-            "$ref": "regression-artifact.schema.json#/$defs/storedRule"
-          }
-        },
-        "coverage": {
-          "type": "object",
-          "properties": {
-            "requestedCases": {
-              "type": "integer",
-              "minimum": 0
+        "primaryBaseline": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "runDir": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "runId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "baselineSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "resultsRevision": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "resultsSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "runDir",
+                "runId",
+                "baselineSha256",
+                "resultsRevision",
+                "resultsSha256"
+              ],
+              "additionalProperties": false
             },
-            "requestedGoals": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "selectedCases": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "selectedGoals": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "compiledCases": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "compiledGoals": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "notSelectedCases": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "gaps": {
-              "type": "array",
-              "items": {
-                "$ref": "regression-selection.schema.json#/$defs/gap"
-              }
+            {
+              "type": "null"
             }
-          },
-          "required": [
-            "requestedCases",
-            "requestedGoals",
-            "selectedCases",
-            "selectedGoals",
-            "compiledCases",
-            "compiledGoals",
-            "notSelectedCases",
-            "gaps"
-          ],
-          "additionalProperties": false
+          ]
         },
-        "caveat": {
+        "reason": {
           "type": "string",
           "minLength": 1
-        },
-        "contentSha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
         }
       },
       "required": [
-        "regressionVersion",
-        "selection",
-        "caseMappings",
-        "deferredCases",
-        "conditions",
-        "runId",
-        "baselineSha256",
-        "tasks",
-        "rules",
-        "coverage",
-        "caveat",
-        "contentSha256"
+        "parents",
+        "primaryBaseline",
+        "reason"
       ],
       "additionalProperties": false
     }
-  }
+  },
+  "required": [
+    "regressionVersion",
+    "selection",
+    "reviewFiles",
+    "plans",
+    "deferred",
+    "parameterBindings",
+    "currentConditions",
+    "history"
+  ],
+  "additionalProperties": false
 }

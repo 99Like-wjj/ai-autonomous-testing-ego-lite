@@ -9,7 +9,8 @@ import { parseManifest, arrayValue, textValue } from '../core/validation.mjs';
 import { mapRecordEvidence } from '../core/action-events.mjs';
 import { parsePacket } from './parse.mjs';
 import { retainReference, workerEvidencePath } from '../core/file-integrity.mjs';
-import { checkUnlocked, validatePayloadAgainstCase } from '../core/records.mjs';
+import { assertAssessmentScope, checkUnlocked, validatePayloadAgainstCase } from '../core/records.mjs';
+import type { RegressionBinding } from '../regression/binding.mjs';
 
 /** An explicit existing ID is resolved only inside the current run's verified catalog. Equal bytes alone never deduplicate collection. */
 export function matchRegisteredEvidence(item: WorkerPacket['evidence'][number], id: string, caseId: string, catalog: EvidenceCatalog) {
@@ -53,7 +54,7 @@ export async function verifyPacketFiles(root: string, a: Assignment, packet: Wor
 }
 export async function sealPacket({ runDir, assignment, draftFile }: { runDir: unknown; assignment: string; draftFile: string }) {
   const root = await directory(runDir), id = assignmentId(assignment);
-  const manifest = parseManifest(await readJSON(path.join(root, 'manifest.json'))); if (manifest.schemaVersion !== 8) fail('Packet sealing requires a v8 run.');
+  const manifest = parseManifest(await readJSON(path.join(root, 'manifest.json'))); if (manifest.schemaVersion !== 9) fail('Packet sealing requires a v9 run.');
   const checked = await checkUnlocked(root);
   const workerRoot = path.join(root, 'workers', id), marker = await readJSON(await safePath(path.join(workerRoot, 'assignment.json'), { existing: true }));
   assertClosed(marker, ['assignmentId', 'caseId', 'attemptId', 'operationId'], 'assignment receipt');
@@ -62,7 +63,7 @@ export async function sealPacket({ runDir, assignment, draftFile }: { runDir: un
   const inputPath = await safePath(draftFile, { existing: true }); if (!inside(workerRoot, inputPath)) fail('Draft must belong to the assigned worker directory.');
   const draft = await readJSON(inputPath);
   assertClosed(draft, ['schemaVersion', 'packetId', 'mode', 'record', 'evidence', 'executionWindow', 'spaceUsage'], 'worker draft');
-  if (draft.schemaVersion !== 8) fail('Worker drafts require schemaVersion 8.');
+  if (draft.schemaVersion !== 9) fail('Worker drafts require schemaVersion 9.');
   const packetId = safeIdentifier(draft.packetId, 'packet ID');
   const evidence = [];
   for (const raw of arrayValue(draft.evidence, 'draft evidence')) {
@@ -71,11 +72,12 @@ export async function sealPacket({ runDir, assignment, draftFile }: { runDir: un
     const filename = workerEvidencePath(workerRoot, relative, 'Draft');
     const actual = await retainReference(root, filename); evidence.push({ ...raw, sha256: actual.sha256, bytes: actual.bytes });
   }
-  const packet = parsePacket({ ...draft, schemaVersion: 8, runId: manifest.runId, baselineSha256: manifest.baselineSha256, caseId, assignmentId: id, attemptId, evidence });
+  const packet = parsePacket({ ...draft, schemaVersion: 9, runId: manifest.runId, baselineSha256: manifest.baselineSha256, caseId, assignmentId: id, attemptId, evidence });
   const bytes = json(packet), priorImport = checked.execution?.imports.find(imp => imp.assignmentId === id && imp.packetId === packetId && imp.packetSha256 === hash(bytes) && imp.phase !== 'superseded');
   const importedIds = new Map((priorImport?.evidenceJobs ?? []).flatMap(job => job.receipt ? [[job.key, job.receipt.evidenceId] as const] : []));
   // Validate the worker's supplied decision. A later coordinator review may explicitly revise it.
   validateAssessment(packet, c, undefined, { case: c, catalog: checked.evidenceCatalog, evidenceIds: importedIds });
+  assertAssessmentScope(c, packet.record, checked.regressionBinding as RegressionBinding);
   const filename = await safePath(path.join(workerRoot, 'packet-' + packetId + '.json'));
   let replayed = false;
   try { await writeNew(filename, bytes); } catch (caught) { const error = errorInfo(caught); if (error.code !== 'EEXIST' || await fs.readFile(await safePath(filename, { existing: true }), 'utf8') !== bytes) throw error; replayed = true; }

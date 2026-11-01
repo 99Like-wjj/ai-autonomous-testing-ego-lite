@@ -9,5 +9,5 @@ export async function readRunBinding(root: string, manifest: Manifest, baseline:
   if (manifest.regressionBindingFile === undefined) return undefined;
   const bytes = await fs.readFile(await regularFilePath(path.join(root, manifest.regressionBindingFile)));
   if (hash(bytes) !== manifest.regressionBindingSha256) fail('Frozen regression binding file hash mismatch.');
-  return validateBinding(JSON.parse(bytes.toString('utf8')), baseline, manifest.runId);
+  return validateBinding(JSON.parse(bytes.toString('utf8')), baseline, manifest.runId, manifest.baselineSha256);
 }

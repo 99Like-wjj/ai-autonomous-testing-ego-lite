@@ -1,7 +1,7 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface EgoLiteExecutionReadViewV8 {
-  viewVersion: 8;
+export interface EgoLiteExecutionReadViewV9 {
+  viewVersion: 9;
   view: 'summary' | 'assignment';
   runId: string;
   baselineSha256: string;
@@ -57,13 +57,14 @@ export interface EgoLiteExecutionReadViewV8 {
     evidenceMarker: 'present' | 'absent';
     pendingImports: number;
   };
+  activeDownload?: DownloadMarker | null;
 }
 export interface ExecutionConfigurationSnapshot {
   kind: 'default' | 'project' | 'file' | 'override';
   initialMaxParallelCases: number;
   requestedMaxParallelCases: number;
   configuration: {
-    schemaVersion: 8;
+    schemaVersion: 9;
     maxParallelCases: number;
   };
   configFile?: string;
@@ -156,4 +157,14 @@ export interface ExecutionNotePreview {
   assignmentId: string | null;
   at: string;
   reason: ExecutionTextPreview;
+}
+export interface DownloadMarker {
+  captureId: string;
+  caseId: string;
+  /**
+   * @minItems 1
+   */
+  pointIds: string[];
+  actionId: string;
+  state: 'active' | 'unknown' | 'resolved';
 }

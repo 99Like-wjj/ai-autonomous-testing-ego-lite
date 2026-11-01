@@ -39,8 +39,10 @@ test('real and linked CLI paths execute commands and create the requested projec
     const project = path.join(f.root, label + ' project');
     const initialized = await exec(process.execPath, [entry, 'init', '--project-dir', project], { cwd: f.root });
     assert.equal(objectValue(JSON.parse(initialized.stdout)).projectDir, project);
-    const cases = objectValue(JSON.parse(await fs.readFile(path.join(project, 'cases.example.json'), 'utf8')));
+    const cases = objectValue(JSON.parse(await fs.readFile(path.join(project, 'cases-save-request.example.json'), 'utf8')));
     assert.ok(Array.isArray(cases.cases) && cases.cases.length > 0);
+    assert.equal(cases.expectedVersion,0);
+    assert.deepEqual(await fs.readdir(path.join(project,'runs')),[]);
   }
 });
 

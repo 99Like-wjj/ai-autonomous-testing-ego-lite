@@ -2,11 +2,12 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Assessment, Baseline, Case, EvidenceMetadata, ExecutionContext, Observation, RecordPayload } from '../src/contracts/model.mjs';
-import { init, start } from '../src/core/cases.mjs';
+import { init } from '../src/core/cases.mjs';
 import { check, registerEvidence, recordResult } from '../src/core/records.mjs';
 import { report } from '../src/report/delivery.mjs';
 import { safePath, json } from '../src/core/common.mjs';
 
+import { syntheticCase, syntheticCases, startSyntheticRun as start } from '../tests/synthetic-cases.mjs';
 const flags = new Map<string, string>();
 for (let i = 2; i < process.argv.length; i += 2) {
   const key = process.argv[i], value = process.argv[i + 1];
@@ -18,7 +19,7 @@ const root = await safePath(output, { external: true }); await fs.mkdir(root);
 const sources = path.join(root, 'sources'); await fs.mkdir(sources);
 const projectDir = path.join(root, 'project'), runDir = path.join(root, 'run'), reportDir = path.join(root, 'report');
 await init(projectDir); await fs.mkdir(reportDir);
-const scene = (id: string, title: string, titles: string[], strict = false): Case => ({ id, title, criticalConditions: ['所有内容均为明确合成数据，不代表业务验证。'], requiredPath: null, stepOrder: strict ? 'strict' : 'adaptive', steps: [{ id: 'inspect', action: '读取本地合成样本并记录显示用事实。' }], goals: titles.map((name, i) => ({ id: 'goal-' + (i + 1), title: name, basis: { kind: i === 2 ? 'interpretation' : 'explicit', source: '本地合成报告展示规范', text: '仅用于检查报告分支、事实表达和证据阅读，不是任何真实系统的验收要求。' }, expected: name + '；以合成夹具定义的预期为准。', requiredRefs: ['condition:0', 'step:inspect'] })) });
+const scene = (id: string, title: string, titles: string[], strict = false): Case => syntheticCase({ id, title, criticalConditions: ['所有内容均为明确合成数据，不代表业务验证。'], requiredPath: null, stepOrder: strict ? 'strict' : 'adaptive', steps: [{ id: 'inspect', action: '读取本地合成样本并记录显示用事实。' }], goals: titles.map((name, i) => ({ id: 'goal-' + (i + 1), title: name, basis: { kind: i === 2 ? 'interpretation' : 'explicit', source: '本地合成报告展示规范', text: '仅用于检查报告分支、事实表达和证据阅读，不是任何真实系统的验收要求。' }, expected: name + '；以合成夹具定义的预期为准。', requiredRefs: ['condition:0', 'step:inspect'] })) });
 const cases = [
   scene('SC-01', '保存与读回：混合结果', ['保存后应显示新标题', '原对象应保持不变', '缺少响应不能确认根因'], true),
   scene('SC-02', '权限与成员：同目标多个现象', ['撤权后各入口应按范围拒绝', '审计记录待准备', '尚未登记的验收目标']),
@@ -29,8 +30,8 @@ const cases = [
 ];
 cases[4]!.goals[1]!.followUpOf = { runId: 'self', caseId: 'SC-01', goalId: 'goal-1', reason: '独立合成复核关系；不自动替换原目标结论。' };
 cases[5]!.goals[2]!.basis.kind = 'hypothesis'; cases[5]!.goals[2]!.clarificationQuestions = ['此合成分支的范围尚待澄清。'];
-const baseline: Baseline = { schemaVersion: 8, project: 'v0.1.7 合成报告展示矩阵（不是业务测试）', cases };
-const casesFile = path.join(projectDir, 'cases.json'); await fs.writeFile(casesFile, json(baseline)); await start({ projectDir, casesFile, outputDir: runDir });
+const baseline: Baseline = syntheticCases(cases, '合成报告展示矩阵（不是业务测试）');
+const casesFile = path.join(projectDir, 'cases', 'v001.json'); await fs.writeFile(casesFile, json(baseline)); await start({ projectDir, casesFile, outputDir: runDir });
 const files: Record<string, string> = {};
 async function source(name: string, bytes: string | Buffer) { const file = path.join(sources, name); await fs.writeFile(file, bytes); files[name] = file; return file; }
 const provided = flags.get('--screenshot');
@@ -46,11 +47,11 @@ await source('long.txt', '合成超长文本：范围必须标明，文件不能
 await source('excluded.json', json({ synthetic: true, bodyState: 'excluded', reason: 'The synthetic capture policy excluded body content.' }));
 let evidenceRevision = 0, revision = 0, op = 0;
 async function evidence(caseId: string, filename: string, kind: 'screenshot' | 'log' | 'tool_receipt' | 'other', description: string, metadata?: EvidenceMetadata) {
-  const receipt = await registerEvidence({ runDir, request: { schemaVersion: 8, operationId: 'fixture-ev-' + ++op, expectedRevision: evidenceRevision, caseId, sourceFile: files[filename]!, kind, description, source: '明确合成本地展示夹具', capturedAt: '2026-10-29T04:00:00.000Z', ...(metadata ? { metadata } : {}) } }); evidenceRevision = receipt.revision; return receipt.evidenceId;
+  const receipt = await registerEvidence({ runDir, request: { schemaVersion: 9, operationId: 'fixture-ev-' + ++op, expectedRevision: evidenceRevision, caseId, sourceFile: files[filename]!, kind, description, source: '明确合成本地展示夹具', capturedAt: '2026-10-29T04:00:00.000Z', ...(metadata ? { metadata } : {}) } }); evidenceRevision = receipt.revision; return receipt.evidenceId;
 }
 async function record(caseId: string, payload: RecordPayload, mode: 'final' | 'attempt' = 'final') {
   const operationId = 'fixture-record-' + ++op;
-  const receipt = await recordResult({ runDir, request: { schemaVersion: 8, operationId, expectedRevision: revision, caseId, mode, record: payload } }); revision = receipt.revision; return operationId;
+  const receipt = await recordResult({ runDir, request: { schemaVersion: 9, operationId, expectedRevision: revision, caseId, mode, record: payload } }); revision = receipt.revision; return operationId;
 }
 const obs = (id: string, summary: string, evidenceIds: string[]): Observation => ({ id, summary, coveredRefs: ['condition:0', 'step:inspect'], evidenceIds });
 const assessment = (goalId: string, status: Assessment['status'], observationIds: string[], rationale: string, gaps: string[] = []): Assessment => ({ goalId, status, rationale, observationIds, gaps });

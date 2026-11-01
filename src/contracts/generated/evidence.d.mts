@@ -14,10 +14,12 @@ export type EvidenceMetadata = {
   omissionReason?: string;
   width?: number;
   height?: number;
+  artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
+  deliveryRequired?: boolean;
 };
 
-export interface EgoLiteEvidenceCatalogV8 {
-  schemaVersion: 8;
+export interface EgoLiteEvidenceCatalogV9 {
+  schemaVersion: 9;
   revision: number;
   items: EvidenceItem[];
   operations: EvidenceOperation[];

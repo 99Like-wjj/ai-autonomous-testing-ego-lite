@@ -85,7 +85,7 @@ export async function syncDirectory(dirname: string): Promise<void> {
     if (!['EINVAL', 'ENOTSUP', 'EISDIR', 'EPERM', 'EACCES', 'EBADF'].includes(error.code ?? '')) throw error;
   } finally { if (handle) await handle.close().catch(() => {}); }
 }
-export async function writeNew(filename: string, data: string): Promise<FileIdentity> {
+export async function writeNew(filename: string, data: string | Uint8Array): Promise<FileIdentity> {
   await safePath(filename);
   let handle: FileHandle | undefined;
   let created = false;

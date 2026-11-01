@@ -1,4 +1,6 @@
 import { readRunBinding } from '../regression/run-binding.mjs';
+import type { RegressionBinding } from '../regression/binding.mjs';
+import { verifyOriginalProblems } from '../regression/sources.mjs';
 import { validateActionFacts, projectActionAttempts, type ActionFacts } from './action-events.mjs';
 import { readExecution, summarize, verifyExecutionFiles } from '../execution/ledger.mjs';
 import type { Baseline, Case, CheckedCase, CommittedAssessment, EvidenceCatalog, EvidenceItem, EvidenceOperation, EvidenceReceipt, EvidenceRequest, Manifest, Observation, PendingEvidence, RecordPayload, RecordRequest, Report, Results, ExecutionContext, Finding, ResultEntry, ResultReceipt, TestHooks } from '../contracts/model.mjs';
@@ -10,7 +12,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { assertClosed, fail, json, nonempty, now, randomId, safeIdentifier, canonicalHash, canonical, safePath, readJSON, writeNew, removeRegularIfPresent, atomicReplace, withRunLock, errorInfo } from './common.mjs';
 import { evidenceReference, evidenceFile, hashFile } from './file-integrity.mjs';
-import { requiredRefs } from '../contracts/targets.mjs';
+import { requiredRefs, goalRequiredRefs } from '../contracts/targets.mjs';
 export { evidenceReference, evidenceFile, hashFile } from './file-integrity.mjs';
 export { readAndValidateBaseline } from './baseline.mjs';
 
@@ -63,6 +65,8 @@ function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availab
     const goal = c.goals.find(g => g.id === a.goalId);
     if (!goal) fail('Unknown goal ID: ' + a.goalId);
     const observed = a.observationIds.map(id => { const o = observations.get(id); if (!o) fail('Unknown observation ID: ' + id); return o; });
+    for(const p of a.problemChecks??[])if(['reproduced','not_observed'].includes(p.state)&&!observed.some(o=>p.observationIds.includes(o.id)&&o.evidenceIds.length))fail('An original-problem conclusion requires evidence-backed current observations.');
+    for(const check of a.problemChecks??[]){if(check.observationIds.some(id=>!a.observationIds.includes(id)))fail('Problem checks must use this assessment\'s actual observations.');if(['reproduced','not_observed'].includes(check.state)&&!check.observationIds.length)fail('An original-problem conclusion requires current observations.');if(['unclear','not_checked'].includes(check.state)&&!check.gaps.length)fail('Uncertain original-problem checks need explicit gaps.');}
     for (const p of a.phenomena ?? []) {
       if (!p.observationIds.length || p.observationIds.some(id => !a.observationIds.includes(id))) fail('Phenomenon must refer to its assessment observations: ' + p.id);
       const supported = new Set(observed.filter(o => p.observationIds.includes(o.id)).flatMap(o => o.evidenceIds));
@@ -79,7 +83,8 @@ function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availab
     }
     if (a.status === 'verified') {
       const covered = new Set(observed.filter(o => o.evidenceIds.length > 0).flatMap(o => o.coveredRefs));
-      const missing = goal.requiredRefs.filter(ref => !covered.has(ref));
+      if(goal.planState!=='prepared')fail('Unprepared goal cannot be verified.');
+      const missing = goalRequiredRefs(c,goal).filter(ref => !covered.has(ref));
       if (missing.length) fail('Verified goal omits necessary plan references: ' + missing.join(', '));
       if (a.gaps.length || a.gapDetails?.length) fail('Verified goal cannot retain unresolved gaps: ' + goal.id);
     }
@@ -138,7 +143,8 @@ export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, avai
     }
     if (a.status === 'verified') {
       const covered = new Set(observed.filter(o => o.evidenceIds.length > 0 && supportedActionObservation(o, false)).flatMap(o => o.coveredRefs));
-      const missing = goal.requiredRefs.filter(ref => !covered.has(ref));
+      if(goal.planState!=='prepared')fail('Unprepared goal cannot be verified.');
+      const missing = goalRequiredRefs(c,goal).filter(ref => !covered.has(ref));
       if (missing.length) fail('Verified goal omits necessary plan references: ' + missing.join(', '));
       if (a.gaps.length) fail('Verified goal cannot retain unresolved gaps: ' + goal.id);
     }
@@ -146,8 +152,9 @@ export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, avai
   validateReportFactsAgainstCase(c, payload, availableObservations, evidenceById, {contexts:priorFacts.contexts,findings:priorFacts.findings??[],entries:priorFacts.entries??[]});
 }
 /** Current assessments are a projection of explicit final events; attempt events remain historical. */
-export function projectCases(baseline: Baseline, entries: readonly ResultEntry[]): CheckedCase[] {
-  return baseline.cases.map(c => {
+export function projectCases(baseline: Baseline, entries: readonly ResultEntry[], selectedPointIds?:readonly string[]): CheckedCase[] {
+  return baseline.cases.filter(c=>selectedPointIds===undefined||c.goals.some(g=>selectedPointIds.includes(g.pointId))).map(original => {
+    const c=selectedPointIds===undefined?original:{...original,goals:original.goals.filter(g=>selectedPointIds.includes(g.pointId))};
     const own = entries.filter(entry => entry.caseId === c.id), observations = new Map<string, Observation>(), current = new Map<string, CommittedAssessment>();
     for (const entry of own) {
       for (const o of entry.record.observations) observations.set(o.id, o);
@@ -188,15 +195,20 @@ async function validateEvidenceCatalog(root: string, catalog: EvidenceCatalog, c
   }
   return { evidenceById, operationIds, missingScreenshotIds };
 }
-export function validateResultEntries(baseline: Baseline, results: Results, evidenceById: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, operationIds: Set<string>): CheckedCase[] {
+export function assertAssessmentScope(c:Case,payload:RecordPayload,binding:RegressionBinding):void {
+  if(!c.goals.some(g=>binding.selection.selectedPointIds.includes(g.pointId)))fail('Case is outside the frozen selection.');
+  for(const a of payload.assessments){const g=c.goals.find(g=>g.id===a.goalId);if(!g||!binding.selection.selectedPointIds.includes(g.pointId))fail('Assessment is outside the frozen point selection: '+a.goalId);if(a.status==='verified'&&!binding.plans.some(p=>p.pointIds.includes(g.pointId)))fail('Deferred or unreviewed point cannot be verified.');}
+}
+export function validateResultEntries(baseline: Baseline, results: Results, evidenceById: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, operationIds: Set<string>, binding?:RegressionBinding): CheckedCase[] {
   const factsByCase = new Map<string, ActionFacts & {findings?: Finding[];entries?: ResultEntry[]}>(), factOwners = new Map<string, string>();
   const observationsByCase = new Map<string, Observation[]>(), casesById = new Map(baseline.cases.map(c => [c.id, c]));
   let revision = 0;
   for (const entry of results.entries) {
     const c = casesById.get(entry.caseId); if (!c) fail('Unknown result case ID: ' + entry.caseId);
+    if(binding)assertAssessmentScope(c,entry.record,binding);
     if (entry.expectedRevision !== revision || entry.revision !== ++revision) fail('Result revision does not match append-only event order.');
     if (operationIds.has(entry.operationId)) fail('Operation ID is reused: ' + entry.operationId);
-    const request: RecordRequest = { schemaVersion: 8, operationId: entry.operationId, expectedRevision: entry.expectedRevision, caseId: entry.caseId, mode: entry.mode, record: entry.record };
+    const request: RecordRequest = { schemaVersion: 9, operationId: entry.operationId, expectedRevision: entry.expectedRevision, caseId: entry.caseId, mode: entry.mode, record: entry.record };
     if (canonicalHash(request) !== entry.payloadSha256) fail('Result event payload hash mismatch: ' + entry.operationId);
     const prior = observationsByCase.get(c.id) ?? [];
     validateFactOwnership(c.id, entry.record, factOwners);
@@ -207,21 +219,23 @@ export function validateResultEntries(baseline: Baseline, results: Results, evid
     observationsByCase.set(c.id, [...merged.values()]); operationIds.add(entry.operationId);
   }
   if (revision !== results.revision) fail('Results revision does not match its entries.');
-  return projectCases(baseline, results.entries);
+  return projectCases(baseline, results.entries,binding?.selection.selectedPointIds);
 }
 export async function checkUnlocked(root: string, options: {allowMissingScreenshots?: boolean} = {}): Promise<Report> {
   const manifest: Manifest = parseManifest(await readJSON(path.join(root, 'manifest.json')));
   if (!path.isAbsolute(manifest.projectDir)) fail('Manifest project directory must be absolute.');
   const { baseline } = await readAndValidateBaseline(root, manifest);
   const regressionBinding = await readRunBinding(root, manifest, baseline);
+  if(!regressionBinding)fail('A v9 execution run requires its frozen scope and review binding.');
   const evidenceCatalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
   const { evidenceById, operationIds, missingScreenshotIds } = await validateEvidenceCatalog(root, evidenceCatalog, baseline.cases, options);
   const results = parseResults(await readJSON(path.join(root, 'results.json')));
-  const cases = validateResultEntries(baseline, results, evidenceById, operationIds), counts = countsFor(cases);
+  const cases = validateResultEntries(baseline, results, evidenceById, operationIds,regressionBinding), counts = countsFor(cases);
   const execution = await readExecution(root, manifest, baseline); await verifyExecutionFiles(root, execution);
   return {
-    schemaVersion: 8, runId: manifest.runId, project: baseline.project, structurallyValid: true,
+    schemaVersion: 9, runId: manifest.runId, project: baseline.project, projectId:baseline.projectId, caseVersion:baseline.caseVersion, structurallyValid: true,
     revision: results.revision, evidenceRevision: evidenceCatalog.revision, caseCount: cases.length,
+    sourceCaseCount:baseline.cases.length,sourceGoalCount:baseline.cases.reduce((n,c)=>n+c.goals.length,0),
     goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
     execution, executionSummary: summarize(execution, baseline), cases, evidenceCatalog,
     ...(regressionBinding ? { regressionBinding } : {}),
@@ -256,11 +270,11 @@ export async function recoverEvidence(root: string): Promise<void> {
   if (!markerFilename) return;
   const marker = parsePendingEvidence(await readJSON(markerFilename));
   assertClosed(marker, ['schemaVersion', 'operationId', 'payloadSha256', 'evidenceId', 'stagePath', 'finalPath', 'catalogTempPath', 'markerTempPath', 'sha256', 'bytes'], 'pending evidence marker');
-  if (marker.schemaVersion !== 8 || !/^[a-f0-9]{64}$/.test(marker.payloadSha256)) fail('Invalid pending evidence recovery marker.');
+  if (marker.schemaVersion !== 9 || !/^[a-f0-9]{64}$/.test(marker.payloadSha256)) fail('Invalid pending evidence recovery marker.');
   safeIdentifier(marker.operationId, 'pending evidence operation id');
   const paths = markerPaths(root, marker);
   const catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-  if (catalog.schemaVersion !== 8) fail('Pending evidence transaction requires run schemaVersion 8.');
+  if (catalog.schemaVersion !== 9) fail('Pending evidence transaction requires run schemaVersion 9.');
   const committed = catalog.operations.find(op => op.operationId === marker.operationId);
   if (committed) {
     const item = catalog.items.find(entry => entry.id === marker.evidenceId);
@@ -302,13 +316,16 @@ export async function recordResultUnlocked(root: string, input: unknown, testHoo
   }
   if (checked.evidenceCatalog.operations.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by an evidence operation.');
   if (request.expectedRevision !== results.revision) fail('Revision conflict: expected ' + request.expectedRevision + ', current ' + results.revision + '.');
-  const c = checked.cases.find(c => c.id === request.caseId); if (!c) fail('Unknown case ID: ' + request.caseId);
+  const checkedCase=checked.cases.find(c=>c.id===request.caseId);if(!checkedCase)fail('Unknown or unselected case ID: '+request.caseId);
+  const manifest=parseManifest(await readJSON(path.join(root,'manifest.json'))),{baseline}=await readAndValidateBaseline(root,manifest),c=baseline.cases.find(c=>c.id===request.caseId)!;
+  assertAssessmentScope(c,request.record,checked.regressionBinding as RegressionBinding);
   const factOwners = new Map<string, string>();
   for (const priorCase of checked.cases) validateFactOwnership(priorCase.id, { observations: [], assessments: [], contexts: priorCase.contexts, actionEvents: priorCase.actionEvents }, factOwners);
   validateFactOwnership(c.id, request.record, factOwners);
-  validatePayloadAgainstCase(c, request.record, c.observations, new Map(checked.evidenceCatalog.items.map(item => [item.id, item])), c);
+  validatePayloadAgainstCase(c, request.record, checkedCase.observations, new Map(checked.evidenceCatalog.items.map(item => [item.id, item])), checkedCase);
+  await verifyOriginalProblems(root,baseline,c,request.record.assessments);
   const entry: ResultEntry = { operationId: request.operationId, payloadSha256, expectedRevision: request.expectedRevision, revision: results.revision + 1, recordedAt: now(), caseId: request.caseId, mode: request.mode, record: request.record };
-  await atomicReplace(resultsPath, json({ schemaVersion: 8, revision: entry.revision, entries: [...results.entries, entry] }));
+  await atomicReplace(resultsPath, json({ schemaVersion: 9, revision: entry.revision, entries: [...results.entries, entry] }));
   if (testHooks.afterCommit) await testHooks.afterCommit();
   return resultOperationReceipt(entry, false);
 }
@@ -349,7 +366,7 @@ export function validateEvidenceRequest(request: unknown): asserts request is Ev
 export async function registerEvidenceUnlocked(root: string, request: unknown, testHooks: TestHooks = {}): Promise<EvidenceReceipt> {
   await recoverEvidence(root);
   const checked = await checkUnlocked(root);
-  if (checked.schemaVersion !== 8) fail('Run manifest v8 is required.');
+  if (checked.schemaVersion !== 9) fail('Run manifest v9 is required.');
   validateEvidenceRequest(request);
   const catalogPath = path.join(root, 'evidence.json'), catalog = parseCatalog(await readJSON(catalogPath));
   const payloadSha256 = canonicalHash(request);
@@ -372,7 +389,7 @@ export async function registerEvidenceUnlocked(root: string, request: unknown, t
   const catalogTemp = path.join(root, '.ego-evidence-' + evidenceId + '.tmp'), markerTemp = path.join(root, '.ego-marker-' + evidenceId + '.tmp');
   const markerFile = path.join(root, '.evidence.pending.json');
   const marker: PendingEvidence = {
-    schemaVersion: 8, operationId: request.operationId, payloadSha256, evidenceId,
+    schemaVersion: 9, operationId: request.operationId, payloadSha256, evidenceId,
     stagePath: stageRelative, finalPath: relativeFinal,
     catalogTempPath: path.basename(catalogTemp), markerTempPath: path.basename(markerTemp)
   };

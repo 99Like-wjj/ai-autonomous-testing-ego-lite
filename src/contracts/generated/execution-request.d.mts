@@ -1,8 +1,8 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export type EgoLiteExecutionRequestV8 =
+export type EgoLiteExecutionRequestV9 =
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -11,7 +11,7 @@ export type EgoLiteExecutionRequestV8 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -20,7 +20,7 @@ export type EgoLiteExecutionRequestV8 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -33,7 +33,7 @@ export type EgoLiteExecutionRequestV8 =
       reasoning?: string;
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -46,19 +46,20 @@ export type EgoLiteExecutionRequestV8 =
       replaceDefault?: boolean;
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
       kind: 'note';
       assignmentId?: string;
-      category: 'observation' | 'space-deviation' | 'skill-bug' | 'external-change' | 'cleanup';
+      category: 'observation' | 'space-deviation' | 'skill-bug' | 'external-change' | 'cleanup' | 'download';
       spaceIds?: (number | null)[];
       remainingSpaceIds?: number[];
       evidenceFiles?: string[];
+      download?: DownloadMarker;
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -66,7 +67,7 @@ export type EgoLiteExecutionRequestV8 =
       maxParallelCases: number;
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -80,7 +81,7 @@ export type EgoLiteExecutionRequestV8 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -89,6 +90,22 @@ export type EgoLiteExecutionRequestV8 =
       review: PacketReview;
       rebaseOf?: string;
     };
+export type OriginalProblemReference = {
+  [k: string]: unknown;
+} & {
+  run: {
+    runDir: string;
+    runId: string;
+    baselineSha256: string;
+    resultsRevision: number;
+    resultsSha256: string;
+  };
+  caseId: string;
+  findingId?: string;
+  goalId?: string;
+  operationId?: string;
+  phenomenonId?: string;
+};
 export type ContextFact = {
   state: 'known' | 'unknown' | 'not_applicable';
   summary: string;
@@ -128,6 +145,16 @@ export type ActionEvent = {
   retry?: ActionRetry;
 };
 
+export interface DownloadMarker {
+  captureId: string;
+  caseId: string;
+  /**
+   * @minItems 1
+   */
+  pointIds: string[];
+  actionId: string;
+  state: 'active' | 'unknown' | 'resolved';
+}
 export interface PacketReview {
   decision: 'accept' | 'revise';
   reviewer: string;
@@ -183,6 +210,13 @@ export interface Assessment {
   revisionReason?: string;
   previousOperationId?: string;
   reproduction?: ReproductionPreparation;
+  problemChecks?: {
+    source: OriginalProblemReference;
+    state: 'reproduced' | 'not_observed' | 'unclear' | 'not_checked';
+    rationale: string;
+    observationIds: string[];
+    gaps: string[];
+  }[];
 }
 export interface Diagnosis {
   state: 'unknown' | 'hypothesis' | 'confirmed';

@@ -1,5 +1,21 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
+export type OriginalProblemReference = {
+  [k: string]: unknown;
+} & {
+  run: {
+    runDir: string;
+    runId: string;
+    baselineSha256: string;
+    resultsRevision: number;
+    resultsSha256: string;
+  };
+  caseId: string;
+  findingId?: string;
+  goalId?: string;
+  operationId?: string;
+  phenomenonId?: string;
+};
 export type ContextFact = {
   state: 'known' | 'unknown' | 'not_applicable';
   summary: string;
@@ -52,10 +68,12 @@ export type EvidenceMetadata = {
   omissionReason?: string;
   width?: number;
   height?: number;
+  artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
+  deliveryRequired?: boolean;
 };
-export type EgoLiteExecutionRequestV8 =
+export type EgoLiteExecutionRequestV9 =
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -64,7 +82,7 @@ export type EgoLiteExecutionRequestV8 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -73,7 +91,7 @@ export type EgoLiteExecutionRequestV8 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -86,7 +104,7 @@ export type EgoLiteExecutionRequestV8 =
       reasoning?: string;
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -99,19 +117,20 @@ export type EgoLiteExecutionRequestV8 =
       replaceDefault?: boolean;
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
       kind: 'note';
       assignmentId?: string;
-      category: 'observation' | 'space-deviation' | 'skill-bug' | 'external-change' | 'cleanup';
+      category: 'observation' | 'space-deviation' | 'skill-bug' | 'external-change' | 'cleanup' | 'download';
       spaceIds?: (number | null)[];
       remainingSpaceIds?: number[];
       evidenceFiles?: string[];
+      download?: DownloadMarker;
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -119,7 +138,7 @@ export type EgoLiteExecutionRequestV8 =
       maxParallelCases: number;
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -133,7 +152,7 @@ export type EgoLiteExecutionRequestV8 =
       evidenceFiles?: string[];
     }
   | {
-      schemaVersion: 8;
+      schemaVersion: 9;
       operationId: string;
       expectedRevision: number;
       reason: string;
@@ -143,8 +162,8 @@ export type EgoLiteExecutionRequestV8 =
       rebaseOf?: string;
     };
 
-export interface EgoLiteExecutionLedgerV8 {
-  schemaVersion: 8;
+export interface EgoLiteExecutionLedgerV9 {
+  schemaVersion: 9;
   runId: string;
   baselineSha256: string;
   revision: number;
@@ -157,13 +176,14 @@ export interface EgoLiteExecutionLedgerV8 {
   imports: PacketImport[];
   operations: ExecutionOperation[];
   events: ExecutionEvent[];
+  activeDownload?: DownloadMarker | null;
 }
 export interface ExecutionConfigurationSnapshot {
   kind: 'default' | 'project' | 'file' | 'override';
   initialMaxParallelCases: number;
   requestedMaxParallelCases: number;
   configuration: {
-    schemaVersion: 8;
+    schemaVersion: 9;
     maxParallelCases: number;
   };
   configFile?: string;
@@ -218,18 +238,18 @@ export interface PacketImport {
   packetId: string;
   packetSha256: string;
   packetFile: string;
-  originalPacket: EgoLiteWorkerPacketV8;
+  originalPacket: EgoLiteWorkerPacketV9;
   review: PacketReview;
   evidenceJobs: EvidenceImportJob[];
-  resultRequest?: ResultOrAttemptRequestV8;
+  resultRequest?: ResultOrAttemptRequestV9;
   resultReceipt?: ImportedResultReceipt;
   phase: 'prepared' | 'evidence' | 'result' | 'complete' | 'superseded';
   startedAt: string;
   completedAt?: string;
   supersededBy?: string;
 }
-export interface EgoLiteWorkerPacketV8 {
-  schemaVersion: 8;
+export interface EgoLiteWorkerPacketV9 {
+  schemaVersion: 9;
   runId: string;
   baselineSha256: string;
   caseId: string;
@@ -297,6 +317,13 @@ export interface Assessment {
   revisionReason?: string;
   previousOperationId?: string;
   reproduction?: ReproductionPreparation;
+  problemChecks?: {
+    source: OriginalProblemReference;
+    state: 'reproduced' | 'not_observed' | 'unclear' | 'not_checked';
+    rationale: string;
+    observationIds: string[];
+    gaps: string[];
+  }[];
 }
 export interface Diagnosis {
   state: 'unknown' | 'hypothesis' | 'confirmed';
@@ -403,11 +430,11 @@ export interface PacketReview {
 }
 export interface EvidenceImportJob {
   key: string;
-  request?: EvidenceRegistrationRequestV8;
+  request?: EvidenceRegistrationRequestV9;
   receipt?: ImportedEvidenceReceipt;
 }
-export interface EvidenceRegistrationRequestV8 {
-  schemaVersion: 8;
+export interface EvidenceRegistrationRequestV9 {
+  schemaVersion: 9;
   operationId: string;
   expectedRevision: number;
   caseId: string;
@@ -429,8 +456,8 @@ export interface ImportedEvidenceReceipt {
   collectedAt: string;
   replayed: boolean;
 }
-export interface ResultOrAttemptRequestV8 {
-  schemaVersion: 8;
+export interface ResultOrAttemptRequestV9 {
+  schemaVersion: 9;
   operationId: string;
   expectedRevision: number;
   caseId: string;
@@ -447,9 +474,19 @@ export interface ImportedResultReceipt {
 export interface ExecutionOperation {
   operationId: string;
   payloadSha256: string;
-  request: EgoLiteExecutionRequestV8;
+  request: EgoLiteExecutionRequestV9;
   startedAt: string;
   receipt?: ExecutionReceipt;
+}
+export interface DownloadMarker {
+  captureId: string;
+  caseId: string;
+  /**
+   * @minItems 1
+   */
+  pointIds: string[];
+  actionId: string;
+  state: 'active' | 'unknown' | 'resolved';
 }
 export interface PacketReview1 {
   decision: 'accept' | 'revise';

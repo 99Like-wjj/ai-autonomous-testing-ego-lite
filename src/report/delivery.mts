@@ -6,14 +6,15 @@ import { arrayValue, sha256Value, strings, textValue } from '../core/validation.
 import { checkUnlocked, recoverEvidence } from '../core/records.mjs';
 import { markdown, htmlReport, htmlReportPayload } from './render.mjs';
 import { evidenceFile } from '../core/file-integrity.mjs';
-import { TEXT_PREVIEW_LIMIT, type PayloadOptions } from './assets.mjs';
+import { reportEvidence, TEXT_PREVIEW_LIMIT, type PayloadOptions } from './assets.mjs';
+import { collectHistory, parseHistoryLocations, validateHistory } from './history.mjs';
 import { caseGoals } from './execution-view.mjs';
 
 export async function validateReportContext(input: unknown, result: Report): Promise<ReportContext> {
   assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'goalNotes', 'readerNotes'], 'report context');
-  if (input.schemaVersion !== 8 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
+  if (input.schemaVersion !== 9 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
   const context: ReportContext = {
-    schemaVersion: 8, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
+    schemaVersion: 9, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
     supplementalCaseIds: strings(input.supplementalCaseIds, 'supplemental case IDs'),
     sources: arrayValue(input.sources, 'sources').map(value => { assertClosed(value, ['label', 'file', 'sha256'], 'report source'); return { label: textValue(value.label, 'source label'), file: textValue(value.file, 'source file'), sha256: sha256Value(value.sha256, 'source hash') }; }),
   };
@@ -84,26 +85,26 @@ export async function validateReportContext(input: unknown, result: Report): Pro
 
 interface Attachment { path: string; sha256: string; bytes: number; evidenceIds: string[] }
 interface DeliveryManifest {
-  deliveryVersion: 1; reportSchemaVersion: 8; runId: string; revision: number; evidenceRevision: number;
+  deliveryVersion: 1; reportSchemaVersion: 9; runId: string; revision: number; evidenceRevision: number; historySha256:string|null;
   options: { mode: 'inline' | 'bundle'; textPreviewLimitBytes: number; allowMissingScreenshots: boolean };
   complete: boolean; attachments: Attachment[];
 }
 function manifestFor(payload: HtmlPayload): DeliveryManifest {
   const unique = new Map<string, Attachment>();
-  for (const item of payload.report.evidenceCatalog.items) {
-    const filename = payload.previews[item.id]?.attachmentPath; if (!filename) continue;
+  for (const {key,item} of reportEvidence(payload.report)) {
+    const filename = payload.previews[key]?.attachmentPath; if (!filename) continue;
     let attachment = unique.get(filename);
     if (!attachment) { attachment = { path: filename, sha256: item.sha256, bytes: item.bytes, evidenceIds: [] }; unique.set(filename, attachment); }
-    attachment.evidenceIds.push(item.id);
+    attachment.evidenceIds.push(key);
   }
-  return { deliveryVersion: 1, reportSchemaVersion: 8, runId: payload.report.runId, revision: payload.report.revision, evidenceRevision: payload.report.evidenceRevision,
+  return { deliveryVersion: 1, reportSchemaVersion: 9, runId: payload.report.runId, revision: payload.report.revision, evidenceRevision: payload.report.evidenceRevision, historySha256:payload.report.history?.contentSha256??null,
     options: { mode: payload.delivery.mode, textPreviewLimitBytes: payload.delivery.textPreviewLimitBytes, allowMissingScreenshots: payload.delivery.allowMissingScreenshots },
     complete: payload.delivery.complete, attachments: [...unique.values()] };
 }
 async function readDeliveryOptions(target: string): Promise<Required<PayloadOptions>> {
   const value = await readJSON(await safePath(path.join(target, 'report-delivery.json'), { existing: true }));
-  assertClosed(value, ['deliveryVersion', 'reportSchemaVersion', 'runId', 'revision', 'evidenceRevision', 'options', 'complete', 'attachments'], 'report delivery');
-  if (value.deliveryVersion !== 1 || value.reportSchemaVersion !== 8) fail('Unsupported report delivery manifest.');
+  assertClosed(value, ['deliveryVersion', 'reportSchemaVersion', 'runId', 'revision', 'evidenceRevision', 'historySha256', 'options', 'complete', 'attachments'], 'report delivery');
+  if (value.deliveryVersion !== 1 || value.reportSchemaVersion !== 9) fail('Unsupported report delivery manifest.');
   assertClosed(value.options, ['mode', 'textPreviewLimitBytes', 'allowMissingScreenshots'], 'report delivery options');
   const options = value.options;
   if (options.mode !== 'inline' && options.mode !== 'bundle' || !Number.isSafeInteger(options.textPreviewLimitBytes) || typeof options.textPreviewLimitBytes !== 'number' || options.textPreviewLimitBytes < 256 || options.textPreviewLimitBytes > 16 * 1024 * 1024 || typeof options.allowMissingScreenshots !== 'boolean') fail('Invalid report delivery options.');
@@ -147,24 +148,36 @@ export async function verifyReportFiles(root: string, reportDir: string, result:
     if (hash(bytes) !== attachment.sha256 || bytes.length !== attachment.bytes) fail('Report attachment hash or byte count mismatch: ' + attachment.path);
     artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
   }
-  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v8', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete };
+  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v9', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete };
 }
 export async function verifyReport(runDir: unknown, reportDir: unknown = runDir) {
   return withRunLock(runDir, async root => {
     const target = await directory(reportDir), saved = await readJSON(path.join(target, 'report.json'));
-    if (!object(saved) || saved.schemaVersion !== 8) fail('Unsupported saved report format; v8 is required. Historical files remain unchanged.');
+    if (!object(saved) || saved.schemaVersion !== 9) fail('Unsupported saved report format; v9 is required. Historical files remain unchanged.');
     const options = await readDeliveryOptions(target), result = await checkUnlocked(root, { allowMissingScreenshots: options.allowMissingScreenshots });
     if (saved.context !== undefined) result.context = await validateReportContext(saved.context, result);
-    return verifyReportFiles(root, target, result, await htmlReportPayload(root, result, options));
+    if (saved.history !== undefined) result.history=validateHistory(saved.history as unknown as NonNullable<Report['history']>,result);
+    else if((await collectHistory(root,result))!==undefined)fail('Saved report omitted its historical references.');
+    const historicalFiles=new Map<string,string>();
+    if(options.mode==='bundle'&&result.history){
+      const manifest=await readJSON(path.join(target,'report-delivery.json'));
+      if(!object(manifest)||manifest.historySha256!==result.history.contentSha256||!Array.isArray(manifest.attachments))fail('Historical delivery fingerprint mismatch.');
+      const allowed=new Set(result.history.evidence.map(e=>e.key));
+      for(const raw of manifest.attachments){if(!object(raw)||typeof raw.path!=='string'||!/^attachments\/[a-f0-9]{64}\.(?:png|jpg|webp|txt|bin)$/.test(raw.path)||!Array.isArray(raw.evidenceIds))fail('Invalid delivery attachment path.');for(const key of raw.evidenceIds)if(typeof key==='string'&&allowed.has(key))historicalFiles.set(key,path.join(target,...raw.path.split('/')));}
+    }
+    return verifyReportFiles(root, target, result, await htmlReportPayload(root, result, options,historicalFiles));
   });
 }
-export interface ReportOptions { outputDir?: unknown; contextFile?: string | undefined; deliveryMode?: 'inline' | 'bundle'; allowMissingScreenshots?: boolean; textPreviewLimitBytes?: number }
-export async function report(runDir: unknown, { outputDir = runDir, contextFile, deliveryMode = 'inline', allowMissingScreenshots = false, textPreviewLimitBytes = TEXT_PREVIEW_LIMIT }: ReportOptions = {}) {
+export interface ReportOptions { outputDir?: unknown; contextFile?: string | undefined; historyLocationsFile?:string; deliveryMode?: 'auto' | 'inline' | 'bundle'; allowMissingScreenshots?: boolean; textPreviewLimitBytes?: number }
+export async function report(runDir: unknown, { outputDir = runDir, contextFile, historyLocationsFile, deliveryMode = 'auto', allowMissingScreenshots = false, textPreviewLimitBytes = TEXT_PREVIEW_LIMIT }: ReportOptions = {}) {
   return withRunLock(runDir, async root => {
     await recoverEvidence(root);
     const target = await directory(outputDir), result = await checkUnlocked(root, { allowMissingScreenshots });
+    const locations=historyLocationsFile?parseHistoryLocations(await readJSON(await safePath(historyLocationsFile,{existing:true}))):undefined;
+    const history=await collectHistory(root,result,locations);if(history)result.history=history;
     if (contextFile !== undefined) result.context = await validateReportContext(await readJSON(contextFile), result);
-    const payload = await htmlReportPayload(root, result, { mode: deliveryMode, textPreviewLimitBytes, allowMissingScreenshots }), manifest = manifestFor(payload);
+    const mode = deliveryMode === 'auto' ? ((result.history?.evidence.length??0)>0 || result.evidenceCatalog.items.some(e => e.metadata?.deliveryRequired || e.metadata?.artifactRole === 'download_original') ? 'bundle' : 'inline') : deliveryMode;
+    const payload = await htmlReportPayload(root, result, { mode, textPreviewLimitBytes, allowMissingScreenshots }), manifest = manifestFor(payload);
     const contents = [json(result), markdown(result, payload), htmlReport(payload), json(manifest)];
     const filenames = ['report.json', 'report.md', 'report.html', 'report-delivery.json'].map(name => path.join(target, name));
     const attachmentDir = path.join(target, 'attachments');
@@ -177,9 +190,9 @@ export async function report(runDir: unknown, { outputDir = runDir, contextFile,
     try {
       if (manifest.attachments.length) { await fs.mkdir(attachmentDir); const stat = await fs.lstat(attachmentDir); createdDir = { dev: stat.dev, ino: stat.ino }; }
       for (const attachment of manifest.attachments) {
-        const item = result.evidenceCatalog.items.find(item => item.id === attachment.evidenceIds[0]);
-        if (!item) fail('Missing report attachment source.');
-        const bytes = await fs.readFile(await evidenceFile(root, item.path));
+        const source = reportEvidence(result).find(e => e.key === attachment.evidenceIds[0]);
+        if (!source) fail('Missing report attachment source.');
+        const bytes = await fs.readFile(await evidenceFile(source.runDir??root, source.item.path));
         if (hash(bytes) !== attachment.sha256 || bytes.length !== attachment.bytes) fail('Evidence changed during bundle generation.');
         const filename = path.join(target, ...attachment.path.split('/')); created.push({ filename, identity: await writeBinaryNew(filename, bytes) });
       }

@@ -22,7 +22,7 @@ async function safe(filename: string) {
 }
 await safe(target); await fs.mkdir(target, { recursive: true });
 await fs.writeFile(await safe(path.join(root, '.build/node/src/scripts/development-context.json')), JSON.stringify({ contextVersion: 1, sourceRoot: root, runtimeRoot: target }) + '\n');
-const entries = runtimeFiles.map(name => ({ source: name.endsWith('.mjs') ? '.build/node/src/' + name : name === 'report-ui/main.js' ? '.build/browser/report-ui/main.js' : name, destination: name }));
+const entries = runtimeFiles.map(name => ({ source: name.endsWith('.mjs') || name.startsWith('vendor/') ? '.build/node/src/' + name : name === 'report-ui/main.js' || name === 'review-ui/main.js' ? '.build/browser/' + name : name, destination: name }));
 entries.push({ source: 'skills/ai-autonomous-testing-ego-lite/SKILL.md', destination: 'SKILL.md' });
 entries.push({ source: 'skills/ai-autonomous-testing-ego-lite/agents/openai.yaml', destination: 'agents/openai.yaml' });
 entries.push(...referenceNames.map(name => ({ source: 'skills/ai-autonomous-testing-ego-lite/references/' + name + '.md', destination: 'references/' + name + '.md' })));
@@ -32,7 +32,7 @@ for (const entry of entries) {
   await fs.mkdir(path.dirname(destination), { recursive: true });
   await fs.writeFile(destination, await fs.readFile(source));
 }
-const { scripts: _scripts, devDependencies: _dependencies, ...runtimePackage } = pkg as Record<string, unknown>;
+const { scripts: _scripts, devDependencies: _dependencies, dependencies: _bundledDependencies, ...runtimePackage } = pkg as Record<string, unknown>;
 await fs.writeFile(await safe(path.join(target, 'package.json')), JSON.stringify(runtimePackage, null, 2) + '\n');
 const files: Record<string, { bytes: number; sha256: string }> = {};
 for (const name of [...entries.map(entry => entry.destination), 'package.json'].sort((a, b) => a.localeCompare(b, 'en'))) {

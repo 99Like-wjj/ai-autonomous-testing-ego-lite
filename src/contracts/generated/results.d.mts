@@ -1,5 +1,21 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
+export type OriginalProblemReference = {
+  [k: string]: unknown;
+} & {
+  run: {
+    runDir: string;
+    runId: string;
+    baselineSha256: string;
+    resultsRevision: number;
+    resultsSha256: string;
+  };
+  caseId: string;
+  findingId?: string;
+  goalId?: string;
+  operationId?: string;
+  phenomenonId?: string;
+};
 export type ContextFact = {
   state: 'known' | 'unknown' | 'not_applicable';
   summary: string;
@@ -39,8 +55,8 @@ export type ActionEvent = {
   retry?: ActionRetry;
 };
 
-export interface EgoLiteRecordedResultsV8 {
-  schemaVersion: 8;
+export interface EgoLiteRecordedResultsV9 {
+  schemaVersion: 9;
   revision: number;
   entries: ResultEntry[];
 }
@@ -102,6 +118,13 @@ export interface Assessment {
   revisionReason?: string;
   previousOperationId?: string;
   reproduction?: ReproductionPreparation;
+  problemChecks?: {
+    source: OriginalProblemReference;
+    state: 'reproduced' | 'not_observed' | 'unclear' | 'not_checked';
+    rationale: string;
+    observationIds: string[];
+    gaps: string[];
+  }[];
 }
 export interface Diagnosis {
   state: 'unknown' | 'hypothesis' | 'confirmed';

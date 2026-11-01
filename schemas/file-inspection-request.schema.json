@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "file-inspection-request.schema.json",
+  "title": "File inspection request v9",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 9
+    },
+    "file": {
+      "type": "string",
+      "minLength": 1
+    },
+    "format": {
+      "enum": [
+        "auto",
+        "bytes",
+        "text",
+        "json",
+        "csv",
+        "xlsx"
+      ]
+    },
+    "maxBytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxOutputBytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxCells": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rowStart": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rowLimit": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sheet": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "jsonPath": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "delimiter": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1
+    },
+    "compareFile": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "file"
+  ],
+  "additionalProperties": false
+}

@@ -14,10 +14,12 @@ export type EvidenceMetadata = {
   omissionReason?: string;
   width?: number;
   height?: number;
+  artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
+  deliveryRequired?: boolean;
 };
 
-export interface EvidenceRegistrationRequestV8 {
-  schemaVersion: 8;
+export interface EvidenceRegistrationRequestV9 {
+  schemaVersion: 9;
   operationId: string;
   expectedRevision: number;
   caseId: string;

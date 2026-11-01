@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 9,
+  "expectedVersion": 0,
+  "previousSha256": null,
+  "project": "Synthetic export example",
+  "pointPrefix": "SAMPLE",
+  "reason": "Synthetic first case definition; replace before real use.",
+  "cases": [
+    {
+      "id": "export",
+      "title": "Authorized synthetic export",
+      "criticalConditions": [
+        {
+          "id": "authorized",
+          "text": "Use only an authorized synthetic environment and object."
+        }
+      ],
+      "requiredPath": "Use the application export control and retain its real downloaded artifact.",
+      "stepOrder": "strict",
+      "steps": [
+        {
+          "id": "request",
+          "action": "Use the authorized application export control once.",
+          "dependsOn": []
+        },
+        {
+          "id": "save",
+          "action": "Observe the download and save its actual bytes.",
+          "dependsOn": [
+            "request"
+          ]
+        },
+        {
+          "id": "inspect",
+          "action": "Read the exported values and compare them with the current authorized inputs.",
+          "dependsOn": [
+            "save"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "id": "expectedId",
+          "type": "string",
+          "purpose": "Exact synthetic exported identifier",
+          "constraints": [
+            "Preserve leading zeros; do not relax the business criterion."
+          ]
+        }
+      ],
+      "goals": [
+        {
+          "id": "completion",
+          "pointId": null,
+          "title": "Download completion",
+          "basis": {
+            "kind": "explicit",
+            "source": "Synthetic requirement",
+            "text": "The application export produces an actual readable downloaded artifact.",
+            "sourceRefIds": [
+              "synthetic-requirement"
+            ]
+          },
+          "expected": "Actual download completion and the preserved file can be checked.",
+          "requiredRefs": [
+            "condition:authorized",
+            "requiredPath",
+            "step:save"
+          ],
+          "clarificationQuestions": [],
+          "planState": "prepared",
+          "preparationGaps": [],
+          "sourceAlias": null
+        },
+        {
+          "id": "content",
+          "pointId": null,
+          "title": "Exported data integrity",
+          "basis": {
+            "kind": "explicit",
+            "source": "Synthetic requirement",
+            "text": "The export preserves the exact current input identifier and values.",
+            "sourceRefIds": [
+              "synthetic-requirement"
+            ]
+          },
+          "expected": "The exported identifier equals expectedId, including leading zeros; required values and records match.",
+          "requiredRefs": [
+            "condition:authorized",
+            "requiredPath",
+            "step:inspect"
+          ],
+          "clarificationQuestions": [],
+          "planState": "prepared",
+          "preparationGaps": [],
+          "sourceAlias": null
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "synthetic-requirement",
+      "locator": "Explicitly synthetic example; replace with an actual requirement.",
+      "file": null,
+      "sha256": null,
+      "excerpt": "An authorized synthetic export preserves exact identifiers and values.",
+      "limitations": [
+        "Synthetic specification, not any deployed application requirement."
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "id": "export-values",
+      "sourceRefId": "synthetic-requirement",
+      "statement": "An authorized synthetic export preserves exact identifiers and values.",
+      "state": "mapped",
+      "pointIds": [
+        {
+          "caseId": "export",
+          "goalId": "completion"
+        },
+        {
+          "caseId": "export",
+          "goalId": "content"
+        }
+      ],
+      "reason": "Two independent targets cover completion and content."
+    }
+  ],
+  "retiredPoints": [],
+  "changes": []
+}

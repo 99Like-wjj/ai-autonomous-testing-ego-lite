@@ -1,21 +1,21 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.7",
+  "version": "0.1.8-rc.1",
   "egoLiteTest": {
-    "toolRevision": "report-step-evidence-1",
+    "toolRevision": "case-review-native-export-1",
     "formatVersions": {
-      "cases": 8,
-      "manifest": 8,
-      "results": 8,
-      "evidence": 8,
-      "report": 8,
-      "execution": 8,
-      "configuration": 8,
-      "workerPacket": 8,
-      "executionRead": 8
+      "cases": 9,
+      "manifest": 9,
+      "results": 9,
+      "evidence": 9,
+      "report": 9,
+      "execution": 9,
+      "configuration": 9,
+      "workerPacket": 9,
+      "executionRead": 9
     },
     "networkFormatVersion": 1,
-    "regressionVersion": 1
+    "regressionVersion": 2
   },
   "description": "AI autonomous Web test automation with Ego Lite: evidence-driven planning, execution and offline HTML reports.",
   "private": true,
@@ -29,14 +29,19 @@
     "contracts:write": "npm run build:bootstrap && node .build/bootstrap/tools/generate-contracts.mjs --write",
     "check:contracts": "npm run build:bootstrap && node .build/bootstrap/tools/generate-contracts.mjs --check",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.browser.json",
-    "build": "npm run check:contracts && tsc -p tsconfig.node.json && tsc -p tsconfig.browser.json && node .build/node/tools/stage-runtime.mjs --source-root .",
+    "build": "npm run check:contracts && node .build/bootstrap/tools/clean-build.mjs && tsc -p tsconfig.node.json && tsc -p tsconfig.browser.json && node .build/node/tools/bundle-file-readers.mjs && node .build/node/tools/bundle-review-ui.mjs && node .build/node/tools/stage-runtime.mjs --source-root .",
     "test": "npm run build && node --test .build/node/tests/*.test.mjs",
     "check:public": "npm run build:bootstrap && node .build/bootstrap/tools/public-check.mjs --root . --development",
     "build:skill": "npm run build && node .build/node/tools/build-skill.mjs"
   },
   "devDependencies": {
     "@types/node": "22.20.5",
+    "esbuild": "0.28.2",
     "json-schema-to-typescript": "16.0.0",
     "typescript": "6.0.3"
+  },
+  "dependencies": {
+    "csv-parse": "7.0.3",
+    "read-excel-file": "9.3.14"
   }
 }

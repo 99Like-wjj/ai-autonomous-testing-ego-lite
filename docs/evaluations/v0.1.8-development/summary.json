@@ -1,0 +1,132 @@
+{
+  "status": "development_self_tested_not_business_acceptance",
+  "date": "2026-11-01",
+  "version": "0.1.8-rc.1",
+  "toolRevision": "lean-cases-download-history-1",
+  "formats": {
+    "main": 9,
+    "regression": 2,
+    "network": 1
+  },
+  "storage": "whole case versions, adjacent actual reviews, separate runs",
+  "engineering": {
+    "tests": 203,
+    "passed": 202,
+    "failed": 0,
+    "skipped": 1,
+    "skipReason": "Windows symlink privilege unavailable"
+  },
+  "native": {
+    "ego": "0.6.2.5",
+    "guide": "2.2.0",
+    "node": "24.22.1",
+    "normalPage": true,
+    "blob": true,
+    "delayed": true,
+    "stableChild": true,
+    "temporaryChild": {
+      "native": "not_observed / unknown",
+      "explicitNewDownloadId": "37",
+      "retainedBytes": 49,
+      "repeatedAction": false
+    },
+    "sameUrlSameNameSameSize": {
+      "bytesEach": 22,
+      "actualIds": [
+        "00001",
+        "00002"
+      ],
+      "separateArtifacts": true
+    },
+    "emptyBytes": 0,
+    "slow": {
+      "initialCompletion": "unknown",
+      "initialManagerState": 0,
+      "explicitLateRetainedBytes": 4096,
+      "replayed": false
+    },
+    "interrupted": {
+      "native": "download failed: canceled",
+      "managerState": 5,
+      "newDownloadId": "40",
+      "completedOriginalRetained": false
+    }
+  },
+  "fileReaders": {
+    "testedNode": [
+      "24.19.0",
+      "22.20.0"
+    ],
+    "formats": [
+      "bytes",
+      "text",
+      "json",
+      "csv",
+      "xlsx"
+    ],
+    "unicodeChunkBoundaryTest": true,
+    "sourceNumericTokens": true,
+    "standaloneNode22": {
+      "noRuntimeNodeModules": true,
+      "unrelatedCwd": true,
+      "csv": true,
+      "json": true,
+      "xlsx": true,
+      "temporaryValidationRuntimeRemoved": true
+    }
+  },
+  "review": {
+    "actualHtmlOpened": true,
+    "filteredAndSelectedPoints": 1,
+    "totalPoints": 22,
+    "offlineApprovedFeedbackRejected": true,
+    "actualTeamApprovalClaimed": false
+  },
+  "controlledRuns": {
+    "first": {
+      "cases": 11,
+      "goals": 22,
+      "verified": 19,
+      "violation": 2,
+      "inconclusive": 0,
+      "not_tested": 1,
+      "unassessed": 0
+    },
+    "rerun": {
+      "caseVersion": 1,
+      "selectedPointIds": [
+        "DEV018-TP-000018"
+      ],
+      "necessarySteps": [
+        "download",
+        "inspect"
+      ],
+      "verified": 1,
+      "otherGoalsInherited": false,
+      "originalProblem": "not_observed",
+      "comparability": "limited, separate controlled origin; no real repair attribution"
+    }
+  },
+  "reports": {
+    "firstHistoryPanels": 0,
+    "rerunHistoryPanels": 1,
+    "historicalImageOriginalBytesMatch": true,
+    "historicalImageSha256": "50cdc4b9cab0da2c7b615f850644ed4824c5e07eeb1ca9da08914f28903a2737",
+    "historicalImageFilter": "none",
+    "bundleIntegrity": true
+  },
+  "limits": [
+    "Original business page requiring manual native confirmation was not reproduced.",
+    "No real business acceptance or real multi-host concurrent validation.",
+    "Internal downloads manager adapter is version-specific.",
+    "No macro/formula recalculation or complete XLSX empty/cache disambiguation.",
+    "No model-upgrade/general reliability claim; human effect review remains separate."
+  ],
+  "delivery": {
+    "installedSkillReplaced": false,
+    "candidatePackageDelivered": false,
+    "pushed": false,
+    "merged": false,
+    "released": false
+  }
+}

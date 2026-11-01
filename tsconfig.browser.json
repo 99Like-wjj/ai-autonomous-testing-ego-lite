@@ -1,8 +1,19 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext", "moduleResolution": "Bundler", "moduleDetection": "legacy", "rootDir": "src", "outDir": ".build/browser",
-    "lib": ["ES2022", "DOM"], "types": []
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "legacy",
+    "rootDir": "src",
+    "outDir": ".build/browser",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": []
   },
-  "include": ["src/report-ui/main.ts"]
+  "include": [
+    "src/report-ui/main.ts",
+    "src/review-ui/main.ts"
+  ]
 }
