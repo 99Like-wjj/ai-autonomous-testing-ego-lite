@@ -34,12 +34,17 @@ export async function checkPublication(root: string, { development = false, inst
       if (entry.isDirectory()) { await walk(name); continue; }
       if (!entry.isFile()) { errors.push(`${name}: not a regular file`); continue; }
       const extension = path.extname(name).toLowerCase();
+      // Reviewed presentation screenshots are source documentation, never runtime assets.
+      const showcaseJpeg = !installed && /^docs\/images\/real-example\/[a-z0-9][a-z0-9-]*\.jpg$/.test(name);
+      if (name.startsWith('docs/images/real-example/') && !showcaseJpeg) { errors.push(`${name}: unsupported publication file type`); continue; }
       const bundledLicense = installed ? name === 'vendor/THIRD-PARTY-LICENSES.txt' : name === 'docs/third-party-licenses/worker-f-0.1.21.txt';
-      if (!rootFiles.has(name) && !textExtensions.has(extension) && !bundledLicense && name !== 'tests/fixtures/legacy-report-frame.html' && !(name.startsWith('docs/images/') && extension === '.png')) { errors.push(`${name}: unsupported publication file type`); continue; }
+      if (!rootFiles.has(name) && !textExtensions.has(extension) && !bundledLicense && name !== 'tests/fixtures/legacy-report-frame.html' && !(name.startsWith('docs/images/') && extension === '.png') && !showcaseJpeg) { errors.push(`${name}: unsupported publication file type`); continue; }
       const bytes = await fs.readFile(path.join(root, name));
       if (bytes.length > 10 * 1024 * 1024) errors.push(`${name}: exceeds per-file review size`);
       if (extension === '.png') {
         if (bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') errors.push(`${name}: invalid PNG signature`);
+      } else if (showcaseJpeg) {
+        if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff || bytes.subarray(-2).toString('hex') !== 'ffd9') errors.push(`${name}: invalid JPEG signature`);
       } else {
         const text = bytes.toString('utf8');
         if (text.includes('\0') || !Buffer.from(text, 'utf8').equals(bytes)) errors.push(`${name}: invalid text encoding`);

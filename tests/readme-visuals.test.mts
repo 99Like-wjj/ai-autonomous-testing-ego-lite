@@ -7,7 +7,7 @@ import { SOURCE_ROOT } from '../src/scripts/ego.mjs';
 test('both READMEs retain the documented visual sections and historical navigation', async () => {
   for (const [file, suffix, history] of [['README.md', '.zh-CN', 'docs/version-history.md'], ['README.en.md', '', 'docs/version-history.en.md']] as const) {
     const text = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
-    for (const name of ['design-philosophy', 'hero', 'readme-version-history', 'workflow', 'result-specimen', 'parallel']) {
+    for (const name of ['design-philosophy', 'hero', 'readme-version-history', 'workflow', 'parallel']) {
       const pattern = new RegExp('docs/images/' + name + suffix.replaceAll('.', '\\.') + '\\.(?:png|svg)');
       const match = text.match(pattern);
       assert.ok(match, `${file}: missing ${name} diagram reference`);
@@ -117,4 +117,26 @@ test('approved philosophy precedes version details and architecture visuals rema
     assert.match(diagram, /Authorization|授权边界/);
     assert.match(diagram, /No fixed business decision tree|不把业务测试写成固定决策树/);
   }
+});
+
+const realExamples = ['case-review-real-overview', 'case-review-real-example', 'real-report-overview', 'real-report-violation', 'real-report-verified', 'real-report-not-tested'];
+test('README shows reviewed real excerpts rather than a simulated report diagram', async () => {
+  for (const file of ['README.md', 'README.en.md']) {
+    const page = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
+    assert.doesNotMatch(page, /!\[[^\]]*\]\(docs\/images\/result-specimen/);
+    assert.match(page, /35.*117/);
+    assert.match(page, /2.*7/);
+    assert.match(page, /设计样稿|design prototype/);
+    assert.match(page, /不能用它复核原始证据完整性|original evidence completeness can be reverified/);
+    assert.doesNotMatch(page, /netlify\.app/);
+    for (const name of realExamples) {
+      const target = `docs/images/real-example/${name}.jpg`;
+      assert.ok(page.includes(target), `${file}: missing real excerpt ${name}`);
+      const bytes = await fs.readFile(path.join(SOURCE_ROOT, target));
+      assert.equal(bytes.subarray(0, 3).toString('hex'), 'ffd8ff');
+      assert.equal(bytes.subarray(-2).toString('hex'), 'ffd9');
+    }
+  }
+  const files = await fs.readdir(path.join(SOURCE_ROOT, 'docs/images/real-example'));
+  assert.deepEqual(files.sort(), realExamples.map(name => `${name}.jpg`).sort());
 });

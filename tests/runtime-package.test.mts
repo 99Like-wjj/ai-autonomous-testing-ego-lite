@@ -16,6 +16,7 @@ test('distribution contains only current operational documents and no developmen
   assert.deepEqual(docs, ['docs/asset-formats.en.md', 'docs/asset-formats.md', 'docs/case-review.md', 'docs/regression-reuse.md', 'docs/third-party-notices.md']);
   assert.ok(!runtimeFiles.some(name => /^(?:src|tests|tools|node_modules|\.git)\//.test(name)));
   assert.equal(new Set(expected).size, expected.length);
+  assert.ok(!expected.some(name => name.startsWith('docs/images/real-example/') || name.endsWith('.jpg')));
   assert.ok(referenceNames.includes('download-files'));
   assert.ok(referenceNames.includes('report-language-model'));
   await checkRuntimePackage(TOOL_ROOT, expected);

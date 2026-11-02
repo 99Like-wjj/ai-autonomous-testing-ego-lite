@@ -63,7 +63,42 @@ Scheme B retains every goal entrance in a scene and focuses on one goal at a tim
 
 Network observation implements the v3 design through network start/status/query/stop: a dedicated native context records scoped Fetch/XHR, SSE and WebSocket evidence; the AI chooses queries, evidence and business judgments. It never replays business requests. Network data uses independent networkVersion 1, while current business contracts use v9 and v5 historical runs remain untouched. See [observation guidance (Chinese)](skills/ai-autonomous-testing-ego-lite/references/network-observation.md).
 
-![Illustrative evidence presentation, not a real test report.](docs/images/result-specimen.png)
+### Real case material and test report (redacted excerpts)
+
+These screenshots come from user-provided case material and an actual test report, preserving their original export layouts rather than redrawing simulated results. The case-review source is labeled “方案 B / 设计样稿” (Plan B / design prototype); it demonstrates that document’s review layout, not the default interface of a released 0.1.8 build. Screenshots retain the source language.
+
+The excerpts select **2 scenarios and 7 goals** from an original run of **35 scenarios and 117 goals**: 3 verified, 1 violation, 1 inconclusive and 2 not tested. Original verdicts are preserved. These counts describe only the displayed subset, not overall effectiveness or a full-run pass rate.
+
+Identities, URLs, paths and related identifiers are redacted. Original screenshots, attachments and conversations are not published. These are captures of the **redacted report pages**, not evidence from which original evidence completeness can be reverified. “Evidence not published” must not be interpreted as missing evidence in the original execution. The repository contains reviewed page images only, not original or redacted HTML/JSON or the private preview address.
+
+**Case-review layout: goals, steps, expectations and review areas.**
+
+![Redacted real case material in its original Plan B design-prototype three-column review layout.](docs/images/real-example/case-review-real-example.jpg)
+
+**Report overview: sample scope and four outcome states.**
+
+![Redacted real report overview: 2 scenarios, 7 goals, 3 verified, 1 violation, 1 inconclusive and 2 not tested.](docs/images/real-example/real-report-overview.jpg)
+
+**Violation: original expectation, observation and executed steps.**
+
+![Redacted real violation report preserving the original expectation comparison, verdict and actual steps; original evidence is not public.](docs/images/real-example/real-report-violation.jpg)
+
+<details>
+<summary>Show the case overview, verified and not-tested examples</summary>
+
+**Case overview and navigation.**
+
+![Redacted real case overview showing selected scenarios and goals only.](docs/images/real-example/case-review-real-overview.jpg)
+
+**Verified goal.**
+
+![Redacted report page for a goal recorded as verified, retaining its original verdict.](docs/images/real-example/real-report-verified.jpg)
+
+**Not-tested goal and reason.**
+
+![Redacted report page for a not-tested goal; unexecuted goals are not counted as passed.](docs/images/real-example/real-report-not-tested.jpg)
+
+</details>
 
 ## Quick start on Windows
 

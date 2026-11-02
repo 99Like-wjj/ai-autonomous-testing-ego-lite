@@ -62,7 +62,42 @@ README 展示当前版本与前三个历史版本：0.1.8-rc.2 为开发候选�
 
 接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，当前结果契约为 v9，原 v5 运行历史保持原样。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
 
-![方案 B 布局示意：问题和原预期置顶，实际步骤与所选证据并排，范围及历史折叠；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
+### 真实用例与测试报告（脱敏节选）
+
+以下截图来自用户提供的实际用例资料和测试报告，保留原始导出格式；不是重绘的模拟结果。用例审阅原件带有“方案 B／设计样稿”标签，仅用于展示这份资料的审阅格式，不代表 0.1.8 正式版的默认界面。
+
+从原整轮 **35 个场景、117 个目标**中精选 **2 个场景、7 个目标**：3 个已验证、1 个发现违反、1 个无法判断、2 个未测试。节选保留原结论，统计只代表这些展示样本，不代表整体效果或通过率。
+
+身份、网址、路径及关联标识已脱敏；原始截图、附件和对话内容未公开。这里展示的是**脱敏后的报告页面**，不能用它复核原始证据完整性，也不能将“未公开证据”理解为原执行缺少证据。仓库只保存经检查的页面截图，不包含原始或脱敏 HTML、JSON 及私有预览地址。
+
+**用例审阅格式：目标、步骤、预期与评审区域。**
+
+![真实用例资料脱敏节选，保留方案 B 设计样稿的三栏审阅格式。](docs/images/real-example/case-review-real-example.jpg)
+
+**报告总览：样本范围与四种结果状态。**
+
+![真实测试报告脱敏节选总览：2 个场景、7 个目标，3 个已验证、1 个违反、1 个无法判断、2 个未测试。](docs/images/real-example/real-report-overview.jpg)
+
+**发现违反：查看原预期、实际观察和执行步骤。**
+
+![真实违反结果的脱敏页面，保留原预期对照、结论和实际步骤，原始证据不公开。](docs/images/real-example/real-report-violation.jpg)
+
+<details>
+<summary>展开查看用例总览、已验证和未测试示例</summary>
+
+**用例总览与导航。**
+
+![真实用例资料脱敏总览，仅展示精选场景和目标。](docs/images/real-example/case-review-real-overview.jpg)
+
+**已验证目标。**
+
+![原记录为已验证的目标，其脱敏报告页面保持原有判断。](docs/images/real-example/real-report-verified.jpg)
+
+**未测试目标及原因。**
+
+![真实未测试目标的脱敏报告页面，未执行项不计为通过。](docs/images/real-example/real-report-not-tested.jpg)
+
+</details>
 
 ## Windows 快速开始
 
