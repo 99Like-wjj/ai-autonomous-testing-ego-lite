@@ -1,10 +1,14 @@
 # Validation record and coverage limits
 
-## v0.1.8 current development candidate (2026-11-02, not released)
+## v0.1.8 cloud release validation (2026-11-02)
 
-Current identity is 0.1.8-rc.2 / report-language-model-1, with contracts v9, regressionVersion 2 and networkVersion 1. The latest [local validation record](v0.1.8-report-language-model-validation.md) reports 227 engineering tests: 226 passed, none failed and one skipped because Windows symlink privileges were unavailable. Both synthetic report types were checked in actual Ego pages in Chinese, English and French at widths of 390/768/1024/1440 pixels. These are scoped local results, not a cloud rerun or real business UAT.
+Release identity is `0.1.8 / report-language-model-1`, with contracts v9, regressionVersion 2 and networkVersion 1. Linux / Node.js 24.22.1: 241 tests, 240 passed, none failed, one Windows-only checkpoint recovery skipped. Type/build/public checks and the lean ZIP verification passed. See [release validation (Chinese)](v0.1.8-release-validation.md) for engineering and lean-package checks. Builds/publication do not update the user installation, and real business UAT was not rerun.
 
-Earlier [development validation](v0.1.8-development-validation.md), [case review/save validation](v0.1.8-case-review.md) and [conversation review](v0.1.8-conversation-review.md) retain their individual scope. No formal release or automatic installed-Skill update is implied. Historical reports stay unchanged. All sections below are historical: their old commands, formats and then-planned capabilities are not current usage instructions.
+## v0.1.8 earlier local candidate validation (2026-11-02)
+
+That validation used 0.1.8-rc.2 / report-language-model-1, with contracts v9, regressionVersion 2 and networkVersion 1. The latest [local validation record](v0.1.8-report-language-model-validation.md) reports 227 engineering tests: 226 passed, none failed and one skipped because Windows symlink privileges were unavailable. Both synthetic report types were checked in actual Ego pages in Chinese, English and French at widths of 390/768/1024/1440 pixels. These are scoped local results, not a cloud rerun or real business UAT.
+
+Earlier [development validation](v0.1.8-development-validation.md), [case review/save validation](v0.1.8-case-review.md) and [conversation review](v0.1.8-conversation-review.md) retain their individual scope. That earlier validation did not publish a formal release or update an installed Skill. Historical reports stay unchanged. All sections below are historical: their old commands, formats and then-planned capabilities are not current usage instructions.
 
 
 ## v0.1.7 release finalization (2026-10-31)

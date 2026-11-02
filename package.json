@@ -1,6 +1,6 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.8-rc.2",
+  "version": "0.1.8",
   "egoLiteTest": {
     "toolRevision": "report-language-model-1",
     "formatVersions": {

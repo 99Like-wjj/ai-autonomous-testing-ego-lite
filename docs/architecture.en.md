@@ -1,4 +1,4 @@
-# Architecture — v9 / 0.1.8-rc.2
+# Architecture — v9 / 0.1.8
 
 ![Architecture responsibilities: AI, Ego and deterministic tools.](images/architecture.png)
 

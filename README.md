@@ -20,7 +20,7 @@
 
 ## 当前版本
 
-当前源码为 **0.1.8-rc.2 / report-language-model-1**，尚未正式发布。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。最近正式版本仍为 [0.1.7](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。当前修订增加[报告语言与两阶段模型来源](docs/v0.1.8-report-language-model-design.md)、长编号布局及首次执行范围文案。
+当前版本为 **0.1.8 / report-language-model-1**。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。正式发布、安装包与校验值见 [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。当前修订增加[报告语言与两阶段模型来源](docs/v0.1.8-report-language-model-design.md)、长编号布局及首次执行范围文案。
 
 新增通用对话证据、每步输入/回复摘要和方案2完整对话侧栏；四层质量改进覆盖预期/时机核对、原文取证、可读描述和来源校验，详见[本次设计及验证](docs/v0.1.8-conversation-review.md)。主契约仍为v9，独立对话格式为conversationVersion 1；历史运行与报告不改写。
 
@@ -28,9 +28,9 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 
 ## 版本演变
 
-![最新在前：v0.1.8 开发候选，其后为 v0.1.7、v0.1.6、v0.1.5 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
+![最新在前：v0.1.8 正式版本，其后为 v0.1.7、v0.1.6、v0.1.5 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 展示当前版本与前三个历史版本：0.1.8-rc.2 为开发候选，0.1.7–0.1.5 为正式版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。0.1.8 已进入获准开发与自测，尚未发布。
+README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本，0.1.7–0.1.5 为前三个正式版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。本次工程与安装包验证范围见[发布验证](docs/v0.1.8-release-validation.md)。
 
 ## 0.1.8 做了什么
 
@@ -105,9 +105,9 @@ README 展示当前版本与前三个历史版本：0.1.8-rc.2 为开发候选�
 
 ## Windows 快速开始
 
-本节源码示例针对当前 0.1.8-rc.2 开发候选，使用本仓库构建的 .build/runtime；不会自动替换用户安装。下方 0.1.7 下载链接仅用于上一正式版，不能与本节 v9 命令混用。正式安装包按其实际版本和 revision 核对。
+本节源码示例针对 0.1.8，使用本仓库构建的 .build/runtime；不会自动替换用户安装。安装与升级请先阅读[安装说明](INSTALL.zh-CN.md)，并核对版本、revision 和实际加载目录。
 
-完整安装包、SHA-256 校验值与发布说明见 [v0.1.7 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
+完整安装包、SHA-256 校验值与发布说明见 [v0.1.8 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
 
 先按 [Ego 官方 Windows 快速开始](https://lite.ego.app/document/en/docs/windows/quick-start)准备 Ego 与官方 ego-browser Skill。本仓库不安装或替代官方浏览器。仅设计用例无需浏览器连接。
 
@@ -117,7 +117,7 @@ README 展示当前版本与前三个历史版本：0.1.8-rc.2 为开发候选�
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8-rc.2 --expect-revision report-language-model-1
+node $Tool tool-info --expect-version 0.1.8 --expect-revision report-language-model-1
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：

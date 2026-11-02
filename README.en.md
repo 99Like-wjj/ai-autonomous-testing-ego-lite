@@ -20,7 +20,7 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ## Current release
 
-Current source is **0.1.8-rc.2 / report-language-model-1**, not a formal release. It implements the approved lean case/review/run design, stable-point reruns, official Ego download evidence/file inspection and historical comparisons. The case reader now provides a scene/case overview, three-column review workbench, shared report themes and native feedback files that avoid browser download-zone metadata. Contracts are v9, regressionVersion 2 and networkVersion 1. The last stable release remains [0.1.7](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7). See [development validation](docs/v0.1.8-development-validation.md) and [review save details](docs/v0.1.8-case-review.md); builds do not update installed Skills. This revision adds [report language and two-stage model provenance](docs/v0.1.8-report-language-model-design.md), long scene IDs and baseline-aware scope labels.
+Current release is **0.1.8 / report-language-model-1**. It implements the approved lean case/review/run design, stable-point reruns, official Ego download evidence/file inspection and historical comparisons. The case reader now provides a scene/case overview, three-column review workbench, shared report themes and native feedback files that avoid browser download-zone metadata. Contracts are v9, regressionVersion 2 and networkVersion 1. Release notes, the installable package and checksums are available in [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8). See [development validation](docs/v0.1.8-development-validation.md) and [review save details](docs/v0.1.8-case-review.md); builds do not update installed Skills. This revision adds [report language and two-stage model provenance](docs/v0.1.8-report-language-model-design.md), long scene IDs and baseline-aware scope labels.
 
 Adds provider-neutral conversation evidence, step input/reply summaries and the selected conversation drawer/fullscreen layout. Four quality layers address expected/observed phases, retained originals, readable findings and source validation; see the [design and validation](docs/v0.1.8-conversation-review.md). Main contracts remain v9; conversations use conversationVersion 1. Historical runs and reports are preserved.
 
@@ -29,9 +29,9 @@ Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidan
 
 ## Version evolution
 
-![Newest first: v0.1.8 development candidate, then v0.1.7, v0.1.6 and v0.1.5 released. Capability illustration only.](docs/images/readme-version-history.png)
+![Newest first: v0.1.8 released, then v0.1.7, v0.1.6 and v0.1.5 released. Capability illustration only.](docs/images/readme-version-history.png)
 
-README shows the current version plus three previous versions. 0.1.8-rc.2 is a development candidate, followed by stable 0.1.7–0.1.5. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. 0.1.8 is in authorized development/self-test, not released.
+README shows the current version plus three previous versions. 0.1.8 is the latest stable version, followed by stable 0.1.7–0.1.5. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. See [release validation](docs/v0.1.8-release-validation.md) for the engineering and package verification scope.
 
 ## What changed in 0.1.8
 
@@ -106,9 +106,9 @@ Identities, URLs, paths and related identifiers are redacted. Original full-reso
 
 ## Quick start on Windows
 
-This source example targets the current 0.1.8-rc.2 development candidate in .build/runtime, without replacing the user installation. The 0.1.7 download below is the previous stable release; do not mix it with these v9 commands. Verify a released installation against its actual version and revision.
+This source example targets 0.1.8 in .build/runtime without replacing the user installation. Follow the [installation and upgrade guide (Chinese)](INSTALL.zh-CN.md), verifying the version, revision and actual loaded directory.
 
-Download the full installation package, SHA-256 checksums and release notes from [v0.1.7 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7). GitHub-generated Source code archives are not full installation packages.
+Download the full installation package, SHA-256 checksums and release notes from [v0.1.8 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8). GitHub-generated Source code archives are not full installation packages.
 
 Prepare Ego and the official ego-browser Skill using the [official guide](https://lite.ego.app/document/en/docs/windows/quick-start). This project does not install or replace Ego. Case design alone requires no browser connection.
 
@@ -118,7 +118,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8-rc.2 --expect-revision report-language-model-1
+node $Tool tool-info --expect-version 0.1.8 --expect-revision report-language-model-1
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))

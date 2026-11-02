@@ -1,5 +1,5 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.8-rc.2';
+export const TOOL_VERSION = '0.1.8';
 export const TOOL_REVISION = 'report-language-model-1';
 export const FORMAT_VERSIONS = { cases: 9, manifest: 9, results: 9, evidence: 9, report: 9, execution: 9, configuration: 9, workerPacket: 9, executionRead: 9 } as const;
 export const runtimeFiles = [

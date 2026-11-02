@@ -4,15 +4,15 @@
 
 The AI interprets goals and judges business outcomes, Ego operates the browser, and local tools retain evidence and deliver reports.
 
-![Newest first: v0.1.8 candidate (not released), then v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
+![Newest first: v0.1.8 released, then v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
 
-## v0.1.8 · RC.2 development candidate (not released)
+## v0.1.8 · Stable release
 
 Current revision report-language-model-1 adds user-language reports, stage-specific model/reasoning provenance, wrapping long IDs and baseline-aware scope labels. Original evidence is not translated, and model metadata does not establish business correctness. See [local validation](v0.1.8-report-language-model-validation.md).
 
-This candidate adds provider-neutral conversation evidence, step input/reply summaries, the selected drawer/fullscreen reader and four quality layers. See the [conversation design and validation](v0.1.8-conversation-review.md). Earlier candidate validation remains historical; optional v9 fields and conversationVersion 1 do not rewrite existing data.
+This release adds provider-neutral conversation evidence, step input/reply summaries, the selected drawer/fullscreen reader and four quality layers. See the [conversation design and validation](v0.1.8-conversation-review.md). Earlier candidate validation remains historical; optional v9 fields and conversationVersion 1 do not rewrite existing data.
 
-Implements the approved lean case/review/run design, stable-point scope, download originals/file inspection and historical comparisons. Contracts v9, regressionVersion 2, networkVersion 1. Historical data stays unchanged without automatic migration/fallback. See [development validation](v0.1.8-development-validation.md); 0.1.7 remains the last stable release.
+Implements the approved lean case/review/run design, stable-point scope, download originals/file inspection and historical comparisons. Contracts v9, regressionVersion 2, networkVersion 1. Historical data stays unchanged without automatic migration/fallback. See [development validation](v0.1.8-development-validation.md); see [release validation](v0.1.8-release-validation.md).
 
 ## v0.1.7 · Report reading, resource clarification and regression reuse
 

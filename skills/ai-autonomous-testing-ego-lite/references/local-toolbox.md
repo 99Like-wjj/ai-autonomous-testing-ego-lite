@@ -1,6 +1,6 @@
-# 本地确定性工具箱（0.1.8-rc.2）
+# 本地确定性工具箱（0.1.8）
 
-ToolRoot 为实际加载的 Skill 根目录；源码先构建，再使用 .build/runtime。tool-info 核对 0.1.8-rc.2 / report-language-model-1、主契约 v9、regressionVersion 2、networkVersion 1 和 installationIntegrity。本地工具不调用模型，不选择业务路线或自动重试。
+ToolRoot 为实际加载的 Skill 根目录；源码先构建，再使用 .build/runtime。tool-info 核对 0.1.8 / report-language-model-1、主契约 v9、regressionVersion 2、networkVersion 1 和 installationIntegrity。本地工具不调用模型，不选择业务路线或自动重试。
 
 ## 用例与范围
 
