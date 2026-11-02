@@ -196,6 +196,9 @@
     },
     "savedAt": {
       "$ref": "common.schema.json#/$defs/timestamp"
+    },
+    "aiContext": {
+      "$ref": "common.schema.json#/$defs/aiContext"
     }
   },
   "additionalProperties": false

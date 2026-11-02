@@ -7,6 +7,14 @@ export type ReadingConversationSourceBinding = {
   evidenceId?: string;
   sourceLabel?: string;
 };
+export type SourceReference = {
+  id: string;
+  locator: string;
+  file: string | null;
+  sha256: string | null;
+  excerpt: string;
+  limitations: string[];
+};
 export type EvidenceMetadata = {
   mediaType?: string;
   encoding?: string;
@@ -172,14 +180,6 @@ export type EgoLiteExecutionRequestV9 =
       review: PacketReview1;
       rebaseOf?: string;
     };
-export type SourceReference = {
-  id: string;
-  locator: string;
-  file: string | null;
-  sha256: string | null;
-  excerpt: string;
-  limitations: string[];
-};
 export type ParameterBindings = {
   caseId: string;
   parameterId: string;
@@ -287,6 +287,13 @@ export interface EgoLiteGeneratedReportV9 {
   conversationEvidence?: {
     [k: string]: ConversationArtifact;
   };
+  aiContext?: AiContext;
+  presentation?: {
+    language: string;
+    messages: {
+      [k: string]: string;
+    };
+  };
 }
 export interface RetrospectiveReportContextV9NoBusinessExecution {
   schemaVersion: 9;
@@ -361,6 +368,7 @@ export interface RetrospectiveReportContextV9NoBusinessExecution {
   }[];
   supplementalCaseIds: string[];
   conversations?: ReadingConversationDeclaration[];
+  aiContext?: AiContext;
 }
 export interface ActionRef {
   observationId: string;
@@ -387,6 +395,18 @@ export interface ReadingConversationActionBinding {
    * @minItems 1
    */
   messageIds: string[];
+}
+export interface AiContext {
+  /**
+   * @minItems 1
+   */
+  uses: {
+    model: string | null;
+    reasoningEffort: string | null;
+    sourceKind: 'host_metadata' | 'user_statement' | 'unknown';
+    source: SourceReference;
+    scope: string;
+  }[];
 }
 export interface EgoLiteEvidenceCatalogV9 {
   schemaVersion: 9;
@@ -584,6 +604,7 @@ export interface RecordPayload {
   contexts?: ExecutionContext[];
   findings?: Finding[];
   actionEvents?: ActionEvent[];
+  aiContext?: AiContext;
 }
 export interface Assessment {
   goalId: string;

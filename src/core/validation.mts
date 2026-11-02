@@ -1,4 +1,5 @@
 import { parseRunContext, parseContextFact, parseActionEvent, recordEvidenceIds, mapRecordEvidence } from './action-events.mjs';
+import { parseAiContext } from './ai-context.mjs';
 import { parseConversationSourceBindings } from './conversations.mjs';
 export { parseContextFact } from './action-events.mjs';
 /** Parse untrusted JSON before it reaches the transaction layer. */
@@ -84,7 +85,7 @@ export function parseAssessment(value: unknown): Assessment {
     ...(value.reproduction === undefined ? {} : { reproduction: parseReproduction(value.reproduction) }), ...(value.display === undefined ? {} : { display: parseReadingDisplay(value.display) }) };
 }
 export function parsePayload(value: unknown): RecordPayload {
-  assertClosed(value, ['observations', 'assessments', 'contexts', 'findings', 'actionEvents'], 'record payload');
+  assertClosed(value, ['observations', 'assessments', 'contexts', 'findings', 'actionEvents', 'aiContext'], 'record payload');
   const observations = arrayValue(value.observations, 'observations').map(parseObservation), assessments = arrayValue(value.assessments, 'assessments').map(parseAssessment);
   const contexts = value.contexts === undefined ? undefined : arrayValue(value.contexts, 'contexts').map(parseExecutionContext), findings = value.findings === undefined ? undefined : arrayValue(value.findings, 'findings').map(parseFinding);
   const actionEvents = value.actionEvents === undefined ? undefined : arrayValue(value.actionEvents, 'actionEvents').map(parseActionEvent);
@@ -94,7 +95,7 @@ export function parsePayload(value: unknown): RecordPayload {
   if (new Set(assessments.map(item => item.goalId)).size !== assessments.length) fail('Duplicate goal assessment in record.');
   if (contexts && new Set(contexts.map(c => c.id)).size !== contexts.length) fail('Duplicate context ID in record.');
   if (findings && new Set(findings.map(f => f.id)).size !== findings.length) fail('Duplicate finding ID in record.');
-  return { observations, assessments, ...(actionEvents ? { actionEvents } : {}), ...(contexts ? { contexts } : {}), ...(findings ? { findings } : {}) };
+  return { ...(value.aiContext===undefined?{}:{aiContext:parseAiContext(value.aiContext)}), observations, assessments, ...(actionEvents ? { actionEvents } : {}), ...(contexts ? { contexts } : {}), ...(findings ? { findings } : {}) };
 }
 export function parseRecordRequest(value: unknown): RecordRequest {
   assertClosed(value, ['schemaVersion', 'operationId', 'expectedRevision', 'caseId', 'mode', 'record'], 'record request');

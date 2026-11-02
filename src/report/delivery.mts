@@ -1,3 +1,6 @@
+import { reportCaveat } from './ui-text.mjs';
+import { parseAiContext, mergeAiContexts, verifyAiContext } from '../core/ai-context.mjs';
+import { parsePresentation, readPresentation, withPresentation, type Presentation } from './presentation.mjs';
 import fs, { type FileHandle } from 'node:fs/promises';
 import path from 'node:path';
 import type { FileIdentity, HtmlPayload, Report, ReportContext } from '../contracts/model.mjs';
@@ -13,13 +16,14 @@ import { caseGoals } from './execution-view.mjs';
 import { reviewPrompts } from './reviewability.mjs';
 
 export async function validateReportContext(input: unknown, result: Report, runRoot?: string): Promise<ReportContext> {
-  assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'goalNotes', 'readerNotes', 'conversations'], 'report context');
+  assertClosed(input, ['schemaVersion', 'kind', 'summary', 'limitations', 'sources', 'supplementalCaseIds', 'goalNotes', 'readerNotes', 'conversations', 'aiContext'], 'report context');
   if (input.schemaVersion !== 9 || input.kind !== 'retrospective') fail('Invalid retrospective report context.');
   const context: ReportContext = {
     schemaVersion: 9, kind: 'retrospective', summary: textValue(input.summary, 'context summary'), limitations: strings(input.limitations, 'limitations'),
     supplementalCaseIds: strings(input.supplementalCaseIds, 'supplemental case IDs'),
     sources: arrayValue(input.sources, 'sources').map(value => { assertClosed(value, ['label', 'file', 'sha256'], 'report source'); return { label: textValue(value.label, 'source label'), file: textValue(value.file, 'source file'), sha256: sha256Value(value.sha256, 'source hash') }; }),
   };
+  if(input.aiContext!==undefined){context.aiContext=parseAiContext(input.aiContext);await verifyAiContext(context.aiContext);}
   if (!context.limitations.length || !context.sources.length) fail('Invalid retrospective report context.');
   const ids = new Set(result.cases.map(c => c.id)), supplemental = new Set<string>();
   for (const id of context.supplementalCaseIds) {
@@ -136,7 +140,8 @@ async function writeBinaryNew(filename: string, bytes: Buffer): Promise<FileIden
     throw error;
   }
 }
-export async function verifyReportFiles(root: string, reportDir: string, result: Report, suppliedPayload?: HtmlPayload) {
+export async function verifyReportFiles(root: string, reportDir: string, result: Report, suppliedPayload?: HtmlPayload) { return withPresentation(result.presentation,()=>verifyReportFilesBody(root,reportDir,result,suppliedPayload)); }
+async function verifyReportFilesBody(root: string, reportDir: string, result: Report, suppliedPayload?: HtmlPayload) {
   const payload = suppliedPayload ?? await htmlReportPayload(root, result, await readDeliveryOptions(reportDir));
   const manifest = manifestFor(payload), expected = [json(result), markdown(result, payload), htmlReport(payload), json(manifest)];
   const names = ['report.json', 'report.md', 'report.html', 'report-delivery.json'];
@@ -158,11 +163,19 @@ export async function verifyReportFiles(root: string, reportDir: string, result:
   return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v9', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete, reviewPrompts:reviewPrompts(result) };
 }
 export async function verifyReport(runDir: unknown, reportDir: unknown = runDir) {
+  const saved=await readJSON(path.join(await directory(reportDir),'report.json'));
+  const presentation=object(saved)&&saved.presentation!==undefined?parsePresentation(saved.presentation):undefined;
+  return withPresentation(presentation,()=>verifyReportBody(runDir,reportDir));
+}
+async function verifyReportBody(runDir: unknown, reportDir: unknown) {
   return withRunLock(runDir, async root => {
     const target = await directory(reportDir), saved = await readJSON(path.join(target, 'report.json'));
     if (!object(saved) || saved.schemaVersion !== 9) fail('Unsupported saved report format; v9 is required. Historical files remain unchanged.');
     const options = await readDeliveryOptions(target), result = await checkUnlocked(root, { allowMissingScreenshots: options.allowMissingScreenshots });
+    if(saved.presentation!==undefined){result.presentation=parsePresentation(saved.presentation);result.caveat=reportCaveat();}
     if (saved.context !== undefined) result.context = await validateReportContext(saved.context, result, root);
+    if(result.context) {const ai=mergeAiContexts([...(result.cases.some(c=>c.entries.length)?[result.aiContext]:[]),result.context.aiContext]);if(ai)result.aiContext=ai;}
+    await verifyAiContext(result.aiContext);
     if (saved.history !== undefined) result.history=validateHistory(saved.history as unknown as NonNullable<Report['history']>,result);
     else if((await collectHistory(root,result))!==undefined)fail('Saved report omitted its historical references.');
     const historicalFiles=new Map<string,string>();
@@ -175,14 +188,21 @@ export async function verifyReport(runDir: unknown, reportDir: unknown = runDir)
     return verifyReportFiles(root, target, result, await htmlReportPayload(root, result, options,historicalFiles));
   });
 }
-export interface ReportOptions { outputDir?: unknown; contextFile?: string | undefined; historyLocationsFile?:string; deliveryMode?: 'auto' | 'inline' | 'bundle'; allowMissingScreenshots?: boolean; textPreviewLimitBytes?: number }
-export async function report(runDir: unknown, { outputDir = runDir, contextFile, historyLocationsFile, deliveryMode = 'auto', allowMissingScreenshots = false, textPreviewLimitBytes = TEXT_PREVIEW_LIMIT }: ReportOptions = {}) {
+export interface ReportOptions { presentationFile?: unknown; outputDir?: unknown; contextFile?: string | undefined; historyLocationsFile?:string; deliveryMode?: 'auto' | 'inline' | 'bundle'; allowMissingScreenshots?: boolean; textPreviewLimitBytes?: number }
+export async function report(runDir: unknown, options: ReportOptions = {}) {
+  const presentation=await readPresentation(options.presentationFile);
+  return withPresentation(presentation,()=>writeReport(runDir,options,presentation));
+}
+async function writeReport(runDir: unknown, { outputDir = runDir, contextFile, historyLocationsFile, deliveryMode = 'auto', allowMissingScreenshots = false, textPreviewLimitBytes = TEXT_PREVIEW_LIMIT }: ReportOptions, presentation: Presentation | undefined) {
   return withRunLock(runDir, async root => {
     await recoverEvidence(root);
     const target = await directory(outputDir), result = await checkUnlocked(root, { allowMissingScreenshots });
     const locations=historyLocationsFile?parseHistoryLocations(await readJSON(await safePath(historyLocationsFile,{existing:true}))):undefined;
     const history=await collectHistory(root,result,locations);if(history)result.history=history;
+    if(presentation){result.presentation=presentation;result.caveat=reportCaveat();}
     if (contextFile !== undefined) result.context = await validateReportContext(await readJSON(contextFile), result, root);
+    if(result.context){const ai=mergeAiContexts([...(result.cases.some(c=>c.entries.length)?[result.aiContext]:[]),result.context.aiContext]);if(ai)result.aiContext=ai;}
+    await verifyAiContext(result.aiContext);
     const mode = deliveryMode === 'auto' ? ((result.history?.evidence.length??0)>0 || (result.context?.conversations?.length??0)>0 || result.evidenceCatalog.items.some(e => e.kind==='conversation' || e.metadata?.deliveryRequired || e.metadata?.artifactRole === 'download_original') ? 'bundle' : 'inline') : deliveryMode;
     const payload = await htmlReportPayload(root, result, { mode, textPreviewLimitBytes, allowMissingScreenshots }), manifest = manifestFor(payload);
     const contents = [json(result), markdown(result, payload), htmlReport(payload), json(manifest)];

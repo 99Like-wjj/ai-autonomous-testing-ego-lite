@@ -2,7 +2,7 @@
   "name": "ai-autonomous-testing-ego-lite",
   "version": "0.1.8-rc.2",
   "egoLiteTest": {
-    "toolRevision": "conversation-review-1",
+    "toolRevision": "report-language-model-1",
     "formatVersions": {
       "cases": 9,
       "manifest": 9,
@@ -29,10 +29,12 @@
     "contracts:write": "npm run build:bootstrap && node .build/bootstrap/tools/generate-contracts.mjs --write",
     "check:contracts": "npm run build:bootstrap && node .build/bootstrap/tools/generate-contracts.mjs --check",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.browser.json",
-    "build": "npm run check:contracts && node .build/bootstrap/tools/clean-build.mjs && tsc -p tsconfig.node.json && tsc -p tsconfig.browser.json && node .build/node/tools/bundle-file-readers.mjs && node .build/node/tools/bundle-review-ui.mjs && node .build/node/tools/bundle-report-ui.mjs && node .build/node/tools/stage-runtime.mjs --source-root .",
+    "build": "npm run check:contracts && node .build/bootstrap/tools/generate-ui-catalog.mjs --check && node .build/bootstrap/tools/clean-build.mjs && tsc -p tsconfig.node.json && tsc -p tsconfig.browser.json && node .build/node/tools/bundle-file-readers.mjs && node .build/node/tools/bundle-review-ui.mjs && node .build/node/tools/bundle-report-ui.mjs && node .build/node/tools/stage-runtime.mjs --source-root .",
     "test": "npm run build && node --test .build/node/tests/*.test.mjs",
     "check:public": "npm run build:bootstrap && node .build/bootstrap/tools/public-check.mjs --root . --development",
-    "build:skill": "npm run build && node .build/node/tools/build-skill.mjs"
+    "build:skill": "npm run build && node .build/node/tools/build-skill.mjs",
+    "ui:write": "npm run build:bootstrap && node .build/bootstrap/tools/generate-ui-catalog.mjs",
+    "check:ui": "npm run build:bootstrap && node .build/bootstrap/tools/generate-ui-catalog.mjs --check"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

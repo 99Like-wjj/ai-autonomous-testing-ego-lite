@@ -19,3 +19,9 @@ core/conversations and conversation-store validate conversationVersion 1, retain
 case-reader provides the scene/case overview and three-column review workbench. The optional review-session listens only on a private capability-scoped 127.0.0.1 path, with case input and output directory fixed by the CLI. review-export validates and writes readable HTML/JSON natively, avoiding browser download-zone metadata. It makes no model calls, browser actions or approval registrations. Offline reading and browser drafts remain separate from formal reviews; see [review saving](v0.1.8-case-review.md).
 
 See [contracts](asset-formats.en.md), [regression reuse](regression-reuse.md) and [development validation](v0.1.8-development-validation.md). Historical user data is not migrated or overwritten.
+
+## Report language and model provenance
+
+core/ai-context parses, merges and verifies sourced model records without detecting models, calling models or judging business quality. Case-generation authorship and actual execution contributions remain separate; packet evidence mapping preserves the worker's declared provenance.
+
+report/ui-text localizes explicitly marked static template fragments, leaving interpolated facts, original messages and evidence unchanged. presentation uses AsyncLocalStorage for isolated concurrent Node generation and document-bound parameters in the browser. tools/generate-ui-catalog maintains checked source keys. model-display provides one header for each of the two stages; scope-label is shared by HTML and Markdown and uses an explicit comparison baseline.

@@ -144,6 +144,14 @@ export type ActionEvent = {
   conflictsWithEventIds?: string[];
   retry?: ActionRetry;
 };
+export type SourceReference = {
+  id: string;
+  locator: string;
+  file: string | null;
+  sha256: string | null;
+  excerpt: string;
+  limitations: string[];
+};
 
 export interface DownloadMarker {
   captureId: string;
@@ -168,6 +176,7 @@ export interface RecordPayload {
   contexts?: ExecutionContext[];
   findings?: Finding[];
   actionEvents?: ActionEvent[];
+  aiContext?: AiContext;
 }
 export interface Observation {
   id: string;
@@ -317,4 +326,16 @@ export interface ActionRetry {
    */
   authorizationSources: FactSource[];
   idempotencyBasis?: ContextFact;
+}
+export interface AiContext {
+  /**
+   * @minItems 1
+   */
+  uses: {
+    model: string | null;
+    reasoningEffort: string | null;
+    sourceKind: 'host_metadata' | 'user_statement' | 'unknown';
+    source: SourceReference;
+    scope: string;
+  }[];
 }

@@ -43,3 +43,9 @@ observation 继续按明确授权采集接口，AI 自主决定何时查询。�
 Schema 源文件、生成类型、代码和当前指南保持一致。旧格式不兜底读取，旧资料不搬迁或覆盖。工程、合成与实际 Ego 验证分别说明；实际业务验收需其明确授权。
 
 参见[契约](asset-formats.md)、[最终设计](v0.1.8-design.md)、[开发自测](v0.1.8-development-validation.md)及[宿主边界](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。
+
+## 语言与模型来源
+
+core/ai-context只解析、合并及核验有来源的模型记录，不探测模型、不调用模型，也不按模型名称判业务质量。用例来源与实际执行贡献分别保存；工作包证据映射不改变真实执行者。
+
+report/ui-text只处理显式标记的模板静态片段，业务插值、原文和证据保持原值。presentation以AsyncLocalStorage隔离Node的并发生成，浏览器按当前文档的同源参数选择语言；固定文案目录由tools/generate-ui-catalog生成并在构建时检查。model-display为两个阶段各生成一处来源展示，scope-label由HTML和Markdown共享，基于明确比较基准生成范围文案。

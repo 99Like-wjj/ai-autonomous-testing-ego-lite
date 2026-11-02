@@ -1,5 +1,7 @@
+import { uiText as u, uiHtml, presentationLanguage } from './ui-text.mjs';
 /** Native feedback files: no browser download, no formal review, no business execution. */
 import fs from 'node:fs/promises';
+import { withPresentation, type Presentation } from './presentation.mjs';
 import path from 'node:path';
 import type { FileIdentity } from '../contracts/model.mjs';
 import { feedbackFromText, parseReviewFeedback, type ReviewFeedback } from '../contracts/review-feedback.mjs';
@@ -19,9 +21,9 @@ export async function readFeedbackInput(file: unknown): Promise<unknown> {
 }
 export function feedbackHtml(feedback: ReviewFeedback, project: string, titles: ReadonlyMap<string, string>): string {
   const data = JSON.stringify(feedback).replaceAll('<', '\\u003c').replaceAll('\u2028', '\\u2028').replaceAll('\u2029', '\\u2029');
-  const decision = { comment_only: '仅记录意见', changes_requested: '需要修改', approved: '拟确认所选范围' }[feedback.decision];
-  return `<!doctype html><html lang="zh-CN" data-theme="A"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>${esc(project)} · 评审意见</title><style>${reportThemeCss()}
-*{box-sizing:border-box}body{margin:0;background:var(--background);color:var(--ink);font:15px/1.9 system-ui,"Microsoft YaHei",sans-serif}main{max-width:980px;margin:35px auto;padding:28px 36px;background:var(--panel);border:1px solid var(--line);border-radius:12px}h1{font-size:26px;margin:4px 0 15px}h2{font-size:18px;margin:6px 0}.meta{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.summary{background:var(--surface);padding:13px 17px;border-radius:8px}.comment{border-top:1px solid var(--line);padding:19px 0;margin-top:15px}.text{white-space:pre-wrap;overflow-wrap:anywhere}details{font-size:12px;color:var(--muted);margin-top:18px}footer{font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;margin-top:15px}@media(max-width:700px){main{margin:12px;padding:22px}}</style><main><p class="meta">用例 v${feedback.cases.caseVersion} · 可恢复的评审意见副本</p><h1>${esc(project)}</h1><p class="summary">范围 ${feedback.pointIds.length} 条用例 · ${feedback.comments.length} 条意见<br>拟提交结论：${decision}。本文件不登记正式确认，也不启动测试。</p>${feedback.comments.map(c => `<section class="comment"><p class="meta">${esc(c.pointId ?? '总体意见')}</p><h2>${esc(c.pointId === null ? '总体意见' : titles.get(c.pointId) ?? c.pointId)}</h2><div class="text">${esc(c.text)}</div></section>`).join('')}<details><summary>意见来源与局限</summary><p>${esc(feedback.source.locator)}</p><p>${esc(feedback.source.excerpt)}</p>${feedback.source.limitations.map(t => `<p>${esc(t)}</p>`).join('')}</details><footer>可在同版本用例审阅页中选择“恢复评审记录”读取本文件。<br>用例指纹：${feedback.cases.sha256}</footer></main><script type="application/json" id="review-feedback-data">${data}</script></html>\n`;
+  const decision = { comment_only: u('仅记录意见'), changes_requested: u('需要修改'), approved: u('拟确认所选范围') }[feedback.decision];
+  return uiHtml`<!doctype html><html lang="${presentationLanguage()}" data-theme="A"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>${esc(project)} · 评审意见</title><style>${reportThemeCss()}
+*{box-sizing:border-box}body{margin:0;background:var(--background);color:var(--ink);font:15px/1.9 system-ui,"Microsoft YaHei",sans-serif}main{max-width:980px;margin:35px auto;padding:28px 36px;background:var(--panel);border:1px solid var(--line);border-radius:12px}h1{font-size:26px;margin:4px 0 15px}h2{font-size:18px;margin:6px 0}.meta{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.summary{background:var(--surface);padding:13px 17px;border-radius:8px}.comment{border-top:1px solid var(--line);padding:19px 0;margin-top:15px}.text{white-space:pre-wrap;overflow-wrap:anywhere}details{font-size:12px;color:var(--muted);margin-top:18px}footer{font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;margin-top:15px}@media(max-width:700px){main{margin:12px;padding:22px}}</style><main><p class="meta">用例 v${feedback.cases.caseVersion} · 可恢复的评审意见副本</p><h1>${esc(project)}</h1><p class="summary">范围 ${feedback.pointIds.length} 条用例 · ${feedback.comments.length} 条意见<br>拟提交结论：${decision}。本文件不登记正式确认，也不启动测试。</p>${feedback.comments.map(c => `<section class="comment"><p class="meta">${esc(c.pointId ?? u('总体意见'))}</p><h2>${esc(c.pointId === null ? u('总体意见') : titles.get(c.pointId) ?? c.pointId)}</h2><div class="text">${esc(c.text)}</div></section>`).join('')}<details><summary>意见来源与局限</summary><p>${esc(feedback.source.locator)}</p><p>${esc(feedback.source.excerpt)}</p>${feedback.source.limitations.map(t => `<p>${esc(t)}</p>`).join('')}</details><footer>可在同版本用例审阅页中选择“恢复评审记录”读取本文件。<br>用例指纹：${feedback.cases.sha256}</footer></main><script type="application/json" id="review-feedback-data">${data}</script></html>\n`;
 }
 interface ExportFile { name: string; sha256: string; bytes: number }
 interface ExportManifest { kind: 'case-review-export'; exportVersion: 1; requestSha256: string; files: ExportFile[] }
@@ -29,11 +31,11 @@ export interface ReviewExportReceipt {
   outputDir: string; json: string; html: string; manifest: string; requestSha256: string;
   files: ExportFile[]; replayed: boolean; nativeWrite: true; reviewRegistered: false; businessExecuted: false;
 }
-export async function exportReviewFeedback({ casesFile, request, outputDir }: { casesFile: unknown; request: unknown; outputDir: unknown }): Promise<ReviewExportReceipt> {
+export async function exportReviewFeedback({ casesFile, request, outputDir, presentation }: { casesFile: unknown; request: unknown; outputDir: unknown; presentation?:Presentation | undefined }): Promise<ReviewExportReceipt> {
   const saved = await readCasesFile(casesFile), identity = { cases: saved.ref, pointIds: saved.baseline.cases.flatMap(c => c.goals.map(g => g.pointId)) };
   const feedback = parseReviewFeedback(request, identity);
   const root = await safePath(outputDir, { external: true }); await fs.mkdir(root, { recursive: true, mode: 0o700 });
-  const digest = canonicalHash(feedback), prefix = caseFilename(saved.ref.caseVersion).slice(0, -5) + '-review-' + digest.slice(0, 20);
+  const digest = canonicalHash(feedback), prefix = caseFilename(saved.ref.caseVersion).slice(0, -5) + '-review-' + digest.slice(0, 20) + (presentation ? '-'+canonicalHash(presentation).slice(0,8) : '');
   const names = [prefix + '.json', prefix + '.html'], manifestFile = path.join(root, prefix + '-delivery.json');
   const receipt = (files: ExportFile[], replayed: boolean): ReviewExportReceipt => ({ outputDir: root, json: path.join(root, names[0]!), html: path.join(root, names[1]!), manifest: manifestFile, requestSha256: digest, files, replayed, nativeWrite: true, reviewRegistered: false, businessExecuted: false });
   const release = await acquireLock(root);
@@ -54,7 +56,7 @@ export async function exportReviewFeedback({ casesFile, request, outputDir }: { 
       return receipt(raw.files, true);
     }
     const titles = new Map(saved.baseline.cases.flatMap(c => c.goals.map(g => [g.pointId, g.title] as const)));
-    const contents = [Buffer.from(json(feedback)), Buffer.from(feedbackHtml(feedback, saved.baseline.project, titles))];
+    const contents = [Buffer.from(json(feedback)), Buffer.from(withPresentation(presentation,()=>feedbackHtml(feedback, saved.baseline.project, titles)))];
     const files = contents.map((bytes, i) => ({ name: names[i]!, sha256: hash(bytes), bytes: bytes.length }));
     const owned: { file: string; identity: FileIdentity }[] = [];
     try {

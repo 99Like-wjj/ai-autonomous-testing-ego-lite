@@ -47,8 +47,8 @@ export function canonical(value: unknown): string {
   return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonical(value[key])).join(',') + '}';
 }
 export function canonicalHash(value: unknown): string { return hash(Buffer.from(canonical(value), 'utf8')); }
-export function canonicalRecord(record: RecordPayload): Required<RecordPayload> {
-  return { observations: record.observations, assessments: record.assessments, findings: record.findings ?? [], contexts: record.contexts ?? [], actionEvents: record.actionEvents ?? [] };
+export function canonicalRecord(record: RecordPayload): Required<Omit<RecordPayload, 'aiContext'>> & Pick<RecordPayload, 'aiContext'> {
+  return { ...(record.aiContext ? {aiContext:record.aiContext} : {}), observations: record.observations, assessments: record.assessments, findings: record.findings ?? [], contexts: record.contexts ?? [], actionEvents: record.actionEvents ?? [] };
 }
 export function sameRecord(left: RecordPayload, right: RecordPayload): boolean { return canonical(canonicalRecord(left)) === canonical(canonicalRecord(right)); }
 

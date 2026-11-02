@@ -27,9 +27,9 @@ export interface ReviewSession {
   close(): Promise<void>;
   closed: Promise<void>;
 }
-export async function startReviewSession({ casesFile, outputDir, feedbackFile, idleMinutes = 480 }: { casesFile: unknown; outputDir: unknown; feedbackFile?: unknown; idleMinutes?: number }): Promise<ReviewSession> {
+export async function startReviewSession({ casesFile, outputDir, feedbackFile, presentationFile, aiContextFile, idleMinutes = 480 }: { casesFile: unknown; outputDir: unknown; feedbackFile?: unknown; presentationFile?: unknown; aiContextFile?:unknown; idleMinutes?: number }): Promise<ReviewSession> {
   if (!Number.isFinite(idleMinutes) || idleMinutes < 1 || idleMinutes > 1440) throw Error('Review idle timeout must be between 1 and 1440 minutes.');
-  const { saved, model, script } = await loadCaseDocument({ casesFile, feedbackFile });
+  const { saved, model, script } = await loadCaseDocument({ casesFile, feedbackFile, presentationFile, aiContextFile });
   const root = await safePath(outputDir, { external: true }); await fs.mkdir(root, { recursive: true, mode: 0o700 });
   const page = caseDocumentHtml(model, script), token = crypto.randomBytes(24).toString('hex'), prefix = '/review/' + token + '/';
   const identity = { cases: saved.ref, pointIds: saved.baseline.cases.flatMap(c => c.goals.map(g => g.pointId)) };
@@ -52,7 +52,7 @@ export async function startReviewSession({ casesFile, outputDir, feedbackFile, i
     let parsed; try { parsed = parseReviewFeedback(input, identity); } catch (error) { throw new RequestError(400, error instanceof Error ? error.message : '评审格式无效。'); }
     if (queued >= 4) throw new RequestError(429, '已有保存正在处理，请保留草稿后再核对。');
     queued++;
-    const result = queue.then(() => exportReviewFeedback({ casesFile: saved.file, request: parsed, outputDir: root }));
+    const result = queue.then(() => exportReviewFeedback({ casesFile: saved.file, request: parsed, outputDir: root, ...(model.presentation?{presentation:model.presentation}:{}) }));
     queue = result.then(() => undefined, () => undefined);
     try { return await result; } finally { queued--; }
   }

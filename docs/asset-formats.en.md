@@ -23,3 +23,13 @@ The existing execution download note coordinates one active/unknown capture with
 Reports use v9. First runs have no history panel. Historical observations and attachments retain their exact run/revision/evidence identities, outside current evidence/counts. auto delivery chooses bundle for needed history or required originals. Complete retained history attachments support later verification even if old source directories move; missing history remains explicit and cannot change current states.
 
 Historical user data is preserved. There is no automatic migration, legacy reader or overwrite authority. Network contracts remain version 1.
+
+## Report language and model provenance (report-language-model-1)
+
+Optional v9 aiContext is accepted in cases, RecordPayload and report-context. Each uses entry records model, reasoningEffort, sourceKind, a SourceRef and scope. Unknown sources cannot assert model or effort. File sources are hash-checked; packet mapping and canonical transaction identity preserve authorship. Model metadata does not enter the necessary-goal definition hash, and unchanged definitions retain their original generator.
+
+Both document types accept --presentation JSON with language and a complete messages map for the selected target language. The current AI selects the user's communication language unless explicitly overridden. Built-in source-language calls are distinct from that user choice; a requested target never silently falls back. HTML, Markdown and JSON retain one presentation snapshot. Named message parameters are checked and cannot be dropped or changed by a translation.
+
+Case documents can accept a retrospective --ai-context file bound to the exact casesRef, without modifying published cases or approval. Test reports combine this run's committed contributions and the supplied reading context into one test_execution header, excluding generators, historical parent runs and pure rendering callers.
+
+New fields require the matching tool revision. Existing files are never rewritten; old standalone HTML stays readable, while byte-for-byte verification of old presentation requires its original renderer revision. Regenerate into a new directory for a new presentation.

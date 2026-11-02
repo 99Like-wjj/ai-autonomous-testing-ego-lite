@@ -1,3 +1,4 @@
+import { mergeAiContexts, verifyAiContext } from './ai-context.mjs';
 import { readRunBinding } from '../regression/run-binding.mjs';
 import type { RegressionBinding } from '../regression/binding.mjs';
 import { verifyOriginalProblems } from '../regression/sources.mjs';
@@ -237,8 +238,10 @@ export async function checkUnlocked(root: string, options: {allowMissingScreensh
   for (const entry of results.entries) validateConversationActions(entry.record,conversationEvidence);
   const cases = validateResultEntries(baseline, results, evidenceById, operationIds,regressionBinding), counts = countsFor(cases);
   const execution = await readExecution(root, manifest, baseline); await verifyExecutionFiles(root, execution);
+  for (const entry of results.entries) await verifyAiContext(entry.record.aiContext);
+  const aiContext = mergeAiContexts(results.entries.map(entry => entry.record.aiContext));
   return {
-    schemaVersion: 9, runId: manifest.runId, project: baseline.project, projectId:baseline.projectId, caseVersion:baseline.caseVersion, structurallyValid: true,
+    ...(aiContext ? {aiContext} : {}), schemaVersion: 9, runId: manifest.runId, project: baseline.project, projectId:baseline.projectId, caseVersion:baseline.caseVersion, structurallyValid: true,
     revision: results.revision, evidenceRevision: evidenceCatalog.revision, caseCount: cases.length,
     sourceCaseCount:baseline.cases.length,sourceGoalCount:baseline.cases.reduce((n,c)=>n+c.goals.length,0),
     goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
@@ -314,6 +317,7 @@ export function evidenceOperationReceipt(op: EvidenceOperation, replayed = false
 export async function recordResultUnlocked(root: string, input: unknown, testHooks: TestHooks = {}): Promise<ResultReceipt> {
   await recoverEvidence(root);
   const checked = await checkUnlocked(root), request = parseRecordRequest(input);
+  await verifyAiContext(request.record.aiContext);
   const resultsPath = path.join(root, 'results.json'), results = parseResults(await readJSON(resultsPath));
   const payloadSha256 = canonicalHash(request), existing = results.entries.find(entry => entry.operationId === request.operationId);
   if (existing) {

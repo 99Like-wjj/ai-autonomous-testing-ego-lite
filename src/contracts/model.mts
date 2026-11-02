@@ -17,6 +17,7 @@ import type { EgoLiteRunManifestV9 } from './generated/manifest.mjs';
 import type { RetrospectiveReportContextV9NoBusinessExecution } from './generated/report-context.mjs';
 import type { ExecutionLedger, ExecutionSummary } from './execution-model.mjs';
 export type Baseline = EgoLiteCaseInputAndNormalizedBaselineV9;
+export type AiContext = NonNullable<Baseline['aiContext']>;
 export type SourceRef = SourceReference;
 export type CaseReview = CaseReviewV9;
 export type CasesRef = CasesReference;
@@ -44,6 +45,7 @@ export type HistoryRunRef=ReportHistory['roots'][number];
 export type HistoryPoint=ReportHistory['nodes'][number]['points'][number];
 export interface Report {
   schemaVersion: 9; runId: string; project: string; structurallyValid: true;
+  aiContext?: AiContext; presentation?: import('../report/ui-text.mjs').Presentation;
   revision: number; evidenceRevision: number; caseCount: number; goalCount: number;
   sourceCaseCount?:number;sourceGoalCount?:number;projectId?:string;caseVersion?:number;history?:ReportHistory;
   counts: Counts; assessmentComplete: boolean; cases: CheckedCase[]; evidenceCatalog: EvidenceCatalog;

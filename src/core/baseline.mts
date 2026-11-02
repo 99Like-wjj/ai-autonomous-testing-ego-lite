@@ -1,5 +1,6 @@
 /** Current-format case definitions. No legacy reader and no business-route inference. */
 import fs from 'node:fs/promises';
+import { parseAiContext } from './ai-context.mjs';
 import path from 'node:path';
 import type { Baseline, Case, Goal, Manifest } from '../contracts/model.mjs';
 import { assertClosed, fail, hash, object, safeIdentifier } from './common.mjs';
@@ -40,8 +41,8 @@ export function normalizeCase(input: unknown): Case {
   return result;
 }
 export function normalizeCases(input: unknown): Baseline {
-  const keys=['schemaVersion','projectId','project','pointPrefix','caseVersion','previous','nextPointNumber','retiredPoints','sources','coverage','cases','changes','writeRequestSha256','savedAt'];
-  assertClosed(input,keys,'cases file');if(input.schemaVersion!==9)fail('Cases require schemaVersion 9; older files are not migrated.');for(const key of keys)if(!Object.hasOwn(input,key))fail('Missing cases file field: '+key);
+  const keys=['schemaVersion','projectId','project','pointPrefix','caseVersion','previous','nextPointNumber','retiredPoints','sources','coverage','cases','changes','writeRequestSha256','savedAt','aiContext'];
+  assertClosed(input,keys,'cases file');if(input.schemaVersion!==9)fail('Cases require schemaVersion 9; older files are not migrated.');for(const key of keys.filter(k=>k!=='aiContext'))if(!Object.hasOwn(input,key))fail('Missing cases file field: '+key);
   const projectId=safeIdentifier(input.projectId,'project ID'),project=textValue(input.project,'project'),prefix=textValue(input.pointPrefix,'point prefix');if(!/^[A-Z][A-Z0-9-]{0,39}$/.test(prefix))fail('Invalid point prefix.');
   const version=integer(input.caseVersion,'case version',1);let previous:Baseline['previous']=null;
   if(input.previous!==null){assertClosed(input.previous,['caseVersion','sha256'],'previous cases');previous={caseVersion:integer(input.previous.caseVersion,'previous case version',1),sha256:sha256Value(input.previous.sha256)};}
@@ -61,7 +62,7 @@ export function normalizeCases(input: unknown): Baseline {
   const coverage=arrayValue(input.coverage,'coverage').map(v=>{assertClosed(v,['id','sourceRefId','statement','state','pointIds','reason'],'coverage entry');const refs=uniqueStrings(v.pointIds,'coverage points',true),sourceRefId=safeIdentifier(v.sourceRefId);if(!sourceIds.has(sourceRefId)||refs.some(p=>!allPoints.has(p)))fail('Unknown coverage source or point.');return{id:safeIdentifier(v.id),sourceRefId,statement:textValue(v.statement,'source statement'),state:oneOf(v.state,['mapped','pending','out_of_scope','retired'],'coverage state'),pointIds:refs,reason:textValue(v.reason,'coverage reason')};});
   if(new Set(coverage.map(c=>c.id)).size!==coverage.length)fail('Duplicate coverage ID.');
   const changes=arrayValue(input.changes,'changes').map(v=>{assertClosed(v,['pointId','kind','relatedPointIds','reason'],'point change');const pointId=safeIdentifier(v.pointId),related=uniqueStrings(v.relatedPointIds,'related points',true);if(!allPoints.has(pointId)||related.some(p=>!allPoints.has(p)))fail('Unknown point change reference.');return{pointId,kind:oneOf(v.kind,['added','modified','moved','split','merged','retired'],'point change kind'),relatedPointIds:related,reason:textValue(v.reason,'point change reason')};});
-  return{schemaVersion:9,projectId,project,pointPrefix:prefix,caseVersion:version,previous,nextPointNumber:next,retiredPoints:retired,sources,coverage,cases,changes,writeRequestSha256:sha256Value(input.writeRequestSha256),savedAt:timeValue(input.savedAt,'cases savedAt')};
+  return{...(input.aiContext===undefined?{}:{aiContext:parseAiContext(input.aiContext)}),schemaVersion:9,projectId,project,pointPrefix:prefix,caseVersion:version,previous,nextPointNumber:next,retiredPoints:retired,sources,coverage,cases,changes,writeRequestSha256:sha256Value(input.writeRequestSha256),savedAt:timeValue(input.savedAt,'cases savedAt')};
 }
 export async function readAndValidateBaseline(root: string, manifest: Manifest) {
   const bytes=await fs.readFile(await regularFilePath(path.join(root,'baseline.json')));if(hash(bytes)!==manifest.baselineSha256)fail('Baseline hash mismatch. This is integrity checking, not authentication.');return{baseline:normalizeCases(JSON.parse(bytes.toString('utf8'))),bytes};

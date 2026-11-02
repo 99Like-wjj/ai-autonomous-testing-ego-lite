@@ -3,12 +3,18 @@ name: ai-autonomous-testing-ego-lite
 description: AI 自主 Web 自动化测试：由当前 AI 会话理解需求、设计可独立判断的业务目标，通过已安装的 Ego Lite / Ego Browser 执行并用真实证据验证；接收外部用例或生成用例，区分业务违反、执行问题、证据不足与未测试。适用于新需求、新功能、权限及业务流程测试；不是固定流程自动化器或 Agent 能力评测框架。
 metadata:
   version: "0.1.8-rc.2"
-  tool-revision: "conversation-review-1"
+  tool-revision: "report-language-model-1"
 ---
 
 # AI 自主自动化测试 · Ego Lite
 
 当前 AI 负责规划、页面探索、方法选择与业务判断，Ego 提供浏览器原语，本地工具负责冻结目标、保存观察与证据、校验引用并渲染报告；接口观测适配器提供范围内的后台采集与本地查询。工具不调用模型、不自动选择下一动作、不自动判定业务结果。本版为 0.1.8-rc.2 开发候选，尚未正式发布；构建和自测不代表所有业务、模型或宿主均已验收。
+
+## 语言与两阶段模型来源
+
+用例报告和测试报告使用本次任务中用户与 AI 交流的语言，用户明确指定时以指定为准；AI 撰写的步骤、观察、判断、摘要与报告固定文案采用同一语言。引用原文、报错、代码和标识符保持真实值。保存和交付时核对语言一致性，不用需求或被测页面的语言替代用户交流语言。
+
+用例生成、测试执行是两个阶段，后者包含判断与报告分析；两类报告各显示一处本阶段模型及思考等级。保存已知来源，未知如实记录，阶段内切换保留多配置；纯渲染不产生 AI 贡献。字段、语言文案与调用方法见[报告语言与模型来源](references/report-language-model.md)。
 
 ## 先明确目标与条件
 
@@ -26,7 +32,7 @@ metadata:
 
 记录前读[本地工具箱指南](references/local-toolbox.md)。完整安装包的 ToolRoot 是实际加载的 SKILL.md 所在绝对目录，包含 scripts、schemas、docs 和清单。源码先在明确仓库构建，使用该仓库的 .build/runtime；不要把源码 Skill 子目录当作工具根，不猜旧安装路径或自动更新用户安装。
 
-执行 tool-info，核对 0.1.8-rc.2、conversation-review-1、formatVersions 和 installationIntegrity。工具缺失或版本混用时保存真实事实并说明交付限制，不能伪造回执。用例校验与冻结只创建本地资产，不执行浏览器动作。
+执行 tool-info，核对 0.1.8-rc.2、report-language-model-1、formatVersions 和 installationIntegrity。工具缺失或版本混用时保存真实事实并说明交付限制，不能伪造回执。用例校验与冻结只创建本地资产，不执行浏览器动作。
 
 ## 首次成果与回归
 

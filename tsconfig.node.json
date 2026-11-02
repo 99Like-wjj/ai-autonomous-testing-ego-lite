@@ -19,6 +19,7 @@
     "docs/images/render.mts",
     "tools/bundle-file-readers.mts",
     "tools/bundle-review-ui.mts",
-    "tools/bundle-report-ui.mts"
+    "tools/bundle-report-ui.mts",
+    "tools/generate-ui-catalog.mts"
   ]
 }

@@ -65,6 +65,7 @@ export interface WholeCaseFileSaveRequestV9 {
     reason: string;
   }[];
   reason: string;
+  aiContext?: AiContext;
 }
 export interface DraftCase {
   id: string;
@@ -117,4 +118,16 @@ export interface ParameterDefinition {
   type: 'string' | 'integer' | 'decimal' | 'date' | 'object_ref' | 'account_ref';
   purpose: string;
   constraints: string[];
+}
+export interface AiContext {
+  /**
+   * @minItems 1
+   */
+  uses: {
+    model: string | null;
+    reasoningEffort: string | null;
+    sourceKind: 'host_metadata' | 'user_statement' | 'unknown';
+    source: SourceReference;
+    scope: string;
+  }[];
 }

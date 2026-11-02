@@ -487,6 +487,9 @@
           "items": {
             "$ref": "#/$defs/actionEvent"
           }
+        },
+        "aiContext": {
+          "$ref": "#/$defs/aiContext"
         }
       },
       "additionalProperties": false
@@ -2799,6 +2802,62 @@
         "observed",
         "basis"
       ],
+      "additionalProperties": false
+    },
+    "aiContext": {
+      "title": "AiContext",
+      "type": "object",
+      "required": [
+        "uses"
+      ],
+      "properties": {
+        "uses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "model",
+              "reasoningEffort",
+              "sourceKind",
+              "source",
+              "scope"
+            ],
+            "properties": {
+              "model": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "reasoningEffort": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "sourceKind": {
+                "enum": [
+                  "host_metadata",
+                  "user_statement",
+                  "unknown"
+                ]
+              },
+              "source": {
+                "$ref": "#/$defs/sourceRef"
+              },
+              "scope": {
+                "$ref": "#/$defs/nonempty"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
       "additionalProperties": false
     }
   }

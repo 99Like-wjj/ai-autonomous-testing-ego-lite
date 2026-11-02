@@ -1,5 +1,6 @@
 /** Whole-file case versions. No asset registry, per-point files, or mutable latest index. */
 import fs from 'node:fs/promises';
+import { verifyAiContext } from './ai-context.mjs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import type { Baseline, Case, Goal, CasesRef, SourceRef } from '../contracts/model.mjs';
@@ -45,7 +46,7 @@ function draftCase(value:unknown,allocate:()=>string):Case {
   return normalizeCase({...value,steps,goals,parameters:value.parameters??[]});
 }
 export async function saveCases({workDir,request:input,hooks={}}:{workDir:unknown;request:unknown;hooks?:{beforePublish?:()=>Promise<void>;afterPublish?:()=>Promise<void>}}):Promise<SaveCasesReceipt> {
-  assertClosed(input,['schemaVersion','expectedVersion','previousSha256','project','pointPrefix','cases','sources','coverage','retiredPoints','changes','reason'],'cases save request');
+  assertClosed(input,['schemaVersion','expectedVersion','previousSha256','project','pointPrefix','cases','sources','coverage','retiredPoints','changes','reason','aiContext'],'cases save request');
   if(input.schemaVersion!==9)fail('Case save requests require schemaVersion 9.');
   const expected=integer(input.expectedVersion,'expected case version'),requestSha256=canonicalHash(input),work=await safePath(workDir,{external:true});await fs.mkdir(work,{recursive:true,mode:0o700});const folder=await safePath(path.join(work,'cases'));await fs.mkdir(folder,{recursive:true,mode:0o700});
   const release=await acquireLock(folder);try{
@@ -65,12 +66,12 @@ export async function saveCases({workDir,request:input,hooks={}}:{workDir:unknow
     const reason=textValue(input.reason,'case version reason');for(const c of cases)for(const g of c.goals){const old=previous?pointLocation(previous.baseline,g.pointId):null;if(!old&&!changes.some(x=>x.pointId===g.pointId))changes.push({pointId:g.pointId,kind:'added',relatedPointIds:[],reason});else if(old&&canonical({caseId:old.case.id,goal:old.goal,plan:old.case.steps,conditions:old.case.criticalConditions,parameters:old.case.parameters,path:old.case.requiredPath,order:old.case.stepOrder})!==canonical({caseId:c.id,goal:g,plan:c.steps,conditions:c.criticalConditions,parameters:c.parameters,path:c.requiredPath,order:c.stepOrder})&&!changes.some(x=>x.pointId===g.pointId))changes.push({pointId:g.pointId,kind:old.case.id===c.id?'modified':'moved',relatedPointIds:[],reason});}
     for(const r of retired)if(!previous?.baseline.retiredPoints.some(p=>canonical(p)===canonical(r))&&!changes.some(x=>x.pointId===r.pointId))changes.push({pointId:r.pointId,kind:'retired',relatedPointIds:r.replacements,reason:r.reason});
     const sources=input.sources??[],coverage=arrayValue(input.coverage??[],'coverage').map(v=>{assertClosed(v,['id','sourceRefId','statement','state','pointIds','reason'],'coverage');return{...v,pointIds:arrayValue(v.pointIds,'coverage points').map(resolve)};});
-    const baseline=normalizeCases({schemaVersion:9,projectId:previous?.baseline.projectId??crypto.randomUUID(),project:textValue(input.project,'project'),pointPrefix:prefix,caseVersion:expected+1,previous:previous?{caseVersion:expected,sha256:previous.ref.sha256}:null,nextPointNumber:next,retiredPoints:retired,sources,coverage,cases,changes,writeRequestSha256:requestSha256,savedAt:now()});
+    const baseline=normalizeCases({...(input.aiContext===undefined?{}:{aiContext:input.aiContext}),schemaVersion:9,projectId:previous?.baseline.projectId??crypto.randomUUID(),project:textValue(input.project,'project'),pointPrefix:prefix,caseVersion:expected+1,previous:previous?{caseVersion:expected,sha256:previous.ref.sha256}:null,nextPointNumber:next,retiredPoints:retired,sources,coverage,cases,changes,writeRequestSha256:requestSha256,savedAt:now()});
     // Preassigned IDs are accepted only if they already belong to the predecessor.
     for(const id of activeIds)if(!previousIds.has(id)&&!allocated.has(id))fail('New point IDs must be allocated by this save transaction; existing or retired numbers cannot be reassigned.');
     const material=(b:Baseline)=>({project:b.project,pointPrefix:b.pointPrefix,retiredPoints:b.retiredPoints,sources:b.sources,coverage:b.coverage,cases:b.cases});
     if(previous&&canonical(material(previous.baseline))===canonical(material(baseline)))return receipt(previous,false,true);
-    await verifySources(baseline.sources);if(previous&&(await hashFile(previous.file)).sha256!==previous.ref.sha256)fail('Previous case file changed during save.');
-    await publishCaseFile(folder,caseFilename(expected+1),baseline,{...hooks,beforePublish:async()=>{await hooks.beforePublish?.();await verifySources(baseline.sources);if(previous&&(await hashFile(previous.file)).sha256!==previous.ref.sha256)fail('Previous case file changed before publication.');}});return receipt(await readCasesFile(target),false);
+    await verifyAiContext(baseline.aiContext);await verifySources(baseline.sources);if(previous&&(await hashFile(previous.file)).sha256!==previous.ref.sha256)fail('Previous case file changed during save.');
+    await publishCaseFile(folder,caseFilename(expected+1),baseline,{...hooks,beforePublish:async()=>{await hooks.beforePublish?.();await verifyAiContext(baseline.aiContext);await verifySources(baseline.sources);if(previous&&(await hashFile(previous.file)).sha256!==previous.ref.sha256)fail('Previous case file changed before publication.');}});return receipt(await readCasesFile(target),false);
   }finally{await release();}
 }

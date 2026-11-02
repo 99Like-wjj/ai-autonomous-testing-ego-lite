@@ -1,5 +1,7 @@
 # 证据与报告
 
+本阶段的人类阅读内容遵循[统一语言与模型来源](report-language-model.md)；记录实际生成者及已知配置，不根据当前模型补造历史来源。
+
 ## 一个目标结果入口
 
 串行 record 与并行 import 使用同形 record:{observations,assessments}，结果统一进入 entries。业务判断属于冻结 goals；前提、步骤和路径是必要语义，由观察的 coveredRefs 说明已观察哪些部分。计划步骤不是证据，不能由工具成功或父用例概况自动推导目标通过。

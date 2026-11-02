@@ -53,3 +53,13 @@ HTML、Markdown、JSON 同源。delivery=auto 需要下载原件或历史附件�
 report --context 的可选conversations引用带SHA的规范化文件，以sourceBindings指定原件、actions指定当前目标既有实际动作和消息。不能覆盖业务状态或从计划补造动作。HTML payload提供经过来源核验的对话视图，report.conversationEvidence包含本轮已登记规范化内容。auto在含对话时使用bundle，交付包含原始文件；单独搬走HTML会失去原件附件。verify-report增加reviewPrompts，只提示缺描述、重复文案、阶段不一致和缺输入/回复摘要，不改变业务结论。详见Skill中的“通用对话证据”指南。
 
 旧用例、规则/任务、run 和报告不自动迁移、重写或删除；新版不提供旧格式兜底。需要复用时显式从原始来源整理并说明映射。网络格式保持 1。源 Schema 见 schemas/，可用输入见 examples/cases-save-request.example.json、regression-selection.example.json、regression-binding-request.example.json、file-inspection-request.example.json。
+
+## 报告语言与两阶段模型来源（report-language-model-1）
+
+v9在用例、RecordPayload及report-context中增加可选aiContext，uses项保存model、reasoningEffort、sourceKind、SourceRef和scope。来源为unknown时模型与等级必须为null；有文件来源时验证指纹。工作包保留同一字段，canonicalRecord的幂等判断包括模型来源；AI元数据不进入业务目标定义指纹，业务定义未改时保留原生成来源。
+
+两类文档可传--presentation JSON，包含language与messages；固定文案键见report/ui-catalog.mjs，其他语言必须提供完整映射，不能静默回退。HTML、Markdown与JSON同源保存展示参数；模板只替换明确标记的固定片段，插值中的原始事实不翻译。Node使用异步上下文隔离不同报告语言。
+
+用例文档读取已保存生成来源；可用--ai-context传入精确casesRef绑定的事后补充，并保留其指纹。执行报告仅汇总本轮入账和本次阅读整理的来源，形成一处test_execution展示，不混入用例生成或历史父运行配置。两阶段及展示规则见[设计方案](v0.1.8-report-language-model-design.md)。
+
+新增字段和展示需配套当前工具修订；旧工具可能拒绝新增字段。已有文件不自动改写，旧HTML可独立阅读，精确校验旧展示应使用原工具修订。补充或换语言时另存新文件。

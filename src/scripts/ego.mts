@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {readPresentation} from '../report/presentation.mjs';
 import {saveCases} from '../core/case-versions.mjs';
 import {reviewCases} from '../core/case-review.mjs';
 import {renderCases,verifyCaseDocuments} from '../report/case-documents.mjs';
@@ -64,10 +65,10 @@ export async function main(argv: readonly string[]): Promise<unknown> {
   if (command === '--help' || command === 'help' || !command) return `Usage: node ABS_TOOL_ROOT/scripts/ego.mjs tool-info [--expect-version VERSION] [--expect-revision REVISION]
        node ABS_TOOL_ROOT/scripts/ego.mjs init --project-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs cases save --work-dir ABS --request ABS_JSON
-       node ABS_TOOL_ROOT/scripts/ego.mjs cases render --cases ABS --output-dir ABS [--feedback ABS_JSON_OR_HTML]
+       node ABS_TOOL_ROOT/scripts/ego.mjs cases render --cases ABS --output-dir ABS [--feedback ABS_JSON_OR_HTML] [--presentation ABS_JSON] [--ai-context ABS_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs cases verify --cases ABS --output-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs cases review --cases ABS --request ABS_JSON
-       node ABS_TOOL_ROOT/scripts/ego.mjs cases serve --cases ABS --output-dir ABS [--feedback ABS_JSON_OR_HTML] [--idle-minutes N]
+       node ABS_TOOL_ROOT/scripts/ego.mjs cases serve --cases ABS --output-dir ABS [--feedback ABS_JSON_OR_HTML] [--presentation ABS_JSON] [--ai-context ABS_JSON] [--idle-minutes N]
        node ABS_TOOL_ROOT/scripts/ego.mjs cases export-review --cases ABS --request ABS_JSON_OR_HTML --output-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs files inspect --request ABS_JSON --output-file ABS_NEW_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS
@@ -76,7 +77,7 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs record --run-dir ABS --request ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs progress --run-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs check --run-dir ABS
-       node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON] [--history-locations ABS_MAP_JSON] [--delivery auto|inline|bundle] [--allow-missing-screenshots true|false]
+       node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON] [--presentation ABS_JSON] [--history-locations ABS_MAP_JSON] [--delivery auto|inline|bundle] [--allow-missing-screenshots true|false]
        node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS --report-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS [--view summary|assignment|full] [--assignment-id ID] [--integrity metadata|full]
        node ABS_TOOL_ROOT/scripts/ego.mjs execution ACTION --run-dir ABS --request ABS_JSON
@@ -106,16 +107,16 @@ Network format is independently versioned (networkVersion 1). Old experimental p
 No model calls, automatic UI actions, request replay or automatic business verdicts.`;
   if(command==='cases'){
     const [action,...args]=rest;if(!action||!['save','render','verify','review','serve','export-review'].includes(action))fail('Unknown cases action.');
-    const allowed=action==='save'?['work-dir','request']:action==='review'?['cases','request']:action==='export-review'?['cases','request','output-dir']:action==='serve'?['cases','output-dir','feedback','idle-minutes']:action==='render'?['cases','output-dir','feedback']:['cases','output-dir'];
+    const allowed=action==='save'?['work-dir','request']:action==='review'?['cases','request']:action==='export-review'?['cases','request','output-dir','presentation']:action==='serve'?['cases','output-dir','feedback','idle-minutes','presentation','ai-context']:action==='render'?['cases','output-dir','feedback','presentation','ai-context']:['cases','output-dir'];
     const required=action==='save'?['work-dir','request']:action==='review'?['cases','request']:action==='export-review'?['cases','request','output-dir']:['cases','output-dir'];
     const flags=parseFlags(args,allowed,required);await toolInfo();
     if(action==='save')return saveCases({workDir:flags['work-dir'],request:await readJSON(await safePath(flags.request,{existing:true}))});
     if(action==='review')return reviewCases({casesFile:flags.cases,request:await readJSON(await safePath(flags.request,{existing:true}))});
-    if(action==='render')return renderCases({casesFile:flags.cases,outputDir:flags['output-dir'],feedbackFile:flags.feedback});
-    if(action==='export-review')return exportReviewFeedback({casesFile:flags.cases,request:await readFeedbackInput(flags.request),outputDir:flags['output-dir']});
+    if(action==='render')return renderCases({casesFile:flags.cases,outputDir:flags['output-dir'],feedbackFile:flags.feedback,presentationFile:flags.presentation,aiContextFile:flags['ai-context']});
+    if(action==='export-review')return exportReviewFeedback({casesFile:flags.cases,request:await readFeedbackInput(flags.request),outputDir:flags['output-dir'],...(flags.presentation?{presentation:await readPresentation(flags.presentation)}:{})});
     if(action==='serve'){
       if(flags['idle-minutes']&&!/^[1-9]\d*$/.test(flags['idle-minutes']))fail('Idle minutes must be a positive integer.');
-      const session=await startReviewSession({casesFile:flags.cases,outputDir:flags['output-dir'],feedbackFile:flags.feedback,...(flags['idle-minutes']?{idleMinutes:Number(flags['idle-minutes'])}:{})});return session.info;
+      const session=await startReviewSession({casesFile:flags.cases,outputDir:flags['output-dir'],feedbackFile:flags.feedback,presentationFile:flags.presentation,aiContextFile:flags['ai-context'],...(flags['idle-minutes']?{idleMinutes:Number(flags['idle-minutes'])}:{})});return session.info;
     }
     return verifyCaseDocuments({casesFile:flags.cases,outputDir:flags['output-dir']});
   }
@@ -155,7 +156,7 @@ No model calls, automatic UI actions, request replay or automatic business verdi
     if (parseRequest(request).kind !== action) fail('Execution action and request kind disagree.');
     return executeRequest({ runDir: flags['run-dir'], request });
   }
-  const options: Record<string, readonly string[]> = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir', 'execution-config', 'max-parallel-cases', 'binding'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'context', 'history-locations', 'delivery', 'allow-missing-screenshots'], 'verify-report': ['run-dir', 'report-dir'] };
+  const options: Record<string, readonly string[]> = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir', 'execution-config', 'max-parallel-cases', 'binding'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'presentation', 'context', 'history-locations', 'delivery', 'allow-missing-screenshots'], 'verify-report': ['run-dir', 'report-dir'] };
   const allowed = options[command];
   if (!allowed) fail('Unknown command. Use --help.');
   const required = command === 'tool-info' ? [] : command === 'report' ? ['run-dir'] : command === 'start' ? ['project-dir', 'cases', 'output-dir', 'binding'] : allowed;
@@ -173,7 +174,7 @@ No model calls, automatic UI actions, request replay or automatic business verdi
   if (command === 'progress') return progress(flags['run-dir']);
   if (command === 'check') return check(flags['run-dir']);
   if (command === 'verify-report') return verifyReport(flags['run-dir'], flags['report-dir']);
-  return report(flags['run-dir'], { outputDir: flags['output-dir'] ?? flags['run-dir'], contextFile: flags.context, ...(flags['history-locations']?{historyLocationsFile:flags['history-locations']}:{}) , deliveryMode: flags.delivery === undefined ? 'auto' : flags.delivery === 'auto' || flags.delivery === 'inline' || flags.delivery === 'bundle' ? flags.delivery : fail('Invalid delivery mode.'), allowMissingScreenshots: flags['allow-missing-screenshots'] === undefined ? false : flags['allow-missing-screenshots'] === 'true' ? true : flags['allow-missing-screenshots'] === 'false' ? false : fail('Invalid missing-screenshots flag.') });
+  return report(flags['run-dir'], { outputDir: flags['output-dir'] ?? flags['run-dir'], contextFile: flags.context, presentationFile:flags.presentation, ...(flags['history-locations']?{historyLocationsFile:flags['history-locations']}:{}) , deliveryMode: flags.delivery === undefined ? 'auto' : flags.delivery === 'auto' || flags.delivery === 'inline' || flags.delivery === 'bundle' ? flags.delivery : fail('Invalid delivery mode.'), allowMissingScreenshots: flags['allow-missing-screenshots'] === undefined ? false : flags['allow-missing-screenshots'] === 'true' ? true : flags['allow-missing-screenshots'] === 'false' ? false : fail('Invalid missing-screenshots flag.') });
 }
 // A linked Skill path and Node's resolved module URL can name the same entrypoint.
 // Resolve only the executable identity; run/evidence path guards remain unchanged.

@@ -43,6 +43,7 @@ export interface EgoLiteCaseInputAndNormalizedBaselineV9 {
   }[];
   writeRequestSha256: string;
   savedAt: string;
+  aiContext?: AiContext;
 }
 export interface Case {
   id: string;
@@ -98,4 +99,16 @@ export interface ParameterDefinition {
   type: 'string' | 'integer' | 'decimal' | 'date' | 'object_ref' | 'account_ref';
   purpose: string;
   constraints: string[];
+}
+export interface AiContext {
+  /**
+   * @minItems 1
+   */
+  uses: {
+    model: string | null;
+    reasoningEffort: string | null;
+    sourceKind: 'host_metadata' | 'user_statement' | 'unknown';
+    source: SourceReference;
+    scope: string;
+  }[];
 }

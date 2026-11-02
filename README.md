@@ -20,7 +20,7 @@
 
 ## 当前版本
 
-当前源码为 **0.1.8-rc.2 / conversation-review-1**，尚未正式发布。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。最近正式版本仍为 [0.1.7](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。
+当前源码为 **0.1.8-rc.2 / report-language-model-1**，尚未正式发布。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。最近正式版本仍为 [0.1.7](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。当前修订增加[报告语言与两阶段模型来源](docs/v0.1.8-report-language-model-design.md)、长编号布局及首次执行范围文案。
 
 新增通用对话证据、每步输入/回复摘要和方案2完整对话侧栏；四层质量改进覆盖预期/时机核对、原文取证、可读描述和来源校验，详见[本次设计及验证](docs/v0.1.8-conversation-review.md)。主契约仍为v9，独立对话格式为conversationVersion 1；历史运行与报告不改写。
 

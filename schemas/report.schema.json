@@ -315,6 +315,29 @@
       "additionalProperties": {
         "$ref": "common.schema.json#/$defs/conversationArtifact"
       }
+    },
+    "aiContext": {
+      "$ref": "common.schema.json#/$defs/aiContext"
+    },
+    "presentation": {
+      "type": "object",
+      "required": [
+        "language",
+        "messages"
+      ],
+      "properties": {
+        "language": {
+          "type": "string",
+          "minLength": 1
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
   "required": [
