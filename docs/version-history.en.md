@@ -4,9 +4,11 @@
 
 The AI interprets goals and judges business outcomes, Ego operates the browser, and local tools retain evidence and deliver reports.
 
-![Newest first: v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
+![Newest first: v0.1.8 candidate (not released), then v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
 
 ## v0.1.8 · RC.2 development candidate (not released)
+
+Current revision report-language-model-1 adds user-language reports, stage-specific model/reasoning provenance, wrapping long IDs and baseline-aware scope labels. Original evidence is not translated, and model metadata does not establish business correctness. See [local validation](v0.1.8-report-language-model-validation.md).
 
 This candidate adds provider-neutral conversation evidence, step input/reply summaries, the selected drawer/fullscreen reader and four quality layers. See the [conversation design and validation](v0.1.8-conversation-review.md). Earlier candidate validation remains historical; optional v9 fields and conversationVersion 1 do not rewrite existing data.
 
@@ -14,7 +16,7 @@ Implements the approved lean case/review/run design, stable-point scope, downloa
 
 ## v0.1.7 · Report reading, resource clarification and regression reuse
 
-The current `0.1.7 / report-step-evidence-1` release uses schema v8. It integrates whole-scope resource communication, first-run tasks/rules, independent run binding and goal comparisons. The [scheme-B reader](v0.1.7-step-evidence.md) places actual steps beside evidence, retaining all goals, expectations and history without inventing execution or changing outcomes. The [v0.1.7 preview](v0.1.7-preview.md) remains historical; broader quality evaluation is not claimed complete.
+The `0.1.7 / report-step-evidence-1` release uses schema v8. It integrates whole-scope resource communication, first-run tasks/rules, independent run binding and goal comparisons. The [scheme-B reader](v0.1.7-step-evidence.md) places actual steps beside evidence, retaining all goals, expectations and history without inventing execution or changing outcomes. The [v0.1.7 preview](v0.1.7-preview.md) remains historical; broader quality evaluation is not claimed complete.
 
 Branch verification, documentation/image changes and review gates: [cloud review](v0.1.7-cloud-review.md). 2026-10-31: [release, full package and checksums](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7). See [release validation](v0.1.7-release-validation.md).
 

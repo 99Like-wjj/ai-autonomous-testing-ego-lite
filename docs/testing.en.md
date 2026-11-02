@@ -1,5 +1,12 @@
 # Validation record and coverage limits
 
+## v0.1.8 current development candidate (2026-11-02, not released)
+
+Current identity is 0.1.8-rc.2 / report-language-model-1, with contracts v9, regressionVersion 2 and networkVersion 1. The latest [local validation record](v0.1.8-report-language-model-validation.md) reports 227 engineering tests: 226 passed, none failed and one skipped because Windows symlink privileges were unavailable. Both synthetic report types were checked in actual Ego pages in Chinese, English and French at widths of 390/768/1024/1440 pixels. These are scoped local results, not a cloud rerun or real business UAT.
+
+Earlier [development validation](v0.1.8-development-validation.md), [case review/save validation](v0.1.8-case-review.md) and [conversation review](v0.1.8-conversation-review.md) retain their individual scope. No formal release or automatic installed-Skill update is implied. Historical reports stay unchanged. All sections below are historical: their old commands, formats and then-planned capabilities are not current usage instructions.
+
+
 ## v0.1.7 release finalization (2026-10-31)
 
 The owner approved merging and publication. Package and Skill metadata are 0.1.7, revision report-step-evidence-1; the stable package and Codex display names have no dev/rc suffix. Linux / Node.js 24.22.1: 213 tests, 212 passed, 0 failed, 1 Windows-only checkpoint replacement-recovery skip. Type, contract/build, publication and Git diff checks passed. All 312 SVG text elements fit their canvases; 12 changed version illustrations were visually reviewed. See [release validation](v0.1.7-release-validation.md) for complete-package and ZIP verification scope. No real Ego/UAT rerun or automatic user installation; the sections below preserve historical stage results.

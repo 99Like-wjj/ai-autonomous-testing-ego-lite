@@ -51,7 +51,7 @@ export async function generateImages(outputDir: string) {
       [t('Browser actions', '浏览器操作'), t('Ego native tools', 'Ego 原生能力'), t('Read pages and act', '读取页面与执行动作')],
       [t('Records & evidence', '记录与证据'), t('Project toolbox', '本项目工具'), t('Retain facts and links', '保存事实与证据关联')],
       [t('Network observation', '接口观测'), t('Project toolbox', '本项目工具'), t('Scoped capture / query', '按授权采集与查询')],
-      [t('Regression assets', '回归资料'), t('Project toolbox', '本项目工具'), t('Tasks, rules, comparison', '任务 / 规则与运行比较')],
+      [t('Regression assets', '回归资料'), t('Project toolbox', '本项目工具'), t('Cases / run history', '用例版本与运行比较')],
       [t('Report generation', '报告生成'), t('Project toolbox', '本项目工具'), t('Present facts / evidence', '组织事实、证据与结果')]
     ];
     for (const [i, rows] of capabilities.entries()) {
@@ -94,12 +94,12 @@ export async function generateImages(outputDir: string) {
     p.push(...["</g>"]);
     p.push(rect(50, 770, 1100, 165, 'panel', 'violet'));
     p.push(text(78, 807, t('Reuse facts, never freeze defects as expectations.', '复用事实，不把缺陷固化成正确预期。'), 25, 'violet', 700));
-    p.push(text(78, 847, t('Status selection → whole scenarios  |  Full → declared complete set', '按历史状态选整条场景  |  全量选择明确测试集，保留受阻与缺口'), 22));
-    p.push(text(78, 883, t('Verify current conditions → new run → fresh evidence → compare', '核验本轮条件与授权 → 独立新运行 → 新证据 → 有依据地比较'), 21, 'muted'));
+    p.push(text(78, 847, t('Points: selected IDs  |  Status: whole scenarios  |  Full: declared set', '编号选点  |  状态选整条场景  |  全量选明确测试集'), 22));
+    p.push(text(78, 883, t('Keep required dependencies → new run → fresh evidence → compare', '保留必要依赖，核验条件 → 独立新运行 → 新证据 → 比较'), 21, 'muted'));
     p.push(text(78, 915, t('AI chooses actions. Unknown side effects are not automatically replayed.', 'AI 自主选择方法；未知副作用先核对，不自动重放。'), 19, 'muted'));
     p.push(text(50, 974, t('0.1.8-rc.2 / Capability guide, not a mandatory execution sequence.', '0.1.8-rc.2 / 能力示意，非强制执行顺序。'), 17, 'muted'));
     await save(outputDir, ("workflow" + suffix), p, png);
-    p = start(t('Scheme B report reading — illustration', '方案 B 报告阅读 — 能力示意'), 760);
+    p = start(t('Scheme B report reading — illustration', '方案 B 报告阅读 — 能力示意'), 870);
     p.push(text(50, 52, t('0.1.8-rc.2 / SCHEMATIC, NOT A REAL REPORT SCREENSHOT', '0.1.8-rc.2 / 布局示意，非真实报告截图'), 18, 'violet', 700));
     p.push(text(50, 103, t('Start with the issue. Read steps beside evidence.', '先看问题与预期，再对照实际步骤和证据。'), 32, 'text', 700));
     p.push(rect(50, 134, 1100, 120));
@@ -118,9 +118,12 @@ export async function generateImages(outputDir: string) {
     p.push(text(650, 428, t('Illustrative placeholder — not evidence', '示意占位，不是真实证据'), 20, 'muted'));
     p.push(text(628, 514, t('Shared material and gaps stay explicit.', '共享资料、关联范围及缺口明确说明。'), 19, 'muted'));
     p.push(rect(50, 582, 1100, 104));
-    p.push(text(76, 622, t('Scope disclosures ▸ task/rule details ▸ original records and history', '范围说明 ▸ 任务 / 规则明细 ▸ 原始记录与历史'), 22, 'cyan'));
+    p.push(text(76, 622, t('Scope and case details ▸ original evidence ▸ exact run history', '范围与用例明细 ▸ 原始证据 ▸ 精确运行历史'), 22, 'cyan'));
     p.push(text(76, 660, t('Reader notes organize sourced facts; they never rewrite business outcomes.', '阅读整理仅组织有来源的事实，不改写业务四态。'), 20, 'muted'));
-    p.push(text(50, 733, t('Synthetic illustration only. No real product execution or benchmark is claimed.', '纯合成示意；不代表真实产品执行、缺陷或基准测试。'), 18, 'muted'));
+    p.push(text(50, 724, t('User language for report text; original evidence stays unchanged.', '报告跟随用户语言，原始证据保持原文。'), 21, 'cyan'));
+    p.push(text(50, 761, t('Each report shows its stage model and reasoning effort, with sources or unknowns.', '两类报告各展示对应阶段的模型与思考等级，保留来源和未知项。'), 20));
+    p.push(text(50, 797, t('Conversation summaries open retained originals; long scene IDs wrap in full.', '对话摘要可展开原件；长场景编号完整换行。'), 20, 'muted'));
+    p.push(text(50, 843, t('Illustration only. Model names do not prove business correctness.', '仅为能力示意，非实测截图；模型名称不能证明业务判断正确。'), 18, 'muted'));
     await save(outputDir, ("result-specimen" + suffix), p, png);
     p = start(t("Configurable parallel testing", "可配置的并行测试"), 580);
     p.push(text(50, 62, t("AI coordinates. Workers deliver evidence.", "AI 自主协调，分例执行，证据汇总。"), 34, "text", 700));
@@ -145,7 +148,7 @@ export async function generateImages(outputDir: string) {
     p = start(t('Version history — newest first', '版本演变 — 最新版本在前'), 1080, 840);
     p.push(text(48, 65, t('Developed versions, newest first', '已开发版本，最新在前'), 34, 'text', 700));
     const historyVersions = [
-      { version: 'v0.1.8', state: t('RC.2 · NOT RELEASED', '候选 rc.2 · 未发布'), title: t('Case review, downloads and history', '用例审阅、下载核验与历史对照') },
+      { version: 'v0.1.8', state: t('RC.2 · NOT RELEASED', '候选 rc.2 · 未发布'), title: t('Case review + multilingual reports', '用例审阅、证据与多语言报告') },
       { version: 'v0.1.7', state: t('RELEASED', '正式发布'), title: t('Report reading + regression reuse', '报告阅读、资源澄清与回归复用') },
       { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') },
       { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
@@ -170,7 +173,7 @@ export async function generateImages(outputDir: string) {
       { version: 'v0.1.5', state: t('RELEASED', '正式版'), title: t('Clarify missing resources', '资源不足，主动澄清') },
       { version: 'v0.1.6', state: t('RELEASED', '正式版'), title: t('Experience + network observation', '测试经验、目标评估与接口观测') },
       { version: 'v0.1.7', state: t('RELEASED', '正式发布'), title: t('Report reading + reusable regression', '报告阅读、资源澄清与回归复用') },
-      { version: 'v0.1.8', state: t('RC.2 · NOT RELEASED', '候选 rc.2 · 未发布'), title: t('Case review, downloads and history', '用例审阅、下载核验与历史对照') }
+      { version: 'v0.1.8', state: t('RC.2 · NOT RELEASED', '候选 rc.2 · 未发布'), title: t('Case review + multilingual reports', '用例审阅、证据与多语言报告') }
     ]).reverse();
     p = start(t('Latest four versions — README overview', '最近四个版本 — README 概览'), 650, 840);
     p.push(text(48, 65, t('Latest version + three previous versions', '最新版本与前三个历史版本'), 32, 'text', 700));

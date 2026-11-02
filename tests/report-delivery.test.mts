@@ -110,8 +110,8 @@ test('standalone package contains resolvable guides/scripts/schemas and runs fro
     assert.deepEqual(await fs.readFile(path.join(bundle, 'scripts/ego.mjs')), await fs.readFile(path.join(TOOL_ROOT, 'scripts/ego.mjs')));
     const manifest = await read(path.join(bundle, 'runtime-manifest.json'));
     const manifestFiles = objectValue(manifest.files);
-    for (const name of ['agents/openai.yaml', 'docs/rename-upgrade.md', 'references/resource-readiness.md', 'docs/version-history.md', 'docs/version-history.en.md', 'docs/v0.1.5-local-acceptance.md', 'docs/images/version-history.svg', 'docs/images/version-history.zh-CN.svg', 'docs/images/version-history.png', 'docs/images/version-history.zh-CN.png']) {
-        assert.ok(Object.hasOwn(manifestFiles, name), 'Required readiness/history asset must be shipped: ' + name);
+    for (const name of ['agents/openai.yaml', 'references/resource-readiness.md', 'references/download-files.md', 'docs/asset-formats.md', 'docs/case-review.md', 'docs/third-party-notices.md', 'vendor/THIRD-PARTY-LICENSES.txt']) {
+        assert.ok(Object.hasOwn(manifestFiles, name), 'Required operational asset must be shipped: ' + name);
         assert.deepEqual(await fs.readFile(path.join(bundle, name)), await fs.readFile(path.join(TOOL_ROOT, name)));
     }
     for (const name of Object.keys(manifestFiles).filter(name => name.endsWith('.md'))) {

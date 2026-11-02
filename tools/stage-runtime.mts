@@ -2,6 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { checkRuntimePackage } from './check-runtime-package.mjs';
 import { runtimeFiles, referenceNames, TOOL_VERSION, TOOL_REVISION } from '../src/contracts/layout.mjs';
 
 const args = process.argv.slice(2);
@@ -40,6 +41,7 @@ for (const name of [...entries.map(entry => entry.destination), 'package.json'].
   files[name] = { bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') };
 }
 await fs.writeFile(await safe(path.join(target, 'runtime-manifest.json')), JSON.stringify({ manifestVersion: 1, version: TOOL_VERSION, toolRevision: TOOL_REVISION, files }, null, 2) + '\n');
+await checkRuntimePackage(target, [...entries.map(entry => entry.destination), 'package.json', 'runtime-manifest.json']);
 const { toolInfo } = await import('../src/scripts/toolchain.mjs');
 const checked = await toolInfo(target);
 process.stdout.write(JSON.stringify({ runtimeRoot: target, files: checked.fileCount, fingerprint: checked.fingerprint }) + '\n');

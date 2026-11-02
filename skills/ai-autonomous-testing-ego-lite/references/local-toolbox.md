@@ -35,7 +35,7 @@ execution query viewVersion 9 默认 metadata，明确未检查 results 和物�
 
 ## 下载与文件
 
-ego-helpers/download.mjs 由 AI 的同轮 Ego 脚本导入，await armNativeDownload 后再点击，collect 在同轮 saveAs。工具不创建 Space 或选择按钮。临时页漏收时显式调用 listDownloadCandidates/retainDownloadCandidate，按动作前后新 ID 和精确授权 URL 关联，不选最新同名文件，不自动 fetch。能力与限制详见下载设计 docs/v0.1.8-download-design.md。
+ego-helpers/download.mjs 由 AI 的同轮 Ego 脚本导入，await armNativeDownload 后再点击，collect 在同轮 saveAs。工具不创建 Space 或选择按钮。临时页漏收时显式调用 listDownloadCandidates/retainDownloadCandidate，按动作前后新 ID 和精确授权 URL 关联，不选最新同名文件，不自动 fetch。能力与限制详见[下载与只读文件检查](download-files.md)。
 
 ```json
 {"schemaVersion":9,"file":"C:/example/testing/runs/run-001/captures/export/original.bin","format":"csv","maxBytes":33554432,"maxOutputBytes":4194304,"maxCells":100000,"timeoutMs":60000}

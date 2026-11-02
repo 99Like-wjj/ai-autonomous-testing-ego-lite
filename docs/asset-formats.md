@@ -14,7 +14,7 @@ requiredRefs 使用 condition:id、step:id、requiredPath。points 投影保留�
 
 ## 审阅与冻结
 
-用例HTML/Markdown采用documentVersion 2的内部展示模型：场景/用例总览、三栏评审和可选initialFeedback副本。它不改变v9用例定义、编号或用例指纹。新文档写入新目录，旧文件原样保留。cases serve和cases export-review原生保存意见HTML/JSON及exportVersion 1交付清单；这些是意见副本，不是相邻正式审阅记录。来源与范围校验、Windows区域标记处理及私有本机入口见[审阅保存说明](v0.1.8-case-review.md)。
+用例HTML/Markdown采用documentVersion 2的内部展示模型：场景/用例总览、三栏评审和可选initialFeedback副本。它不改变v9用例定义、编号或用例指纹。新文档写入新目录，旧文件原样保留。cases serve和cases export-review原生保存意见HTML/JSON及exportVersion 1交付清单；这些是意见副本，不是相邻正式审阅记录。来源与范围校验、Windows区域标记处理及私有本机入口见[审阅保存说明](case-review.md)。
 
 case-review 保存精确 casesRef、reviewNumber、pointIds、工具计算的目标指纹、意见、实际 source/sourceKind、委托来源及记录指纹。离线反馈字段不是人类身份认证。较新的修改要求不能挑旧确认绕过；未改目标可按指纹复用旧确认。
 
@@ -60,6 +60,6 @@ v9在用例、RecordPayload及report-context中增加可选aiContext，uses项�
 
 两类文档可传--presentation JSON，包含language与messages；固定文案键见report/ui-catalog.mjs，其他语言必须提供完整映射，不能静默回退。HTML、Markdown与JSON同源保存展示参数；模板只替换明确标记的固定片段，插值中的原始事实不翻译。Node使用异步上下文隔离不同报告语言。
 
-用例文档读取已保存生成来源；可用--ai-context传入精确casesRef绑定的事后补充，并保留其指纹。执行报告仅汇总本轮入账和本次阅读整理的来源，形成一处test_execution展示，不混入用例生成或历史父运行配置。两阶段及展示规则见[设计方案](v0.1.8-report-language-model-design.md)。
+用例文档读取已保存生成来源；可用--ai-context传入精确casesRef绑定的事后补充，并保留其指纹。执行报告仅汇总本轮入账和本次阅读整理的来源，形成一处test_execution展示，不混入用例生成或历史父运行配置。两阶段及展示规则见ToolRoot/references/report-language-model.md 使用指南。
 
 新增字段和展示需配套当前工具修订；旧工具可能拒绝新增字段。已有文件不自动改写，旧HTML可独立阅读，精确校验旧展示应使用原工具修订。补充或换语言时另存新文件。

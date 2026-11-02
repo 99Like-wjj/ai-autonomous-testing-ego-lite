@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
+import { checkRuntimePackage } from './check-runtime-package.mjs';
 import { runtimeEntries, regularBytes, toolInfo, TOOL_ROOT, SOURCE_ROOT } from '../src/scripts/toolchain.mjs';
 import type { FileFingerprint } from '../src/scripts/toolchain.mjs';
 import { errorInfo, inside, object } from '../src/core/common.mjs';
@@ -35,6 +36,7 @@ export async function buildSkill(outputDir: string) {
     files[name] = { bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') };
   }
   await fs.writeFile(path.join(target, 'runtime-manifest.json'), JSON.stringify({ manifestVersion: 1, version: pkg.version, toolRevision: pkg.egoLiteTest.toolRevision, files }, null, 2) + '\n', { flag: 'wx' });
+  await checkRuntimePackage(target, [...entries.map(entry => entry.destination), 'package.json', 'runtime-manifest.json']);
   const verified = await toolInfo(target);
   return { outputDir: target, version: verified.version, toolRevision: verified.toolRevision, files: verified.fileCount, fingerprint: verified.fingerprint };
 }
