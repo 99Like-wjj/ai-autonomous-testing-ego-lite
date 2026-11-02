@@ -69,14 +69,18 @@ test('feedback follows all project sections and precedes the final license in bo
   }
 });
 
-test('README highlights the current version while retaining the detailed 0.1.6 history', async () => {
-  for (const [readme, history, heading, oldHeading, detail] of [
-    ['README.md', 'docs/version-history.md', '## 0.1.7 做了什么', '## v0.1.6 已交付的基础能力', '### 0.1.6 能力补充与验证依据'],
-    ['README.en.md', 'docs/version-history.en.md', '## What changed in 0.1.7', '## Capabilities delivered in v0.1.6', '### v0.1.6 detailed capabilities and validation sources']
+test('README introduces only the latest version while retaining prior-version history elsewhere', async () => {
+  const pkg = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'package.json'), 'utf8')) as { version: string };
+  const latest = pkg.version.split('-')[0];
+  for (const [readme, history, pattern, detail] of [
+    ['README.md', 'docs/version-history.md', /^## (\d+\.\d+\.\d+) 做了什么$/gm, '### 0.1.6 能力补充与验证依据'],
+    ['README.en.md', 'docs/version-history.en.md', /^## What changed in (\d+\.\d+\.\d+)$/gm, '### v0.1.6 detailed capabilities and validation sources']
   ] as const) {
     const current = await fs.readFile(path.join(SOURCE_ROOT, readme), 'utf8');
     const previous = await fs.readFile(path.join(SOURCE_ROOT, history), 'utf8');
-    assert.ok(current.includes(heading)); assert.ok(!current.includes(oldHeading));
+    assert.deepEqual([...current.matchAll(pattern)].map(match => match[1]), [latest], `${readme}: only latest-version introduction is allowed`);
+    assert.ok(current.includes(history), `${readme}: retain full history navigation`);
+    assert.match(previous, /^## v0\.1\.7 /m);
     assert.ok(previous.includes(detail));
     for (const topic of ['v0.1.6-development-validation.md', 'v0.1.6-goal-assessment-validation.md', 'v0.1.6-network-validation.md', 'v0.1.6-cross-host-integration.md']) assert.ok(previous.includes(topic));
   }

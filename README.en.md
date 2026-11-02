@@ -49,10 +49,6 @@ Regression interfaces and behavior are documented in [regression assets](docs/re
 
 All current test-asset JSON contracts use **schemaVersion 9**, and execution query viewVersion is 9. Older formats are explicitly rejected, without readers or converters. Keep historical reports, files and runs unchanged; prepare new v9 cases from original sources instead of changing only version fields. See [formats](docs/asset-formats.en.md).
 
-## What changed in 0.1.7
-
-The previous stable release focused on report reading, whole-scope resource clarification and reusable first-run results. Its full description and validation remain in [version history](docs/version-history.en.md); old task/rule write interfaces are not current v9 usage.
-
 ## Cases, evidence and delivery
 
 ![AI adapts the method while preserving business goals and four explicit outcomes.](docs/images/workflow.png)
