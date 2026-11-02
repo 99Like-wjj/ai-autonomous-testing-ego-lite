@@ -7,7 +7,7 @@ import { SOURCE_ROOT } from '../src/scripts/ego.mjs';
 test('both READMEs retain the documented visual sections and historical navigation', async () => {
   for (const [file, suffix, history] of [['README.md', '.zh-CN', 'docs/version-history.md'], ['README.en.md', '', 'docs/version-history.en.md']] as const) {
     const text = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
-    for (const name of ['design-philosophy', 'hero', 'readme-version-history', 'workflow', 'result-specimen', 'parallel']) {
+    for (const name of ['design-philosophy', 'hero', 'readme-version-history', 'workflow', 'parallel']) {
       const pattern = new RegExp('docs/images/' + name + suffix.replaceAll('.', '\\.') + '\\.(?:png|svg)');
       const match = text.match(pattern);
       assert.ok(match, `${file}: missing ${name} diagram reference`);
@@ -33,13 +33,13 @@ test('README timeline contains four versions and labels the current release cons
     assert.equal(versions[0], current);
     if (!pkg.version.includes('-')) {
       assert.equal(stable, pkg.version);
-      assert.doesNotMatch(svg, /RC\.1|候选|NOT RELEASED|未发布/);
+      assert.doesNotMatch(svg, /RC\.2|候选|NOT RELEASED|未发布/);
       assert.match(svg, /RELEASED|正式发布/);
     }
     else {
       assert.ok(readme.includes(pkg.version));
       assert.equal(versions[1], stable);
-      assert.match(svg, /RC\.1 · NOT RELEASED|候选 rc\.1 · 未发布/);
+      assert.match(svg, /RC\.2 · NOT RELEASED|候选 rc\.2 · 未发布/);
     }
     assert.ok((await fs.stat(path.join(SOURCE_ROOT, `docs/images/version-history${suffix}.svg`))).size > 0);
   }
@@ -48,9 +48,9 @@ test('README timeline contains four versions and labels the current release cons
  test('current illustrations explain report and regression boundaries in both languages', async () => {
   for (const suffix of ['', '.zh-CN']) {
     const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
-    assert.match(await read('hero'), /0\.1\.7/);
+    assert.match(await read('hero'), /0\.1\.8/);
     assert.match(await read('hero'), /STABLE RELEASE|正式版本/);
-    assert.doesNotMatch(await read('hero'), /rc\.1|NOT RELEASED|尚未发布/);
+    assert.doesNotMatch(await read('hero'), /RC\.2|NOT RELEASED|未发布/);
     assert.match(await read('workflow'), /whole scenarios|整条场景/);
     assert.match(await read('workflow'), /not automatically replayed|不自动重放/);
     assert.match(await read('result-specimen'), /NOT A REAL REPORT SCREENSHOT|非真实报告截图/);
@@ -69,14 +69,18 @@ test('feedback follows all project sections and precedes the final license in bo
   }
 });
 
-test('README highlights the current version while retaining the detailed 0.1.6 history', async () => {
-  for (const [readme, history, heading, oldHeading, detail] of [
-    ['README.md', 'docs/version-history.md', '## 0.1.7 做了什么', '## v0.1.6 已交付的基础能力', '### 0.1.6 能力补充与验证依据'],
-    ['README.en.md', 'docs/version-history.en.md', '## What changed in 0.1.7', '## Capabilities delivered in v0.1.6', '### v0.1.6 detailed capabilities and validation sources']
+test('README introduces only the latest version while retaining prior-version history elsewhere', async () => {
+  const pkg = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'package.json'), 'utf8')) as { version: string };
+  const latest = pkg.version.split('-')[0];
+  for (const [readme, history, pattern, detail] of [
+    ['README.md', 'docs/version-history.md', /^## (\d+\.\d+\.\d+) 做了什么$/gm, '### 0.1.6 能力补充与验证依据'],
+    ['README.en.md', 'docs/version-history.en.md', /^## What changed in (\d+\.\d+\.\d+)$/gm, '### v0.1.6 detailed capabilities and validation sources']
   ] as const) {
     const current = await fs.readFile(path.join(SOURCE_ROOT, readme), 'utf8');
     const previous = await fs.readFile(path.join(SOURCE_ROOT, history), 'utf8');
-    assert.ok(current.includes(heading)); assert.ok(!current.includes(oldHeading));
+    assert.deepEqual([...current.matchAll(pattern)].map(match => match[1]), [latest], `${readme}: only latest-version introduction is allowed`);
+    assert.ok(current.includes(history), `${readme}: retain full history navigation`);
+    assert.match(previous, /^## v0\.1\.7 /m);
     assert.ok(previous.includes(detail));
     for (const topic of ['v0.1.6-development-validation.md', 'v0.1.6-goal-assessment-validation.md', 'v0.1.6-network-validation.md', 'v0.1.6-cross-host-integration.md']) assert.ok(previous.includes(topic));
   }
@@ -87,11 +91,11 @@ test('version history pages and diagrams list developed versions newest first, e
     const full = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/version-history${suffix}.svg`), 'utf8');
     const recent = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/readme-version-history${suffix}.svg`), 'utf8');
     const versions = (svg: string) => [...svg.matchAll(/>v(\d+\.\d+\.\d+)</g)].map(match => match[1]);
-    assert.deepEqual(versions(full), ['0.1.7', '0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2']);
-    assert.deepEqual(versions(recent), ['0.1.7', '0.1.6', '0.1.5', '0.1.4']);
+    assert.deepEqual(versions(full), ['0.1.8', '0.1.7', '0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2']);
+    assert.deepEqual(versions(recent), ['0.1.8', '0.1.7', '0.1.6', '0.1.5']);
     const page = await fs.readFile(path.join(SOURCE_ROOT, suffix ? 'docs/version-history.md' : 'docs/version-history.en.md'), 'utf8');
-    assert.deepEqual([...page.matchAll(/^## v(\d+\.\d+\.\d+)/gm)].map(match => match[1]), ['0.1.7', '0.1.6', '0.1.5']);
-    assert.ok(!page.includes('v0.1.8'));
+    assert.deepEqual([...page.matchAll(/^## v(\d+\.\d+\.\d+)/gm)].map(match => match[1]), ['0.1.8', '0.1.7', '0.1.6', '0.1.5']);
+    assert.match(page,/0\.1\.8.*(?:正式版本|Stable release)/);
   }
 });
 
@@ -113,4 +117,29 @@ test('approved philosophy precedes version details and architecture visuals rema
     assert.match(diagram, /Authorization|授权边界/);
     assert.match(diagram, /No fixed business decision tree|不把业务测试写成固定决策树/);
   }
+});
+
+const realExamples = ['case-review-real-overview', 'case-review-real-example', 'real-report-overview', 'real-report-violation', 'real-report-verified', 'real-report-not-tested', 'real-report-blurred-preview'];
+test('README shows reviewed real excerpts rather than a simulated report diagram', async () => {
+  for (const file of ['README.md', 'README.en.md']) {
+    const page = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
+    assert.doesNotMatch(page, /!\[[^\]]*\]\(docs\/images\/result-specimen/);
+    assert.match(page, /35.*117/);
+    assert.match(page, /2.*7/);
+    assert.match(page, /设计样稿|design prototype/);
+    assert.match(page, /不能用它复核原始证据完整性|original evidence completeness can be reverified/);
+    assert.match(page, /强模糊占位|heavily blurred, privacy-processed placeholders/);
+    assert.match(page, /不表示像素级保真|do not imply pixel-level fidelity/);
+    assert.match(page, /不代表该目标已执行或验证|does not mean the goal was executed or verified/);
+    assert.doesNotMatch(page, /netlify\.app/);
+    for (const name of realExamples) {
+      const target = `docs/images/real-example/${name}.jpg`;
+      assert.ok(page.includes(target), `${file}: missing real excerpt ${name}`);
+      const bytes = await fs.readFile(path.join(SOURCE_ROOT, target));
+      assert.equal(bytes.subarray(0, 3).toString('hex'), 'ffd8ff');
+      assert.equal(bytes.subarray(-2).toString('hex'), 'ffd9');
+    }
+  }
+  const files = await fs.readdir(path.join(SOURCE_ROOT, 'docs/images/real-example'));
+  assert.deepEqual(files.sort(), realExamples.map(name => `${name}.jpg`).sort());
 });

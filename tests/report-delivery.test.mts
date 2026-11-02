@@ -1,3 +1,4 @@
+import { syntheticCase, syntheticCases, prepareSyntheticBinding, startSyntheticRun } from './synthetic-cases.mjs';
 import type { TestContext } from 'node:test';
 import { at, readJson as read, objectValue } from './support.mjs';
 import { validateReportContext } from '../src/report/delivery.mjs';
@@ -27,56 +28,72 @@ async function temporary(t: TestContext) {
     return root;
 }
 function cases() {
-    return { schemaVersion: 8, project: 'Synthetic report delivery only', cases: ['original', 'extra'].map(id => ({
+    return syntheticCases(['original', 'extra'].map(id => (syntheticCase({
         id, title: 'Synthetic ' + id, criticalConditions: [], requiredPath: null, stepOrder: 'strict',
         steps: [{ id: 'inspect', action: 'Inspect the synthetic result.' }],
-        goals: ['visible','scope'].map(goal => ({id: goal, title:'Synthetic '+goal, basis: {kind:'explicit',source:'Synthetic fixture',text:'Synthetic expectation.'}, expected: 'Synthetic '+goal+' result.',requiredRefs:['step:inspect']}))
-    })) };
+        goals: ['visible', 'scope'].map(goal => ({ id: goal, title: 'Synthetic ' + goal, basis: { kind: 'explicit', source: 'Synthetic fixture', text: 'Synthetic expectation.' }, expected: 'Synthetic ' + goal + ' result.', requiredRefs: ['step:inspect'] }))
+    }))), 'Synthetic report delivery only');
 }
 async function fixture(t: TestContext) {
-    const root=await temporary(t),project=path.join(root,'project'),run=path.join(root,'run');await init(project);
-    const input=path.join(project,'cases.json');await write(input,cases());await start({projectDir:project,casesFile:input,outputDir:run});
-    const source=path.join(root,'source.txt');await fs.writeFile(source,'Synthetic observation, not a screenshot.');
-    const ev=await registerEvidence({runDir:run,request:{schemaVersion:8,operationId:'ev',expectedRevision:0,caseId:'original',sourceFile:source,kind:'other',source:'Synthetic observer',description:'Synthetic text evidence.'}});
-    await recordResult({runDir:run,request:{schemaVersion:8,operationId:'first-attempt',expectedRevision:0,caseId:'original',mode:'attempt',record:{observations:[{id:'first',summary:'Initial uncertainty preserved.',coveredRefs:['step:inspect'],evidenceIds:[ev.evidenceId]}],assessments:[{goalId:'visible',status:'inconclusive',rationale:'Action confirmation missing.',observationIds:['first'],gaps:['Need independent readback.']}]}}});
-    await recordResult({runDir:run,request:{schemaVersion:8,operationId:'final',expectedRevision:1,caseId:'original',mode:'final',record:{observations:[{id:'readback',summary:'Synthetic valid readback.',coveredRefs:['step:inspect'],evidenceIds:[ev.evidenceId]}],assessments:[{goalId:'visible',status:'violation',rationale:'Readback contradicts the explicit expected result.',observationIds:['readback'],gaps:[],diagnosis:{state:'unknown',category:'unknown',summary:'Business violation established; implementation cause unknown.',evidenceIds:[]}},{goalId:'scope',status:'not_tested',rationale:'User deferred the second identity.',observationIds:[],gaps:['Second identity unavailable.']}]}}});
-    return {root,project,run,source,evidenceId:ev.evidenceId};
+    const root = await temporary(t), project = path.join(root, 'project'), run = path.join(root, 'run');
+    await init(project);
+    const input = path.join(project, 'cases', 'v001.json');
+    await write(input, cases());
+    await startSyntheticRun({ projectDir: project, casesFile: input, outputDir: run });
+    const source = path.join(root, 'source.txt');
+    await fs.writeFile(source, 'Synthetic observation, not a screenshot.');
+    const ev = await registerEvidence({ runDir: run, request: { schemaVersion: 9, operationId: 'ev', expectedRevision: 0, caseId: 'original', sourceFile: source, kind: 'other', source: 'Synthetic observer', description: 'Synthetic text evidence.' } });
+    await recordResult({ runDir: run, request: { schemaVersion: 9, operationId: 'first-attempt', expectedRevision: 0, caseId: 'original', mode: 'attempt', record: { observations: [{ id: 'first', summary: 'Initial uncertainty preserved.', coveredRefs: ['step:inspect'], evidenceIds: [ev.evidenceId] }], assessments: [{ goalId: 'visible', status: 'inconclusive', rationale: 'Action confirmation missing.', observationIds: ['first'], gaps: ['Need independent readback.'] }] } } });
+    await recordResult({ runDir: run, request: { schemaVersion: 9, operationId: 'final', expectedRevision: 1, caseId: 'original', mode: 'final', record: { observations: [{ id: 'readback', summary: 'Synthetic valid readback.', coveredRefs: ['step:inspect'], evidenceIds: [ev.evidenceId] }], assessments: [{ goalId: 'visible', status: 'violation', rationale: 'Readback contradicts the explicit expected result.', observationIds: ['readback'], gaps: [], diagnosis: { state: 'unknown', category: 'unknown', summary: 'Business violation established; implementation cause unknown.', evidenceIds: [] } }, { goalId: 'scope', status: 'not_tested', rationale: 'User deferred the second identity.', observationIds: [], gaps: ['Second identity unavailable.'] }] } } });
+    return { root, project, run, source, evidenceId: ev.evidenceId };
 }
-async function context(f:Awaited<ReturnType<typeof fixture>>) {
-    const value={schemaVersion:8,kind:'retrospective',summary:'Synthetic assembly after execution </script><img src=x>',limitations:['Synthetic missing screenshot; no new execution.'],sources:[{label:'Synthetic source',file:f.source,sha256:hash(await fs.readFile(f.source))}],supplementalCaseIds:['extra']};
-    const filename=path.join(f.root,'context.json');await write(filename,value);return {filename,value};
+async function context(f: Awaited<ReturnType<typeof fixture>>) {
+    const value = { schemaVersion: 9, kind: 'retrospective', summary: 'Synthetic assembly after execution </script><img src=x>', limitations: ['Synthetic missing screenshot; no new execution.'], sources: [{ label: 'Synthetic source', file: f.source, sha256: hash(await fs.readFile(f.source)) }], supplementalCaseIds: ['extra'] };
+    const filename = path.join(f.root, 'context.json');
+    await write(filename, value);
+    return { filename, value };
 }
 function payloadOf(html: string) {
     const encoded = html.match(/<script[^>]*id="report-data"[^>]*>([\s\S]*?)<\/script>/);
-    assert.ok(encoded); return objectValue(JSON.parse(at(encoded, 1)));
+    assert.ok(encoded);
+    return objectValue(JSON.parse(at(encoded, 1)));
 }
-
-test('retrospective reading notes are scoped, sourced and cannot override a goal result or fabricate execution', async t => {
-    const f=await fixture(t),ctx=await context(f),checked=await check(f.run),before=JSON.stringify(checked);
-    const note={caseId:'original',goalId:'visible',summary:'根据已留存文件整理的复核说明。',preparation:['核对原对象及权限。'],reviewSteps:['只读检查原文件所记结果。'],limitations:['事后建议，未重新执行，不代表原操作步骤。'],sourceLabels:['Synthetic source'],primaryEvidenceIds:[f.evidenceId],evidenceUses:[{evidenceId:f.evidenceId,purpose:'说明原结果',fact:'来源文件为合成观察。',limitations:['不是真实截图。']}]};
-    const valid=await validateReportContext({...ctx.value,goalNotes:[note]},checked);
-    assert.equal(JSON.stringify(checked),before);
-    checked.context=valid;
-    const payload=await htmlReportPayload(f.run,checked),html=htmlReport(payload),md=markdown(checked,payload);
-    assert.equal(checked.counts.violation,1);assert.equal(checked.counts.not_tested,1);
+test('retrospective reading notes are scoped, sourced and cannot override a goal result or fabricate execution', async (t) => {
+    const f = await fixture(t), ctx = await context(f), checked = await check(f.run), before = JSON.stringify(checked);
+    const note = { caseId: 'original', goalId: 'visible', summary: '根据已留存文件整理的复核说明。', preparation: ['核对原对象及权限。'], reviewSteps: ['只读检查原文件所记结果。'], limitations: ['事后建议，未重新执行，不代表原操作步骤。'], sourceLabels: ['Synthetic source'], primaryEvidenceIds: [f.evidenceId], evidenceUses: [{ evidenceId: f.evidenceId, purpose: '说明原结果', fact: '来源文件为合成观察。', limitations: ['不是真实截图。'] }] };
+    const valid = await validateReportContext({ ...ctx.value, goalNotes: [note] }, checked);
+    assert.equal(JSON.stringify(checked), before);
+    checked.context = valid;
+    const payload = await htmlReportPayload(f.run, checked), html = htmlReport(payload), md = markdown(checked, payload);
+    assert.equal(checked.counts.violation, 1);
+    assert.equal(checked.counts.not_tested, 1);
     assert.ok(html.includes('事后建议，未重新执行'));
     assert.ok(md.includes('建议复核路线（不是原实际操作记录）'));
-    for(const bad of [{...note,status:'verified'},{...note,goalId:'missing'},{...note,sourceLabels:['missing']},{...note,primaryEvidenceIds:['missing']},{...note,evidenceUses:[]},{...note,limitations:[]}])await assert.rejects(validateReportContext({...ctx.value,goalNotes:[bad]},checked));
-    await assert.rejects(validateReportContext({...ctx.value,goalNotes:[note,note]},checked),/duplicate/);
-    await assert.rejects(validateReportContext({...ctx.value,sources:[ctx.value.sources[0],ctx.value.sources[0]],goalNotes:[note]},checked),/unique/);
+    for (const bad of [{ ...note, status: 'verified' }, { ...note, goalId: 'missing' }, { ...note, sourceLabels: ['missing'] }, { ...note, primaryEvidenceIds: ['missing'] }, { ...note, evidenceUses: [] }, { ...note, limitations: [] }])
+        await assert.rejects(validateReportContext({ ...ctx.value, goalNotes: [bad] }, checked));
+    await assert.rejects(validateReportContext({ ...ctx.value, goalNotes: [note, note] }, checked), /duplicate/);
+    await assert.rejects(validateReportContext({ ...ctx.value, sources: [ctx.value.sources[0], ctx.value.sources[0]], goalNotes: [note] }, checked), /unique/);
 });
-
-test('scheme B display notes bind actual current-goal actions, preserve verdicts and reject borrowed or planned steps',async t=>{
-    const f=await fixture(t),ctx=await context(f);
-    await recordResult({runDir:f.run,request:{schemaVersion:8,operationId:'actual-actions',expectedRevision:2,caseId:'original',mode:'final',record:{observations:[{id:'actual-observation',summary:'Synthetic original actual result',coveredRefs:['step:inspect'],evidenceIds:[f.evidenceId],actions:[{id:'actual-action',description:'Synthetic actual readback',planRefs:['step:inspect'],evidenceIds:[f.evidenceId]}]}],assessments:[{goalId:'visible',status:'violation',rationale:'Original failure retained',observationIds:['actual-observation'],gaps:[]}]}}});
-    const checked=await check(f.run),before=JSON.stringify(checked);
-    const note={caseId:'original',goalId:'visible',title:'Readable bug title',description:'In the recorded scenario, readback differs.',actions:[{observationId:'actual-observation',actionId:'actual-action',title:'Check the saved result',result:'Reading explanation from original observation',evidenceIds:[f.evidenceId]}],focusAction:{observationId:'actual-observation',actionId:'actual-action'},sourceLabels:['Synthetic source'],limitations:['Post-run display only; no new execution.']};
-    const valid=await validateReportContext({...ctx.value,readerNotes:[note]},checked);assert.equal(valid.readerNotes?.[0]?.title,'Readable bug title');assert.equal(JSON.stringify(checked),before);
-    const invalids=[{...note,status:'verified'},{...note,goalId:'missing'},{...note,sourceLabels:['missing']},{...note,limitations:[]},{...note,focusAction:{observationId:'first',actionId:'inspect'}},{...note,actions:[{...note.actions[0],actionId:'inspect'}]},{...note,actions:[{...note.actions[0],evidenceIds:['unrelated-proof']}]},{...note,actions:[note.actions[0],note.actions[0]]}];
-    for(const invalid of invalids)await assert.rejects(validateReportContext({...ctx.value,readerNotes:[invalid]},checked));
-    await assert.rejects(validateReportContext({...ctx.value,readerNotes:[note,note]},checked),/duplicate/);
-    await write(ctx.filename,{...ctx.value,readerNotes:[note]});const dir=path.join(f.root,'scheme-b');await fs.mkdir(dir);const resultsBefore=await fs.readFile(path.join(f.run,'results.json'));
-    const out=await report(f.run,{outputDir:dir,contextFile:ctx.filename});assert.equal((await verifyReport(f.run,dir)).filesVerified,true);assert.deepEqual(await fs.readFile(path.join(f.run,'results.json')),resultsBefore);assert.equal(objectValue((await read(out.reportJson)).counts).violation,1);
+test('scheme B display notes bind actual current-goal actions, preserve verdicts and reject borrowed or planned steps', async (t) => {
+    const f = await fixture(t), ctx = await context(f);
+    await recordResult({ runDir: f.run, request: { schemaVersion: 9, operationId: 'actual-actions', expectedRevision: 2, caseId: 'original', mode: 'final', record: { observations: [{ id: 'actual-observation', summary: 'Synthetic original actual result', coveredRefs: ['step:inspect'], evidenceIds: [f.evidenceId], actions: [{ id: 'actual-action', description: 'Synthetic actual readback', planRefs: ['step:inspect'], evidenceIds: [f.evidenceId] }] }], assessments: [{ goalId: 'visible', status: 'violation', rationale: 'Original failure retained', observationIds: ['actual-observation'], gaps: [] }] } } });
+    const checked = await check(f.run), before = JSON.stringify(checked);
+    const note = { caseId: 'original', goalId: 'visible', title: 'Readable bug title', description: 'In the recorded scenario, readback differs.', actions: [{ observationId: 'actual-observation', actionId: 'actual-action', title: 'Check the saved result', result: 'Reading explanation from original observation', evidenceIds: [f.evidenceId] }], focusAction: { observationId: 'actual-observation', actionId: 'actual-action' }, sourceLabels: ['Synthetic source'], limitations: ['Post-run display only; no new execution.'] };
+    const valid = await validateReportContext({ ...ctx.value, readerNotes: [note] }, checked);
+    assert.equal(valid.readerNotes?.[0]?.title, 'Readable bug title');
+    assert.equal(JSON.stringify(checked), before);
+    const invalids = [{ ...note, status: 'verified' }, { ...note, goalId: 'missing' }, { ...note, sourceLabels: ['missing'] }, { ...note, limitations: [] }, { ...note, focusAction: { observationId: 'first', actionId: 'inspect' } }, { ...note, actions: [{ ...note.actions[0], actionId: 'inspect' }] }, { ...note, actions: [{ ...note.actions[0], evidenceIds: ['unrelated-proof'] }] }, { ...note, actions: [note.actions[0], note.actions[0]] }];
+    for (const invalid of invalids)
+        await assert.rejects(validateReportContext({ ...ctx.value, readerNotes: [invalid] }, checked));
+    await assert.rejects(validateReportContext({ ...ctx.value, readerNotes: [note, note] }, checked), /duplicate/);
+    await write(ctx.filename, { ...ctx.value, readerNotes: [note] });
+    const dir = path.join(f.root, 'scheme-b');
+    await fs.mkdir(dir);
+    const resultsBefore = await fs.readFile(path.join(f.run, 'results.json'));
+    const out = await report(f.run, { outputDir: dir, contextFile: ctx.filename });
+    assert.equal((await verifyReport(f.run, dir)).filesVerified, true);
+    assert.deepEqual(await fs.readFile(path.join(f.run, 'results.json')), resultsBefore);
+    assert.equal(objectValue((await read(out.reportJson)).counts).violation, 1);
 });
 test('standalone package contains resolvable guides/scripts/schemas and runs from an unrelated cwd', async (t) => {
     const root = await temporary(t), bundle = path.join(root, 'standalone skill');
@@ -93,8 +110,8 @@ test('standalone package contains resolvable guides/scripts/schemas and runs fro
     assert.deepEqual(await fs.readFile(path.join(bundle, 'scripts/ego.mjs')), await fs.readFile(path.join(TOOL_ROOT, 'scripts/ego.mjs')));
     const manifest = await read(path.join(bundle, 'runtime-manifest.json'));
     const manifestFiles = objectValue(manifest.files);
-    for (const name of ['agents/openai.yaml', 'docs/rename-upgrade.md', 'references/resource-readiness.md', 'docs/version-history.md', 'docs/version-history.en.md', 'docs/v0.1.5-local-acceptance.md', 'docs/images/version-history.svg', 'docs/images/version-history.zh-CN.svg', 'docs/images/version-history.png', 'docs/images/version-history.zh-CN.png']) {
-        assert.ok(Object.hasOwn(manifestFiles, name), 'Required readiness/history asset must be shipped: ' + name);
+    for (const name of ['agents/openai.yaml', 'references/resource-readiness.md', 'references/download-files.md', 'docs/asset-formats.md', 'docs/case-review.md', 'docs/third-party-notices.md', 'vendor/THIRD-PARTY-LICENSES.txt']) {
+        assert.ok(Object.hasOwn(manifestFiles, name), 'Required operational asset must be shipped: ' + name);
         assert.deepEqual(await fs.readFile(path.join(bundle, name)), await fs.readFile(path.join(TOOL_ROOT, name)));
     }
     for (const name of Object.keys(manifestFiles).filter(name => name.endsWith('.md'))) {
@@ -113,11 +130,15 @@ test('standalone package contains resolvable guides/scripts/schemas and runs fro
     assert.equal((await cli(['tool-info', '--expect-version', TOOL_VERSION, '--expect-revision', TOOL_REVISION])).toolRoot, bundle);
     const project = path.join(root, 'project'), run = path.join(root, 'run');
     await cli(['init', '--project-dir', project]);
-    await cli(['start', '--project-dir', project, '--cases', path.join(project, 'cases.example.json'), '--output-dir', run]);
+    const casesFile=path.join(project,'cases','v001.json');await write(casesFile,cases());
+    const bindingFile=await prepareSyntheticBinding({projectDir:project,casesFile,outputDir:run});
+    await cli(['start', '--project-dir', project, '--cases', casesFile, '--binding', bindingFile, '--output-dir', run]);
     const out = await cli(['report', '--run-dir', run]);
     assert.equal(out.filesVerified, true);
     assert.equal(out.browserOpen, 'not_checked');
-    const verification = await cli(['verify-report', '--run-dir', run, '--report-dir', run]); assert.ok(Array.isArray(verification.artifacts)); assert.equal(verification.artifacts.length, 4);
+    const verification = await cli(['verify-report', '--run-dir', run, '--report-dir', run]);
+    assert.ok(Array.isArray(verification.artifacts));
+    assert.equal(verification.artifacts.length, 4);
     for (const name of Object.keys(manifestFiles).filter(name => name.startsWith('schemas/'))) {
         const schema = await read(path.join(bundle, name));
         for (const ref of JSON.stringify(schema).matchAll(/"\$ref":"([^"#]+)(?:#[^"]*)?"/g))
@@ -142,7 +163,7 @@ test('runtime rejects missing assets, changed installed files and wrong requeste
     await fs.unlink(path.join(bundle, 'schemas/cases.schema.json'));
     await assert.rejects(toolInfo(bundle), { code: 'ENOENT' });
 });
-test('renamed package rejects legacy Skill identity and changed Codex metadata', async t => {
+test('renamed package rejects legacy Skill identity and changed Codex metadata', async (t) => {
     const root = await temporary(t), bundle = path.join(root, 'ai-autonomous-testing-ego-lite');
     await buildSkill(bundle);
     const skillPath = path.join(bundle, 'SKILL.md'), skill = await fs.readFile(skillPath, 'utf8');
@@ -153,79 +174,133 @@ test('renamed package rejects legacy Skill identity and changed Codex metadata',
     await fs.appendFile(path.join(bundle, 'agents/openai.yaml'), '\n# unexpected local metadata change\n');
     await assert.rejects(toolInfo(bundle), /manifest mismatch/);
 });
-
-test('three report formats share four-state goals, preserve first attempts and do not infer missing assessments',async t=>{
-    const f=await fixture(t),out=await report(f.run),data=await check(f.run);
-    assert.deepEqual(await read(out.reportJson),data);assert.equal(data.schemaVersion,8);
-    assert.deepEqual(data.counts,{verified:0,violation:1,inconclusive:0,not_tested:1,unassessed:2});assert.equal(data.assessmentComplete,false);assert.equal(data.goalCount,4);
-    assert.equal(Object.hasOwn(at(data.cases,0),'status'),false);assert.equal(at(data.cases,0).entries.length,2);
-    assert.equal(at(data.cases,0).assessments.find(a=>a.goalId==='visible')?.diagnosis?.state,'unknown');
-    assert.equal(data.execution?.imports.length,0); // Serial results render without an execution import.
-    const html=await fs.readFile(out.reportHtml,'utf8'),md=await fs.readFile(out.reportMarkdown,'utf8'),payload=payloadOf(html);
-    assert.deepEqual(payload.report,data);
-    assert.match(md,/发现违反：1/);assert.match(md,/未登记目标评估：2/);assert.match(md,/Initial uncertainty preserved/);assert.match(JSON.stringify(payload.report),/Initial uncertainty preserved/);
-    assert.match(md,/冻结前提与必要业务步骤/);assert.equal(out.browserOpen,'not_checked');assert.equal(out.filesVerified,true);assert.equal(out.artifacts.length,4);
-    for(const artifact of out.artifacts){const bytes=await fs.readFile(artifact.path);assert.equal(bytes.length,artifact.bytes);assert.equal(hash(bytes),artifact.sha256)}
-    assert.equal((await verifyReport(f.run)).filesVerified,true);
-    await fs.appendFile(out.reportHtml,'\nSynthetic alteration');await assert.rejects(verifyReport(f.run),/does not match/);
-    await fs.unlink(out.reportMarkdown);await assert.rejects(verifyReport(f.run),{code:'ENOENT'});
+test('three report formats share four-state goals, preserve first attempts and do not infer missing assessments', async (t) => {
+    const f = await fixture(t), out = await report(f.run), data = await check(f.run);
+    assert.deepEqual(await read(out.reportJson), data);
+    assert.equal(data.schemaVersion, 9);
+    assert.deepEqual(data.counts, { verified: 0, violation: 1, inconclusive: 0, not_tested: 1, unassessed: 2 });
+    assert.equal(data.assessmentComplete, false);
+    assert.equal(data.goalCount, 4);
+    assert.equal(Object.hasOwn(at(data.cases, 0), 'status'), false);
+    assert.equal(at(data.cases, 0).entries.length, 2);
+    assert.equal(at(data.cases, 0).assessments.find(a => a.goalId === 'visible')?.diagnosis?.state, 'unknown');
+    assert.equal(data.execution?.imports.length, 0); // Serial results render without an execution import.
+    const html = await fs.readFile(out.reportHtml, 'utf8'), md = await fs.readFile(out.reportMarkdown, 'utf8'), payload = payloadOf(html);
+    assert.deepEqual(payload.report, data);
+    assert.match(md, /发现违反：1/);
+    assert.match(md, /未登记目标评估：2/);
+    assert.match(md, /Initial uncertainty preserved/);
+    assert.match(JSON.stringify(payload.report), /Initial uncertainty preserved/);
+    assert.match(md, /冻结前提与必要业务步骤/);
+    assert.equal(out.browserOpen, 'not_checked');
+    assert.equal(out.filesVerified, true);
+    assert.equal(out.artifacts.length, 4);
+    for (const artifact of out.artifacts) {
+        const bytes = await fs.readFile(artifact.path);
+        assert.equal(bytes.length, artifact.bytes);
+        assert.equal(hash(bytes), artifact.sha256);
+    }
+    assert.equal((await verifyReport(f.run)).filesVerified, true);
+    await fs.appendFile(out.reportHtml, '\nSynthetic alteration');
+    await assert.rejects(verifyReport(f.run), /does not match/);
+    await fs.unlink(out.reportMarkdown);
+    await assert.rejects(verifyReport(f.run), { code: 'ENOENT' });
 });
-test('context adds provenance without changing business assessments or plan provenance and preserves original files',async t=>{
-    const f=await fixture(t);await report(f.run);const ctx=await context(f);
-    const names=['baseline.json','manifest.json','results.json','evidence.json','report.json','report.md','report.html'];const before=await Promise.all(names.map(n=>fs.readFile(path.join(f.run,n))));
-    const target=path.join(f.root,'new report');await fs.mkdir(target);const out=await report(f.run,{outputDir:target,contextFile:ctx.filename});
-    const data=await check(f.run);data.context=await validateReportContext(ctx.value,data);assert.deepEqual(await read(out.reportJson),data);
-    const html=await fs.readFile(out.reportHtml,'utf8'),payload=payloadOf(html);assert.deepEqual(objectValue(payload.report).context,data.context);
-    assert.doesNotMatch(html,/<img src=x>/);assert.doesNotMatch(html,/来源计划步骤（不证明执行前冻结）/);assert.match(JSON.stringify(payload.report),/violation/);
-    assert.equal((await verifyReport(f.run,target)).filesVerified,true);
-    for(const [i,name] of names.entries())assert.deepEqual(await fs.readFile(path.join(f.run,name)),before[i]);
-    await assert.rejects(report(f.run,{outputDir:target,contextFile:ctx.filename}),/overwrite/);
+test('context adds provenance without changing business assessments or plan provenance and preserves original files', async (t) => {
+    const f = await fixture(t);
+    await report(f.run);
+    const ctx = await context(f);
+    const names = ['baseline.json', 'manifest.json', 'results.json', 'evidence.json', 'report.json', 'report.md', 'report.html'];
+    const before = await Promise.all(names.map(n => fs.readFile(path.join(f.run, n))));
+    const target = path.join(f.root, 'new report');
+    await fs.mkdir(target);
+    const out = await report(f.run, { outputDir: target, contextFile: ctx.filename });
+    const data = await check(f.run);
+    data.context = await validateReportContext(ctx.value, data);
+    assert.deepEqual(await read(out.reportJson), data);
+    const html = await fs.readFile(out.reportHtml, 'utf8'), payload = payloadOf(html);
+    assert.deepEqual(objectValue(payload.report).context, data.context);
+    assert.doesNotMatch(html, /<img src=x>/);
+    assert.doesNotMatch(html, /来源计划步骤（不证明执行前冻结）/);
+    assert.match(JSON.stringify(payload.report), /violation/);
+    assert.equal((await verifyReport(f.run, target)).filesVerified, true);
+    for (const [i, name] of names.entries())
+        assert.deepEqual(await fs.readFile(path.join(f.run, name)), before[i]);
+    await assert.rejects(report(f.run, { outputDir: target, contextFile: ctx.filename }), /overwrite/);
 });
-test('context rejects old format, independent verdicts and bad provenance before writing outputs',async t=>{
-    const f=await fixture(t),ctx=await context(f),target=path.join(f.root,'new');await fs.mkdir(target);
-    const invalids=[{...ctx.value,schemaVersion:1},{...ctx.value,reviews:[{caseId:'original',status:'verified'}]},{...ctx.value,sources:[{...at(ctx.value.sources),sha256:'0'.repeat(64)}]},{...ctx.value,supplementalCaseIds:['missing']},{...ctx.value,supplementalCaseIds:['extra','extra']},{...ctx.value,capturedAt:'invented'}];
-    for(const value of invalids){await write(ctx.filename,value);await assert.rejects(report(f.run,{outputDir:target,contextFile:ctx.filename}));assert.deepEqual(await fs.readdir(target),[])}
+test('context rejects old format, independent verdicts and bad provenance before writing outputs', async (t) => {
+    const f = await fixture(t), ctx = await context(f), target = path.join(f.root, 'new');
+    await fs.mkdir(target);
+    const invalids = [{ ...ctx.value, schemaVersion: 1 }, { ...ctx.value, reviews: [{ caseId: 'original', status: 'verified' }] }, { ...ctx.value, sources: [{ ...at(ctx.value.sources), sha256: '0'.repeat(64) }] }, { ...ctx.value, supplementalCaseIds: ['missing'] }, { ...ctx.value, supplementalCaseIds: ['extra', 'extra'] }, { ...ctx.value, capturedAt: 'invented' }];
+    for (const value of invalids) {
+        await write(ctx.filename, value);
+        await assert.rejects(report(f.run, { outputDir: target, contextFile: ctx.filename }));
+        assert.deepEqual(await fs.readdir(target), []);
+    }
 });
-test('changed sources and later goal assessments invalidate report verification without rewriting reports',async t=>{
-    const f=await fixture(t),ctx=await context(f),out=await report(f.run,{contextFile:ctx.filename}),html=await fs.readFile(out.reportHtml);
-    await fs.appendFile(f.source,'\nchanged');await assert.rejects(verifyReport(f.run),/source hash mismatch/);assert.deepEqual(await fs.readFile(out.reportHtml),html);await fs.writeFile(f.source,'Synthetic observation, not a screenshot.');
-    await recordResult({runDir:f.run,request:{schemaVersion:8,operationId:'later',expectedRevision:2,caseId:'extra',mode:'final',record:{observations:[],assessments:[{goalId:'scope',status:'not_tested',rationale:'Explicitly deferred.',observationIds:[],gaps:['Identity deferred.']}]}}});
-    await assert.rejects(verifyReport(f.run),/does not match/);assert.deepEqual(await fs.readFile(out.reportHtml),html);
+test('changed sources and later goal assessments invalidate report verification without rewriting reports', async (t) => {
+    const f = await fixture(t), ctx = await context(f), out = await report(f.run, { contextFile: ctx.filename }), html = await fs.readFile(out.reportHtml);
+    await fs.appendFile(f.source, '\nchanged');
+    await assert.rejects(verifyReport(f.run), /source hash mismatch/);
+    assert.deepEqual(await fs.readFile(out.reportHtml), html);
+    await fs.writeFile(f.source, 'Synthetic observation, not a screenshot.');
+    await recordResult({ runDir: f.run, request: { schemaVersion: 9, operationId: 'later', expectedRevision: 2, caseId: 'extra', mode: 'final', record: { observations: [], assessments: [{ goalId: 'scope', status: 'not_tested', rationale: 'Explicitly deferred.', observationIds: [], gaps: ['Identity deferred.'] }] } } });
+    await assert.rejects(verifyReport(f.run), /does not match/);
+    assert.deepEqual(await fs.readFile(out.reportHtml), html);
 });
-test('evidence references must belong to case, while repeated content is not independent evidence',async t=>{
-    const f=await fixture(t);
-    await assert.rejects(recordResult({runDir:f.run,request:{schemaVersion:8,operationId:'wrong-evidence',expectedRevision:2,caseId:'extra',mode:'final',record:{observations:[{id:'wrong',summary:'Invalid cross-case evidence reference.',coveredRefs:['step:inspect'],evidenceIds:[f.evidenceId]}],assessments:[{goalId:'visible',status:'verified',rationale:'Synthetic invalid evidence.',observationIds:['wrong'],gaps:[]}]}}}));
-    await registerEvidence({runDir:f.run,request:{schemaVersion:8,operationId:'duplicate-text',expectedRevision:1,caseId:'extra',sourceFile:f.source,kind:'other',source:'Synthetic shared index',description:'Second association, not a second observation.'}});
-    const data=await check(f.run);assert.equal(data.evidenceIntegrity.hashVerifiedItems,2);assert.equal(data.evidenceCoverage.distinctRetainedContents,1);assert.equal(data.evidenceCoverage.registeredScreenshots,0);
-    const out=await report(f.run);assert.deepEqual(await read(out.reportJson),data);
+test('evidence references must belong to case, while repeated content is not independent evidence', async (t) => {
+    const f = await fixture(t);
+    await assert.rejects(recordResult({ runDir: f.run, request: { schemaVersion: 9, operationId: 'wrong-evidence', expectedRevision: 2, caseId: 'extra', mode: 'final', record: { observations: [{ id: 'wrong', summary: 'Invalid cross-case evidence reference.', coveredRefs: ['step:inspect'], evidenceIds: [f.evidenceId] }], assessments: [{ goalId: 'visible', status: 'verified', rationale: 'Synthetic invalid evidence.', observationIds: ['wrong'], gaps: [] }] } } }));
+    await registerEvidence({ runDir: f.run, request: { schemaVersion: 9, operationId: 'duplicate-text', expectedRevision: 1, caseId: 'extra', sourceFile: f.source, kind: 'other', source: 'Synthetic shared index', description: 'Second association, not a second observation.' } });
+    const data = await check(f.run);
+    assert.equal(data.evidenceIntegrity.hashVerifiedItems, 2);
+    assert.equal(data.evidenceCoverage.distinctRetainedContents, 1);
+    assert.equal(data.evidenceCoverage.registeredScreenshots, 0);
+    const out = await report(f.run);
+    assert.deepEqual(await read(out.reportJson), data);
 });
-test('screenshots stay self-contained and reject active formats without changing business outcome',async t=>{
-    const f=await fixture(t),pngFile=path.join(f.root,'sample.png'),svgFile=path.join(f.root,'sample.svg');
-    const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRz0AAAAASUVORK5CYII=','base64');
-    await fs.writeFile(pngFile,png);await fs.writeFile(svgFile,'<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
-    const shot=await registerEvidence({runDir:f.run,request:{schemaVersion:8,operationId:'shot',expectedRevision:1,caseId:'original',sourceFile:pngFile,kind:'screenshot',source:'Local synthetic fixture',description:'Synthetic screenshot </script><img src=x>'}});
-    await registerEvidence({runDir:f.run,request:{schemaVersion:8,operationId:'active-image',expectedRevision:2,caseId:'original',sourceFile:svgFile,kind:'screenshot',source:'Local synthetic fixture',description:'Unsupported active image format'}});
-    await recordResult({runDir:f.run,request:{schemaVersion:8,operationId:'shot-observation',expectedRevision:2,caseId:'original',mode:'attempt',record:{observations:[{id:'shot-observation',summary:'Synthetic snapshot registered; no new verdict.',coveredRefs:['step:inspect'],evidenceIds:[shot.evidenceId]}],assessments:[]}}});
-    const out=await report(f.run),html=await fs.readFile(out.reportHtml,'utf8'),payload=payloadOf(html);
-    assert.match(html,/data:image\/png;base64,/);assert.doesNotMatch(html,/data:image\/svg/);assert.doesNotMatch(html,/<script>alert\(1\)<\/script>/);assert.doesNotMatch(html,/<img src=x>/);assert.match(html,/connect-src 'none'/);
-    const previews=objectValue(payload.previews),assets=objectValue(payload.assets);
-    assert.ok(Object.values(assets).some(value=>objectValue(value).kind==='image'));
-    assert.ok(Object.values(previews).some(value=>objectValue(value).contentState==='unsupported'));
-    assert.equal(objectValue(objectValue(payload.report).counts).violation,1);
-    const saved=await fs.readFile(out.reportHtml);await fs.appendFile(path.join(f.run,shot.path),'changed');await assert.rejects(verifyReport(f.run),/hash or byte count mismatch/);assert.deepEqual(await fs.readFile(out.reportHtml),saved);
+test('screenshots stay self-contained and reject active formats without changing business outcome', async (t) => {
+    const f = await fixture(t), pngFile = path.join(f.root, 'sample.png'), svgFile = path.join(f.root, 'sample.svg');
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRz0AAAAASUVORK5CYII=', 'base64');
+    await fs.writeFile(pngFile, png);
+    await fs.writeFile(svgFile, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+    const shot = await registerEvidence({ runDir: f.run, request: { schemaVersion: 9, operationId: 'shot', expectedRevision: 1, caseId: 'original', sourceFile: pngFile, kind: 'screenshot', source: 'Local synthetic fixture', description: 'Synthetic screenshot </script><img src=x>' } });
+    await registerEvidence({ runDir: f.run, request: { schemaVersion: 9, operationId: 'active-image', expectedRevision: 2, caseId: 'original', sourceFile: svgFile, kind: 'screenshot', source: 'Local synthetic fixture', description: 'Unsupported active image format' } });
+    await recordResult({ runDir: f.run, request: { schemaVersion: 9, operationId: 'shot-observation', expectedRevision: 2, caseId: 'original', mode: 'attempt', record: { observations: [{ id: 'shot-observation', summary: 'Synthetic snapshot registered; no new verdict.', coveredRefs: ['step:inspect'], evidenceIds: [shot.evidenceId] }], assessments: [] } } });
+    const out = await report(f.run), html = await fs.readFile(out.reportHtml, 'utf8'), payload = payloadOf(html);
+    assert.match(html, /data:image\/png;base64,/);
+    assert.doesNotMatch(html, /data:image\/svg/);
+    assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
+    assert.doesNotMatch(html, /<img src=x>/);
+    assert.match(html, /connect-src 'none'/);
+    const previews = objectValue(payload.previews), assets = objectValue(payload.assets);
+    assert.ok(Object.values(assets).some(value => objectValue(value).kind === 'image'));
+    assert.ok(Object.values(previews).some(value => objectValue(value).contentState === 'unsupported'));
+    assert.equal(objectValue(objectValue(payload.report).counts).violation, 1);
+    const saved = await fs.readFile(out.reportHtml);
+    await fs.appendFile(path.join(f.run, shot.path), 'changed');
+    await assert.rejects(verifyReport(f.run), /hash or byte count mismatch/);
+    assert.deepEqual(await fs.readFile(out.reportHtml), saved);
 });
-test('failed multi-file delivery rolls back only files created by that delivery',async t=>{
-    const f=await fixture(t),target=path.join(f.root,'failed-delivery');await fs.mkdir(target);await fs.writeFile(path.join(target,'user.txt'),'Keep user-owned content.');
-    const before=await fs.readFile(path.join(f.run,'results.json')),open=fs.open;
-    const mocked=t.mock.method(fs,'open',async(...args:Parameters<typeof fs.open>)=>{if(String(args[0])===path.join(target,'report.md'))throw new Error('Synthetic second-file write failure');return open(...args)});
-    await assert.rejects(report(f.run,{outputDir:target}),/Synthetic second-file write failure/);mocked.mock.restore();
-    assert.deepEqual(await fs.readdir(target),['user.txt']);assert.equal(await fs.readFile(path.join(target,'user.txt'),'utf8'),'Keep user-owned content.');assert.deepEqual(await fs.readFile(path.join(f.run,'results.json')),before);
+test('failed multi-file delivery rolls back only files created by that delivery', async (t) => {
+    const f = await fixture(t), target = path.join(f.root, 'failed-delivery');
+    await fs.mkdir(target);
+    await fs.writeFile(path.join(target, 'user.txt'), 'Keep user-owned content.');
+    const before = await fs.readFile(path.join(f.run, 'results.json')), open = fs.open;
+    const mocked = t.mock.method(fs, 'open', async (...args: Parameters<typeof fs.open>) => { if (String(args[0]) === path.join(target, 'report.md'))
+        throw new Error('Synthetic second-file write failure'); return open(...args); });
+    await assert.rejects(report(f.run, { outputDir: target }), /Synthetic second-file write failure/);
+    mocked.mock.restore();
+    assert.deepEqual(await fs.readdir(target), ['user.txt']);
+    assert.equal(await fs.readFile(path.join(target, 'user.txt'), 'utf8'), 'Keep user-owned content.');
+    assert.deepEqual(await fs.readFile(path.join(f.run, 'results.json')), before);
 });
-test('follow-up references show later conclusion without replacing the original assessment',async t=>{
-    const f=await fixture(t),data=await check(f.run),original=at(data.cases,0),later=at(data.cases,1),goal=at(later.goals,0);
-    goal.followUpOf={runId:data.runId,caseId:original.id,goalId:'visible',reason:'Requirement scope clarified after the first assessment.'};
-    const html=htmlReport(await htmlReportPayload(f.run,data)),payload=payloadOf(html);
-    assert.deepEqual(payload.report,data); assert.match(JSON.stringify(payload.report),/followUpOf/);
-    assert.match(markdown(data),/后续复核：extra\/visible；未登记目标评估/);
-    assert.equal(original.assessments.find(a=>a.goalId==='visible')?.status,'violation');
+test('follow-up references show later conclusion without replacing the original assessment', async (t) => {
+    const f = await fixture(t), data = await check(f.run), original = at(data.cases, 0), later = at(data.cases, 1), goal = at(later.goals, 0);
+    goal.followUpOf = { runId: data.runId, caseId: original.id, goalId: 'visible', reason: 'Requirement scope clarified after the first assessment.' };
+    const html = htmlReport(await htmlReportPayload(f.run, data)), payload = payloadOf(html);
+    assert.deepEqual(payload.report, data);
+    assert.match(JSON.stringify(payload.report), /followUpOf/);
+    assert.match(markdown(data), /后续复核：extra\/visible；未登记目标评估/);
+    assert.equal(original.assessments.find(a => a.goalId === 'visible')?.status, 'violation');
 });

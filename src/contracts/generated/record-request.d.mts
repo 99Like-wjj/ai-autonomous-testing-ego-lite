@@ -1,5 +1,21 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
+export type OriginalProblemReference = {
+  [k: string]: unknown;
+} & {
+  run: {
+    runDir: string;
+    runId: string;
+    baselineSha256: string;
+    resultsRevision: number;
+    resultsSha256: string;
+  };
+  caseId: string;
+  findingId?: string;
+  goalId?: string;
+  operationId?: string;
+  phenomenonId?: string;
+};
 export type ContextFact = {
   state: 'known' | 'unknown' | 'not_applicable';
   summary: string;
@@ -38,9 +54,17 @@ export type ActionEvent = {
   conflictsWithEventIds?: string[];
   retry?: ActionRetry;
 };
+export type SourceReference = {
+  id: string;
+  locator: string;
+  file: string | null;
+  sha256: string | null;
+  excerpt: string;
+  limitations: string[];
+};
 
-export interface ResultOrAttemptRequestV8 {
-  schemaVersion: 8;
+export interface ResultOrAttemptRequestV9 {
+  schemaVersion: 9;
   operationId: string;
   expectedRevision: number;
   caseId: string;
@@ -53,6 +77,7 @@ export interface RecordPayload {
   contexts?: ExecutionContext[];
   findings?: Finding[];
   actionEvents?: ActionEvent[];
+  aiContext?: AiContext;
 }
 export interface Observation {
   id: string;
@@ -65,6 +90,7 @@ export interface Observation {
   actions?: ActionFact[];
   evidenceLinks?: EvidenceLink[];
   actionEventIds?: string[];
+  phase?: ObservationPhase;
 }
 export interface ActionFact {
   id: string;
@@ -74,6 +100,20 @@ export interface ActionFact {
   planRefs: string[];
   evidenceIds: string[];
   occurredAt?: string;
+  inputSummary?: string;
+  replySummary?: string;
+  inputPresentation?: 'verbatim' | 'summary' | 'unknown';
+  /**
+   * @minItems 1
+   */
+  conversations?: ConversationActionReference[];
+}
+export interface ConversationActionReference {
+  evidenceId: string;
+  /**
+   * @minItems 1
+   */
+  messageIds: string[];
 }
 export interface EvidenceLink {
   evidenceId: string;
@@ -81,6 +121,11 @@ export interface EvidenceLink {
   fact: string;
   actionId?: string;
   limitations: string[];
+}
+export interface ObservationPhase {
+  expected: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  observed: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  basis: string;
 }
 export interface Assessment {
   goalId: string;
@@ -95,6 +140,14 @@ export interface Assessment {
   revisionReason?: string;
   previousOperationId?: string;
   reproduction?: ReproductionPreparation;
+  problemChecks?: {
+    source: OriginalProblemReference;
+    state: 'reproduced' | 'not_observed' | 'unclear' | 'not_checked';
+    rationale: string;
+    observationIds: string[];
+    gaps: string[];
+  }[];
+  display?: ReadingPresentation;
 }
 export interface Diagnosis {
   state: 'unknown' | 'hypothesis' | 'confirmed';
@@ -121,6 +174,12 @@ export interface ReproductionPreparation {
   limitations: string[];
   objectState: string;
   repeatability: string;
+}
+export interface ReadingPresentation {
+  title: string;
+  actual: string;
+  impact: string;
+  dimension: 'business' | 'interaction' | 'wording' | 'content' | 'presentation';
 }
 export interface ExecutionContext {
   id: string;
@@ -168,4 +227,16 @@ export interface ActionRetry {
    */
   authorizationSources: FactSource[];
   idempotencyBasis?: ContextFact;
+}
+export interface AiContext {
+  /**
+   * @minItems 1
+   */
+  uses: {
+    model: string | null;
+    reasoningEffort: string | null;
+    sourceKind: 'host_metadata' | 'user_statement' | 'unknown';
+    source: SourceReference;
+    scope: string;
+  }[];
 }

@@ -20,4 +20,6 @@ for (const name of (await fs.readdir(path.join(root, 'schemas'))).filter(name =>
   if (mode === '--write') await fs.writeFile(target, text, 'utf8');
   else if (await fs.readFile(target, 'utf8') !== text) throw new Error('Generated contract drift: ' + name);
 }
+const expected=new Set((await fs.readdir(path.join(root,'schemas'))).filter(n=>n.endsWith('.schema.json')).map(n=>n.replace('.schema.json','.d.mts')));
+for(const name of await fs.readdir(directory))if(name.endsWith('.d.mts')&&!expected.has(name)){if(mode!=='--write')throw new Error('Stale generated contract: '+name);const target=path.join(directory,name),stat=await fs.lstat(target);if(!stat.isFile()||stat.isSymbolicLink())throw new Error('Unexpected generated contract path.');await fs.unlink(target);}
 process.stdout.write('Schema declarations ' + (mode === '--write' ? 'generated' : 'verified') + '.\n');

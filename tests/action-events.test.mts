@@ -140,16 +140,16 @@ test('every nested local evidence reference maps and missing worker keys are rej
   const record = { ...observed('ev'), ...payload('ev', [event('intent'), retry]) }; record.observations = observed('ev').observations; record.assessments = observed('ev').assessments;
   record.assessments[0]!.diagnosis = { state: 'confirmed', category: 'agent', summary: 'Synthetic diagnosis', evidenceIds: ['ev'] };
   const mapped = mapRecordEvidence(record, key => 'registered-' + key); assert.ok(recordEvidenceIds(mapped).every(key => key === 'registered-ev')); assert.equal(recordEvidenceIds(mapped).length, recordEvidenceIds(record).length);
-  const packet = { schemaVersion: 8, runId: 'run', baselineSha256: 'a'.repeat(64), caseId: 'one', assignmentId: 'asg-test', attemptId: 'attempt', packetId: 'packet', mode: 'attempt', record, evidence: [], spaceUsage: [{ spaceId: null, reason: 'Synthetic only', evidenceKeys: [] }] };
+  const packet = { schemaVersion: 9, runId: 'run', baselineSha256: 'a'.repeat(64), caseId: 'one', assignmentId: 'asg-test', attemptId: 'attempt', packetId: 'packet', mode: 'attempt', record, evidence: [], spaceUsage: [{ spaceId: null, reason: 'Synthetic only', evidenceKeys: [] }] };
   assert.throws(() => parsePacket(packet), /Unknown packet evidence key/);
 });
 test('parallel sealing/import preserves the same action facts and cannot review them away', async t => {
   const f = await fixture(t); let n = 0;
-  const exec = async (kind: string, rest: Record<string, unknown> = {}) => executeRequest({ runDir: f.runDir, request: { schemaVersion: 8, operationId: 'exec-' + ++n, expectedRevision: (await readExecutionView(f.runDir)).revision, kind, reason: 'Synthetic execution facts', ...rest } });
+  const exec = async (kind: string, rest: Record<string, unknown> = {}) => executeRequest({ runDir: f.runDir, request: { schemaVersion: 9, operationId: 'exec-' + ++n, expectedRevision: (await readExecutionView(f.runDir)).revision, kind, reason: 'Synthetic execution facts', ...rest } });
   await exec('inventory', { spaceIds: [] }); const assignment = await exec('reserve', { caseId: 'one', baselineSha256: (await readExecutionView(f.runDir)).baselineSha256 }); assert.ok(assignment.assignmentId);
   const dir = path.join(f.runDir, 'workers', assignment.assignmentId), draftFile = path.join(dir, 'draft.json'); await fs.writeFile(path.join(dir, 'facts.log'), 'synthetic facts');
   const workerRecord = payload('local', [event('intent'), event('issued', 'dispatch', 'local'), event('unknown', 'result', 'local')]);
-  await writeJSON(draftFile, { schemaVersion: 8, packetId: 'facts-packet', mode: 'attempt', record: workerRecord, evidence: [{ key: 'local', path: 'facts.log', kind: 'log', source: 'Synthetic fixture', description: 'Retained action facts' }], spaceUsage: [{ spaceId: null, reason: 'No browser was used', evidenceKeys: ['local'] }] });
+  await writeJSON(draftFile, { schemaVersion: 9, packetId: 'facts-packet', mode: 'attempt', record: workerRecord, evidence: [{ key: 'local', path: 'facts.log', kind: 'log', source: 'Synthetic fixture', description: 'Retained action facts' }], spaceUsage: [{ spaceId: null, reason: 'No browser was used', evidenceKeys: ['local'] }] });
   const sealed = await sealPacket({ runDir: f.runDir, assignment: assignment.assignmentId, draftFile }); const packet = parsePacket(await readJSON(sealed.packetFile));
   assert.throws(() => validateAssessment(packet, caseOf(), { decision: 'revise', reviewer: 'AI', rationale: 'Invalid omission', record: { observations: [], assessments: [], contexts: workerRecord.contexts! } }), /retain immutable worker actionEvents/);
   await exec('import', { packetFile: sealed.packetFile, review: { decision: 'accept', reviewer: 'Synthetic AI', rationale: 'Preserve supplied facts' } });
@@ -164,13 +164,13 @@ test('run-global action and context IDs cannot be reused across cases', async t 
 });
 test('successive worker packets explicitly reuse evidence and append to one action, including delta and lost receipt recovery', async t => {
   const f = await fixture(t); let n = 0;
-  const exec = async (kind: string, rest: Record<string, unknown> = {}) => executeRequest({ runDir: f.runDir, request: { schemaVersion: 8, operationId: 'continuation-' + ++n, expectedRevision: (await readExecutionView(f.runDir)).revision, kind, reason: 'Synthetic continuation', ...rest } });
+  const exec = async (kind: string, rest: Record<string, unknown> = {}) => executeRequest({ runDir: f.runDir, request: { schemaVersion: 9, operationId: 'continuation-' + ++n, expectedRevision: (await readExecutionView(f.runDir)).revision, kind, reason: 'Synthetic continuation', ...rest } });
   await exec('inventory', { spaceIds: [] }); const assignment = await exec('reserve', { caseId: 'one', baselineSha256: (await readExecutionView(f.runDir)).baselineSha256 }); assert.ok(assignment.assignmentId);
   const dir = path.join(f.runDir, 'workers', assignment.assignmentId), draftFile = path.join(dir, 'draft.json');
   await fs.writeFile(path.join(dir, 'initial.log'), 'Synthetic initial identity and dispatch facts'); await fs.writeFile(path.join(dir, 'readback.log'), 'Synthetic later business readback');
   const initialEvidence = { key: 'initial', path: 'initial.log', kind: 'log', source: 'Synthetic initial acquisition', description: 'Initial facts' };
   const initialRecord = payload('initial', [event('intent'), event('issued', 'dispatch', 'initial'), event('pending', 'result', 'initial')]);
-  const draft = (packetId: string, record: RecordPayload, evidence: unknown[]) => ({ schemaVersion: 8, packetId, mode: 'attempt', record, evidence, spaceUsage: [{ spaceId: null, reason: 'Synthetic only', evidenceKeys: [] }] });
+  const draft = (packetId: string, record: RecordPayload, evidence: unknown[]) => ({ schemaVersion: 9, packetId, mode: 'attempt', record, evidence, spaceUsage: [{ spaceId: null, reason: 'Synthetic only', evidenceKeys: [] }] });
   await writeJSON(draftFile, draft('continuation-1', initialRecord, [initialEvidence]));
   const first = await sealPacket({ runDir: f.runDir, assignment: assignment.assignmentId, draftFile });
   await exec('import', { packetFile: first.packetFile, review: { decision: 'accept', reviewer: 'AI', rationale: 'Initial immutable facts' } });
@@ -181,7 +181,7 @@ test('successive worker packets explicitly reuse evidence and append to one acti
   const cumulative = payload('initial', [...initialRecord.actionEvents!, event('readback-event', 'reconciliation', 'readback', { resultState: 'known' })]);
   await writeJSON(draftFile, draft('continuation-2', cumulative, [reusedInitial, readbackEvidence]));
   const second = await sealPacket({ runDir: f.runDir, assignment: assignment.assignmentId, draftFile });
-  const importRequest = { schemaVersion: 8, operationId: 'continuation-second-import', expectedRevision: (await readExecutionView(f.runDir)).revision, kind: 'import', reason: 'Synthetic second delivery', packetFile: second.packetFile, review: { decision: 'accept', reviewer: 'AI', rationale: 'Append readback without a second dispatch' } };
+  const importRequest = { schemaVersion: 9, operationId: 'continuation-second-import', expectedRevision: (await readExecutionView(f.runDir)).revision, kind: 'import', reason: 'Synthetic second delivery', packetFile: second.packetFile, review: { decision: 'accept', reviewer: 'AI', rationale: 'Append readback without a second dispatch' } };
   await assert.rejects(executeRequest({ runDir: f.runDir, request: importRequest }, { afterResultCommit: async () => { throw Error('Synthetic continuation receipt lost'); } }), /receipt lost/);
   await executeRequest({ runDir: f.runDir, request: importRequest });
   const secondReport = await check(f.runDir), c = secondReport.cases[0]!;
@@ -199,7 +199,7 @@ test('successive worker packets explicitly reuse evidence and append to one acti
 });
 test('worker reuse rejects missing or cross-case IDs, metadata changes, and references not yet imported', async t => {
   const f = await fixture(t); let n = 0;
-  const exec = async (kind: string, rest: Record<string, unknown> = {}) => executeRequest({ runDir: f.runDir, request: { schemaVersion: 8, operationId: 'reuse-guard-' + ++n, expectedRevision: (await readExecutionView(f.runDir)).revision, kind, reason: 'Synthetic reuse guard', ...rest } });
+  const exec = async (kind: string, rest: Record<string, unknown> = {}) => executeRequest({ runDir: f.runDir, request: { schemaVersion: 9, operationId: 'reuse-guard-' + ++n, expectedRevision: (await readExecutionView(f.runDir)).revision, kind, reason: 'Synthetic reuse guard', ...rest } });
   const registered = await addEvidence(f), crossCase = await addEvidence(f, { operationId: 'cross-case-evidence', expectedRevision: 1, caseId: 'two' });
   await exec('inventory', { spaceIds: [] }); const assignment = await exec('reserve', { caseId: 'one', baselineSha256: (await readExecutionView(f.runDir)).baselineSha256 }); assert.ok(assignment.assignmentId);
   const dir = path.join(f.runDir, 'workers', assignment.assignmentId), draftFile = path.join(dir, 'draft.json'); await fs.copyFile(f.sourceFile, path.join(dir, 'facts.log'));
@@ -207,7 +207,7 @@ test('worker reuse rejects missing or cross-case IDs, metadata changes, and refe
   const evidenceItem = { key: 'local', path: 'facts.log', kind: original.kind, source: original.source, description: original.description, reuseEvidenceId: original.id, sha256: original.sha256, bytes: original.bytes };
   const catalog = (await check(f.runDir)).evidenceCatalog;
   for (const changed of [{ ...evidenceItem, kind: 'other' as const }, { ...evidenceItem, source: 'Changed source' }, { ...evidenceItem, description: 'Changed description' }, { ...evidenceItem, sha256: '0'.repeat(64) }, { ...evidenceItem, bytes: evidenceItem.bytes + 1 }, { ...evidenceItem, capturedAt: '2026-10-30T00:00:00Z' }]) assert.throws(() => matchRegisteredEvidence(changed, original.id, 'one', catalog), /metadata or content/);
-  const makeDraft = (reuseEvidenceId: string, record: RecordPayload = payload('local')) => ({ schemaVersion: 8, packetId: 'guard-packet', mode: 'attempt', record, evidence: [{ key: evidenceItem.key, path: evidenceItem.path, kind: evidenceItem.kind, source: evidenceItem.source, description: evidenceItem.description, reuseEvidenceId }], spaceUsage: [{ spaceId: null, reason: 'Synthetic', evidenceKeys: [] }] });
+  const makeDraft = (reuseEvidenceId: string, record: RecordPayload = payload('local')) => ({ schemaVersion: 9, packetId: 'guard-packet', mode: 'attempt', record, evidence: [{ key: evidenceItem.key, path: evidenceItem.path, kind: evidenceItem.kind, source: evidenceItem.source, description: evidenceItem.description, reuseEvidenceId }], spaceUsage: [{ spaceId: null, reason: 'Synthetic', evidenceKeys: [] }] });
   for (const id of ['evidence-from-another-run', crossCase.evidenceId]) {
     await writeJSON(draftFile, makeDraft(id)); await assert.rejects(sealPacket({ runDir: f.runDir, assignment: assignment.assignmentId, draftFile }), /already exist in this run and case/);
   }

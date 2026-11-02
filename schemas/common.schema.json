@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "common.schema.json",
-  "title": "Ego Lite shared contracts v8",
+  "title": "Ego Lite shared contracts v9",
   "$defs": {
     "nonempty": {
       "type": "string",
@@ -28,7 +28,8 @@
       "required": [
         "kind",
         "source",
-        "text"
+        "text",
+        "sourceRefIds"
       ],
       "properties": {
         "kind": {
@@ -43,6 +44,13 @@
         },
         "text": {
           "$ref": "#/$defs/nonempty"
+        },
+        "sourceRefIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
         }
       },
       "additionalProperties": false
@@ -52,7 +60,8 @@
       "type": "object",
       "required": [
         "id",
-        "action"
+        "action",
+        "dependsOn"
       ],
       "properties": {
         "id": {
@@ -60,6 +69,13 @@
         },
         "action": {
           "$ref": "#/$defs/nonempty"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
         }
       },
       "additionalProperties": false
@@ -72,7 +88,12 @@
         "basis",
         "expected",
         "requiredRefs",
-        "title"
+        "title",
+        "pointId",
+        "planState",
+        "preparationGaps",
+        "sourceAlias",
+        "clarificationQuestions"
       ],
       "properties": {
         "id": {
@@ -124,6 +145,27 @@
         },
         "title": {
           "$ref": "#/$defs/nonempty"
+        },
+        "pointId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "planState": {
+          "enum": [
+            "prepared",
+            "unprepared"
+          ]
+        },
+        "preparationGaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        },
+        "sourceAlias": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -138,7 +180,8 @@
         "requiredPath",
         "stepOrder",
         "steps",
-        "goals"
+        "goals",
+        "parameters"
       ],
       "properties": {
         "id": {
@@ -150,7 +193,7 @@
         "criticalConditions": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/nonempty"
+            "$ref": "#/$defs/condition"
           }
         },
         "requiredPath": {
@@ -173,8 +216,7 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/step"
-          },
-          "minItems": 1
+          }
         },
         "goals": {
           "type": "array",
@@ -182,6 +224,12 @@
             "$ref": "#/$defs/goal"
           },
           "minItems": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter"
+          }
         }
       },
       "additionalProperties": false
@@ -282,6 +330,9 @@
             "$ref": "#/$defs/safeId"
           },
           "uniqueItems": true
+        },
+        "phase": {
+          "$ref": "#/$defs/observationPhase"
         }
       },
       "additionalProperties": false
@@ -350,6 +401,51 @@
         },
         "reproduction": {
           "$ref": "#/$defs/reproduction"
+        },
+        "problemChecks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "$ref": "#/$defs/problemRef"
+              },
+              "state": {
+                "enum": [
+                  "reproduced",
+                  "not_observed",
+                  "unclear",
+                  "not_checked"
+                ]
+              },
+              "rationale": {
+                "$ref": "#/$defs/nonempty"
+              },
+              "observationIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/safeId"
+                }
+              },
+              "gaps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/nonempty"
+                }
+              }
+            },
+            "required": [
+              "source",
+              "state",
+              "rationale",
+              "observationIds",
+              "gaps"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "display": {
+          "$ref": "#/$defs/readingPresentation"
         }
       },
       "additionalProperties": false
@@ -391,6 +487,9 @@
           "items": {
             "$ref": "#/$defs/actionEvent"
           }
+        },
+        "aiContext": {
+          "$ref": "#/$defs/aiContext"
         }
       },
       "additionalProperties": false
@@ -661,7 +760,8 @@
             "dom",
             "tool_receipt",
             "log",
-            "other"
+            "other",
+            "conversation"
           ]
         },
         "capturedAt": {
@@ -892,6 +992,28 @@
         },
         "occurredAt": {
           "$ref": "#/$defs/timestamp"
+        },
+        "inputSummary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "replySummary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputPresentation": {
+          "enum": [
+            "verbatim",
+            "summary",
+            "unknown"
+          ]
+        },
+        "conversations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/conversationActionRef"
+          }
         }
       },
       "required": [
@@ -1162,6 +1284,23 @@
         "height": {
           "type": "integer",
           "minimum": 1
+        },
+        "artifactRole": {
+          "enum": [
+            "download_original",
+            "inspection",
+            "capture_receipt"
+          ]
+        },
+        "deliveryRequired": {
+          "type": "boolean"
+        },
+        "conversationSources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/conversationSourceBinding"
+          }
         }
       },
       "required": [],
@@ -1845,6 +1984,881 @@
         }
       ],
       "description": "One immutable fact event of an action attempt. The kind-specific fields below are conditional requirements, not a fixed execution route. Dispatch acceptance is separate from business result; unknown facts may be recorded without inventing evidence. IDs, source ownership, previous-event references and timestamp ordering are checked by the runtime."
+    },
+    "sourceRef": {
+      "title": "Source reference",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "locator": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "excerpt": {
+          "type": "string"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "locator",
+        "file",
+        "sha256",
+        "excerpt",
+        "limitations"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "file": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "file"
+            ]
+          },
+          "then": {
+            "properties": {
+              "sha256": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "casesRef": {
+      "title": "Cases reference",
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "caseVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "projectId",
+        "caseVersion",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "condition": {
+      "title": "Critical condition",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "text": {
+          "$ref": "#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "parameter": {
+      "title": "Parameter definition",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "type": {
+          "enum": [
+            "string",
+            "integer",
+            "decimal",
+            "date",
+            "object_ref",
+            "account_ref"
+          ]
+        },
+        "purpose": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "purpose",
+        "constraints"
+      ],
+      "additionalProperties": false
+    },
+    "problemRef": {
+      "title": "Original problem reference",
+      "type": "object",
+      "properties": {
+        "run": {
+          "type": "object",
+          "properties": {
+            "runDir": {
+              "$ref": "#/$defs/nonempty"
+            },
+            "runId": {
+              "$ref": "#/$defs/nonempty"
+            },
+            "baselineSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "resultsRevision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "resultsSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "runDir",
+            "runId",
+            "baselineSha256",
+            "resultsRevision",
+            "resultsSha256"
+          ],
+          "additionalProperties": false
+        },
+        "caseId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "findingId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "goalId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "operationId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "phenomenonId": {
+          "$ref": "#/$defs/safeId"
+        }
+      },
+      "required": [
+        "run",
+        "caseId"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "findingId"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "goalId"
+                ]
+              },
+              {
+                "required": [
+                  "operationId"
+                ]
+              },
+              {
+                "required": [
+                  "phenomenonId"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "goalId",
+            "operationId"
+          ],
+          "not": {
+            "required": [
+              "findingId"
+            ]
+          }
+        }
+      ]
+    },
+    "draftGoal": {
+      "title": "Draft goal",
+      "type": "object",
+      "required": [
+        "id",
+        "basis",
+        "expected",
+        "requiredRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "basis": {
+          "$ref": "common.schema.json#/$defs/draftBasis"
+        },
+        "expected": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "requiredRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          },
+          "uniqueItems": true
+        },
+        "clarificationQuestions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        },
+        "followUpOf": {
+          "type": "object",
+          "required": [
+            "runId",
+            "caseId",
+            "goalId",
+            "reason"
+          ],
+          "properties": {
+            "runId": {
+              "$ref": "#/$defs/nonempty",
+              "description": "Use self for a goal in the same frozen run; otherwise use the explicit source run ID. A relation never resolves or replaces the source verdict."
+            },
+            "caseId": {
+              "$ref": "#/$defs/safeId"
+            },
+            "goalId": {
+              "$ref": "#/$defs/safeId"
+            },
+            "reason": {
+              "$ref": "#/$defs/nonempty"
+            }
+          },
+          "additionalProperties": false
+        },
+        "title": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "pointId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/safeId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "planState": {
+          "enum": [
+            "prepared",
+            "unprepared"
+          ]
+        },
+        "preparationGaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        },
+        "sourceAlias": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "draftCase": {
+      "title": "Draft case",
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "criticalConditions",
+        "requiredPath",
+        "stepOrder",
+        "steps",
+        "goals"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "title": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "criticalConditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "requiredPath": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/nonempty"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stepOrder": {
+          "enum": [
+            "strict",
+            "adaptive"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/draftStep"
+          }
+        },
+        "goals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/draftGoal"
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "downloadMarker": {
+      "type": "object",
+      "properties": {
+        "captureId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "caseId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "pointIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "actionId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "state": {
+          "enum": [
+            "active",
+            "unknown",
+            "resolved"
+          ]
+        }
+      },
+      "required": [
+        "captureId",
+        "caseId",
+        "pointIds",
+        "actionId",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "draftStep": {
+      "title": "Step",
+      "type": "object",
+      "required": [
+        "id",
+        "action"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "action": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "draftBasis": {
+      "title": "Basis",
+      "type": "object",
+      "required": [
+        "kind",
+        "source",
+        "text"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "explicit",
+            "interpretation",
+            "hypothesis"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "text": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "sourceRefIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "conversationSourceRef": {
+      "title": "Conversation source reference",
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "jsonPointer": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 262144
+        }
+      },
+      "required": [
+        "sourceId"
+      ],
+      "additionalProperties": false
+    },
+    "conversationMessage": {
+      "title": "Conversation message",
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "role": {
+          "enum": [
+            "user",
+            "assistant",
+            "tool",
+            "notice"
+          ]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "enum": [
+            "text",
+            "markdown",
+            "json",
+            "code"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 262144
+        },
+        "language": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "presentation": {
+          "enum": [
+            "verbatim",
+            "normalized",
+            "summary"
+          ]
+        },
+        "completeness": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ]
+        },
+        "state": {
+          "enum": [
+            "final",
+            "streaming",
+            "interrupted",
+            "waiting_confirmation",
+            "unknown"
+          ]
+        },
+        "completionBasis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/conversationSourceRef"
+          }
+        },
+        "attachmentSourceIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true
+        },
+        "sentAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "displayTime": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "format",
+        "content",
+        "presentation",
+        "completeness",
+        "state",
+        "completionBasis",
+        "sourceRefs",
+        "limitations"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            {
+              "required": [
+                "attachmentSourceIds"
+              ],
+              "properties": {
+                "attachmentSourceIds": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/safeId"
+                  },
+                  "minItems": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "presentation": {
+                "const": "summary"
+              }
+            },
+            "required": [
+              "presentation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "completeness": {
+                "enum": [
+                  "partial",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "conversationArtifact": {
+      "title": "Conversation artifact",
+      "type": "object",
+      "properties": {
+        "conversationVersion": {
+          "const": 1
+        },
+        "id": {
+          "$ref": "#/$defs/safeId"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "messages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/conversationMessage"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "conversationVersion",
+        "id",
+        "title",
+        "messages",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "conversationSourceBinding": {
+      "title": "Conversation source binding",
+      "type": "object",
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "evidenceId": {
+          "$ref": "#/$defs/safeId"
+        }
+      },
+      "required": [
+        "sourceId",
+        "evidenceId"
+      ],
+      "additionalProperties": false
+    },
+    "conversationActionRef": {
+      "title": "Conversation action reference",
+      "type": "object",
+      "properties": {
+        "evidenceId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "messageIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/safeId"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "evidenceId",
+        "messageIds"
+      ],
+      "additionalProperties": false
+    },
+    "readingPresentation": {
+      "title": "Reading presentation",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actual": {
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dimension": {
+          "enum": [
+            "business",
+            "interaction",
+            "wording",
+            "content",
+            "presentation"
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "actual",
+        "impact",
+        "dimension"
+      ],
+      "additionalProperties": false
+    },
+    "observationPhase": {
+      "title": "Observation phase",
+      "type": "object",
+      "properties": {
+        "expected": {
+          "enum": [
+            "before",
+            "during",
+            "after",
+            "static",
+            "unknown"
+          ]
+        },
+        "observed": {
+          "enum": [
+            "before",
+            "during",
+            "after",
+            "static",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "expected",
+        "observed",
+        "basis"
+      ],
+      "additionalProperties": false
+    },
+    "aiContext": {
+      "title": "AiContext",
+      "type": "object",
+      "required": [
+        "uses"
+      ],
+      "properties": {
+        "uses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "model",
+              "reasoningEffort",
+              "sourceKind",
+              "source",
+              "scope"
+            ],
+            "properties": {
+              "model": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "reasoningEffort": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "sourceKind": {
+                "enum": [
+                  "host_metadata",
+                  "user_statement",
+                  "unknown"
+                ]
+              },
+              "source": {
+                "$ref": "#/$defs/sourceRef"
+              },
+              "scope": {
+                "$ref": "#/$defs/nonempty"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

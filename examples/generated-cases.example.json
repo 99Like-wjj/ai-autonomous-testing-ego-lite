@@ -1,175 +1,131 @@
 {
-  "schemaVersion": 8,
-  "project": "synthetic-archive-feature",
+  "schemaVersion": 9,
+  "projectId": "example-export-project",
+  "project": "Synthetic export example",
+  "pointPrefix": "SAMPLE",
+  "caseVersion": 1,
+  "previous": null,
+  "nextPointNumber": 3,
+  "retiredPoints": [],
+  "sources": [
+    {
+      "id": "synthetic-requirement",
+      "locator": "Explicitly synthetic example; replace with an actual requirement.",
+      "file": null,
+      "sha256": null,
+      "excerpt": "An authorized synthetic export preserves exact identifiers and values.",
+      "limitations": [
+        "Synthetic specification, not any deployed application requirement."
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "id": "export-values",
+      "sourceRefId": "synthetic-requirement",
+      "statement": "An authorized synthetic export preserves exact identifiers and values.",
+      "state": "mapped",
+      "pointIds": [
+        "SAMPLE-TP-000001",
+        "SAMPLE-TP-000002"
+      ],
+      "reason": "Two independent targets cover completion and content."
+    }
+  ],
   "cases": [
     {
-      "id": "G-01",
-      "title": "编辑者归档有效书签并核对持久化与列表",
+      "id": "export",
+      "title": "Authorized synthetic export",
       "criticalConditions": [
-        "实际身份已核验为编辑者",
-        "功能已部署且测试条目初态为有效",
-        "该条目归档写入已获得用户授权，属于独立合成测试数据"
+        {
+          "id": "authorized",
+          "text": "Use only an authorized synthetic environment and object."
+        }
       ],
-      "requiredPath": "从书签详情执行归档",
+      "requiredPath": "Use the application export control and retain its real downloaded artifact.",
       "stepOrder": "strict",
       "steps": [
         {
-          "id": "archive",
-          "action": "进入获准有效书签的详情，将该书签归档；保持原对象不变"
+          "id": "request",
+          "action": "Use the authorized application export control once.",
+          "dependsOn": []
         },
         {
-          "id": "refresh",
-          "action": "刷新同一书签详情，核对归档状态"
+          "id": "save",
+          "action": "Observe the download and save its actual bytes.",
+          "dependsOn": [
+            "request"
+          ]
         },
-        {
-          "id": "list",
-          "action": "检查默认有效书签列表是否仍显示该书签"
-        }
-      ],
-      "goals": [
-        {
-          "id": "archived-persistence",
-          "basis": {
-            "kind": "explicit",
-            "source": "project.example/feature-request.md#F-01",
-            "text": "编辑者可以从书签详情将一条“有效”书签归档。完成后显示“已归档”，刷新详情仍显示“已归档”；默认有效书签列表不再显示该条目。"
-          },
-          "expected": "归档后状态为已归档，刷新同一条目详情仍保持。",
-          "requiredRefs": [
-            "condition:0",
-            "condition:1",
-            "condition:2",
-            "requiredPath",
-            "step:archive",
-            "step:refresh"
-          ],
-          "title": "归档后状态为已归档，刷新同一条目详情仍保持。"
-        },
-        {
-          "id": "active-list-exclusion",
-          "basis": {
-            "kind": "explicit",
-            "source": "project.example/feature-request.md#F-01",
-            "text": "编辑者可以从书签详情将一条“有效”书签归档。完成后显示“已归档”，刷新详情仍显示“已归档”；默认有效书签列表不再显示该条目。"
-          },
-          "expected": "默认有效书签列表不显示已归档的目标书签。",
-          "requiredRefs": [
-            "condition:0",
-            "condition:1",
-            "condition:2",
-            "requiredPath",
-            "step:archive",
-            "step:refresh",
-            "step:list"
-          ],
-          "title": "默认有效书签列表不显示已归档的目标书签。"
-        }
-      ]
-    },
-    {
-      "id": "G-02",
-      "title": "读者详情没有可用归档入口",
-      "criticalConditions": [
-        "实际身份已核验为读者",
-        "已有合成条目可读取且属于本次范围"
-      ],
-      "requiredPath": null,
-      "stepOrder": "strict",
-      "steps": [
         {
           "id": "inspect",
-          "action": "以已核验读者身份查看获准条目详情并检查归档能力"
+          "action": "Read the exported values and compare them with the current authorized inputs.",
+          "dependsOn": [
+            "save"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "id": "expectedId",
+          "type": "string",
+          "purpose": "Exact synthetic exported identifier",
+          "constraints": [
+            "Preserve leading zeros; do not relax the business criterion."
+          ]
         }
       ],
       "goals": [
         {
-          "id": "outcome",
+          "id": "completion",
+          "pointId": "SAMPLE-TP-000001",
+          "title": "Download completion",
           "basis": {
             "kind": "explicit",
-            "source": "project.example/feature-request.md#F-02",
-            "text": "读者可以查看已有书签，但详情页不能提供可用的归档入口。"
+            "source": "Synthetic requirement",
+            "text": "The application export produces an actual readable downloaded artifact.",
+            "sourceRefIds": [
+              "synthetic-requirement"
+            ]
           },
-          "expected": "详情可查看但无可用归档入口，不推断后端 API 权限正确。",
+          "expected": "Actual download completion and the preserved file can be checked.",
           "requiredRefs": [
-            "condition:0",
-            "condition:1",
+            "condition:authorized",
+            "requiredPath",
+            "step:save"
+          ],
+          "clarificationQuestions": [],
+          "planState": "prepared",
+          "preparationGaps": [],
+          "sourceAlias": null
+        },
+        {
+          "id": "content",
+          "pointId": "SAMPLE-TP-000002",
+          "title": "Exported data integrity",
+          "basis": {
+            "kind": "explicit",
+            "source": "Synthetic requirement",
+            "text": "The export preserves the exact current input identifier and values.",
+            "sourceRefIds": [
+              "synthetic-requirement"
+            ]
+          },
+          "expected": "The exported identifier equals expectedId, including leading zeros; required values and records match.",
+          "requiredRefs": [
+            "condition:authorized",
+            "requiredPath",
             "step:inspect"
           ],
-          "title": "详情可查看但无可用归档入口，不推断后端 API 权限正确。"
-        }
-      ]
-    },
-    {
-      "id": "G-03",
-      "title": "已归档详情状态与归档入口",
-      "criticalConditions": [
-        "使用预先准备且已获准读取的已归档合成条目",
-        "实际身份与对象状态已核验；不自行修改共享数据准备前提"
-      ],
-      "requiredPath": null,
-      "stepOrder": "strict",
-      "steps": [
-        {
-          "id": "inspect",
-          "action": "查看获准的已归档条目详情，检查状态与可用归档入口"
-        }
-      ],
-      "goals": [
-        {
-          "id": "outcome",
-          "basis": {
-            "kind": "explicit",
-            "source": "project.example/feature-request.md#F-03",
-            "text": "对于已归档的书签，详情显示“已归档”，不再提供可用的归档入口。"
-          },
-          "expected": "显示已归档且无可用归档入口；不添加恢复操作。",
-          "requiredRefs": [
-            "condition:0",
-            "condition:1",
-            "step:inspect"
-          ],
-          "title": "显示已归档且无可用归档入口；不添加恢复操作。"
-        }
-      ]
-    },
-    {
-      "id": "G-04-clarification",
-      "title": "批量归档目标已知，部分无权限条目的规则待澄清",
-      "criticalConditions": [
-        "只有在批量功能已部署且获准探索时执行",
-        "使用已获准的独立合成条目集，包含可归档与无权限条目",
-        "任何可能发生的归档副作用均须事先授权"
-      ],
-      "requiredPath": null,
-      "stepOrder": "strict",
-      "steps": [
-        {
-          "id": "explore",
-          "action": "在授权测试环境中找到批量归档功能，使用约定合成条目集探索操作路径；记录实际行为，不将其当作预期"
-        }
-      ],
-      "goals": [
-        {
-          "id": "outcome",
-          "basis": {
-            "kind": "explicit",
-            "source": "project.example/feature-request.md#F-04",
-            "text": "支持批量归档选中的书签；部分条目无权限时如何处理尚未规定。"
-          },
-          "expected": "支持对选中书签发起批量归档；部分条目无权限时的整体验收规则待澄清。",
-          "requiredRefs": [
-            "condition:0",
-            "condition:1",
-            "condition:2",
-            "step:explore"
-          ],
-          "clarificationQuestions": [
-            "部分所选书签无权限时，应全部拒绝，还是只归档有权限的条目？",
-            "操作后应如何向用户呈现各条目的处理结果？"
-          ],
-          "title": "支持对选中书签发起批量归档；部分条目无权限时的整体验收规则待澄清。"
+          "clarificationQuestions": [],
+          "planState": "prepared",
+          "preparationGaps": [],
+          "sourceAlias": null
         }
       ]
     }
-  ]
+  ],
+  "changes": [],
+  "writeRequestSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "savedAt": "2026-11-01T00:00:00.000Z"
 }

@@ -1,34 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "regression-comparison.schema.json",
-  "title": "Explicit cross-run regression comparison v1",
-  "description": "AI comparability is separate from deterministic differences and business outcome. Null status is absence of an assessment, never a fifth business verdict. Evidence retains its original run identity.",
-  "oneOf": [
-    {
-      "$ref": "#/$defs/request"
+  "title": "Point comparison request v2",
+  "type": "object",
+  "properties": {
+    "regressionVersion": {
+      "const": 2
     },
-    {
-      "$ref": "#/$defs/comparison"
-    }
-  ],
-  "$defs": {
-    "goalRef": {
-      "type": "object",
-      "properties": {
-        "caseId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "goalId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        }
-      },
-      "required": [
-        "caseId",
-        "goalId"
-      ],
-      "additionalProperties": false
-    },
-    "runRef": {
+    "left": {
       "type": "object",
       "properties": {
         "runDir": {
@@ -39,6 +18,10 @@
           "type": "string",
           "minLength": 1
         },
+        "baselineSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
         "resultsRevision": {
           "type": "integer",
           "minimum": 0
@@ -46,8 +29,37 @@
         "resultsSha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "runDir",
+        "runId",
+        "baselineSha256",
+        "resultsRevision",
+        "resultsSha256"
+      ],
+      "additionalProperties": false
+    },
+    "right": {
+      "type": "object",
+      "properties": {
+        "runDir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
         },
         "baselineSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "resultsRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resultsSha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         }
@@ -55,474 +67,83 @@
       "required": [
         "runDir",
         "runId",
+        "baselineSha256",
         "resultsRevision",
-        "resultsSha256",
-        "baselineSha256"
+        "resultsSha256"
       ],
       "additionalProperties": false
     },
-    "mapping": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "left": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/goalRef"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "right": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/goalRef"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "reason": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "required": [
-        "id",
-        "left",
-        "right",
-        "reason"
-      ],
-      "additionalProperties": false
+    "pointIds": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/safeId"
+      }
     },
     "comparability": {
-      "type": "object",
-      "properties": {
-        "mappingId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "state": {
-          "enum": [
-            "comparable",
-            "limited",
-            "not_directly_comparable"
-          ]
-        },
-        "rationale": {
-          "type": "string",
-          "minLength": 1
-        },
-        "sources": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "side": {
-                "enum": [
-                  "left",
-                  "right"
-                ]
-              },
-              "kind": {
-                "enum": [
-                  "result",
-                  "evidence",
-                  "binding"
-                ]
-              },
-              "ref": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "required": [
-              "side",
-              "kind",
-              "ref"
-            ],
-            "additionalProperties": false
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "$ref": "common.schema.json#/$defs/safeId"
           },
-          "minItems": 1
-        }
-      },
-      "required": [
-        "mappingId",
-        "state",
-        "rationale",
-        "sources"
-      ],
-      "additionalProperties": false
-    },
-    "request": {
-      "type": "object",
-      "properties": {
-        "regressionVersion": {
-          "const": 1
-        },
-        "left": {
-          "$ref": "#/$defs/runRef"
-        },
-        "right": {
-          "$ref": "#/$defs/runRef"
-        },
-        "mappings": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/mapping"
+          "state": {
+            "enum": [
+              "comparable",
+              "limited",
+              "not_directly_comparable"
+            ]
           },
-          "minItems": 1
-        },
-        "comparability": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/comparability"
-          }
-        }
-      },
-      "required": [
-        "regressionVersion",
-        "left",
-        "right",
-        "mappings",
-        "comparability"
-      ],
-      "additionalProperties": false
-    },
-    "comparedGoal": {
-      "type": "object",
-      "properties": {
-        "caseId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "goalId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "status": {
-          "anyOf": [
-            {
-              "enum": [
-                "verified",
-                "violation",
-                "inconclusive",
-                "not_tested"
-              ]
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "rationale": {
-          "anyOf": [
-            {
-              "type": "string",
-              "minLength": 1
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "resultRevision": {
-          "anyOf": [
-            {
-              "type": "integer",
-              "minimum": 0
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "gaps": {
-          "type": "array",
-          "items": {
+          "rationale": {
             "type": "string",
             "minLength": 1
-          }
-        },
-        "evidence": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "runId": {
-                "type": "string",
-                "minLength": 1
-              },
-              "evidenceId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "sha256": {
-                "type": "string",
-                "pattern": "^[a-f0-9]{64}$"
-              },
-              "kind": {
-                "type": "string",
-                "minLength": 1
-              },
-              "source": {
-                "type": "string",
-                "minLength": 1
-              },
-              "collectedAt": {
-                "type": "string",
-                "format": "date-time"
-              }
-            },
-            "required": [
-              "runId",
-              "evidenceId",
-              "sha256",
-              "kind",
-              "source",
-              "collectedAt"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "evidenceLimitations": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      },
-      "required": [
-        "caseId",
-        "goalId",
-        "status",
-        "rationale",
-        "resultRevision",
-        "gaps",
-        "evidence",
-        "evidenceLimitations"
-      ],
-      "additionalProperties": false
-    },
-    "difference": {
-      "type": "object",
-      "properties": {
-        "aspect": {
-          "enum": [
-            "rule",
-            "task",
-            "identity",
-            "environment",
-            "data",
-            "authorization",
-            "scope",
-            "path"
-          ]
-        },
-        "changed": {
-          "type": "boolean"
-        },
-        "left": {
-          "anyOf": [
-            {
-              "type": "string",
-              "minLength": 1
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "right": {
-          "anyOf": [
-            {
-              "type": "string",
-              "minLength": 1
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      },
-      "required": [
-        "aspect",
-        "changed",
-        "left",
-        "right"
-      ],
-      "additionalProperties": false
-    },
-    "comparison": {
-      "type": "object",
-      "properties": {
-        "regressionVersion": {
-          "const": 1
-        },
-        "left": {
-          "type": "object",
-          "properties": {
-            "runDir": {
-              "type": "string",
-              "minLength": 1
-            },
-            "runId": {
-              "type": "string",
-              "minLength": 1
-            },
-            "resultsRevision": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "resultsSha256": {
-              "type": "string",
-              "pattern": "^[a-f0-9]{64}$"
-            },
-            "baselineSha256": {
-              "type": "string",
-              "pattern": "^[a-f0-9]{64}$"
-            }
           },
-          "required": [
-            "runDir",
-            "runId",
-            "resultsRevision",
-            "resultsSha256",
-            "baselineSha256"
-          ],
-          "additionalProperties": false
-        },
-        "right": {
-          "type": "object",
-          "properties": {
-            "runDir": {
-              "type": "string",
-              "minLength": 1
-            },
-            "runId": {
-              "type": "string",
-              "minLength": 1
-            },
-            "resultsRevision": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "resultsSha256": {
-              "type": "string",
-              "pattern": "^[a-f0-9]{64}$"
-            },
-            "baselineSha256": {
-              "type": "string",
-              "pattern": "^[a-f0-9]{64}$"
-            }
-          },
-          "required": [
-            "runDir",
-            "runId",
-            "resultsRevision",
-            "resultsSha256",
-            "baselineSha256"
-          ],
-          "additionalProperties": false
-        },
-        "rows": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "mapping": {
-                "$ref": "#/$defs/mapping"
-              },
-              "left": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/comparedGoal"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "right": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/comparedGoal"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "differences": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/difference"
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "side": {
+                  "enum": [
+                    "left",
+                    "right"
+                  ]
+                },
+                "kind": {
+                  "enum": [
+                    "result",
+                    "evidence",
+                    "binding"
+                  ]
+                },
+                "ref": {
+                  "type": "string",
+                  "minLength": 1
                 }
               },
-              "comparability": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/comparability"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
-            "required": [
-              "mapping",
-              "left",
-              "right",
-              "differences",
-              "comparability"
-            ],
-            "additionalProperties": false
+              "required": [
+                "side",
+                "kind",
+                "ref"
+              ],
+              "additionalProperties": false
+            }
           }
         },
-        "unmapped": {
-          "type": "object",
-          "properties": {
-            "left": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/goalRef"
-              }
-            },
-            "right": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/goalRef"
-              }
-            }
-          },
-          "required": [
-            "left",
-            "right"
-          ],
-          "additionalProperties": false
-        },
-        "caveat": {
-          "type": "string",
-          "minLength": 1
-        },
-        "contentSha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        }
-      },
-      "required": [
-        "regressionVersion",
-        "left",
-        "right",
-        "rows",
-        "unmapped",
-        "caveat",
-        "contentSha256"
-      ],
-      "additionalProperties": false
+        "required": [
+          "pointId",
+          "state",
+          "rationale",
+          "sources"
+        ],
+        "additionalProperties": false
+      }
     }
-  }
+  },
+  "required": [
+    "regressionVersion",
+    "left",
+    "right"
+  ],
+  "additionalProperties": false
 }

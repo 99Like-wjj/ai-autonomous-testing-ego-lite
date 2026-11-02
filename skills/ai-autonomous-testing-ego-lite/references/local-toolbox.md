@@ -1,100 +1,52 @@
-# 本地工具箱调用指南（0.1.7）
+# 本地确定性工具箱（0.1.8）
 
-工具负责本地数据事务、结构校验与报告渲染；network 命令还会通过本机 Ego 启动独立 native 采集上下文并查询已授权的接口观察。工具不调用模型、不选择业务执行路线、不发起或重放业务请求、不自动重试业务。业务四态与证据充分性由 AI 判断。完整格式以已确认工具根的 docs/asset-formats.md 和 schemas 为准。
+ToolRoot 为实际加载的 Skill 根目录；源码先构建，再使用 .build/runtime。tool-info 核对 0.1.8 / report-language-model-1、主契约 v9、regressionVersion 2、networkVersion 1 和 installationIntegrity。本地工具不调用模型，不选择业务路线或自动重试。
 
-## 工具根与格式
-
-完整安装/独立构建包的 ToolRoot 是实际加载的 SKILL.md 所在目录。源码先在已确认仓库 npm ci、npm run build，再使用 .build/runtime；不要把源码 skills 子目录当安装根或自动替换用户级安装。
+## 用例与范围
 
 ```powershell
-$ToolRoot = 'ABS_ACTUALLY_LOADED_SKILL_ROOT'
-$Tool = Join-Path $ToolRoot 'scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.7 --expect-revision report-step-evidence-1
+node <ToolRoot>/scripts/ego.mjs init --project-dir <WORK>
+node <ToolRoot>/scripts/ego.mjs cases save --work-dir <WORK> --request <SAVE_REQUEST>
+node <ToolRoot>/scripts/ego.mjs validate-cases --cases <WORK>/cases/v001.json
+node <ToolRoot>/scripts/ego.mjs cases render --cases <WORK>/cases/v001.json --output-dir <DOCS>
+node <ToolRoot>/scripts/ego.mjs cases verify --cases <WORK>/cases/v001.json --output-dir <DOCS>
+node <ToolRoot>/scripts/ego.mjs cases serve --cases <WORK>/cases/v001.json --output-dir <REVIEW_FILES>
+node <ToolRoot>/scripts/ego.mjs cases export-review --cases <WORK>/cases/v001.json --request <FEEDBACK_JSON_OR_HTML> --output-dir <REVIEW_FILES>
+node <ToolRoot>/scripts/ego.mjs cases review --cases <WORK>/cases/v001.json --request <ACTUAL_REVIEW_REQUEST>
+node <ToolRoot>/scripts/ego.mjs regression select --request <SELECTION_REQUEST> --output-file <SELECTION_JSON>
+node <ToolRoot>/scripts/ego.mjs start --project-dir <WORK> --cases <WORK>/cases/v001.json --binding <BINDING_REQUEST> --output-dir <NEW_RUN>
+node <ToolRoot>/scripts/ego.mjs regression context --run-dir <SOURCE_RUN> --results-revision 1 --output-file <CONTEXT_JSON>
+node <ToolRoot>/scripts/ego.mjs regression compare --request <COMPARISON_REQUEST> --output-dir <NEW_COMPARISON_DIR>
 ```
 
-核对 toolRoot、skillFile、formatVersions（统一为 8）和 installationIntegrity: verified。未知修改或混用先报告。本版不接受旧格式，不提供旧 run 读取或自动转换；历史文件保留原样。不要只改 schemaVersion，也不要为升级覆盖旧数据。
+尖括号替换为实际绝对路径。init 创建合成请求与空 cases/runs 目录，不创建执行结果。保存请求见 examples/cases-save-request.example.json；用 select 的真实输出填写 binding.selection。实际审阅、当前条件、参数、暂缓点及历史引用由 AI 按真实来源填写，不能把合成请求当授权。文档与离线反馈不执行测试或认证人类身份。
 
-链接安装入口先取得非空 tool-info 回执，再使用其返回的真实 toolRoot；退出码 0 不替代回执与产物。各宿主入口、上下文和生命周期条件见[跨宿主指南](host-compatibility.md)。当前整合包使用 v8，不沿用独立修复分支的旧契约。
+cases render和serve可带 --feedback <ABS_JSON_OR_HTML> 载入同版本意见副本。serve只监听127.0.0.1，返回带随机会话路径的私有URL；用Ego打开实际URL，不猜地址。原生保存仅写入命令指定的仓库外目录，校验来源和范围，按内容指纹生成新HTML/JSON及清单；重复内容核对已有文件，不覆盖历史。它不读取浏览器请求提供的任意文件路径，也不登记正式确认。默认空闲480分钟结束，可传 --idle-minutes 1至1440。会话URL不公开，离线草稿在换入口时用保存文件恢复。Windows旧文件及其Zone.Identifier保持原样；浏览器JSON备份不是原生保存的替代证明。
 
-## 创建运行与保存证据
+## 事实与协调
 
-真实项目和运行放在仓库外私有目录；命令使用绝对路径。先生成/审阅 v8 用例，再校验与冻结：
-
-```text
-node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS_CASES_JSON
-node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT_DIR --cases ABS_CASES_JSON --output-dir ABS_NEW_RUN_DIR
-node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS_RUN_DIR --request ABS_EVIDENCE_REQUEST
-```
-
-start 只保存基线与空结果账本，不执行业务，也不自动填 not_tested。并发默认 1；需要分派时读[并发指南](parallel-testing.md)，串行直接 record，不需要 worker 或初始 Space 清单才能记录目标结果。
-
-证据请求使用 schemaVersion 8、唯一 operationId、当前 evidence revision、caseId、sourceFile、kind、source、description；capturedAt 仅在来源已知时提供。工具复制普通文件、核对留存字节并返回 evidenceId。登记前检查敏感内容，工具不自动脱敏；哈希不证明来源真实性。
-
-## 串行目标结果
-
-读取当前 results revision，使用以下结构提交真实观察。合成例只示范格式，不代表已执行：
+evidence-add 保管真实普通文件；record 的 observations、contexts、actionEvents、assessments、findings 分别保存事实与 AI 判断。operationId 用于幂等文件提交，不授予业务重试。worker 只写自己的目录，协调者复核 packet 后写公共账本。
 
 ```json
-{
-  "schemaVersion":8,
-  "operationId":"config-first-observation",
-  "expectedRevision":0,
-  "caseId":"CONFIG-01",
-  "mode":"final",
-  "record":{
-    "observations":[{
-      "id":"page-after-save",
-      "summary":"页面显示新名称，但尚未重新读取同一对象。",
-      "coveredRefs":["step:create"],
-      "evidenceIds":[]
-    }],
-    "assessments":[{
-      "goalId":"saved-content",
-      "status":"inconclusive",
-      "rationale":"缺少目标要求的独立读回，尚不能判断保存结果。",
-      "observationIds":["page-after-save"],
-      "gaps":["尚未完成 step:readback。"],
-      "diagnosis":{"state":"unknown","category":"unknown","summary":"现有观察不支持归因。","evidenceIds":[]}
-    }]
-  }
-}
+{"schemaVersion":9,"operationId":"synthetic-not-tested","expectedRevision":0,"caseId":"export","mode":"final","record":{"observations":[],"assessments":[{"goalId":"content","status":"not_tested","rationale":"Synthetic deferred example; replace with actual facts.","observationIds":[],"gaps":["Synthetic current data is unavailable."]}]}}
 ```
 
-```text
-node ABS_TOOL_ROOT/scripts/ego.mjs record --run-dir ABS_RUN_DIR --request ABS_RECORD_REQUEST
+execution query viewVersion 9 默认 metadata，明确未检查 results 和物理证据；full 才完整读取。下载前用既有 execution note 的 category=download 记录 captureId、caseId、pointIds、actionId、state=active。同轮已有 active/unknown 拒绝第二次观察；超时记 unknown，显式对账并提供留存事实后记 resolved，不按时间清除。
+
+## 下载与文件
+
+ego-helpers/download.mjs 由 AI 的同轮 Ego 脚本导入，await armNativeDownload 后再点击，collect 在同轮 saveAs。工具不创建 Space 或选择按钮。临时页漏收时显式调用 listDownloadCandidates/retainDownloadCandidate，按动作前后新 ID 和精确授权 URL 关联，不选最新同名文件，不自动 fetch。能力与限制详见[下载与只读文件检查](download-files.md)。
+
+```json
+{"schemaVersion":9,"file":"C:/example/testing/runs/run-001/captures/export/original.bin","format":"csv","maxBytes":33554432,"maxOutputBytes":4194304,"maxCells":100000,"timeoutMs":60000}
 ```
 
-observations 记录实际事实、覆盖的必要语义与同用例证据 ID；assessments 引用观察并分别判断目标。verified/violation 必须有足够实际观察与登记证据，verified 不能隐藏 requiredRefs 的缺口。冻结目标待澄清时不能给 verified/violation。工具校验引用和结构，AI 判断事实是否充分。
+files inspect 从独立 Node CLI 调用；Ego 脚本的 process.execPath 是 ego.exe，不能当成解析器 Node 子进程。files inspect --request <FILE_REQUEST> --output-file <NEW_JSON> 输出读取范围、类型、大小/指纹、局限或失败，不输出业务通过。CSV 保留前导零和重复表头；XLSX 仅值与缓存，不重算公式；JSON 数值使用原文，不支持时明确精度局限。停止解析不取消浏览器下载。
 
-final 仅更新本次显式提交的目标，其他目标当前评估不变；attempt 留在 entries 历史，不改变当前评估。所有 entries 保留，不覆盖首次异常。缺少 assessment 是入账缺口，不是第五种业务状态，也不能自动填为未测试。根因未知可以与发现违反并存，详见[判断指南](judgment-and-diagnosis.md)。
+## 交付
 
-资源缺口通过 observations、rationale、gaps 和证据记录，不能代替实际向用户提问。用户补充后追加核验事实；不改冻结规则，不由工具自动决定恢复。
+report --run-dir <RUN> --output-dir <EXISTING_EMPTY_REPORT_DIR> --delivery auto 输出 HTML/Markdown/JSON 与清单。先显式创建新的空输出目录；report要求目录已存在，且拒绝覆盖已有目标文件。auto 需要下载原件、对话原件或历史附件时使用 bundle，移动时保留 attachments。显式 inline 未携带必需原件时交付不完整。
 
-## 幂等和冲突
+verify-report --run-dir <RUN> --report-dir <REPORT_DIR> 校验三格式和附件；不是浏览器打开证明。实际打开检查正文、原图、筛选、阅读位置及历史来源。当前证据严格校验，历史缺失明确标示，不补造现场。
 
-每个数据写请求有唯一 operationId。完全相同 ID 与内容重放只取回回执；内容改变或新操作的过期 revision 拒绝。run 使用单写者锁，不自动排队、修改请求或重试业务。响应丢失时先查状态，必要时原样重放数据请求；不得用新 ID 重做未知业务写入。遗留锁先核实对应进程，不自动删除未知锁。
-
-## 进度和报告
-
-```text
-node ABS_TOOL_ROOT/scripts/ego.mjs progress --run-dir ABS_RUN_DIR
-node ABS_TOOL_ROOT/scripts/ego.mjs check --run-dir ABS_RUN_DIR
-node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS_RUN_DIR
-node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS_RUN_DIR --report-dir ABS_REPORT_DIR
-```
-
-进度与三格式报告按当前业务目标评估统计 verified、violation、inconclusive、not_tested；unassessed 单列为“缺少目标评估记录”。父用例展示目标分布，不用单一 case.status 隐去部分完成。attempt 和旧 final 只出现在历史，不重复计入当前分布。报告不从 entries 为空推断从未执行。
-
-report 校验关联与全部证据字节后生成 HTML、JSON、Markdown，拒绝覆盖。HTML 内嵌可安全预览的真实截图，不依赖网络；缺图与记录缺口明确展示。verify-report 读回核对当前运行与报告，browserOpen: not_checked 不是实际打开证明。实际打开与视觉/交互检查另记，交付三份绝对路径。
-
-另存报告用 --output-dir 指向已准备的新私有目录。事后整理只使用有来源的新 v8 记录，不声称旧运行被兼容读取，不改原文件、不补造采集时间或执行前冻结。报告整理上下文按当前 schema 提供，并与业务评估分开；工具核对文件一致性不证明语义正确。详见[证据与报告](evidence-and-report.md)。
-
-
-## 接口观测与按需查询
-
-在需覆盖的操作前按授权范围启用 network start，后台自动记录；network status/query/stop 管理状态、离线查询和有序停止。保存反馈不明、报错、数据不一致或异步处理时，AI 可按需查询，不要求每步执行。完整配置、流正文、分页、内容策略、导出和交接语义见[接口观测](network-observation.md)。不读取旧 protocol-summary，也不删除历史。
-
-
-## 回归资料工具
-
-首次留痕、自动整理和两种重跑方式见[回归使用指南](regression-reuse.md)。`regression read/context/validate/commit/select/compare` 处理本地项目资料，`start --binding` 冻结本次精确任务与规则。完整命令见 `node ABS_TOOL_ROOT/scripts/ego.mjs --help`。examples 下的 regression-*.example.json 是合成占位，不可直接执行；以实际 context、select 和 commit 回执替换来源与哈希。
+目录移动时可显式传 report --history-locations <ABS_MAP_JSON>；格式见 schemas/history-locations.schema.json，按 runId 指定绝对目录并核对原版本/指纹。原引用保留，不自动扫描。下载 captureRoot 使用本轮 run/captures 或 note 所属 workers/<assignment>/captures，不换目录重启未知监听。

@@ -18,7 +18,7 @@ async function fixture(t: TestContext) {
     await fs.mkdir(path.dirname(path.join(dir, name)), { recursive: true });
     await fs.writeFile(path.join(dir, name), content);
   };
-  const run = () => spawnSync(process.execPath, [path.join(dir, 'tools', 'public-check.mjs')], { encoding: 'utf8' });
+  const run = (args: string[] = []) => spawnSync(process.execPath, [path.join(dir, 'tools', 'public-check.mjs'), ...args], { encoding: 'utf8' });
   return { dir, write, run };
 }
 test('publication checker accepts a small generic source tree', async t => {
@@ -100,4 +100,32 @@ test('publication checker explicitly does not scan Git history', async t => {
   assert.equal(r.status, 0, r.stderr);
   const result: unknown = JSON.parse(r.stdout); assert.ok(result && typeof result === 'object' && 'limitations' in result && Array.isArray(result.limitations));
   assert.ok(result.limitations.some((x: unknown) => typeof x === 'string' && x.includes('Git history')));
+});
+
+// Signature fixtures only; accepting a container is not a privacy or image-content audit.
+const jpegSignatureFixture = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
+test('publication checker allows reviewed JPEG location only in source documentation', async t => {
+  const f = await fixture(t);
+  await f.write('docs/images/real-example/case-review.jpg', jpegSignatureFixture);
+  assert.equal(f.run().status, 0);
+  assert.match(f.run(['--installed']).stderr, /unsupported publication file type/);
+});
+test('publication checker rejects malformed showcase JPEG and other screenshot locations', async t => {
+  const f = await fixture(t);
+  await f.write('docs/images/real-example/case-review.jpg', 'not an image');
+  assert.match(f.run().stderr, /invalid JPEG signature/);
+  await fs.rm(path.join(f.dir, 'docs/images/real-example/case-review.jpg'));
+  await f.write('docs/images/unreviewed.jpg', jpegSignatureFixture);
+  assert.match(f.run().stderr, /unsupported publication file type/);
+});
+test('publication checker does not allow HTML or arbitrary binary in showcase directory', async t => {
+  const f = await fixture(t);
+  for (const [name, content] of [['report.html', '<html>private original</html>'], ['raw.bin', jpegSignatureFixture], ['raw.json', '{}']] as const) {
+    const target = `docs/images/real-example/${name}`;
+    await f.write(target, content);
+    const r = f.run();
+    assert.equal(r.status, 1, name);
+    assert.match(r.stderr, /unsupported publication file type/);
+    await fs.rm(path.join(f.dir, target));
+  }
 });

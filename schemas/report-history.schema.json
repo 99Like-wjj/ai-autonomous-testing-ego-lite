@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "report-history.schema.json",
+  "title": "Retained report history v1",
+  "type": "object",
+  "properties": {
+    "historyVersion": {
+      "const": 1
+    },
+    "roots": {
+      "type": "array",
+      "items": {
+        "$ref": "regression-selection.schema.json#/$defs/run"
+      }
+    },
+    "primaryBaseline": {
+      "anyOf": [
+        {
+          "$ref": "regression-selection.schema.json#/$defs/run"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "$ref": "regression-selection.schema.json#/$defs/run"
+          },
+          "resolvedRunDir": {
+            "type": "string",
+            "minLength": 1
+          },
+          "caseVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "parents": {
+            "type": "array",
+            "items": {
+              "$ref": "regression-selection.schema.json#/$defs/run"
+            }
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pointId": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "forPointIds": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "caseId": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "goalId": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "expected": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "selected": {
+                  "type": "boolean"
+                },
+                "status": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "verified",
+                        "violation",
+                        "inconclusive",
+                        "not_tested"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "rationale": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gaps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "definitionSha256": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "assessment": {
+                  "anyOf": [
+                    {
+                      "$ref": "common.schema.json#/$defs/committedAssessment"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "observations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/observation"
+                  }
+                },
+                "contexts": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/executionContext"
+                  }
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/actionEvent"
+                  }
+                },
+                "findings": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/finding"
+                  }
+                },
+                "evidenceKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                },
+                "definition": {
+                  "$ref": "common.schema.json#/$defs/goal"
+                },
+                "plan": {
+                  "type": "object",
+                  "properties": {
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "common.schema.json#/$defs/condition"
+                      }
+                    },
+                    "path": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "order": {
+                      "enum": [
+                        "strict",
+                        "adaptive"
+                      ]
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "common.schema.json#/$defs/step"
+                      }
+                    },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "common.schema.json#/$defs/parameter"
+                      }
+                    }
+                  },
+                  "required": [
+                    "conditions",
+                    "path",
+                    "order",
+                    "steps",
+                    "parameters"
+                  ],
+                  "additionalProperties": false
+                },
+                "sourceDefinitions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/sourceRef"
+                  }
+                },
+                "declaredConditions": {
+                  "$ref": "regression-binding.schema.json#/properties/currentConditions"
+                },
+                "parameterBindings": {
+                  "$ref": "regression-binding.schema.json#/properties/parameterBindings"
+                }
+              },
+              "required": [
+                "pointId",
+                "forPointIds",
+                "caseId",
+                "goalId",
+                "title",
+                "expected",
+                "selected",
+                "status",
+                "rationale",
+                "gaps",
+                "definitionSha256",
+                "assessment",
+                "observations",
+                "contexts",
+                "actions",
+                "findings",
+                "evidenceKeys",
+                "definition",
+                "plan",
+                "sourceDefinitions",
+                "declaredConditions",
+                "parameterBindings"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "ref",
+          "resolvedRunDir",
+          "caseVersion",
+          "parents",
+          "points"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceRun": {
+            "$ref": "regression-selection.schema.json#/$defs/run"
+          },
+          "resolvedRunDir": {
+            "type": "string",
+            "minLength": 1
+          },
+          "item": {
+            "$ref": "common.schema.json#/$defs/evidenceItem"
+          }
+        },
+        "required": [
+          "key",
+          "sourceRun",
+          "resolvedRunDir",
+          "item"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "run": {
+            "$ref": "regression-selection.schema.json#/$defs/run"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "run",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "complete": {
+      "type": "boolean"
+    },
+    "caveat": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contentSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "required": [
+    "historyVersion",
+    "roots",
+    "primaryBaseline",
+    "nodes",
+    "evidence",
+    "gaps",
+    "complete",
+    "caveat",
+    "contentSha256"
+  ],
+  "additionalProperties": false
+}

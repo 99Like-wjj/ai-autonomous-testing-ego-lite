@@ -1,0 +1,74 @@
+{
+  "kind": "design-dependency-probe",
+  "date": "2026-11-01",
+  "scope": "Temporary experiments only; no product dependency or functionality was changed.",
+  "selected": {
+    "csvParse": "7.0.3",
+    "readExcelFile": "9.3.14",
+    "esbuildBuildOnly": "0.28.2",
+    "bundleBytes": 249655,
+    "runtime": "v24.19.0",
+    "target": "node22",
+    "node22ActuallyExecuted": false,
+    "isolatedFromNodeModules": true,
+    "unrelatedCwd": true,
+    "observations": {
+      "quotedCsvNewline": "a,b\nc",
+      "leadingZeroPreserved": true,
+      "xlsxRecords": 2,
+      "xlsxNumericTotal": 303.75,
+      "cachedFormulaValue": 3,
+      "uncachedFormulaValueReturned": false,
+      "numericText": {
+        "kind": "number",
+        "raw": "101.25"
+      }
+    },
+    "audit": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "dependencies": {
+        "prod": 10,
+        "dev": 0,
+        "optional": 26,
+        "peer": 0,
+        "peerOptional": 0,
+        "total": 35
+      }
+    }
+  },
+  "alternative": {
+    "exceljs": "4.4.0",
+    "bundleBytes": 2581026,
+    "audit": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 9,
+        "high": 0,
+        "critical": 0,
+        "total": 9
+      },
+      "dependencies": {
+        "prod": 196,
+        "dev": 0,
+        "optional": 26,
+        "peer": 0,
+        "peerOptional": 0,
+        "total": 221
+      }
+    },
+    "decision": "Not selected as the default reader."
+  },
+  "limitations": [
+    "Only the recorded runtime and specimens were tested.",
+    "The XLSX reader returns values; it does not recalculate or fully expose formulas/styles/empty-cell semantics.",
+    "Audit results apply only to the registry response and dependency set checked at this time."
+  ]
+}

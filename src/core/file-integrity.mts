@@ -32,10 +32,11 @@ export async function hashFile(filename: string): Promise<{ sha256: string; byte
   const flags = fsConstants.O_RDONLY | (fsConstants.O_NOFOLLOW ?? 0);
   const handle = await fs.open(filename, flags);
   try {
-    if (!(await handle.stat()).isFile()) fail('Expected a regular file.');
+    const before=await handle.stat();if (!before.isFile()) fail('Expected a regular file.');
     const digest = crypto.createHash('sha256');
     let bytes = 0;
     for await (const chunk of handle.createReadStream({ autoClose: false })) { digest.update(chunk); bytes += chunk.length; }
+    const after=await handle.stat();if(before.size!==after.size||before.mtimeMs!==after.mtimeMs||before.ctimeMs!==after.ctimeMs||bytes!==before.size)fail('File changed while its fingerprint was being read.');
     return { sha256: digest.digest('hex'), bytes };
   } finally { await handle.close(); }
 }

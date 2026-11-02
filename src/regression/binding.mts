@@ -1,153 +1,57 @@
-/** Frozen snapshots bind a new run. Current readiness and authorization remain explicit AI declarations. */
+/** Freeze exact case-file scope, actual review records and current declarations. */
 import fs from 'node:fs/promises';
-import type { Baseline, Case } from '../contracts/model.mjs';
-import type { StoredRule, StoredTask } from './model.mjs';
-import { normalizeCases } from '../core/baseline.mjs';
+import path from 'node:path';
+import type { Baseline } from '../contracts/model.mjs';
+import type { HistoryBinding, RunRef } from './model.mjs';
 import { assertClosed, canonical, canonicalHash, fail, hash, inside, json, safeIdentifier, safePath } from '../core/common.mjs';
-import { arrayValue, oneOf, sha256Value, textValue, timeValue, uniqueStrings } from '../core/validation.mjs';
-import { parseStoredRule, parseStoredTask } from './validation.mjs';
-import { verifySourceRef } from './sources.mjs';
-import { parseSelection, readScopeAssets, selectRegression, taskKey } from './selection.mjs';
-import type { CoverageGap, RegressionSelection } from './selection.mjs';
-
-export interface ConditionDeclaration {
-  id: string; caseIds: string[]; aspect: 'identity' | 'environment' | 'data' | 'authorization' | 'path' | 'other';
-  state: 'verified' | 'pending' | 'deferred'; statement: string;
-  source: { kind: 'ai_declaration' | 'current_user_statement' | 'current_evidence'; locator: string; file: string | null; sha256: string | null };
+import { arrayValue, oneOf, parseSourceRef, sha256Value, textValue, timeValue, uniqueStrings } from '../core/validation.mjs';
+import { normalizeCases } from '../core/baseline.mjs';
+import { goalDefinitionHash, pointLocation, readCasesFile, verifySources } from '../core/case-versions.mjs';
+import { parseCaseReview, parseCasesRef, verifyCaseApprovals } from '../core/case-review.mjs';
+import type { RetainedReview, ReviewBinding } from '../core/case-review.mjs';
+import { parseRunRef, parseSelection, projectExecutionPlan, selectRegression } from './selection.mjs';
+import type { ExecutionPlanRef, RegressionSelection } from './selection.mjs';
+import { readSourceRun } from './sources.mjs';
+export interface ConditionDeclaration {id:string;caseIds:string[];aspect:'identity'|'environment'|'data'|'authorization'|'path'|'other';state:'verified'|'pending'|'deferred';statement:string;source:{kind:'ai_declaration'|'current_user_statement'|'current_evidence';locator:string;file:string|null;sha256:string|null}}
+export interface CurrentConditions {declaredBy:string;declaredAt:string;forCurrentRun:true;items:ConditionDeclaration[]}
+export interface ParameterBinding {caseId:string;parameterId:string;value:string|number|{id:string;label:string|null};source:import('../contracts/model.mjs').SourceRef}
+export interface BindingRequest {regressionVersion:2;selection:RegressionSelection;reviewFiles:string[];plans:ExecutionPlanRef[];deferred:{pointId:string;reason:string}[];parameterBindings:ParameterBinding[];currentConditions:CurrentConditions;history:HistoryBinding}
+export interface RegressionBinding extends BindingRequest {runId:string;baselineSha256:string;reviews:RetainedReview[];reviewBindings:ReviewBinding[];coverage:{requestedCases:number;requestedGoals:number;selectedCases:number;selectedGoals:number;compiledCases:number;compiledGoals:number;notSelectedCases:number;gaps:{pointId:string|null;code:string;reason:string}[]};contentSha256:string;caveat:string}
+function parseConditions(value:unknown,caseIds:Set<string>):CurrentConditions {
+ assertClosed(value,['declaredBy','declaredAt','forCurrentRun','items'],'current conditions');if(value.forCurrentRun!==true)fail('Current conditions must explicitly belong to this run.');
+ const items=arrayValue(value.items,'condition declarations').map(v=>{assertClosed(v,['id','caseIds','aspect','state','statement','source'],'condition declaration');assertClosed(v.source,['kind','locator','file','sha256'],'condition source');const ids=uniqueStrings(v.caseIds,'condition cases',true);if(!ids.length||ids.some(id=>!caseIds.has(id)))fail('Current declaration is outside the selected cases.');const source={kind:oneOf(v.source.kind,['ai_declaration','current_user_statement','current_evidence'],'condition source kind'),locator:textValue(v.source.locator,'condition source locator'),file:v.source.file===null?null:textValue(v.source.file,'condition source file'),sha256:v.source.sha256===null?null:sha256Value(v.source.sha256)};if(source.kind==='current_evidence'?(!source.file||!source.sha256):(source.file!==null||source.sha256!==null))fail('Current evidence requires its own file/hash; statements must not disguise old files.');return{id:safeIdentifier(v.id),caseIds:ids,aspect:oneOf(v.aspect,['identity','environment','data','authorization','path','other'],'condition aspect'),state:oneOf(v.state,['verified','pending','deferred'],'condition state'),statement:textValue(v.statement,'condition statement'),source};});
+ if(new Set(items.map(i=>i.id)).size!==items.length)fail('Duplicate current condition ID.');return{declaredBy:textValue(value.declaredBy,'conditions author'),declaredAt:timeValue(value.declaredAt,'conditions declaration time'),forCurrentRun:true,items};
 }
-export interface CurrentConditions { declaredBy: string; declaredAt: string; forCurrentRun: true; items: ConditionDeclaration[] }
-export interface BindingRequest {
-  regressionVersion: 1; selection: RegressionSelection;
-  caseMappings: { scopeCaseId: string; runCaseId: string }[];
-  deferredCases: { caseId: string; reason: string }[]; conditions: CurrentConditions;
+export function parseHistory(value:unknown,runId?:string):HistoryBinding {assertClosed(value,['parents','primaryBaseline','reason'],'history');const parents=arrayValue(value.parents,'history parents').map(parseRunRef),primaryBaseline=value.primaryBaseline===null?null:parseRunRef(value.primaryBaseline);if(new Set(parents.map(p=>p.runId)).size!==parents.length||parents.some(p=>p.runId===runId))fail('Duplicate or cyclic historical run identity.');if(primaryBaseline&&!parents.some(p=>canonical(p)===canonical(primaryBaseline)))fail('Primary baseline must be an exact declared parent.');return{parents,primaryBaseline,reason:textValue(value.reason,'history reason')};}
+function parseParameters(value:unknown,baseline:Baseline,selectedCases:Set<string>):ParameterBinding[]{return arrayValue(value,'parameter bindings').map(v=>{assertClosed(v,['caseId','parameterId','value','source'],'parameter binding');const caseId=safeIdentifier(v.caseId),parameterId=safeIdentifier(v.parameterId),definition=baseline.cases.find(c=>c.id===caseId)?.parameters.find(p=>p.id===parameterId);if(!selectedCases.has(caseId)||!definition)fail('Unknown parameter binding.');let actual:ParameterBinding['value'];if(typeof v.value==='string'||typeof v.value==='number')actual=v.value;else{assertClosed(v.value,['id','label'],'bound reference');actual={id:textValue(v.value.id,'bound object ID'),label:v.value.label===null?null:textValue(v.value.label,'bound label')};}if(definition.type==='integer'?(typeof actual!=='number'||!Number.isSafeInteger(actual)):definition.type==='decimal'?(typeof actual!=='string'||!/^[-+]?(?:\d+)(?:\.\d+)?$/.test(actual)):definition.type==='date'?(typeof actual!=='string'||!/^\d{4}-\d{2}-\d{2}(?:T.*Z)?$/.test(actual)):definition.type==='string'?typeof actual!=='string':typeof actual!=='object')fail('Parameter value type mismatch: '+parameterId);return{caseId,parameterId,value:actual,source:parseSourceRef(v.source)};});}
+export function parseBindingRequest(value:unknown,baseline:Baseline):BindingRequest {
+ assertClosed(value,['regressionVersion','selection','reviewFiles','plans','deferred','parameterBindings','currentConditions','history'],'run binding request');if(value.regressionVersion!==2)fail('Run binding requires regressionVersion 2.');const selection=parseSelection(value.selection,baseline),selected=new Set(selection.selectedPointIds),selectedCases=new Set(baseline.cases.filter(c=>c.goals.some(g=>selected.has(g.pointId))).map(c=>c.id));
+ const plans=arrayValue(value.plans,'execution plans').map(v=>{assertClosed(v,['caseId','pointIds','conditionIds','stepIds','includeRequiredPath'],'execution plan');const caseId=safeIdentifier(v.caseId),pointIds=uniqueStrings(v.pointIds,'execution point IDs',true),c=baseline.cases.find(c=>c.id===caseId);if(!c||pointIds.some(p=>!selected.has(p)))fail('Execution plan includes an unselected or unknown point.');const expected=projectExecutionPlan(c,pointIds);if(v.conditionIds!==undefined&&canonical(v.conditionIds)!==canonical(expected.conditionIds)||v.stepIds!==undefined&&canonical(v.stepIds)!==canonical(expected.stepIds)||v.includeRequiredPath!==undefined&&v.includeRequiredPath!==expected.includeRequiredPath)fail('Execution projection changes dependencies, conditions, path or order.');return expected;});
+ if(new Set(plans.map(p=>p.caseId)).size!==plans.length)fail('Duplicate execution case plan.');
+ const deferred=arrayValue(value.deferred,'deferred points').map(v=>{assertClosed(v,['pointId','reason'],'deferred point');return{pointId:safeIdentifier(v.pointId),reason:textValue(v.reason,'defer reason')};});const accounted=[...plans.flatMap(p=>p.pointIds),...deferred.map(d=>d.pointId)];if(new Set(accounted).size!==accounted.length||accounted.length!==selected.size||accounted.some(p=>!selected.has(p)))fail('Every selected point must be planned or explicitly deferred exactly once.');
+ const conditions=parseConditions(value.currentConditions,selectedCases);for(const p of plans)if(!conditions.items.some(i=>i.caseIds.includes(p.caseId)&&i.aspect==='authorization'))fail('Compiled case lacks a current authorization declaration.');
+ const parameterBindings=parseParameters(value.parameterBindings,baseline,selectedCases);if(new Set(parameterBindings.map(p=>p.caseId+'/'+p.parameterId)).size!==parameterBindings.length)fail('Duplicate parameter binding.');for(const plan of plans)for(const p of baseline.cases.find(c=>c.id===plan.caseId)!.parameters)if(!parameterBindings.some(b=>b.caseId===plan.caseId&&b.parameterId===p.id)&&!conditions.items.some(i=>i.caseIds.includes(plan.caseId)&&i.aspect==='data'&&i.state!=='verified'))fail('Missing parameter must have an explicit current data gap: '+p.id);
+ return{regressionVersion:2,selection,reviewFiles:uniqueStrings(value.reviewFiles,'review files'),plans:baseline.cases.flatMap(c=>plans.filter(p=>p.caseId===c.id)),deferred:selection.selectedPointIds.flatMap(id=>deferred.filter(d=>d.pointId===id)),parameterBindings,currentConditions:conditions,history:parseHistory(value.history)};
 }
-export interface RegressionBinding extends BindingRequest {
-  runId: string; baselineSha256: string; tasks: StoredTask[]; rules: StoredRule[];
-  coverage: { requestedCases: number; requestedGoals: number; selectedCases: number; selectedGoals: number; compiledCases: number; compiledGoals: number; notSelectedCases: number; gaps: CoverageGap[] };
-  caveat: string; contentSha256: string;
+function makeBinding(request:BindingRequest,baseline:Baseline,baselineSha256:string,runId:string,reviews:RetainedReview[],reviewBindings:ReviewBinding[]):RegressionBinding {
+ if(request.selection.request.cases.sha256!==baselineSha256)fail('Selected case-file fingerprint differs from the frozen baseline.');
+ const planned=request.plans.flatMap(p=>p.pointIds);if(new Set(reviewBindings.map(r=>r.pointId)).size!==planned.length||planned.some(id=>!reviewBindings.some(r=>r.pointId===id)))fail('Review bindings do not cover executable points exactly.');
+ for(const review of reviews){if(hash(json(review.record))!==review.sha256)fail('Frozen review bytes/hash mismatch.');parseCaseReview(review.record);if(review.record.decision!=='approved')fail('Frozen execution review is not an approval.');}
+ for(const b of reviewBindings){const p=pointLocation(baseline,b.pointId),r=reviews.find(r=>r.sha256===b.reviewSha256);if(!p||goalDefinitionHash(baseline,p.case,p.goal)!==b.definitionSha256||!r||canonical(r.record.cases)!==canonical(b.sourceCases)||!r.record.reviewedTargets.some(t=>t.pointId===b.pointId&&t.definitionSha256===b.definitionSha256))fail('Frozen review does not match the actual point definition.');}
+ const selectedCases=baseline.cases.filter(c=>c.goals.some(g=>request.selection.selectedPointIds.includes(g.pointId)));const body={...request,history:parseHistory(request.history,runId),runId,baselineSha256,reviews,reviewBindings,coverage:{requestedCases:baseline.cases.length,requestedGoals:baseline.cases.reduce((n,c)=>n+c.goals.length,0),selectedCases:selectedCases.length,selectedGoals:request.selection.selectedPointIds.length,compiledCases:request.plans.length,compiledGoals:planned.length,notSelectedCases:baseline.cases.length-selectedCases.length,gaps:[...request.selection.gaps.map(g=>({pointId:g.pointId,code:g.code,reason:g.reason})),...request.deferred.map(d=>({pointId:d.pointId,code:'deferred',reason:d.reason}))]},caveat:'This freezes definitions, review provenance and current declarations; it does not authenticate human identity, resource readiness or business judgments. Unselected goals have no current result; preparation steps do not add assessments.'};return{...body,contentSha256:canonicalHash(body)};
 }
-
-function parseConditions(value: unknown, selected: ReadonlySet<string>): CurrentConditions {
-  assertClosed(value, ['declaredBy', 'declaredAt', 'forCurrentRun', 'items'], 'current conditions');
-  if (value.forCurrentRun !== true) fail('Conditions must be explicitly declared for this new run; historical readiness is not inherited.');
-  const items = arrayValue(value.items, 'condition declarations').map(item => {
-    assertClosed(item, ['id', 'caseIds', 'aspect', 'state', 'statement', 'source'], 'condition declaration');
-    assertClosed(item.source, ['kind', 'locator', 'file', 'sha256'], 'condition provenance');
-    const caseIds = uniqueStrings(item.caseIds, 'condition case IDs', true);
-    if (!caseIds.length || caseIds.some(id => !selected.has(id))) fail('Current conditions must refer only to selected cases.');
-    const source: ConditionDeclaration['source'] = {
-      kind: oneOf(item.source.kind, ['ai_declaration', 'current_user_statement', 'current_evidence'], 'condition source kind'),
-      locator: textValue(item.source.locator, 'condition source locator'),
-      file: item.source.file === null ? null : textValue(item.source.file, 'current evidence file'),
-      sha256: item.source.sha256 === null ? null : sha256Value(item.source.sha256)
-    };
-    if (source.kind === 'current_evidence' ? (!source.file || !source.sha256) : (source.file !== null || source.sha256 !== null)) fail('Current evidence requires an exact retained file/hash; statements may not disguise historical evidence.');
-    return { id: safeIdentifier(item.id), caseIds,
-      aspect: oneOf(item.aspect, ['identity', 'environment', 'data', 'authorization', 'path', 'other'], 'condition aspect'),
-      state: oneOf(item.state, ['verified', 'pending', 'deferred'], 'condition declaration state'), statement: textValue(item.statement, 'condition statement'), source };
-  });
-  if (new Set(items.map(item => item.id)).size !== items.length) fail('Duplicate condition declaration ID.');
-  return { declaredBy: textValue(value.declaredBy, 'condition author'), declaredAt: timeValue(value.declaredAt, 'condition declaration time'), forCurrentRun: true, items };
+export async function prepareBinding({request:input,baseline,runId,baselineSha256}:{projectDir?:unknown;request:unknown;baseline:Baseline;runId:string;baselineSha256:string}) {
+ const request=parseBindingRequest(input,baseline);if(!request.selection.selectedPointIds.length)fail('Empty selection cannot start a test run.');const actual=await selectRegression({request:request.selection.request});if(canonical(actual)!==canonical(request.selection))fail('Selection changed before freezing.');const saved=await readCasesFile(request.selection.request.casesFile);if(saved.ref.sha256!==baselineSha256)fail('Case file changed before start.');
+ const approved=await verifyCaseApprovals(saved.file,baseline,request.plans.flatMap(p=>p.pointIds),request.reviewFiles);
+ for(const c of request.currentConditions.items)if(c.source.kind==='current_evidence'){const file=await safePath(c.source.file,{existing:true});if(request.history.parents.some(p=>inside(path.resolve(p.runDir),file)))fail('Historical evidence cannot be labelled newly collected current conditions.');await verifySources([{id:c.id,locator:c.source.locator,file,sha256:c.source.sha256,excerpt:'',limitations:[]}]);}
+ for(const p of request.parameterBindings)await verifySources([p.source]);
+ for(const ref of request.history.parents){if(ref.runId===runId)fail('A run cannot be its own historical parent.');try{const source=await readSourceRun(ref.runDir,{resultsRevision:ref.resultsRevision});if(source.manifest.runId!==ref.runId||source.baselineSha256!==ref.baselineSha256||source.resultsSha256!==ref.resultsSha256||source.baseline.projectId!==baseline.projectId)fail('Historical parent identity or fingerprint mismatch.');const parent=source.checked.regressionBinding as RegressionBinding|undefined;if(parent?.history.parents.some(p=>p.runId===runId||p.runId===ref.runId))fail('Historical run cycle.');}catch(error){if(!(error instanceof Error&&'code'in error&&error.code==='ENOENT'))throw error;/* Missing optional history remains a visible report gap; current execution is independent. */}}
+ const binding=makeBinding(request,baseline,baselineSha256,runId,approved.reviews,approved.bindings),bytes=json(binding);return{binding,bytes,sha256:hash(bytes)};
 }
-function parseRequest(value: unknown): BindingRequest {
-  assertClosed(value, ['regressionVersion', 'selection', 'caseMappings', 'deferredCases', 'conditions'], 'binding request');
-  if (value.regressionVersion !== 1) fail('Regression binding requires regressionVersion 1.');
-  const selection = parseSelection(value.selection), selected = new Set(selection.selectedCaseIds);
-  const caseMappings = arrayValue(value.caseMappings, 'binding case mappings').map(item => {
-    assertClosed(item, ['scopeCaseId', 'runCaseId'], 'binding case mapping');
-    return { scopeCaseId: safeIdentifier(item.scopeCaseId), runCaseId: safeIdentifier(item.runCaseId) };
-  });
-  const deferredCases = arrayValue(value.deferredCases, 'deferred cases').map(item => {
-    assertClosed(item, ['caseId', 'reason'], 'deferred case');
-    return { caseId: safeIdentifier(item.caseId), reason: textValue(item.reason, 'deferred case reason') };
-  });
-  const accounted = [...caseMappings.map(m => m.scopeCaseId), ...deferredCases.map(item => item.caseId)];
-  if (new Set(accounted).size !== accounted.length || accounted.length !== selected.size || accounted.some(id => !selected.has(id))) fail('Every selected case must be compiled or explicitly deferred exactly once; unselected cases cannot be added.');
-  if (new Set(caseMappings.map(m => m.runCaseId)).size !== caseMappings.length) fail('Two scope cases cannot be merged into one run case.');
-  const conditions = parseConditions(value.conditions, selected);
-  for (const mapping of caseMappings) {
-    if (!conditions.items.some(item => item.caseIds.includes(mapping.scopeCaseId))) fail('Compiled case lacks a current-run condition declaration: ' + mapping.scopeCaseId);
-    if (!conditions.items.some(item => item.caseIds.includes(mapping.scopeCaseId) && item.aspect === 'authorization')) fail('Compiled case must explicitly declare current authorization, including any unresolved limitation.');
-  }
-  return { regressionVersion: 1, selection,
-    caseMappings: selection.selectedCaseIds.flatMap(id => caseMappings.filter(m => m.scopeCaseId === id)),
-    deferredCases: selection.selectedCaseIds.flatMap(id => deferredCases.filter(c => c.caseId === id)), conditions };
-}
-const caseWithId = (c: Case, id: string): Case => ({ ...c, id });
-function validateSnapshots(request: BindingRequest, baseline: Baseline, tasks: StoredTask[], rules: StoredRule[]) {
-  if (baseline.project !== request.selection.request.scope.baseline.project) fail('Regression baseline project differs from its declared scope.');
-  if (baseline.cases.length !== request.caseMappings.length) fail('Run baseline contains extra or omitted cases outside the explicit compilation mapping.');
-  if (new Set(tasks.map(t => taskKey(t))).size !== tasks.length || new Set(rules.map(r => r.ruleId + '@' + r.revision)).size !== rules.length) fail('Duplicate frozen task or rule snapshot.');
-  const selectedRefs = request.selection.request.scope.taskBindings.filter(b => request.selection.selectedCaseIds.includes(b.caseId)).flatMap(b => b.taskRef ? [taskKey(b.taskRef)] : []);
-  if (tasks.some(t => !selectedRefs.includes(taskKey(t)))) fail('Binding includes a task outside its selected exact revisions.');
-  const referencedRules = new Set(tasks.flatMap(t => t.ruleBindings.flatMap(b => b.ruleRefs.map(r => r.ruleId + '@' + r.revision + ':' + r.contentSha256))));
-  if (rules.some(r => !referencedRules.has(r.ruleId + '@' + r.revision + ':' + r.contentSha256))) fail('Binding includes an unreferenced rule snapshot.');
-  for (const mapping of request.caseMappings) {
-    const scoped = request.selection.request.scope.baseline.cases.find(c => c.id === mapping.scopeCaseId)!;
-    const actual = baseline.cases.find(c => c.id === mapping.runCaseId);
-    if (!actual || canonical(actual) !== canonical(caseWithId(scoped, mapping.runCaseId))) fail('Frozen baseline must retain the entire selected case, all goals, necessary steps, conditions, order and path.');
-    const ref = request.selection.request.scope.taskBindings.find(b => b.caseId === mapping.scopeCaseId)!.taskRef;
-    const task = ref ? tasks.find(t => taskKey(t) === taskKey(ref)) : null;
-    if (!task?.casePlan) fail('A compiled case requires its exact task snapshot and a complete case plan; otherwise retain a deferred coverage gap.');
-    if (canonical(caseWithId(task.casePlan, scoped.id)) !== canonical(scoped)) fail('Task case plan differs from the frozen scope. Create an explicit new task/scope revision; do not silently remove or rewrite obligations.');
-    for (const goal of scoped.goals) {
-      const refs = task.ruleBindings.find(b => b.goalId === goal.id)?.ruleRefs ?? [];
-      if (!refs.length) fail('Compiled goal has no exact normative rule: ' + scoped.id + '/' + goal.id);
-      for (const ruleRef of refs) {
-        const rule = rules.find(r => r.ruleId === ruleRef.ruleId && r.revision === ruleRef.revision && r.contentSha256 === ruleRef.contentSha256);
-        if (!rule) fail('Compiled goal is missing its exact frozen rule snapshot.');
-        if (['pending', 'conflict'].includes(rule.confirmation.state) && !goal.clarificationQuestions?.length) fail('Unconfirmed rules require unresolved goal clarification; they cannot silently become a pass criterion.');
-      }
-    }
-  }
-}
-function makeBinding(request: BindingRequest, baseline: Baseline, runId: string, tasks: StoredTask[], rules: StoredRule[]): RegressionBinding {
-  validateSnapshots(request, baseline, tasks, rules);
-  const scope = request.selection.request.scope;
-  const coverage = { requestedCases: scope.baseline.cases.length, requestedGoals: scope.baseline.cases.reduce((n, c) => n + c.goals.length, 0),
-    selectedCases: request.selection.selectedCaseIds.length, selectedGoals: request.selection.plannedGoalRefs.length,
-    compiledCases: baseline.cases.length, compiledGoals: baseline.cases.reduce((n, c) => n + c.goals.length, 0),
-    notSelectedCases: request.selection.notSelected.length,
-    gaps: [...request.selection.gaps, ...request.deferredCases.map(item => ({ ...item, goalId: null, code: 'selected_not_compiled' }))] };
-  const body = { ...request, runId, baselineSha256: hash(json(baseline)), tasks, rules, coverage,
-    caveat: 'Conditions are current-run AI declarations with stated provenance, not tool-certified readiness or authorization. Historical task facts are background only. A complete compiled subset does not establish completion of the requested scope.' };
-  return { ...body, contentSha256: canonicalHash(body) };
-}
-
-export async function prepareBinding({ projectDir, request: input, baseline: baselineInput, runId }: { projectDir: unknown; request: unknown; baseline: unknown; runId: string }): Promise<{ binding: RegressionBinding; bytes: string; sha256: string }> {
-  const request = parseRequest(input), baseline = normalizeCases(baselineInput);
-  textValue(runId, 'new run ID');
-  if (runId === request.selection.request.source?.runId) fail('Regression execution must use an independent new run ID.');
-  const refreshed = await selectRegression({ projectDir, request: request.selection.request });
-  if (canonical(refreshed) !== canonical(request.selection)) fail('Frozen selection does not match its exact source/assets. Reconcile changes explicitly before binding.');
-  const assets = await readScopeAssets(projectDir, request.selection.request);
-  const selected = new Set(request.selection.selectedCaseIds);
-  const refs = request.selection.request.scope.taskBindings.filter(b => selected.has(b.caseId)).flatMap(b => b.taskRef ? [taskKey(b.taskRef)] : []);
-  const tasks = assets.tasks.filter(t => refs.includes(taskKey(t)));
-  const compiledRefs = new Set(request.caseMappings.flatMap(m => {
-    const ref = request.selection.request.scope.taskBindings.find(b => b.caseId === m.scopeCaseId)?.taskRef;
-    return ref ? [taskKey(ref)] : [];
-  }));
-  for (const task of tasks.filter(t => compiledRefs.has(taskKey(t)))) for (const ref of task.sourceRefs) await verifySourceRef(ref);
-  const ruleRefs = new Set(tasks.flatMap(t => t.ruleBindings.flatMap(b => b.ruleRefs.map(r => r.ruleId + '@' + r.revision + ':' + r.contentSha256))));
-  const rules = assets.rules.filter(r => ruleRefs.has(r.ruleId + '@' + r.revision + ':' + r.contentSha256));
-  const historicalRoots = [...new Set([request.selection.request.source?.runDir, ...tasks.flatMap(t => t.sourceRefs.map(s => s.runDir))].filter((v): v is string => !!v))];
-  for (const declaration of request.conditions.items) if (declaration.source.kind === 'current_evidence') {
-    const file = await safePath(declaration.source.file, { existing: true });
-    if (historicalRoots.some(root => inside(root, file))) fail('Historical run evidence cannot be represented as newly collected current-condition evidence.');
-    if (!(await fs.lstat(file)).isFile() || hash(await fs.readFile(file)) !== declaration.source.sha256) fail('Current condition evidence file/hash mismatch.');
-  }
-  const binding = makeBinding(request, baseline, runId, tasks, rules), bytes = json(binding);
-  return { binding, bytes, sha256: hash(bytes) };
-}
-
-/** Pure readback: embedded exact snapshots remain verifiable when the external library is moved. */
-export function validateBinding(value: unknown, baselineInput: unknown, runId: string): RegressionBinding {
-  assertClosed(value, ['regressionVersion', 'selection', 'caseMappings', 'deferredCases', 'conditions', 'runId', 'baselineSha256', 'tasks', 'rules', 'coverage', 'caveat', 'contentSha256'], 'regression binding');
-  const request = parseRequest({ regressionVersion: value.regressionVersion, selection: value.selection, caseMappings: value.caseMappings, deferredCases: value.deferredCases, conditions: value.conditions });
-  if (value.runId !== runId || runId === request.selection.request.source?.runId) fail('Regression binding run identity mismatch.');
-  const tasks = arrayValue(value.tasks, 'frozen task snapshots').map(parseStoredTask), rules = arrayValue(value.rules, 'frozen rule snapshots').map(parseStoredRule);
-  const expected = makeBinding(request, normalizeCases(baselineInput), runId, tasks, rules);
-  if (canonical(expected) !== canonical(value)) fail('Regression binding content/hash or coverage mismatch.');
-  return expected;
+export function validateBinding(value:unknown,baselineInput:unknown,runId:string,baselineSha256:string):RegressionBinding {
+ assertClosed(value,['regressionVersion','selection','reviewFiles','plans','deferred','parameterBindings','currentConditions','history','runId','baselineSha256','reviews','reviewBindings','coverage','contentSha256','caveat'],'frozen run binding');const baseline=normalizeCases(baselineInput),request=parseBindingRequest(Object.fromEntries(['regressionVersion','selection','reviewFiles','plans','deferred','parameterBindings','currentConditions','history'].map(k=>[k,value[k]])),baseline);
+ if(value.runId!==runId||value.baselineSha256!==baselineSha256)fail('Frozen run identity mismatch.');
+ const reviews=arrayValue(value.reviews,'frozen reviews').map(v=>{assertClosed(v,['file','sha256','record'],'frozen review');return{file:textValue(v.file,'review file'),sha256:sha256Value(v.sha256),record:parseCaseReview(v.record)};});
+ const reviewBindings=arrayValue(value.reviewBindings,'review bindings').map(v=>{assertClosed(v,['pointId','reviewSha256','sourceCases','definitionSha256'],'review binding');return{pointId:safeIdentifier(v.pointId),reviewSha256:sha256Value(v.reviewSha256),sourceCases:parseCasesRef(v.sourceCases),definitionSha256:sha256Value(v.definitionSha256)};});
+ const expected=makeBinding(request,baseline,baselineSha256,runId,reviews,reviewBindings);if(canonical(expected)!==canonical(value))fail('Frozen run binding content or fingerprint mismatch.');return expected;
 }

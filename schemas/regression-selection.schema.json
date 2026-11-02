@@ -1,226 +1,162 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "regression-selection.schema.json",
-  "title": "Explicit whole-case regression selection v1",
-  "description": "No status is inferred from missing assessments. Runtime validation re-reads exact source revisions, verifies hashes and recomputes the selection; full scope includes uncompiled coverage gaps.",
-  "oneOf": [
-    {
-      "$ref": "#/$defs/request"
+  "title": "Regression selection request v2",
+  "type": "object",
+  "properties": {
+    "regressionVersion": {
+      "const": 2
     },
-    {
-      "$ref": "#/$defs/selection"
-    }
-  ],
-  "$defs": {
-    "goalRef": {
-      "type": "object",
-      "properties": {
-        "caseId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "goalId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        }
+    "casesFile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cases": {
+      "$ref": "common.schema.json#/$defs/casesRef"
+    },
+    "mode": {
+      "enum": [
+        "points",
+        "status",
+        "full"
+      ]
+    },
+    "pointIds": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/safeId"
       },
-      "required": [
-        "caseId",
-        "goalId"
-      ],
-      "additionalProperties": false
+      "uniqueItems": true
     },
-    "gap": {
-      "type": "object",
-      "properties": {
-        "caseId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "goalId": {
-          "anyOf": [
-            {
-              "$ref": "common.schema.json#/$defs/safeId"
+    "sourceRun": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "runDir": {
+              "type": "string",
+              "minLength": 1
             },
-            {
-              "type": "null"
+            "runId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "baselineSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "resultsRevision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "resultsSha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
             }
-          ]
+          },
+          "required": [
+            "runDir",
+            "runId",
+            "baselineSha256",
+            "resultsRevision",
+            "resultsSha256"
+          ],
+          "additionalProperties": false
         },
-        "code": {
-          "type": "string",
-          "minLength": 1
-        },
-        "reason": {
-          "type": "string",
-          "minLength": 1
+        {
+          "type": "null"
         }
-      },
-      "required": [
-        "caseId",
-        "goalId",
-        "code",
-        "reason"
-      ],
-      "additionalProperties": false
+      ]
     },
-    "scope": {
-      "type": "object",
-      "properties": {
-        "scopeId": {
-          "$ref": "common.schema.json#/$defs/safeId"
-        },
-        "version": {
-          "type": "string",
-          "minLength": 1
-        },
-        "baseline": {
-          "$ref": "cases.schema.json"
-        },
-        "taskBindings": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "caseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "taskRef": {
-                "anyOf": [
-                  {
-                    "$ref": "regression-artifact.schema.json#/$defs/taskRef"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
-            "required": [
-              "caseId",
-              "taskRef"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "gaps": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "caseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "goalId": {
-                "anyOf": [
-                  {
-                    "$ref": "common.schema.json#/$defs/safeId"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "reason": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "required": [
-              "caseId",
-              "goalId",
-              "reason"
-            ],
-            "additionalProperties": false
-          }
-        }
+    "statuses": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "verified",
+          "violation",
+          "inconclusive",
+          "not_tested"
+        ]
       },
-      "required": [
-        "scopeId",
-        "version",
-        "baseline",
-        "taskBindings",
-        "gaps"
-      ],
-      "additionalProperties": false
+      "uniqueItems": true
     },
-    "source": {
-      "type": "object",
-      "properties": {
-        "runDir": {
-          "type": "string",
-          "minLength": 1
-        },
-        "runId": {
-          "type": "string",
-          "minLength": 1
-        },
-        "resultsRevision": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "resultsSha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "goalMappings": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "caseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "goalId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "sourceCaseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "sourceGoalId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              }
-            },
-            "required": [
-              "caseId",
-              "goalId",
-              "sourceCaseId",
-              "sourceGoalId"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "baselineSha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        }
-      },
-      "required": [
-        "runDir",
-        "runId",
-        "resultsRevision",
-        "resultsSha256",
-        "goalMappings",
-        "baselineSha256"
-      ],
-      "additionalProperties": false
-    },
+    "includeUnassessedCases": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "regressionVersion",
+    "casesFile",
+    "cases",
+    "mode",
+    "pointIds",
+    "sourceRun",
+    "statuses",
+    "includeUnassessedCases"
+  ],
+  "additionalProperties": false,
+  "$defs": {
     "request": {
       "type": "object",
       "properties": {
         "regressionVersion": {
-          "const": 1
+          "const": 2
+        },
+        "casesFile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cases": {
+          "$ref": "common.schema.json#/$defs/casesRef"
         },
         "mode": {
           "enum": [
+            "points",
             "status",
             "full"
           ]
         },
-        "scope": {
-          "$ref": "#/$defs/scope"
+        "pointIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "uniqueItems": true
         },
-        "source": {
+        "sourceRun": {
           "anyOf": [
             {
-              "$ref": "#/$defs/source"
+              "type": "object",
+              "properties": {
+                "runDir": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "runId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "baselineSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "resultsRevision": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "resultsSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "runDir",
+                "runId",
+                "baselineSha256",
+                "resultsRevision",
+                "resultsSha256"
+              ],
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -245,9 +181,11 @@
       },
       "required": [
         "regressionVersion",
+        "casesFile",
+        "cases",
         "mode",
-        "scope",
-        "source",
+        "pointIds",
+        "sourceRun",
         "statuses",
         "includeUnassessedCases"
       ],
@@ -257,27 +195,35 @@
       "type": "object",
       "properties": {
         "regressionVersion": {
-          "const": 1
+          "const": 2
         },
         "request": {
           "$ref": "#/$defs/request"
         },
-        "scopeSha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
+        "selectedPointIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          }
         },
-        "matchPolicy": {
-          "const": "any_goal"
+        "matchedPointIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          }
+        },
+        "notSelectedPointIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          }
         },
         "sourceStates": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "caseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "goalId": {
+              "pointId": {
                 "$ref": "common.schema.json#/$defs/safeId"
               },
               "status": {
@@ -295,104 +241,54 @@
                   }
                 ]
               },
-              "sourceMapped": {
+              "inSourceScope": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "pointId",
+              "status",
+              "inSourceScope"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "candidatePlans": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "caseId": {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              "pointIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                }
+              },
+              "conditionIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                }
+              },
+              "stepIds": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                }
+              },
+              "includeRequiredPath": {
                 "type": "boolean"
               }
             },
             "required": [
               "caseId",
-              "goalId",
-              "status",
-              "sourceMapped"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "assetGaps": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/gap"
-          }
-        },
-        "selectedCaseIds": {
-          "type": "array",
-          "items": {
-            "$ref": "common.schema.json#/$defs/safeId"
-          },
-          "uniqueItems": true
-        },
-        "matchedGoalRefs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/goalRef"
-          }
-        },
-        "plannedGoalRefs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/goalRef"
-          }
-        },
-        "caseMatches": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "caseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "matchedGoalRefs": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/goalRef"
-                }
-              },
-              "unassessedGoalRefs": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/goalRef"
-                }
-              },
-              "reason": {
-                "enum": [
-                  "full_scope",
-                  "status_match",
-                  "explicit_unassessed"
-                ]
-              }
-            },
-            "required": [
-              "caseId",
-              "matchedGoalRefs",
-              "unassessedGoalRefs",
-              "reason"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "notSelected": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "caseId": {
-                "$ref": "common.schema.json#/$defs/safeId"
-              },
-              "goalRefs": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/goalRef"
-                }
-              },
-              "reason": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "required": [
-              "caseId",
-              "goalRefs",
-              "reason"
+              "pointIds",
+              "conditionIds",
+              "stepIds",
+              "includeRequiredPath"
             ],
             "additionalProperties": false
           }
@@ -400,7 +296,44 @@
         "gaps": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/gap"
+            "type": "object",
+            "properties": {
+              "pointId": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sourceInventoryId": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "pointId",
+              "sourceInventoryId",
+              "code",
+              "reason"
+            ],
+            "additionalProperties": false
           }
         },
         "selectionSha256": {
@@ -411,17 +344,83 @@
       "required": [
         "regressionVersion",
         "request",
-        "scopeSha256",
-        "matchPolicy",
+        "selectedPointIds",
+        "matchedPointIds",
+        "notSelectedPointIds",
         "sourceStates",
-        "assetGaps",
-        "selectedCaseIds",
-        "matchedGoalRefs",
-        "plannedGoalRefs",
-        "caseMatches",
-        "notSelected",
+        "candidatePlans",
         "gaps",
         "selectionSha256"
+      ],
+      "additionalProperties": false
+    },
+    "plan": {
+      "type": "object",
+      "properties": {
+        "caseId": {
+          "$ref": "common.schema.json#/$defs/safeId"
+        },
+        "pointIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          }
+        },
+        "conditionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          }
+        },
+        "stepIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          }
+        },
+        "includeRequiredPath": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "caseId",
+        "pointIds",
+        "conditionIds",
+        "stepIds",
+        "includeRequiredPath"
+      ],
+      "additionalProperties": false
+    },
+    "run": {
+      "type": "object",
+      "properties": {
+        "runDir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baselineSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "resultsRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resultsSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "runDir",
+        "runId",
+        "baselineSha256",
+        "resultsRevision",
+        "resultsSha256"
       ],
       "additionalProperties": false
     }

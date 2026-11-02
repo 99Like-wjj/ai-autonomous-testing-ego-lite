@@ -1,16 +1,27 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "cases.schema.json",
-  "title": "Ego Lite case input and normalized baseline v8",
+  "title": "Ego Lite case input and normalized baseline v9",
   "type": "object",
   "required": [
     "schemaVersion",
     "project",
-    "cases"
+    "cases",
+    "projectId",
+    "pointPrefix",
+    "caseVersion",
+    "previous",
+    "nextPointNumber",
+    "retiredPoints",
+    "sources",
+    "coverage",
+    "changes",
+    "writeRequestSha256",
+    "savedAt"
   ],
   "properties": {
     "schemaVersion": {
-      "const": 8
+      "const": 9
     },
     "project": {
       "$ref": "common.schema.json#/$defs/nonempty"
@@ -19,8 +30,175 @@
       "type": "array",
       "items": {
         "$ref": "common.schema.json#/$defs/case"
-      },
-      "minItems": 1
+      }
+    },
+    "projectId": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "pointPrefix": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "caseVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "previous": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "caseVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "caseVersion",
+            "sha256"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nextPointNumber": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "retiredPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "replacements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "pointId",
+          "reason",
+          "replacements"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/sourceRef"
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceRefId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "enum": [
+              "mapped",
+              "pending",
+              "out_of_scope",
+              "retired"
+            ]
+          },
+          "pointIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "sourceRefId",
+          "statement",
+          "state",
+          "pointIds",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "added",
+              "modified",
+              "moved",
+              "split",
+              "merged",
+              "retired"
+            ]
+          },
+          "relatedPointIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "pointId",
+          "kind",
+          "relatedPointIds",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "writeRequestSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "savedAt": {
+      "$ref": "common.schema.json#/$defs/timestamp"
+    },
+    "aiContext": {
+      "$ref": "common.schema.json#/$defs/aiContext"
     }
   },
   "additionalProperties": false

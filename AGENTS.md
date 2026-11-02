@@ -9,10 +9,13 @@
 ```text
 skills/ai-autonomous-testing-ego-lite/  Skill 入口和 AI 使用指南
 src/scripts/       CLI 参数、命令分发和工具身份
-src/core/          用例/目标、冻结基线、结果与证据记录
+src/core/          用例版本与审阅、冻结基线、结果与证据记录
 src/execution/     名额、任务分配、Space 关联、工作包复核导入
 src/observation/   授权范围内接口采集、查询与证据导出
-src/regression/    项目回归资料、范围选择、运行绑定与比较
+src/regression/    范围选择、运行绑定、历史来源与比较
+src/files/         受限进程中的只读文件检查
+src/ego-helpers/   AI 显式调用的 Ego 下载、只读文本取证辅助
+src/review-ui/     离线用例审阅页面交互
 src/report/        报告投影、布局、主题、证据和文件交付
 src/report-ui/     HTML 报告的浏览器交互
 src/contracts/     版本/分发清单、类型、标识及引用规则
@@ -29,11 +32,14 @@ docs/              当前说明、历史验证及图片生成源
 | --- | --- | --- |
 | CLI 命令与参数 | [ego.mts](src/scripts/ego.mts)、[toolchain.mts](src/scripts/toolchain.mts) | [CLI 入口](tests/cli-entrypoint.test.mts)、[基础命令](tests/ego.test.mts) |
 | 用例、业务目标与冻结 | [cases.mts](src/core/cases.mts)、[baseline.mts](src/core/baseline.mts)、[schemas](schemas/) | [目标评估](tests/goals.test.mts) |
-| 结果、证据与动作事实 | [records.mts](src/core/records.mts)、[action-events.mts](src/core/action-events.mts)、[file-integrity.mts](src/core/file-integrity.mts) | [动作事件](tests/action-events.test.mts)、[事实记录](tests/facts-v6.test.mts) |
+| 结果、证据与动作事实 | [records.mts](src/core/records.mts)、[action-events.mts](src/core/action-events.mts)、[file-integrity.mts](src/core/file-integrity.mts)、[conversations.mts](src/core/conversations.mts) | [动作事件](tests/action-events.test.mts)、[事实记录](tests/facts-v6.test.mts)、[对话来源](tests/conversations.test.mts) |
 | 并发与任务分配、工作包 | [commands.mts](src/execution/commands.mts)、[ledger.mts](src/execution/ledger.mts)、[packets.mts](src/execution/packets.mts)、[commit.mts](src/execution/commit.mts) | [执行协调](tests/execution.test.mts) |
 | 接口观测与导出 | [commands.mts](src/observation/commands.mts)、[collector.mts](src/observation/collector.mts)、[evidence-export.mts](src/observation/evidence-export.mts) | [接口观测](tests/network.test.mts) |
-| 回归资料、范围与比较 | [store.mts](src/regression/store.mts)、[selection.mts](src/regression/selection.mts)、[run-binding.mts](src/regression/run-binding.mts)、[compare.mts](src/regression/compare.mts) | [范围选择](tests/regression-selection.test.mts)、[跨轮比较](tests/regression-compare.test.mts)、[CLI/报告](tests/regression-cli-report.test.mts) |
-| 报告生成、布局与交互 | [delivery.mts](src/report/delivery.mts)、[render.mts](src/report/render.mts)、[reader-layout.mts](src/report/reader-layout.mts)、[main.ts](src/report-ui/main.ts)、[themes.mts](src/report/themes.mts) | [交付](tests/report-delivery.test.mts)、[阅读器](tests/report-reader-model.test.mts)、[组合回归](tests/combined-report-regression.test.mts) |
+| 回归资料、范围与比较 | [case-versions.mts](src/core/case-versions.mts)、[case-review.mts](src/core/case-review.mts)、[selection.mts](src/regression/selection.mts)、[run-binding.mts](src/regression/run-binding.mts)、[compare.mts](src/regression/compare.mts) | [用例版本与审阅](tests/case-versions.test.mts)、[范围与历史](tests/regression-v2.test.mts) |
+| 用例审阅、总览与本机保存 | [case-documents.mts](src/report/case-documents.mts)、[app.ts](src/review-ui/app.ts)、[review-export.mts](src/report/review-export.mts)、[review-session.mts](src/report/review-session.mts) | [用例版本](tests/case-versions.test.mts)、[审阅保存](tests/review-export.test.mts) |
+| 报告语言与模型来源 | [ai-context.mts](src/core/ai-context.mts)、[presentation.mts](src/report/presentation.mts)、[ui-text.mts](src/report/ui-text.mts)、[model-display.mts](src/report/model-display.mts)、[文案目录生成](tools/generate-ui-catalog.mts) | [语言与来源](tests/report-language-model.test.mts) |
+| 报告生成、布局与交互 | [delivery.mts](src/report/delivery.mts)、[render.mts](src/report/render.mts)、[reader-layout.mts](src/report/reader-layout.mts)、[main.ts](src/report-ui/main.ts)、[conversations.ts](src/report-ui/conversations.ts)、[themes.mts](src/report/themes.mts) | [交付](tests/report-delivery.test.mts)、[阅读器](tests/report-reader-model.test.mts)、[对话来源](tests/conversations.test.mts)、[历史交付](tests/regression-v2.test.mts) |
+| 下载与文件检查 | [download.mts](src/ego-helpers/download.mts)、[inspect.mts](src/files/inspect.mts)、[inspect-worker.mts](src/files/inspect-worker.mts) | [下载与文件](tests/download-files.test.mts) |
 | Skill、文档与图示 | [SKILL.md](skills/ai-autonomous-testing-ego-lite/SKILL.md)、[references](skills/ai-autonomous-testing-ego-lite/references/)、[render.mts](docs/images/render.mts) | [经验](tests/experience.test.mts)、[文档契约](tests/current-document-contracts.test.mts)、[图文](tests/readme-visuals.test.mts) |
 
 ### 源文件、生成产物与验证
@@ -73,9 +79,12 @@ docs/              当前说明、历史验证及图片生成源
 
 ## 正式版本发布
 
+具体流程见[打包与发布指南](docs/releasing.md)，用户安装及升级步骤见[安装说明](INSTALL.zh-CN.md)。开发指引留在仓库，不放入 Skill 运行目录。
+
 - 未经用户明确要求，不得自主生成或交付候选安装包（包括 ZIP 和用于分发的独立安装目录），也不得将打包作为每次开发、修复或自测完成后的默认步骤。常规构建与测试所必需的临时打包验证可以按需执行，但不因此额外生成或交付候选安装包。正式发布时的完整安装包要求，不构成日常开发自动打包的授权。
 - 正式版本须由不可移动的版本 Tag 指向精确提交，并对应 GitHub Release；发布说明以中文为主，写明新增/修复、格式变化及升级影响、验证范围和已知限制。
 - 发布或重写文档时，对照上一正式版检查正文、导航和图片引用；README 的版本演变图只展示最新版本与前三个历史版本，完整历史不删。中英文同步核对图片内的版本、发布状态和契约术语；仍适用的流程、架构、并发和报告示意不得无说明丢失。
+- 安装包仅收录运行代码、AI 实际使用的指南、契约、必要合成示例及许可证；设计、需求前瞻、开发验收记录和版本宣传图片留在仓库。检查实际文件集合及本地引用，不能只凭 manifest 校验通过就认定没有多余文件。
 - 同步核对版本号、CHANGELOG、README 和实际产物。提供包含所需 Skill、脚本、模板与说明的可用安装包及校验值；源码 ZIP 不等同于已配置好的安装包。发布包交付前检查不含 token、key 或真实项目资产。
 - v0.1.3 只有在用户本地能力验收通过后才可创建 Release；云端分支验证不替代本地验收。
 - 开发版不能冒充正式版；必要时使用 rc 预发布标识。不得移动既有版本 Tag 来替换其内容。

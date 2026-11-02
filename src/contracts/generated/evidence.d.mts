@@ -14,10 +14,16 @@ export type EvidenceMetadata = {
   omissionReason?: string;
   width?: number;
   height?: number;
+  artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
+  deliveryRequired?: boolean;
+  /**
+   * @minItems 1
+   */
+  conversationSources?: ConversationSourceBinding[];
 };
 
-export interface EgoLiteEvidenceCatalogV8 {
-  schemaVersion: 8;
+export interface EgoLiteEvidenceCatalogV9 {
+  schemaVersion: 9;
   revision: number;
   items: EvidenceItem[];
   operations: EvidenceOperation[];
@@ -26,7 +32,7 @@ export interface EvidenceItem {
   id: string;
   path: string;
   caseId: string;
-  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
   capturedAt?: string;
   collectedAt: string;
   source: string;
@@ -35,6 +41,10 @@ export interface EvidenceItem {
   bytes: number;
   operationId: string;
   metadata?: EvidenceMetadata;
+}
+export interface ConversationSourceBinding {
+  sourceId: string;
+  evidenceId: string;
 }
 export interface EvidenceOperation {
   operationId: string;

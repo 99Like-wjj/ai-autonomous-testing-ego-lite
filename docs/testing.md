@@ -1,5 +1,16 @@
 # 验证记录与覆盖边界
 
+## v0.1.8 正式版本云端验证（2026-11-02）
+
+正式身份为 `0.1.8 / report-language-model-1`，主契约 v9、regressionVersion 2、networkVersion 1。Linux / Node.js 24.22.1 全量 241 项：240 通过、0 失败、1 Windows 专属 checkpoint 恢复跳过；类型、构建、公开检查及精简 ZIP 核验通过。本轮工程与精简安装包验证范围见[正式发布验证](v0.1.8-release-validation.md)。构建和发布不会自动更新用户本机；未重跑真实业务 UAT。
+
+## v0.1.8 此前本地候选验证（2026-11-02）
+
+该轮身份为 0.1.8-rc.2 / report-language-model-1，主契约 v9、regressionVersion 2、networkVersion 1。最新[本地验证记录](v0.1.8-report-language-model-validation.md)报告工程测试 227 项：226 通过、0 失败、1 项 Windows 符号链接权限限制跳过；中文、英文、法语的两类合成报告，以及 390/768/1024/1440 像素宽度已做真实 Ego 页面检查。这些是本地记录的限定范围结果，不是云端重跑或真实业务 UAT 验收。
+
+此前的[基础开发自测](v0.1.8-development-validation.md)、[用例审阅与保存](v0.1.8-case-review.md)、[对话证据及阅读](v0.1.8-conversation-review.md)保留各自范围。该轮尚未正式发布，构建不更新用户已安装 Skill，历史报告不改写。以下内容为过去版本的历史记录；其中旧命令、旧格式和当时的待实现说明不是当前操作指南。
+
+
 ## v0.1.7 正式版本收尾（2026-10-31）
 
 用户已批准合并与发版。版本与 Skill 元数据统一为 0.1.7，revision 保持 report-step-evidence-1；稳定包名及 Codex 展示名不含 dev/rc。Linux / Node.js 24.22.1 全量 213 项测试：212 通过、0 失败、1 Windows 专属 checkpoint 替换恢复跳过；严格类型、契约/构建、公开检查与 Git 差异检查通过。正式图示 312 个文字元素无画布溢出，12 张版本标识变化图目视核对通过。完整安装包与 ZIP 的核验范围见[正式发布验证](v0.1.7-release-validation.md)。未重跑真实 Ego/UAT，不自动更新用户安装；以下是保留的各阶段历史记录。

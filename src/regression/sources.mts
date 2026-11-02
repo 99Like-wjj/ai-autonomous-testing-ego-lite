@@ -1,21 +1,16 @@
-/** Read-only source verification. No historical evidence is copied or registered in a new run. */
+/** Exact, read-only run snapshots; case definitions and observed facts remain separate. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { assertClosed, canonicalHash, errorInfo, fail, hash, object, readJSON, withRunLock } from '../core/common.mjs';
-import { projectActionAttempts, recordEvidenceIds } from '../core/action-events.mjs';
-import { evidenceFile, hashFile, regularFilePath } from '../core/file-integrity.mjs';
-import { parseCatalog, parseManifest, parseResults, integer, arrayValue } from '../core/validation.mjs';
-import { readAndValidateBaseline } from '../core/baseline.mjs';
-import { checkUnlocked, markerExists, validateResultEntries, countsFor } from '../core/records.mjs';
-import { readRunBinding } from './run-binding.mjs';
-import type { EvidenceItem, Report } from '../contracts/model.mjs';
-import type { RegressionLibrary, RuleSource, SourceContext, SourceRef, SourceRun, StoredArtifact } from './model.mjs';
-
-export async function verifyRuleSource(source: RuleSource): Promise<void> {
-  const content = await fs.readFile(await regularFilePath(source.contentFile));
-  if (hash(content) !== source.contentSha256) fail('Normative source content hash mismatch.');
-  if (!content.toString('utf8').includes(source.excerpt)) fail('Normative excerpt is not present in the retained source content.');
-}
+import {assertClosed,canonicalHash,fail,hash,object,readJSON,withRunLock} from '../core/common.mjs';
+import {projectActionAttempts,recordEvidenceIds} from '../core/action-events.mjs';
+import {evidenceFile,hashFile} from '../core/file-integrity.mjs';
+import {parseCatalog,parseManifest,parseResults,integer,arrayValue} from '../core/validation.mjs';
+import {readAndValidateBaseline} from '../core/baseline.mjs';
+import {checkUnlocked,markerExists,validateResultEntries,countsFor} from '../core/records.mjs';
+import {readRunBinding} from './run-binding.mjs';
+import type {EvidenceItem,Report,Assessment,Baseline,Case} from '../contracts/model.mjs';
+import {goalRequiredRefs} from '../contracts/targets.mjs';
+import type {SourceRun,RunRef} from './model.mjs';
 export async function readSourceRun(runDir: unknown, options: { resultsRevision?: number } = {}): Promise<SourceRun> {
   return withRunLock(runDir, async root => {
     // Unlike check(), source inspection does not repair or clean historical files.
@@ -30,14 +25,16 @@ export async function readSourceRun(runDir: unknown, options: { resultsRevision?
     }
     const revision = integer(options.resultsRevision, 'source results revision'), raw = await readJSON(path.join(root, 'results.json'));
     assertClosed(raw, ['schemaVersion', 'revision', 'entries'], 'source results');
-    if (raw.schemaVersion !== 8) fail('Historical results require schemaVersion 8; files are not migrated.');
+    if (raw.schemaVersion !== 9) fail('Historical results require schemaVersion 9; files are not migrated.');
     if (revision > integer(raw.revision, 'source current revision')) fail('Requested source results revision does not exist.');
-    const results = parseResults({ schemaVersion: 8, revision, entries: arrayValue(raw.entries, 'source result entries').slice(0, revision) });
+    const results = parseResults({ schemaVersion: 9, revision, entries: arrayValue(raw.entries, 'source result entries').slice(0, revision) });
     const evidenceIds = new Set(results.entries.flatMap(entry => recordEvidenceIds(entry.record)));
     const rawCatalog = await readJSON(path.join(root, 'evidence.json'));
     assertClosed(rawCatalog, ['schemaVersion', 'revision', 'items', 'operations'], 'source evidence catalog');
-    if (rawCatalog.schemaVersion !== 8) fail('Historical evidence requires schemaVersion 8.');
-    const evidenceCatalog = parseCatalog({ schemaVersion: 8, revision: integer(rawCatalog.revision, 'source evidence catalog revision'),
+    if (rawCatalog.schemaVersion !== 9) fail('Historical evidence requires schemaVersion 9.');
+    const rawItems=arrayValue(rawCatalog.items,'source evidence items');
+    let expanded=true;while(expanded){expanded=false;for(const raw of rawItems)if(object(raw)&&typeof raw.id==='string'&&evidenceIds.has(raw.id)&&object(raw.metadata)&&Array.isArray(raw.metadata.contextEvidenceIds))for(const id of raw.metadata.contextEvidenceIds)if(typeof id==='string'&&!evidenceIds.has(id)){evidenceIds.add(id);expanded=true;}}
+    const evidenceCatalog = parseCatalog({ schemaVersion: 9, revision: integer(rawCatalog.revision, 'source evidence catalog revision'),
       items: arrayValue(rawCatalog.items, 'source evidence items').filter(item => object(item) && typeof item.id === 'string' && evidenceIds.has(item.id)),
       operations: arrayValue(rawCatalog.operations, 'source evidence operations').filter(op => object(op) && typeof op.evidenceId === 'string' && evidenceIds.has(op.evidenceId)) });
     const evidenceById = new Map<string, EvidenceItem>(), operationIds = new Set<string>(), paths = new Set<string>();
@@ -52,10 +49,11 @@ export async function readSourceRun(runDir: unknown, options: { resultsRevision?
       evidenceById.set(item.id, item); operationIds.add(op.operationId); paths.add(item.path);
     }
     if (evidenceById.size !== evidenceIds.size) fail('Referenced historical evidence is missing from its source catalog.');
-    const cases = validateResultEntries(baseline, results, evidenceById, operationIds), counts = countsFor(cases);
     const regressionBinding = await readRunBinding(root, manifest, baseline);
-    const checked: Report = { schemaVersion: 8, runId: manifest.runId, project: baseline.project, structurallyValid: true, revision, evidenceRevision: evidenceCatalog.revision,
-      caseCount: cases.length, goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0, cases, evidenceCatalog,
+    if(!regressionBinding)fail('Historical v9 run is missing its frozen point scope.');
+    const cases = validateResultEntries(baseline, results, evidenceById, operationIds,regressionBinding), counts = countsFor(cases);
+    const checked: Report = { schemaVersion: 9, runId: manifest.runId, project: baseline.project, structurallyValid: true, revision, evidenceRevision: evidenceCatalog.revision,
+      caseCount: cases.length, goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0),sourceCaseCount:baseline.cases.length,sourceGoalCount:baseline.cases.reduce((n,c)=>n+c.goals.length,0), counts, assessmentComplete: counts.unassessed === 0, cases, evidenceCatalog,
       ...(regressionBinding ? { regressionBinding } : {}), actionAttempts: cases.flatMap(c => projectActionAttempts(c.actionEvents).map(a => ({ caseId: c.id, ...a }))),
       evidenceIntegrity: { hashVerifiedItems: evidenceCatalog.items.length }, evidenceCoverage: {
         registeredScreenshots: evidenceCatalog.items.filter(e => e.kind === 'screenshot').length, distinctRetainedContents: new Set(evidenceCatalog.items.map(e => e.sha256)).size,
@@ -65,65 +63,20 @@ export async function readSourceRun(runDir: unknown, options: { resultsRevision?
       evidenceScope: { kind: 'results_prefix_references', catalogRevision: evidenceCatalog.revision, note: checked.caveat } };
   });
 }
-export async function verifySourceRef(ref: SourceRef, source?: SourceRun): Promise<SourceRun> {
-  const actual = source ?? await readSourceRun(ref.runDir, { resultsRevision: ref.resultsRevision });
-  if (path.resolve(ref.runDir) !== actual.runDir || ref.runId !== actual.manifest.runId || ref.baselineSha256 !== actual.baselineSha256 || ref.resultsRevision !== actual.results.revision || ref.resultsSha256 !== actual.resultsSha256) fail('Historical source run identity, revision, or content hash mismatch.');
-  const c = actual.checked.cases.find(c => c.id === ref.caseId);
-  if (!c || !c.goals.some(g => g.id === ref.goalId)) fail('Historical source case or goal is missing.');
-  const observations = new Map(c.observations.map(o => [o.id, o]));
-  for (const id of ref.observationIds) if (!observations.has(id)) fail('Historical source observation is missing from the exact results revision: ' + id);
-  const actionIds = new Set(c.actionEvents.map(event => event.actionId));
-  for (const id of ref.actionIds) if (!actionIds.has(id)) fail('Historical source action is missing from the exact results revision: ' + id);
-  const selectedObservations = c.observations.filter(o => ref.observationIds.includes(o.id));
-  const selectedActions = c.actionEvents.filter(e => ref.actionIds.includes(e.actionId));
-  const contextIds = new Set([...selectedObservations.flatMap(o => o.contextId ? [o.contextId] : []), ...selectedActions.map(e => e.contextId)]);
-  const usedEvidence = new Set(recordEvidenceIds({ observations: selectedObservations, assessments: [], actionEvents: selectedActions, contexts: c.contexts.filter(context => contextIds.has(context.id)) }));
-  for (const item of ref.evidence) {
-    const original = actual.checked.evidenceCatalog.items.find(e => e.id === item.evidenceId && e.caseId === ref.caseId);
-    if (!original || original.sha256 !== item.sha256) fail('Historical source evidence identity or hash mismatch: only evidence retained by the selected results prefix and referenced facts can be used.');
-    if (!usedEvidence.has(item.evidenceId)) fail('Historical evidence is not referenced by the selected observations, actions, or their contexts at the selected results revision.');
-  }
-  return actual;
+
+export async function verifyRunRef(ref:RunRef):Promise<SourceRun>{const actual=await readSourceRun(ref.runDir,{resultsRevision:ref.resultsRevision});if(path.resolve(ref.runDir)!==actual.runDir||actual.manifest.runId!==ref.runId||actual.baselineSha256!==ref.baselineSha256||actual.resultsSha256!==ref.resultsSha256)fail('Historical run identity/revision/fingerprint mismatch.');return actual;}
+export function pointDetails(source:SourceRun,pointId:string) {
+ const definition=source.baseline.cases.flatMap(c=>c.goals.map(g=>({c,g}))).find(x=>x.g.pointId===pointId);if(!definition)return null;
+ const c=source.checked.cases.find(c=>c.id===definition.c.id),selected=Boolean(c?.goals.some(g=>g.pointId===pointId));
+ const assessment=selected?c?.assessments.find(a=>a.goalId===definition.g.id)??null:null;
+ const findings=selected?c?.findings.filter(f=>f.goalIds.includes(definition.g.id))??[]:[];
+ const observations=c?.observations.filter(o=>assessment?.observationIds.includes(o.id)||findings.some(f=>f.observationIds.includes(o.id)))??[];
+ const actionIds=new Set(c?.actionEvents.filter(e=>observations.some(o=>o.actionEventIds?.includes(e.id))).map(e=>e.actionId));
+ const actions=c?.actionEvents.filter(e=>actionIds.has(e.actionId))??[],contexts=c?.contexts.filter(x=>observations.some(o=>o.contextId===x.id)||actions.some(a=>a.contextId===x.id))??[];
+ const evidenceIds=new Set(recordEvidenceIds({observations,assessments:assessment?[assessment]:[],contexts,actionEvents:actions,findings}));
+ const queue=[...evidenceIds];for(let i=0;i<queue.length;i++)for(const id of source.checked.evidenceCatalog.items.find(e=>e.id===queue[i])?.metadata?.contextEvidenceIds??[])if(!evidenceIds.has(id)){evidenceIds.add(id);queue.push(id);}
+ const evidence=source.checked.evidenceCatalog.items.filter(e=>evidenceIds.has(e.id)).map(e=>({...e,sourceRunId:source.manifest.runId})),required=goalRequiredRefs(definition.c,definition.g),refs=new Set(required);
+ return{pointId,caseId:definition.c.id,goalId:definition.g.id,title:definition.g.title,expected:definition.g.expected,basis:definition.g.basis,requiredRefs:required,selected,status:assessment?.status??null,rationale:assessment?.rationale??null,gaps:assessment?.gaps??[],assessment,observations,actions,contexts,findings,evidence,definition:definition.g,plan:{conditions:definition.c.criticalConditions.filter(c=>refs.has('condition:'+c.id)),path:definition.c.requiredPath,order:definition.c.stepOrder,steps:definition.c.steps.filter(s=>refs.has('step:'+s.id)),parameters:definition.c.parameters},relations:source.baseline.retiredPoints.filter(r=>r.pointId===pointId||r.replacements.includes(pointId))};
 }
-export interface SourceAvailability {
-  artifactKind: 'rule' | 'task'; artifactId: string; revision: number; sourceId: string;
-  referenceStatus: 'checked' | 'unavailable'; issue: string | null;
-}
-/** A missing original source is a visible reference gap, never a reason to erase a frozen asset. */
-export async function inspectArtifactSources(artifact: StoredArtifact): Promise<SourceAvailability[]> {
-  const checks = artifact.kind === 'rule'
-    ? [{ sourceId: 'normative-source', verify: () => verifyRuleSource(artifact.source) }]
-    : artifact.sourceRefs.map(ref => ({ sourceId: ref.id, verify: async () => { await verifySourceRef(ref); } }));
-  const result: SourceAvailability[] = [];
-  for (const check of checks) {
-    let issue: string | null = null;
-    try { await check.verify(); } catch (caught) { issue = errorInfo(caught).message; }
-    result.push({ artifactKind: artifact.kind, artifactId: artifact.kind === 'rule' ? artifact.ruleId : artifact.taskId, revision: artifact.revision, sourceId: check.sourceId, referenceStatus: issue === null ? 'checked' : 'unavailable', issue });
-  }
-  return result;
-}
-/** All source goals remain visible, independent of their verdict and whether a reusable task exists. */
-export function sourceContext(source: SourceRun, library: RegressionLibrary): SourceContext {
-  const prefixHashes = new Map([[source.results.revision, source.resultsSha256]]);
-  const prefixHash = (revision: number): string => {
-    const known = prefixHashes.get(revision); if (known) return known;
-    const value = canonicalHash({ ...source.results, revision, entries: source.results.entries.slice(0, revision) });
-    prefixHashes.set(revision, value); return value;
-  };
-  return { regressionVersion: 1, source, rules: library.rules,
-    facts: source.checked.cases.flatMap(c => c.goals.map(goal => {
-      const linked = library.tasks.flatMap(task => task.sourceRefs.filter(ref => ref.runId === source.manifest.runId && ref.baselineSha256 === source.baselineSha256 && ref.caseId === c.id && ref.goalId === goal.id && ref.resultsRevision <= source.results.revision).map(ref => ({ task, ref })));
-      const matching = linked.filter(({ ref }) => ref.resultsSha256 === prefixHash(ref.resultsRevision));
-      const taskRefs = matching.map(({ task, ref }) => ({ taskId: task.taskId, revision: task.revision, contentSha256: task.contentSha256,
-        sourceRefId: ref.id, sourceResultsRevision: ref.resultsRevision, sourceResultsSha256: ref.resultsSha256,
-        relation: ref.resultsRevision === source.results.revision ? 'exact' as const : 'earlier' as const }));
-      const gap = matching.length !== linked.length
-        ? 'Tasks are linked to this source goal, but one or more referenced source fingerprints do not match the selected history; verify those references.'
-        : taskRefs.some(ref => ref.relation === 'exact') ? null
-        : taskRefs.length ? 'This goal already has task associations from earlier results revisions. Review subsequent changes before treating those tasks as current coverage; no reassessment or automatic reuse is implied.'
-        : 'Source goal has not been organized into a regression task at or before the selected results revision.';
-      return { caseId: c.id, goalId: goal.id, assessment: c.assessments.find(a => a.goalId === goal.id) ?? null, taskRefs,
-        gap };
-    })),
-    caveat: 'Rules are normative snapshots; source facts are historical observations, not normative requirements or current authorization. Task links preserve their exact source references: earlier links require review and later source revisions do not count as historical coverage. Missing assessments and unorganized goals remain gaps. No task or business verdict was changed, and no source evidence was collected anew.' };
-}
+export function sourceContext(source:SourceRun){return{regressionVersion:2 as const,cases:{projectId:source.baseline.projectId,caseVersion:source.baseline.caseVersion,sha256:source.baselineSha256},normative:source.baseline,facts:source.checked.cases.flatMap(c=>c.goals.map(g=>{const detail=pointDetails(source,g.pointId)!;return{caseId:c.id,goalId:g.id,pointId:g.pointId,assessment:detail.assessment,observations:detail.observations,actions:detail.actions,contexts:detail.contexts,findings:detail.findings,evidence:detail.evidence,sourceRun:source.manifest.runId};})),gaps:(source.checked.regressionBinding as {coverage?:{gaps:unknown[]}}|undefined)?.coverage?.gaps??[],caveat:'Normative definitions and historical observations are separate. Evidence is scoped to each goal and its explicitly linked facts; history is not current authorization or freshly collected evidence.'};}
+export async function verifyOriginalProblems(root:string,baseline:Baseline,c:Case,assessments:readonly Assessment[]){for(const assessment of assessments)for(const check of assessment.problemChecks??[]){if(path.resolve(check.source.run.runDir)===root)fail('Cross-run problem checks cannot re-lock their own run; use local phenomena for within-run attempts.');if(['not_checked','unclear'].includes(check.state)){if(!check.gaps.length)fail('Uncertain/unchecked problem needs an explicit gap.');continue;}if(!check.observationIds.length)fail('A recurrence observation requires current evidence.');const source=await verifyRunRef(check.source.run);if(source.baseline.projectId!==baseline.projectId)fail('Original problem belongs to another project.');const old=source.checked.cases.find(x=>x.id===check.source.caseId);if(!old)fail('Original problem case is not in the source execution scope.');let oldGoalIds:string[]=[];if(check.source.findingId){const finding=old.findings.find(f=>f.id===check.source.findingId);if(!finding)fail('Original finding is outside the pinned results prefix.');oldGoalIds=finding.goalIds;}else{if(!check.source.goalId||!check.source.operationId)fail('Original problem needs a finding or exact assessment.');const entry=old.entries.find(e=>e.operationId===check.source.operationId),a=entry?.record.assessments.find(a=>a.goalId===check.source.goalId);if(!a||check.source.phenomenonId&&!a.phenomena?.some(p=>p.id===check.source.phenomenonId))fail('Original assessment/phenomenon was not retained.');oldGoalIds=[check.source.goalId];}const current=c.goals.find(g=>g.id===assessment.goalId)!;const oldPoints=old.goals.filter(g=>oldGoalIds.includes(g.id)).map(g=>g.pointId);if(!oldPoints.length)fail('Original finding has no explicit point mapping; retain it separately or record an unclear check.');if(!oldPoints.includes(current.pointId)&&!baseline.retiredPoints.some(p=>oldPoints.includes(p.pointId)&&p.replacements.includes(current.pointId)))fail('Original problem has no explicit mapping to this point.');}}

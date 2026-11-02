@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "report.schema.json",
-  "title": "Ego Lite generated report v8",
+  "title": "Ego Lite generated report v9",
   "type": "object",
   "properties": {
     "schemaVersion": {
-      "const": 8
+      "const": 9
     },
     "runId": {
       "type": "string",
@@ -70,7 +70,9 @@
         },
         "missingScreenshotIds": {
           "type": "array",
-          "items": { "$ref": "common.schema.json#/$defs/safeId" },
+          "items": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
           "uniqueItems": true
         }
       },
@@ -237,8 +239,12 @@
           "actionId": {
             "type": "string"
           },
-          "label": { "type": "string" },
-          "detail": { "type": "string" },
+          "label": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
           "purpose": {
             "type": "string"
           },
@@ -284,6 +290,54 @@
         ],
         "additionalProperties": false
       }
+    },
+    "sourceCaseCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sourceGoalCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "caseVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "history": {
+      "$ref": "report-history.schema.json"
+    },
+    "conversationEvidence": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "common.schema.json#/$defs/conversationArtifact"
+      }
+    },
+    "aiContext": {
+      "$ref": "common.schema.json#/$defs/aiContext"
+    },
+    "presentation": {
+      "type": "object",
+      "required": [
+        "language",
+        "messages"
+      ],
+      "properties": {
+        "language": {
+          "type": "string",
+          "minLength": 1
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
   "required": [

@@ -8,7 +8,7 @@ import { SOURCE_ROOT } from '../scripts/toolchain.mjs';
 export { SOURCE_ROOT };
 export const statuses = new Set(['verified', 'violation', 'inconclusive', 'not_tested']);
 export const causes = new Set(['product', 'agent', 'environment', 'spec', 'unknown']);
-export const evidenceKinds = new Set(['screenshot', 'dom', 'tool_receipt', 'log', 'other']);
+export const evidenceKinds = new Set(['screenshot', 'dom', 'tool_receipt', 'log', 'other', 'conversation']);
 export const reservedIds = new Set(['__proto__', 'prototype', 'constructor']);
 export const idPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 export function fail(message: string): never { throw new Error(message); }
@@ -47,8 +47,8 @@ export function canonical(value: unknown): string {
   return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonical(value[key])).join(',') + '}';
 }
 export function canonicalHash(value: unknown): string { return hash(Buffer.from(canonical(value), 'utf8')); }
-export function canonicalRecord(record: RecordPayload): Required<RecordPayload> {
-  return { observations: record.observations, assessments: record.assessments, findings: record.findings ?? [], contexts: record.contexts ?? [], actionEvents: record.actionEvents ?? [] };
+export function canonicalRecord(record: RecordPayload): Required<Omit<RecordPayload, 'aiContext'>> & Pick<RecordPayload, 'aiContext'> {
+  return { ...(record.aiContext ? {aiContext:record.aiContext} : {}), observations: record.observations, assessments: record.assessments, findings: record.findings ?? [], contexts: record.contexts ?? [], actionEvents: record.actionEvents ?? [] };
 }
 export function sameRecord(left: RecordPayload, right: RecordPayload): boolean { return canonical(canonicalRecord(left)) === canonical(canonicalRecord(right)); }
 
@@ -85,7 +85,7 @@ export async function syncDirectory(dirname: string): Promise<void> {
     if (!['EINVAL', 'ENOTSUP', 'EISDIR', 'EPERM', 'EACCES', 'EBADF'].includes(error.code ?? '')) throw error;
   } finally { if (handle) await handle.close().catch(() => {}); }
 }
-export async function writeNew(filename: string, data: string): Promise<FileIdentity> {
+export async function writeNew(filename: string, data: string | Uint8Array): Promise<FileIdentity> {
   await safePath(filename);
   let handle: FileHandle | undefined;
   let created = false;

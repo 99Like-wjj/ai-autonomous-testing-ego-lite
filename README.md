@@ -20,34 +20,33 @@
 
 ## 当前版本
 
-当前正式版本为 **0.1.7 / report-step-evidence-1**。已整合整轮资源沟通、首次成果留存、规则/任务修订、按状态整场景及全量回归、报告方案 B；主契约为 v8，regressionVersion 1，networkVersion 1。报告方案 B 将问题描述和原预期置顶，实际步骤与所选证据并排，范围说明采用独立两层折叠。范围和限制见[报告方案 B](docs/v0.1.7-step-evidence.md)、[资源澄清验证](docs/v0.1.7-resource-readiness-validation.md)、[回归复用验证](docs/v0.1.7-regression-reuse-validation.md)及[本地收尾核验](docs/v0.1.7-local-closeout.md)。
+当前版本为 **0.1.8 / report-language-model-1**。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。正式发布、安装包与校验值见 [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。当前修订增加[报告语言与两阶段模型来源](docs/v0.1.8-report-language-model-design.md)、长编号布局及首次执行范围文案。
+
+新增通用对话证据、每步输入/回复摘要和方案2完整对话侧栏；四层质量改进覆盖预期/时机核对、原文取证、可读描述和来源校验，详见[本次设计及验证](docs/v0.1.8-conversation-review.md)。主契约仍为v9，独立对话格式为conversationVersion 1；历史运行与报告不改写。
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
 
-审阅入口与本轮范围见 [0.1.7 云端整合审阅](docs/v0.1.7-cloud-review.md)。四个工作分支均已包含在最新基线中，不重复应用提交；人工审阅已通过，正式收尾与验证边界见[发布验证](docs/v0.1.7-release-validation.md)。
-
 ## 版本演变
 
-![最新在前：v0.1.7 正式版，其后为 v0.1.6、v0.1.5、v0.1.4 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
+![最新在前：v0.1.8 正式版本，其后为 v0.1.7、v0.1.6、v0.1.5 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 展示当前版本与前三个历史版本：0.1.4–0.1.7 均为已发布版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。0.1.8 仅为需求规划。
+README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本，0.1.7–0.1.5 为前三个正式版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。本次工程与安装包验证范围见[发布验证](docs/v0.1.8-release-validation.md)。
 
-## 0.1.7 做了什么
+## 0.1.8 做了什么
 
-这一版围绕 **报告更好读、测试资源先沟通、首次成果可回归复用** 三个方向，把报告优化与资源/回归能力整合到同一套记录中。
+- 用例整份版本、内嵌稳定编号及同源 HTML/Markdown 审阅；定义不变复测只增 run。
+- points/status/full 三种范围，局部重测保留必要依赖，不继承未选点通过。
+- 官方 Ego 下载监听/saveAs、显式管理页补证、原件及只读 JSON/CSV/XLSX 检查。
+- 精确父运行、原问题检查及历史原图/附件；当前四态与修复归因分开。
+- **报告跟随用户语言。** 用例报告和测试报告采用用户交流语言，显式指定优先；固定界面文案由完整映射提供，原始证据不翻译，AI 负责撰写对应语言的业务说明。
+- **模型来源清楚可查。** 两类报告分别在一处展示对应阶段的模型和思考等级，保留多配置、未知项及来源，不凭模型名称推断质量。
+- **对话和长编号更易阅读。** 步骤展示输入/回复摘要及完整对话入口，长场景编号完整换行；首次执行与回归根据实际比较基准说明范围。
 
-- **看清问题和复现过程。** 报告方案 B 把问题描述与原预期放在顶部，实际操作步骤与对应证据并排；按场景/目标筛选定位，范围、原始记录与历史按需展开，减少重复阅读。
-- **证据就近查看。** 支持截图、接口/日志及资料正文，保留图片上下文、共享材料与缺口说明；支持离线 HTML、JSON、Markdown 和附件交付，八种主题便于阅读。
-- **按整轮范围沟通资源。** 首次执行或恢复前核对身份、对象、数据、观察条件及操作授权，集中说明已知缺口；承接部分答复，核实补充条件，独立且获授权的目标可继续。
-- **首次测试成果留作回归资料。** 保存规则依据、实际观察、失败及未完成信息，由 AI 整理项目专属任务与规则修订。历史异常不会被固化成正确预期，通用经验指南仍人工维护、运行时只读。
-- **支持两种回归范围。** 按历史目标状态命中后重跑整条场景，或对明确的完整测试集执行全量回归；不是按测试点编号单点回测。每次重新核验条件，创建独立运行，不覆盖历史证据。
-- **比较结果也保留限制。** 关联本轮任务/规则版本、实际动作及目标结论，展示跨轮变化和条件差异。未知副作用先核对，不自动重放；状态变化不直接等同于某个 Bug 被修复或新版本引入缺陷。
-
-设计与验证依据：[报告方案 B](docs/v0.1.7-step-evidence.md)、[整轮资源澄清](docs/v0.1.7-resource-readiness-validation.md)、[回归复用](docs/v0.1.7-regression-reuse-validation.md)、[云端整合审阅](docs/v0.1.7-cloud-review.md)。0.1.6 的经验指南、目标评估、接口观测等补充说明已归入[完整版本历史](docs/version-history.md)，此处聚焦 0.1.7 的变化。
+详见[最终设计](docs/v0.1.8-design.md)及[当前契约](docs/asset-formats.md)。
 
 回归接口与行为边界见[回归资料](docs/regression-reuse.md)和[回归使用指南](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md)。
 
-当前测试资产 JSON 契约统一为 **schemaVersion 8**，execution read 的 viewVersion 为 8。新版明确拒绝旧格式，不提供兼容读取或转换。旧报告、截图、运行与来源文件保持原样；重新使用来源时创建新的 v8 资产，不只改版本号，也不覆盖历史。具体见[格式说明](docs/asset-formats.md)。
+当前测试资产 JSON 契约统一为 **schemaVersion 9**，execution read 的 viewVersion 为 9。新版明确拒绝旧格式，不提供兼容读取或转换。旧报告、截图、运行与来源文件保持原样；重新使用来源时创建新的 v9 用例，不只改版本号，也不覆盖历史。具体见[格式说明](docs/asset-formats.md)。
 
 ## 用例与证据
 
@@ -59,17 +58,56 @@ README 展示当前版本与前三个历史版本：0.1.4–0.1.7 均为已发�
 
 默认交付独立 HTML、JSON、Markdown。报告显示目标预期、观察、证据、缺口、根因确认程度和历史；三种格式共享统计。缺图与文件完整性单独展示，哈希一致不证明业务判断正确。文件校验与实际浏览器打开分别验证。
 
-当前报告采用方案 B：场景保留全部目标入口，一次聚焦一个目标；顶部呈现问题描述/验证结果及完整原预期，中间呈现实际步骤，右侧展示所选步骤证据。目录默认/重置收起，筛选保留正文选择；范围说明超过三条时外层折叠，其内精确任务/规则明细仍独立收起。未决动作使用中文业务说明，原始记录和历史保留。可选 readerNotes 只整理有来源的既有事实与问题位置，不能补造步骤、现场或改写四态；共享证据和逐步资料缺口明确说明。业务契约仍为 v8，旧报告不覆盖。见[最终阅读设计](docs/v0.1.7-step-evidence.md)及[此前阅读修复](docs/v0.1.7-reader-review.md)。开发构建不会自动替换用户安装。
+当前报告采用方案 B：场景保留全部目标入口，一次聚焦一个目标；顶部呈现问题描述/验证结果及完整原预期，中间呈现实际步骤，右侧展示所选步骤证据。目录默认/重置收起，筛选保留正文选择；范围说明超过三条时外层折叠，其内用例、范围与来源明细按需查看。未决动作使用本次选定报告语言的业务说明，原始记录和历史保留。可选 readerNotes 只整理有来源的既有事实与问题位置，不能补造步骤、现场或改写四态；共享证据和逐步资料缺口明确说明。业务契约为 v9，旧报告不覆盖。当前语言与来源用法见[使用指南](skills/ai-autonomous-testing-ego-lite/references/report-language-model.md)；[0.1.7 阅读设计](docs/v0.1.7-step-evidence.md)保留为沿革。开发构建不会自动替换用户安装。
 
-接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，当前结果契约为 v8，原 v5 运行历史保持原样。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
+接口观测按最终设计 v3 实现：network start/status/query/stop 通过独立 native 上下文自动记录已授权顶层页面的 Fetch/XHR、SSE 及 WebSocket 正文。AI 按需查询、选择证据并自主判断；不强制每步查询，不重发业务请求。网络格式独立为 networkVersion 1，当前结果契约为 v9，原 v5 运行历史保持原样。内容策略、容量、停止/恢复及来源限制见[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)。
 
-![方案 B 布局示意：问题和原预期置顶，实际步骤与所选证据并排，范围及历史折叠；不是实际测试报告截图。](docs/images/result-specimen.zh-CN.png)
+### 真实用例与测试报告（脱敏节选）
+
+以下截图来自用户提供的实际用例资料和测试报告，保留原始导出格式；不是重绘的模拟结果。用例审阅原件带有“方案 B／设计样稿”标签，仅用于展示这份资料的审阅格式，不代表 0.1.8 正式版的默认界面。
+
+从原整轮 **35 个场景、117 个目标**中精选 **2 个场景、7 个目标**：3 个已验证、1 个发现违反、1 个无法判断、2 个未测试。节选保留原结论，未重新执行测试；统计只代表这些展示样本，不代表整体效果或通过率。
+
+身份、网址、路径及关联标识已脱敏；原始高清截图、附件和对话内容未公开。报告中的图片区域显示经隐私处理的**强模糊占位图**，仅展示证据区布局，无法核验细节，也不表示像素级保真。这里展示的是**脱敏后的报告页面**，不能用它复核原始证据完整性，也不能将“未公开证据”理解为原执行缺少证据。仓库只保存经检查的页面截图，不包含原始或脱敏 HTML、JSON 及私有预览地址。
+
+**用例审阅格式：目标、步骤、预期与评审区域。**
+
+![真实用例资料脱敏节选，保留方案 B 设计样稿的三栏审阅格式。](docs/images/real-example/case-review-real-example.jpg)
+
+**报告总览：样本范围与四种结果状态。**
+
+![真实测试报告脱敏节选总览：2 个场景、7 个目标，3 个已验证、1 个违反、1 个无法判断、2 个未测试。](docs/images/real-example/real-report-overview.jpg)
+
+**发现违反：查看原预期、实际观察和执行步骤。**
+
+![真实违反结果的脱敏页面，保留原预期对照、结论和实际步骤；强模糊图片仅展示证据区布局，不用于核验。](docs/images/real-example/real-report-violation.jpg)
+
+<details>
+<summary>展开查看用例总览、已验证和未测试示例</summary>
+
+**用例总览与导航。**
+
+![真实用例资料脱敏总览，仅展示精选场景和目标。](docs/images/real-example/case-review-real-overview.jpg)
+
+**已验证目标。**
+
+![原记录为已验证的目标，其脱敏报告页面保持原有判断。](docs/images/real-example/real-report-verified.jpg)
+
+**未测试目标及原因。**
+
+![真实未测试目标的脱敏报告页面，未执行项不计为通过。](docs/images/real-example/real-report-not-tested.jpg)
+
+**证据图片查看区：强模糊占位。**
+
+![未测目标在准备阶段关联的截图，经隐私处理后仅作为强模糊占位展示查看器布局，不代表该目标已执行或验证，也不能核验原始细节。](docs/images/real-example/real-report-blurred-preview.jpg)
+
+</details>
 
 ## Windows 快速开始
 
-本节源码示例针对当前正式版本，使用本仓库构建的 .build/runtime；不会自动替换用户安装。正式安装包按其实际版本和 revision 核对。
+本节源码示例针对 0.1.8，使用本仓库构建的 .build/runtime；不会自动替换用户安装。安装与升级请先阅读[安装说明](INSTALL.zh-CN.md)，并核对版本、revision 和实际加载目录。
 
-完整安装包、SHA-256 校验值与发布说明见 [v0.1.7 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.7)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
+完整安装包、SHA-256 校验值与发布说明见 [v0.1.8 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
 
 先按 [Ego 官方 Windows 快速开始](https://lite.ego.app/document/en/docs/windows/quick-start)准备 Ego 与官方 ego-browser Skill。本仓库不安装或替代官方浏览器。仅设计用例无需浏览器连接。
 
@@ -79,7 +117,7 @@ README 展示当前版本与前三个历史版本：0.1.4–0.1.7 均为已发�
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.7 --expect-revision report-step-evidence-1
+node $Tool tool-info --expect-version 0.1.8 --expect-revision report-language-model-1
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：
@@ -89,15 +127,24 @@ $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))
 node $Tool init --project-dir $Project
-$Cases = Join-Path $Project 'cases.example.json'
+$SaveRequest = Join-Path $Project 'cases-save-request.example.json'
+# Edit against trusted requirements before saving and human review.
+node $Tool cases save --work-dir $Project --request $SaveRequest
+$Cases = Join-Path $Project 'cases/v001.json'
+node $Tool cases render --cases $Cases --output-dir (Join-Path $Project 'case-documents')
+node $Tool cases serve --cases $Cases --output-dir (Join-Path $Project 'review-files')
 ```
 
-将示例改成已核对来源和授权的 v8 用例，再冻结：
+用Ego打开serve实际返回的本机私有URL，页面保存意见时由本地工具写入可读HTML/JSON；不会登记正式确认或执行业务。原来的离线HTML仍可阅读和恢复意见。需要不经浏览器保存已有意见时，使用 cases export-review；命令和边界见[审阅保存说明](docs/v0.1.8-case-review.md)。
+
+实际人工审阅后登记确认，选择范围并填写本轮条件和绑定请求，再冻结：
 
 ```powershell
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
 node $Tool validate-cases --cases $Cases
-node $Tool start --project-dir $Project --cases $Cases --output-dir $Run
+# AI prepares this file from actual review, scope and current conditions.
+$Binding = Join-Path $Project 'run-binding-request.json'
+node $Tool start --project-dir $Project --cases $Cases --binding $Binding --output-dir $Run
 ```
 
 start 只创建本地基线与空账本，不自动执行浏览器。按[工具箱指南](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.md)登记真实文件与显式目标评估：
@@ -121,28 +168,23 @@ Space 不保证账号或后端数据隔离；文件更新不承诺通用多文�
 
 ![独立用例 worker 留证封包，协调者复核后汇总；默认串行，显式配置后安排并发。](docs/images/parallel.zh-CN.svg)
 
-已整合跨宿主修复提交 8e6e2d9，当前保留 v8 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
+已整合跨宿主修复提交 8e6e2d9，当前保留 v9 目标评估与监控设计。宿主负责真实子 Agent 的创建、上下文、权限、等待和收尾；本工具不提供固定宿主调度器。跨终端执行前参阅[宿主条件与交接](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。Codex 使用 $ai-autonomous-testing-ego-lite，Claude Code 使用 /ai-autonomous-testing-ego-lite；各宿主完整真实链路仍须分别验收。整合验证见[记录](docs/v0.1.6-cross-host-integration.md)。
 
 `maxParallelCases` 默认为 **1（逐条执行）**；用户未要求并发且未明确配置时保持串行。用户可用命令行或项目配置指定任意可准确表示的正整数，无固定产品上限。AI 决定工具调用、批次与 worker 使用，配置不要求跑满。宿主明确提供的限制单独记录，未知则保持未知，不主动探测客户端最大子代理数或修改全局配置。
 
 ```text
-node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --output-dir ABS_NEW_RUN --max-parallel-cases 3
+node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS_PROJECT --cases ABS_CASES --binding ABS_BINDING --output-dir ABS_NEW_RUN --max-parallel-cases 3
 ```
 
 AI workers 独立留证、封存包，协调者显式复核并导入。完整调用和恢复语义见[并发指南](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md)。所有继续维护的 CLI、报告交互、测试、构建／检查、历史验证工具和图片生成程序以 TS 维护；`.build` 是忽略的编译产物。`npm test` 先构建再测试实际 JS；`npm run check:public` 检查源文件，独立包仍使用严格资源清单。本仓库的构建、测试不注册或更新用户级 Skill，也不推送、创建 Tag 或 Release。
 
-## v0.1.8 需求前瞻（测试效果优化）
+## 需求与实现边界
 
-首次测试、失败范围复测和报告审阅表明：现有回归仍需 AI 重新核对候选任务和当前数据，整场景重跑范围可能大于原问题范围，动作与证据关联也有待更精确。下一版继续以测试效果为目标：
-
-1. **稳定测试点编号：** 每个最小可独立判断目标都有编号，包含全部四态；同一目标跨运行沿用编号，内容修订与执行次数另记。支持用户给出编号后单点回测，保留必要依赖，不只给 Bug 编号。
-2. **缺陷与全量回归：** 区分原问题是否复现、新发现及目标四态；全量对照最新已确认需求的完整目标清单，保留新增、受阻、未整理和缺少评估的范围。
-3. **精确证据与任务复用：** 在入账时关联具体动作、输入、读回及证据；参数化日期和对象，按需复用有适用条件的稳定 Ego 操作片段，保持 AI 自主方法和业务判断。
-4. **效果和成本实测：** 记录可取得的运行/测试点/阶段用量与耗时；拿不到 token 时明确缺失，不用目标数量推算节省比例。保留覆盖、误判、证据、授权和完成情况的评测方向。
-
-完整背景、七项需求及验收方向见 [v0.1.8 需求前瞻](docs/v0.1.8-preview.md)。编号/依赖/参数/用量等具体设计须审核后开发；当前软件与契约不升级。原 [v0.1.7 前瞻](docs/v0.1.7-preview.md)作为历史保留，未完成的效果评测不写成已交付能力。
+0.1.8 已进入开发与自测，不再作为纯需求前瞻。当前已实现范围见上方版本介绍；原始[需求](docs/v0.1.8-requirements.md)、[调研](docs/v0.1.8-feasibility-research.md)和[前瞻](docs/v0.1.8-preview.md)保留为设计历史，不代表每项设想均已交付。正式发布前仍需审阅并核对实际验证范围。
 
 ## 继续阅读
+
+- [安装与更新](INSTALL.zh-CN.md)、[打包与发布指南](docs/releasing.md)（开发指引不随 Skill 安装）
 
 - [完整版本演变](docs/version-history.md)、[历史需求与调研](docs/requirements.md)、[v0.1.5 更名历史与升级说明](docs/rename-upgrade.md)
 - [用例设计经验入口](skills/ai-autonomous-testing-ego-lite/references/case-design-guide.md)、[执行经验入口](skills/ai-autonomous-testing-ego-lite/references/experience-guide.md)、[接口观测指南](skills/ai-autonomous-testing-ego-lite/references/network-observation.md)

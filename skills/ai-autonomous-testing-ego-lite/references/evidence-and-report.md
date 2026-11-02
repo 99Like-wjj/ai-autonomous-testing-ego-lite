@@ -1,5 +1,7 @@
 # 证据与报告
 
+本阶段的人类阅读内容遵循[统一语言与模型来源](report-language-model.md)；记录实际生成者及已知配置，不根据当前模型补造历史来源。
+
 ## 一个目标结果入口
 
 串行 record 与并行 import 使用同形 record:{observations,assessments}，结果统一进入 entries。业务判断属于冻结 goals；前提、步骤和路径是必要语义，由观察的 coveredRefs 说明已观察哪些部分。计划步骤不是证据，不能由工具成功或父用例概况自动推导目标通过。
@@ -18,7 +20,7 @@ final 按 goal 增量更新当前评估，attempt 仅留历史。entries 保留�
 
 evidence-add 保存普通文件副本并校验 hash/字节数；source、description 保留来源。capturedAt 仅在真实来源提供时填写，未知则省略。collectedAt/recordedAt 是登记时间，不是执行或采集时间。哈希一致只证明留存字节一致，不认证真实性或业务正确性。
 
-### 用v8保存可供复核的事实
+### 用v9保存可供复核的事实
 
 为相关操作提供可复用的 `record.contexts`：environment、identity、objects、initialState、authorization 分别用 `state:known/unknown/not_applicable`、summary 和 sources（来源类别、定位及 evidenceIds）表达。身份/对象变化时另建context；资料型目标不强迫填写不存在的UI上下文。不能根据冻结计划推断实际身份已核实。
 
@@ -84,7 +86,7 @@ report 对冻结记录、引用及留存证据 hash/字节数核验后生成三�
 
 ## 格式变化与事后整理
 
-新版只接受统一 schemaVersion 8，不读取/转换旧 run。历史资料、报告、截图原样保留。需要基于旧来源重新整理时另建 v8 文件，明确为事后复核，标明来源与限制，不冒称执行前冻结，也不据旧摘要补造动作、时间或截图。新工具不能校验旧运行，不声称旧文件因新版构建而已验证。
+新版只接受统一 schemaVersion 9，不读取/转换旧 run。历史资料、报告、截图原样保留。需要基于旧来源重新整理时另建 v9 文件，明确为事后复核，标明来源与限制，不冒称执行前冻结，也不据旧摘要补造动作、时间或截图。新工具不能校验旧运行，不声称旧文件因新版构建而已验证。
 
 真实材料均留仓库外。工具不自动脱敏或上传；避免登记密码、token、Cookie、签名下载地址及无关业务数据。资源笔记、经验查阅、文件校验不能代替测试证据。
 

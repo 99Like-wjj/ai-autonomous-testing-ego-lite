@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "history-locations.schema.json",
+  "title": "Explicit historical run locations v9",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 9
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "$ref": "common.schema.json#/$defs/safeId"
+          },
+          "runDir": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "runId",
+          "runDir"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "locations"
+  ],
+  "additionalProperties": false
+}

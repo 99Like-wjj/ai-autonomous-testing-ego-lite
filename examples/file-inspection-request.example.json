@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 9,
+  "file": "C:/example/testing/runs/run-001/captures/export/original.bin",
+  "format": "csv",
+  "rowStart": 0,
+  "rowLimit": 100000,
+  "maxBytes": 33554432,
+  "maxOutputBytes": 4194304,
+  "maxCells": 100000,
+  "timeoutMs": 60000
+}

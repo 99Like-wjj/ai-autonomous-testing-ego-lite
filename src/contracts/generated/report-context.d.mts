@@ -1,7 +1,23 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
-export interface RetrospectiveReportContextV8NoBusinessExecution {
-  schemaVersion: 8;
+export type ReadingConversationSourceBinding = {
+  [k: string]: unknown;
+} & {
+  sourceId: string;
+  evidenceId?: string;
+  sourceLabel?: string;
+};
+export type SourceReference = {
+  id: string;
+  locator: string;
+  file: string | null;
+  sha256: string | null;
+  excerpt: string;
+  limitations: string[];
+};
+
+export interface RetrospectiveReportContextV9NoBusinessExecution {
+  schemaVersion: 9;
   kind: 'retrospective';
   summary: string;
   /**
@@ -32,6 +48,8 @@ export interface RetrospectiveReportContextV8NoBusinessExecution {
       result?: string;
       note?: string;
       evidenceIds: string[];
+      inputSummary?: string;
+      replySummary?: string;
     }[];
     /**
      * @minItems 1
@@ -41,6 +59,8 @@ export interface RetrospectiveReportContextV8NoBusinessExecution {
      * @minItems 1
      */
     limitations: string[];
+    impact?: string;
+    dimension?: 'business' | 'interaction' | 'wording' | 'content' | 'presentation';
   }[];
   /**
    * AI-authored retrospective reading notes. They cannot override verdicts or claim new execution.
@@ -68,8 +88,44 @@ export interface RetrospectiveReportContextV8NoBusinessExecution {
     }[];
   }[];
   supplementalCaseIds: string[];
+  conversations?: ReadingConversationDeclaration[];
+  aiContext?: AiContext;
 }
 export interface ActionRef {
   observationId: string;
   actionId: string;
+}
+export interface ReadingConversationDeclaration {
+  caseId: string;
+  goalId: string;
+  sourceLabel: string;
+  /**
+   * @minItems 1
+   */
+  sourceBindings: ReadingConversationSourceBinding[];
+  actions: ReadingConversationActionBinding[];
+  /**
+   * @minItems 1
+   */
+  limitations: string[];
+}
+export interface ReadingConversationActionBinding {
+  observationId: string;
+  actionId: string;
+  /**
+   * @minItems 1
+   */
+  messageIds: string[];
+}
+export interface AiContext {
+  /**
+   * @minItems 1
+   */
+  uses: {
+    model: string | null;
+    reasoningEffort: string | null;
+    sourceKind: 'host_metadata' | 'user_statement' | 'unknown';
+    source: SourceReference;
+    scope: string;
+  }[];
 }

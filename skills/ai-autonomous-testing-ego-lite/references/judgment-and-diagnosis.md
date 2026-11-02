@@ -1,5 +1,7 @@
 # 判断与归因
 
+本阶段的人类阅读内容遵循[统一语言与模型来源](report-language-model.md)；记录实际生成者及已知配置，不根据当前模型补造历史来源。
+
 ## 先判断目标结果，再描述原因
 
 目标结果只有 verified（已验证）、violation（发现违反）、inconclusive（无法判断）、not_tested（未测试）。AI 对冻结目标作判断，工具只校验结构、必要语义引用、证据关联和澄清限制。
@@ -12,6 +14,22 @@
 interpretation/hypothesis 的结果保留来源标签，不冒称已确认需求验收。某目标 clarificationQuestions 非空时，final 与 attempt 都不得 verified/violation；澄清后保留旧基线并创建有 followUpOf 关联的新目标。
 
 ## 观察与诊断分开入账
+
+### 预期、观察时机和复测条件对齐
+
+把预期拆成能分别核对的要求，逐项说明是否真正观察。提交前按钮是否禁用、点击后是否报必填错误、接口是否拒绝、任务是否落库是不同检查；有一种反馈不能证明其他项都通过或都失败。若需求明确要求禁用且按钮实际可点击，即使点击后有提示，也应精确报告“提交前按钮未禁用”，不能写成“必填校验失效”或“后台接受空值”。若冻结目标只要求点击后报错，仅看 enabled 不能判违反。不要为消除争议降低原预期。
+
+需要表达阶段时，用 observation.phase 的 expected / observed（before、during、after、static、unknown）和 basis 记录。工具只提示声明的阶段不一致，不从按钮属性或文案自动作业务判定。包含多个要求时，在判断理由中逐项说明符合、违反或缺证据；不能因为其中一项拒绝成功就声称完整目标通过。
+
+手工复测与原记录不同时，先对照同一需求版本、环境/时间、对象、账号及权限来源、原输入、操作阶段和观察范围。用户已指出的缓存或已开通权限作为有来源的条件，结合当时UI和独立业务读回核验；不能凭页面旧名字断言切换失败，也不能把助手报无权限推断为管理员未授权。保留首次观察与复测差异；未经授权不重跑、改写旧评估或覆盖证据。不同环境/时间的通过不能自动撤销旧异常，同样不能据旧异常断言现在仍失败。
+
+### 人类可读的问题说明
+
+assessments.display 提供 title、actual、impact、dimension；业务状态和 rationale 保留独立。title 写“具体对象＋触发条件＋实际偏差”，actual 写“输入/动作＋观察到的实际值＋与预期的具体差别”，impact 说明本目标受影响的范围。dimension 使用精确枚举：business（业务结果）、interaction（交互）、wording（文案）、content（回复内容）、presentation（展示）。不要重复标题当描述，不写“与预期不一致”却省略实际值和预期值，不用“读回、闭包、对账”替代用户可理解的行为。
+
+verified 的 gaps 必须为空；超出该目标的范围限制放到来源 limitations、观察或判断理由，不能用“不是整个系统验收”伪装成本目标未解决缺口。若缺口实际妨碍本目标成立，则保留缺口并据事实作无法判断等四态，不为通过而搬走缺口。
+
+例如文案检查写：“管理页显示‘任务管理’，需求指定‘已安排的任务’；当前副标题为‘…’，需求指定‘…’。这是页面文案差异；没有证据说明创建功能失败。”实际或预期副标题没有材料就明确缺失，不编造省略部分；确切文案不在冻结需求中时，不能把个人偏好当违反。用 report --context 事后整理时，readerNotes 只引用既有事实，不替换原结论。
 
 observations 记录事实、coveredRefs 和 evidenceIds；assessments 记录目标、四态、rationale、observationIds、gaps。diagnosis 可选，state 为 unknown/hypothesis/confirmed，category 为 product/agent/environment/spec/unknown。诊断文字与支持证据说明归因能确认到哪一层，不从业务状态或报错字符串自动推出。
 

@@ -1,0 +1,332 @@
+{
+  "kind": "isolated-feasibility-research",
+  "date": "2026-10-31",
+  "scope": "Synthetic local capability experiments, a synthetic UI prototype, current-source inspection, official documentation and read-only historical reconciliation. Not v0.1.8 implementation or real-business acceptance.",
+  "environment": {
+    "ego": "0.6.2.5",
+    "chromium": "156.0.8078.74",
+    "egoNode": "24.22.1",
+    "egoGuide": "2.2.0",
+    "sourceSoftware": "0.1.7",
+    "sourceRevision": "report-step-evidence-1",
+    "installedTestingSkill": "0.1.7-rc.1 / report-reader-review-1",
+    "python": "3.14.7",
+    "openpyxl": "3.1.5"
+  },
+  "experiments": [
+    {
+      "id": "direct",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 138,
+      "sha256": "9b07f6d97c573c21d42f7fd358269755c9cc8a2f0f66bdaaa3f38806d094079a",
+      "records": 2,
+      "numericTotal": "303.75",
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "stable-child",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 150,
+      "sha256": "2984444129b81a2f632ac50d3534ead4d4bf78cc567f51dc04d28e281dfa1dca",
+      "records": 2,
+      "numericTotal": "303.75",
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "transient",
+      "nativeEventObserved": false,
+      "savedFile": false,
+      "bytes": null,
+      "sha256": null,
+      "records": null,
+      "numericTotal": null,
+      "eventError": "page.waitForEvent(\"download\") timed out after 6500ms",
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "blob",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 134,
+      "sha256": "bb7662cdc9fc700ce6d5394edf3fca45a76a11aa48f10685e3fc4017106a5b68",
+      "records": 2,
+      "numericTotal": "303.75",
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "async",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 136,
+      "sha256": "ddd93ec963b1b87616e8637b1434ee55fecf2c289532dbe3945fbefd77922573",
+      "records": 2,
+      "numericTotal": "303.75",
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "same-a",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 138,
+      "sha256": "26234a4771818c25b4471ff141890bee8fa1b6e3b6073d0b50ac38ca63ed9c2f",
+      "records": 2,
+      "numericTotal": "303.75",
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "same-b",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 138,
+      "sha256": "614434e94b197839545f6dfaa675eaec4ad94b69b891333953c19ea4393c82fc",
+      "records": 2,
+      "numericTotal": "303.75",
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "json",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 115,
+      "sha256": "d99824ec16cfaa098afbadfbb43018277e8e8eedb46ae1777e6ecf5da3448959",
+      "records": 2,
+      "numericTotal": "303.75",
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "xlsx",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 4968,
+      "sha256": "4a1b397cec1e662ab95eb544e9592db0052ebf7130e234086d17446b5dc98b72",
+      "records": 2,
+      "numericTotal": "303.75",
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "empty",
+      "nativeEventObserved": true,
+      "savedFile": true,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "records": 0,
+      "numericTotal": null,
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": "Transport completed but the two-record business expectation is not met."
+    },
+    {
+      "id": "truncated",
+      "nativeEventObserved": true,
+      "savedFile": false,
+      "bytes": null,
+      "sha256": null,
+      "records": null,
+      "numericTotal": null,
+      "eventError": null,
+      "saveError": "download failed: canceled",
+      "downloadFailure": "canceled",
+      "notes": null
+    },
+    {
+      "id": "not-found",
+      "nativeEventObserved": false,
+      "savedFile": false,
+      "bytes": null,
+      "sha256": null,
+      "records": null,
+      "numericTotal": null,
+      "eventError": "page.waitForEvent(\"download\") timed out after 3000ms",
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": null
+    },
+    {
+      "id": "transient-recovered",
+      "nativeEventObserved": false,
+      "savedFile": true,
+      "bytes": 144,
+      "sha256": "7d42709ac29b2fed4c588e15b75589982424e283a21fc85909404773abe1ec7a",
+      "records": 2,
+      "numericTotal": null,
+      "eventError": null,
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": "Existing original download file recovered without another request."
+    },
+    {
+      "id": "transient-repeat",
+      "nativeEventObserved": false,
+      "savedFile": true,
+      "bytes": 144,
+      "sha256": "7d42709ac29b2fed4c588e15b75589982424e283a21fc85909404773abe1ec7a",
+      "records": 2,
+      "numericTotal": null,
+      "eventError": "page.waitForEvent(\"download\") timed out after 4000ms",
+      "saveError": null,
+      "downloadFailure": null,
+      "notes": "Repeated original URL matched by before/after download ID difference; native wait still timed out."
+    }
+  ],
+  "cancellation": {
+    "attempted": true,
+    "supportedInThisProbe": false,
+    "error": "'Browser.cancelDownload' wasn't found",
+    "rawReceipt": "downloads-errors",
+    "slowTransferChunksCompleted": [
+      200
+    ]
+  },
+  "browserRetries": {
+    "truncatedApplicationClicks": 1,
+    "truncatedServerRequests": 6,
+    "attribution": "Browser/internal retry is an inference from one application click and multiple server requests; the AI did not dispatch additional clicks."
+  },
+  "lifecycle": {
+    "checkedTemporaryFiles": [
+      {
+        "id": "async",
+        "existsAfterRound": true
+      },
+      {
+        "id": "blob",
+        "existsAfterRound": true
+      },
+      {
+        "id": "direct",
+        "existsAfterRound": true
+      },
+      {
+        "id": "empty",
+        "existsAfterRound": true
+      },
+      {
+        "id": "json",
+        "existsAfterRound": true
+      },
+      {
+        "id": "same-a",
+        "existsAfterRound": true
+      },
+      {
+        "id": "same-b",
+        "existsAfterRound": true
+      }
+    ],
+    "interpretation": "The observed local SDK files persisted beyond the round; do not rely on documented round-end cleanup."
+  },
+  "prototype": {
+    "search": {
+      "visible": [
+        "LAB-TP-000002"
+      ],
+      "text": "当前可见 1 / 2 个测试点 · 版本与执行轮次分别表达"
+    },
+    "reviewMatchesCurrentDesign": true,
+    "reviewMatchesChangedDesign": false,
+    "firstRun": {
+      "historyPanels": 0,
+      "results": 2
+    },
+    "multiRun": {
+      "historyPanels": 2,
+      "versions": 6,
+      "unselected": true
+    },
+    "confirmation": "simulated only"
+  },
+  "core": {
+    "currentSchemaAccepted": true,
+    "newPointFieldAccepted": false,
+    "newPointFieldRejection": "Unexpected goal key: testPointId",
+    "aiDeclaredPointProjection": {
+      "pointId": "LAB-TP-000002",
+      "goals": [
+        "content"
+      ],
+      "steps": [
+        "download",
+        "read"
+      ],
+      "note": "Research-only projection after the AI chose the required semantics; no production point-selector or automatic dependency inference."
+    },
+    "fullSelection": {
+      "selectedCaseIds": [
+        "export"
+      ],
+      "goals": [
+        {
+          "caseId": "export",
+          "goalId": "downloaded"
+        },
+        {
+          "caseId": "export",
+          "goalId": "content"
+        }
+      ],
+      "gaps": [
+        {
+          "caseId": "export",
+          "goalId": "content",
+          "reason": "No real deployment or business data is claimed.",
+          "code": "declared_scope_gap"
+        },
+        {
+          "caseId": "export",
+          "goalId": null,
+          "code": "missing_task",
+          "reason": "The declared scope case has no task revision."
+        }
+      ]
+    }
+  },
+  "usage": {
+    "scopeStatus": "Historical observation only. The user removed token, usage, cost and telemetry work on 2026-11-01; it is not an active requirement or design task.",
+    "perPointTokens": null,
+    "otelSectionPresent": false,
+    "measured": "Local round elapsed timestamps and tool attempts only",
+    "globalConfigChanged": false
+  },
+  "historical": {
+    "finalRetainedSyntheticFileBytes": 71,
+    "finalFileMatchesOriginal": true,
+    "whichActionCompletedDownload": "unknown",
+    "historicalAssessmentRewritten": false
+  },
+  "limitations": [
+    "No real application was retested.",
+    "The transient-page fallback uses internal browser downloads UI and filesystem access; portable support is not guaranteed.",
+    "No long-running export service, all file formats, simultaneous downloads, all hosts, or AI quality benchmark was tested.",
+    "Prototype confirmation is simulated, not actual human review.",
+    "No product contract, business runtime, installed Skill, browser profile, credentials or telemetry configuration was changed."
+  ]
+}

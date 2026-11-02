@@ -9,11 +9,11 @@ import { assignmentId } from '../contracts/ids.mjs';
 import type { AssignmentId } from '../contracts/ids.mjs';
 import { assertClosed, atomicReplace, canonicalHash, errorInfo, fail, json, now, readJSON, safeIdentifier, safePath, writeNew } from '../core/common.mjs';
 import { arrayValue, integer, oneOf, parseEvidenceRequest, parseRecordRequest, sha256Value, textValue, timeValue } from '../core/validation.mjs';
-import { executionWindow, numbers, parsePacket, parseRequest, parseReview, uniqueStrings } from './parse.mjs';
+import { parseDownloadMarker, executionWindow, numbers, parsePacket, parseRequest, parseReview, uniqueStrings } from './parse.mjs';
 import { parallelLimit } from './config.mjs';
 
 export function initialExecution(manifest: Manifest, configuration: ConfigurationSnapshot): ExecutionLedger {
-  return { schemaVersion: 8, runId: manifest.runId, baselineSha256: manifest.baselineSha256, revision: 0, configuration, knownAvailableWorkers: null, capacityReason: '', protectedSpaceIds: null, peakReservations: 0, assignments: [], imports: [], operations: [], events: [] };
+  return { schemaVersion: 9, runId: manifest.runId, baselineSha256: manifest.baselineSha256, revision: 0, configuration, knownAvailableWorkers: null, capacityReason: '', protectedSpaceIds: null, peakReservations: 0, assignments: [], imports: [], operations: [], events: [] };
 }
 export function fileReference(value: unknown): FileReference {
   assertClosed(value, ['path', 'sha256', 'bytes'], 'execution file reference');
@@ -22,8 +22,8 @@ export function fileReference(value: unknown): FileReference {
 function configurationSnapshot(value: unknown): ConfigurationSnapshot {
   assertClosed(value, ['kind', 'initialMaxParallelCases', 'requestedMaxParallelCases', 'configuration', 'configFile', 'configSha256'], 'configuration snapshot');
   assertClosed(value.configuration, ['schemaVersion', 'maxParallelCases'], 'configuration input');
-  if (value.configuration.schemaVersion !== 8) fail('Invalid configuration snapshot version.');
-  return { kind: oneOf(value.kind, ['default', 'project', 'file', 'override'], 'configuration source'), initialMaxParallelCases: parallelLimit(value.initialMaxParallelCases), requestedMaxParallelCases: parallelLimit(value.requestedMaxParallelCases), configuration: { schemaVersion: 8, maxParallelCases: parallelLimit(value.configuration.maxParallelCases) }, ...(value.configFile === undefined ? {} : { configFile: textValue(value.configFile, 'configuration file') }), ...(value.configSha256 === undefined ? {} : { configSha256: sha256Value(value.configSha256) }) };
+  if (value.configuration.schemaVersion !== 9) fail('Invalid configuration snapshot version.');
+  return { kind: oneOf(value.kind, ['default', 'project', 'file', 'override'], 'configuration source'), initialMaxParallelCases: parallelLimit(value.initialMaxParallelCases), requestedMaxParallelCases: parallelLimit(value.requestedMaxParallelCases), configuration: { schemaVersion: 9, maxParallelCases: parallelLimit(value.configuration.maxParallelCases) }, ...(value.configFile === undefined ? {} : { configFile: textValue(value.configFile, 'configuration file') }), ...(value.configSha256 === undefined ? {} : { configSha256: sha256Value(value.configSha256) }) };
 }
 function parseAssignment(value: unknown): Assignment {
   assertClosed(value, ['id', 'caseId', 'attemptId', 'state', 'workerDirectory', 'resources', 'createdAt', 'updatedAt', 'workerId', 'model', 'reasoning', 'defaultSpaceId', 'spaceHistory', 'ownedSpaces', 'executionWindow'], 'assignment');
@@ -61,9 +61,9 @@ function parseImport(value: unknown): ImportState {
   return result;
 }
 export function parseLedger(value: unknown): ExecutionLedger {
-  assertClosed(value, ['schemaVersion', 'runId', 'baselineSha256', 'revision', 'configuration', 'knownAvailableWorkers', 'capacityReason', 'protectedSpaceIds', 'peakReservations', 'assignments', 'imports', 'operations', 'events'], 'execution ledger');
-  if (value.schemaVersion !== 8) fail('Execution ledger requires schemaVersion 8.');
-  const result: ExecutionLedger = { schemaVersion: 8, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), revision: integer(value.revision, 'execution revision'), configuration: configurationSnapshot(value.configuration), knownAvailableWorkers: value.knownAvailableWorkers === null ? null : integer(value.knownAvailableWorkers, 'worker capacity'), capacityReason: textValue(value.capacityReason, 'capacity reason', { empty: true }), protectedSpaceIds: value.protectedSpaceIds === null ? null : numbers(value.protectedSpaceIds), peakReservations: integer(value.peakReservations, 'peak reservations'), assignments: arrayValue(value.assignments, 'assignments').map(parseAssignment), imports: arrayValue(value.imports, 'imports').map(parseImport),
+  assertClosed(value, ['schemaVersion', 'runId', 'baselineSha256', 'revision', 'configuration', 'knownAvailableWorkers', 'capacityReason', 'protectedSpaceIds', 'peakReservations', 'assignments', 'imports', 'operations', 'events', 'activeDownload'], 'execution ledger');
+  if (value.schemaVersion !== 9) fail('Execution ledger requires schemaVersion 9.');
+  const result: ExecutionLedger = { ...(value.activeDownload===undefined?{}:{activeDownload:value.activeDownload===null?null:parseDownloadMarker(value.activeDownload)}), schemaVersion: 9, runId: textValue(value.runId, 'run ID'), baselineSha256: sha256Value(value.baselineSha256), revision: integer(value.revision, 'execution revision'), configuration: configurationSnapshot(value.configuration), knownAvailableWorkers: value.knownAvailableWorkers === null ? null : integer(value.knownAvailableWorkers, 'worker capacity'), capacityReason: textValue(value.capacityReason, 'capacity reason', { empty: true }), protectedSpaceIds: value.protectedSpaceIds === null ? null : numbers(value.protectedSpaceIds), peakReservations: integer(value.peakReservations, 'peak reservations'), assignments: arrayValue(value.assignments, 'assignments').map(parseAssignment), imports: arrayValue(value.imports, 'imports').map(parseImport),
     operations: arrayValue(value.operations, 'execution operations').map(raw => { assertClosed(raw, ['operationId', 'payloadSha256', 'request', 'startedAt', 'receipt'], 'execution operation'); return { operationId: safeIdentifier(raw.operationId), payloadSha256: sha256Value(raw.payloadSha256), request: parseRequest(raw.request), startedAt: timeValue(raw.startedAt, 'operation startedAt'), ...(raw.receipt === undefined ? {} : { receipt: parseReceipt(raw.receipt) }) }; }),
     events: arrayValue(value.events, 'execution events').map(raw => { assertClosed(raw, ['revision', 'operationId', 'at', 'kind', 'reason', 'assignmentId', 'evidenceFiles'], 'execution event'); return { revision: integer(raw.revision, 'event revision', 1), operationId: safeIdentifier(raw.operationId), at: timeValue(raw.at, 'event time'), kind: textValue(raw.kind, 'event kind'), reason: textValue(raw.reason, 'event reason'), ...(raw.assignmentId === undefined ? {} : { assignmentId: assignmentId(raw.assignmentId) }), ...(raw.evidenceFiles === undefined ? {} : { evidenceFiles: arrayValue(raw.evidenceFiles, 'event evidence').map(fileReference) }) }; }) };
   if (result.revision !== result.events.length || result.events.some((event, i) => event.revision !== i + 1)) fail('Execution revision does not match its event ledger.');
@@ -74,6 +74,9 @@ export function parseLedger(value: unknown): ExecutionLedger {
     if (!op.receipt && op.request.kind !== 'import') fail('Incomplete non-import execution operation.'); operationIds.add(op.operationId);
   }
   if (result.events.some(event => !operationIds.has(event.operationId))) fail('Execution event has no operation.');
+  let download:ExecutionLedger['activeDownload']=null;
+  for(const event of result.events){const request=result.operations.find(op=>op.operationId===event.operationId)?.request;if(request?.kind!=='note'||request.category!=='download')continue;const next=request.download;if(!next)fail('Download note lacks its marker.');if(next.state==='active'){if(download)fail('Overlapping in-flight download markers.');download=next;}else{if(!download||canonicalHash({...download,state:''})!==canonicalHash({...next,state:''}))fail('Download note does not reconcile the original capture.');download=next.state==='resolved'?null:next;}}
+  if(canonicalHash(download)!==canonicalHash(result.activeDownload??null))fail('In-flight download marker differs from its execution notes.');
   const assignmentIds = new Set<string>(), activeCases = new Set<string>(), ownedSpaces = new Set<number>();
   for (const a of result.assignments) {
     if (assignmentIds.has(a.id)) fail('Duplicate assignment ID.'); assignmentIds.add(a.id);
@@ -102,7 +105,7 @@ export function isActive(state: AssignmentState): boolean { return activeStates.
 export function activeCount(ledger: ExecutionLedger): number { return ledger.assignments.filter(a => isActive(a.state)).length; }
 export function assignment(ledger: ExecutionLedger, id: AssignmentId): Assignment { const result = ledger.assignments.find(a => a.id === id); if (!result) fail('Unknown assignment: ' + id); return result; }
 export async function readExecution(root: string, manifest: Manifest, baseline: Baseline): Promise<ExecutionLedger> {
-  if (manifest.schemaVersion !== 8 || manifest.executionFile !== 'execution.json') fail('This command requires a v8 run.');
+  if (manifest.schemaVersion !== 9 || manifest.executionFile !== 'execution.json') fail('This command requires a v9 run.');
   const ledger = parseLedger(await readJSON(path.join(root, 'execution.json')));
   if (ledger.runId !== manifest.runId || ledger.baselineSha256 !== manifest.baselineSha256 || ledger.assignments.some(a => !baseline.cases.some(c => c.id === a.caseId))) fail('Execution ledger does not match the frozen run.');
   validateExecutionReferencePaths(root, ledger);
@@ -154,7 +157,7 @@ export async function ensureWorkerDirectory(root: string, a: Assignment, operati
   try { await fs.mkdir(captures, { mode: 0o700 }); } catch (caught) { const error = errorInfo(caught); if (error.code !== 'EEXIST') throw error; }
   if (!(await fs.lstat(captures)).isDirectory()) fail('Capture path is not a directory.');
 }
-export function summarize(ledger: ExecutionLedger, _baseline: Baseline): ExecutionSummary {
+export function summarize(ledger: ExecutionLedger, _baseline?: Baseline): ExecutionSummary {
   const perCase = new Map<string, { start: number; end: number }[]>();
   for (const imp of ledger.imports) if (imp.phase === 'complete' && imp.originalPacket.executionWindow) {
     const window = imp.originalPacket.executionWindow, intervals = perCase.get(imp.originalPacket.caseId) ?? [];

@@ -1,0 +1,20 @@
+{
+  "conversationVersion": 1,
+  "id": "synthetic-confirmation",
+  "title": "合成确认输入示例（不是真实业务证据）",
+  "messages": [
+    {
+      "id": "u1",
+      "role": "user",
+      "format": "text",
+      "content": "确认",
+      "presentation": "verbatim",
+      "completeness": "complete",
+      "state": "final",
+      "completionBasis": "原件保留了完整提交文本；未采集被测AI回复。",
+      "sourceRefs": [{ "sourceId": "submission", "jsonPointer": "/text", "quote": "确认" }],
+      "limitations": []
+    }
+  ],
+  "limitations": ["只演示统一结构；必须映射到已登记原件后才能入账。"]
+}

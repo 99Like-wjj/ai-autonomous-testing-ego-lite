@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cases-save-request.schema.json",
+  "title": "Whole case file save request v9",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 9
+    },
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "previousSha256": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pointPrefix": {
+      "$ref": "common.schema.json#/$defs/safeId"
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/draftCase"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/sourceRef"
+      }
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceRefId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "enum": [
+              "mapped",
+              "pending",
+              "out_of_scope",
+              "retired"
+            ]
+          },
+          "pointIds": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "caseId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    },
+                    "goalId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    }
+                  },
+                  "required": [
+                    "caseId",
+                    "goalId"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "uniqueItems": true
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "sourceRefId",
+          "statement",
+          "state",
+          "pointIds",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "retiredPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "oneOf": [
+              {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "caseId": {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  "goalId": {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  }
+                },
+                "required": [
+                  "caseId",
+                  "goalId"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "replacements": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "caseId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    },
+                    "goalId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    }
+                  },
+                  "required": [
+                    "caseId",
+                    "goalId"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "pointId",
+          "reason",
+          "replacements"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "oneOf": [
+              {
+                "$ref": "common.schema.json#/$defs/safeId"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "caseId": {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  },
+                  "goalId": {
+                    "$ref": "common.schema.json#/$defs/safeId"
+                  }
+                },
+                "required": [
+                  "caseId",
+                  "goalId"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "added",
+              "modified",
+              "moved",
+              "split",
+              "merged",
+              "retired"
+            ]
+          },
+          "relatedPointIds": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/safeId"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "caseId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    },
+                    "goalId": {
+                      "$ref": "common.schema.json#/$defs/safeId"
+                    }
+                  },
+                  "required": [
+                    "caseId",
+                    "goalId"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "uniqueItems": true
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "pointId",
+          "kind",
+          "relatedPointIds",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "aiContext": {
+      "$ref": "common.schema.json#/$defs/aiContext"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "expectedVersion",
+    "previousSha256",
+    "project",
+    "pointPrefix",
+    "cases",
+    "reason"
+  ],
+  "additionalProperties": false
+}

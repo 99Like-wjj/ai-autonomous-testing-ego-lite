@@ -14,17 +14,27 @@ export type EvidenceMetadata = {
   omissionReason?: string;
   width?: number;
   height?: number;
+  artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
+  deliveryRequired?: boolean;
+  /**
+   * @minItems 1
+   */
+  conversationSources?: ConversationSourceBinding[];
 };
 
-export interface EvidenceRegistrationRequestV8 {
-  schemaVersion: 8;
+export interface EvidenceRegistrationRequestV9 {
+  schemaVersion: 9;
   operationId: string;
   expectedRevision: number;
   caseId: string;
   sourceFile: string;
-  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other';
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
   capturedAt?: string;
   source: string;
   description: string;
   metadata?: EvidenceMetadata;
+}
+export interface ConversationSourceBinding {
+  sourceId: string;
+  evidenceId: string;
 }

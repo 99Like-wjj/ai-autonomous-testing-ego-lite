@@ -1,13 +1,15 @@
 import { mapRecordEvidence } from '../core/action-events.mjs';
 /** Recoverable file import under the caller's run lock. Never retries business actions. */
 import fs from 'node:fs/promises';
+import { mapConversationMetadata } from '../core/conversations.mjs';
 import path from 'node:path';
 import type { Case } from '../contracts/model.mjs';
 import type { ExecutionLedger, ExecutionRequest, ImportState, Receipt, Operation } from '../contracts/execution-model.mjs';
 import { assignmentId } from '../contracts/ids.mjs';
 import { canonicalHash, fail, hash, inside, now, readJSON, safePath } from '../core/common.mjs';
 import { parseCatalog, parseResults } from '../core/validation.mjs';
-import { checkUnlocked, registerEvidenceUnlocked, recordResultUnlocked, evidenceOperationReceipt } from '../core/records.mjs';
+import { assertAssessmentScope, checkUnlocked, registerEvidenceUnlocked, recordResultUnlocked, evidenceOperationReceipt } from '../core/records.mjs';
+import type { RegressionBinding } from '../regression/binding.mjs';
 import { assignment, checkpoint } from './ledger.mjs';
 import { referencePath } from '../core/file-integrity.mjs';
 import { parsePacket, orderedEvidence } from './parse.mjs';
@@ -24,7 +26,9 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
   if (journal && (journal.packetSha256 !== packetSha256 || journal.packetFile !== relative || journal.packetId !== packet.packetId || journal.phase === 'superseded')) fail('Immutable import input changed or was superseded.');
   const checked = await checkUnlocked(root), prior = checked.cases.find(c => c.id === packet.caseId); if (!prior) fail('Missing committed packet case.');
   const importedIds = new Map((journal?.evidenceJobs ?? []).flatMap(job => job.receipt ? [[job.key, job.receipt.evidenceId] as const] : []));
-  validateAssessment(packet, c, request.review, { case: prior, catalog: checked.evidenceCatalog, evidenceIds: importedIds }); await verifyPacketFiles(root, a, packet);
+  validateAssessment(packet, c, request.review, { case: prior, catalog: checked.evidenceCatalog, evidenceIds: importedIds });
+  assertAssessmentScope(c, request.review.record ?? packet.record, checked.regressionBinding as RegressionBinding);
+  await verifyPacketFiles(root, a, packet);
   const mode = request.review.mode ?? packet.mode, record = request.review.record ?? packet.record;
   if (mode === 'final' && ledger.assignments.slice(ledger.assignments.indexOf(a) + 1).some(later => later.caseId === a.caseId)) fail('A stale assignment cannot replace a newer case final. Preserve it or explicitly review it as an attempt.');
   if (journal) {
@@ -57,7 +61,7 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
   const evidenceId = (key: string): string => { const receipt = journal.evidenceJobs.find(job => job.key === key)?.receipt; if (!receipt) fail('Evidence has not committed: ' + key); return receipt.evidenceId; };
   for (const item of orderedEvidence(packet.evidence)) {
     const i=packet.evidence.indexOf(item);
-    const metadata=item.metadata?{...item.metadata,...(item.metadata.contextEvidenceIds?{contextEvidenceIds:item.metadata.contextEvidenceIds.map(evidenceId)}:{})}:undefined;
+    const metadata=mapConversationMetadata(item.metadata,evidenceId);
     const job = journal.evidenceJobs.find(job => job.key === item.key); if (!job) fail('Missing evidence import job.');
     const sourceFile = path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/'));
     if (item.reuseEvidenceId) {
@@ -78,10 +82,10 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
     }
     if (!job.request) {
       const catalog = parseCatalog(await readJSON(path.join(root, 'evidence.json')));
-      job.request = { schemaVersion: 8, operationId: prefix + '-ev-' + i, expectedRevision: catalog.revision, caseId: a.caseId, sourceFile: path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/')), kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata?{metadata}:{}) };
+      job.request = { schemaVersion: 9, operationId: prefix + '-ev-' + i, expectedRevision: catalog.revision, caseId: a.caseId, sourceFile: path.join(root, ...a.workerDirectory.split('/'), ...item.path.split('/')), kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata?{metadata}:{}) };
       journal.phase = 'evidence'; await checkpoint(root, ledger, { operationId: request.operationId, kind: 'evidence-prepared', reason: request.reason, assignmentId: a.id });
     }
-    const expectedEvidence = { schemaVersion: 8, operationId: prefix + '-ev-' + i, expectedRevision: job.request.expectedRevision, caseId: a.caseId, sourceFile, kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata?{metadata}:{}) };
+    const expectedEvidence = { schemaVersion: 9, operationId: prefix + '-ev-' + i, expectedRevision: job.request.expectedRevision, caseId: a.caseId, sourceFile, kind: item.kind, source: item.source, description: item.description, ...(item.capturedAt === undefined ? {} : { capturedAt: item.capturedAt }), ...(metadata?{metadata}:{}) };
     if (canonicalHash(job.request) !== canonicalHash(expectedEvidence)) fail('Prepared evidence request changed.');
     job.receipt = await registerEvidenceUnlocked(root, job.request, hooks.afterEvidenceCommit ? { afterCommit: hooks.afterEvidenceCommit } : {});
     await checkpoint(root, ledger, { operationId: request.operationId, kind: 'evidence-committed', reason: request.reason, assignmentId: a.id });
@@ -89,10 +93,10 @@ export async function importPacket(root: string, ledger: ExecutionLedger, cases:
   const mappedRecord = mapRecordEvidence(record, evidenceId);
   if (!journal.resultRequest) {
     const results = parseResults(await readJSON(path.join(root, 'results.json')));
-    journal.resultRequest = { schemaVersion: 8, operationId: prefix + '-result', expectedRevision: results.revision, caseId: a.caseId, mode, record: mappedRecord };
+    journal.resultRequest = { schemaVersion: 9, operationId: prefix + '-result', expectedRevision: results.revision, caseId: a.caseId, mode, record: mappedRecord };
     journal.phase = 'result'; await checkpoint(root, ledger, { operationId: request.operationId, kind: 'result-prepared', reason: request.reason, assignmentId: a.id });
   }
-  const expectedResult = { schemaVersion: 8, operationId: prefix + '-result', expectedRevision: journal.resultRequest.expectedRevision, caseId: a.caseId, mode, record: mappedRecord };
+  const expectedResult = { schemaVersion: 9, operationId: prefix + '-result', expectedRevision: journal.resultRequest.expectedRevision, caseId: a.caseId, mode, record: mappedRecord };
   if (canonicalHash(journal.resultRequest) !== canonicalHash(expectedResult)) fail('Prepared result association or payload changed.');
   if (hooks.beforeResultCommit) await hooks.beforeResultCommit();
   journal.resultReceipt = await recordResultUnlocked(root, journal.resultRequest, hooks.afterResultCommit ? { afterCommit: hooks.afterResultCommit } : {});

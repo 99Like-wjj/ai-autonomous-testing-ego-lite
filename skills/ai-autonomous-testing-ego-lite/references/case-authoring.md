@@ -1,103 +1,167 @@
-# 用例接收与生成（schemaVersion 8）
+# 用例接收、版本与人工审阅（v9）
 
-## 目标是判断单位
+本阶段的人类阅读内容遵循[统一语言与模型来源](report-language-model.md)；记录实际生成者及已知配置，不根据当前模型补造历史来源。
 
-外部用例与 AI 生成用例使用同一契约，均可用于新功能或回归。AI 设计业务目标和预期，CLI 仅校验与冻结。只生成用例不需要浏览器连接，不创建虚假执行结果。
+接收外部用例时保留原意、顺序要求及来源。生成用例时明确可信需求、可独立判断的预期和必要条件；不从当前 UI 现状反推验收标准。用例仍为 cases→goals，步骤不机械计成独立测试目标。
 
-一个 case 表达有业务联系的场景或流程；其中 goals 是可独立判断的验收目标。拆分依据是不同的前提、身份、数据或可观察结果，而不是点击数量。保持必要连续动作和顺序，不能把“创建—刷新—读回”拆成互不相干的操作成功检查。
+只要求测试点时交付测试点；要求完整用例时提供可评审的前提、必要步骤、依赖及预期。AI 完成本次设计后用 cases save 保存、cases render 同源生成 HTML/Markdown，暂停依赖该设计的执行，交团队审阅。一次实际确认可覆盖整个版本，不固定增加两轮审批。
 
-例如“前后事项日期差正确”和“未知容量不显示为空闲”需要不同数据与观察，宜分目标或分用例；它们都应保留。表单错误提示与未创建对象也可分别判断，共享同一次提交事实；不能用提示出现代替未创建对象的核验。
+HTML默认先列出全部场景，展开后查看用例，具体用例进入三栏评审工作台。为团队准备审阅时，AI可显式调用 cases serve，并用Ego打开返回的本机私有URL；页面的“保存到本机文件”校验版本和范围后写入可读HTML/JSON，避免依赖浏览器Blob下载的Windows来源标记。cases render仍交付独立离线HTML/Markdown，离线副本可阅读、暂存和恢复意见；需要原生文件保存时使用本机入口，或交回数据由cases export-review保存。保存和展示均不启动测试、不登记人工确认。
 
-## 从来源到可执行目标
+意见按当前用例编辑并暂存，切换、返回和刷新保留当前浏览器草稿。导出前核对范围及所有意见；范围外意见必须明确纳入，不能过滤丢弃。恢复文件须核对projectId、版本、指纹和编号，冲突不覆盖当前草稿。浏览器草稿只属于该入口的当前浏览器存储，不保证换浏览器或重新启动不同地址的本机会话后继承；持久交付使用已保存文件。已有意见可通过 --feedback 在生成或本机会话中显式载入，不改用例定义。
 
-接收外部资料时保留原文件、原文依据、关键输入、顺序和授权；规范表达不等于获准改预期。旧 JSON 不能直接输入新版工具，从原始来源重新整理为 v8 新文件，不覆盖历史或只改版本号。
+## 轻量保存
 
-AI 从可信需求和用户范围定位每个验收目标，标明 basis.kind：explicit 为明确要求，interpretation 为有来源的待确认解释，hypothesis 为探索假设。当前 UI 和模型信心不能充当需求依据。明确的“本期不做”不进入本期执行。
+测试资料位于用户选定的私有工作目录：cases/v001.json、相邻 v001-review-01.json，以及 runs/ 下的独立运行。定义变化才保存 v002；普通复测复用 v001，只增 run。规则直接作为用例依据，任务作为场景计划，问题留在原运行；无需通用资产库、逐点文件或项目运行注册表。
 
-界面名称和能力举例不自动给出完整判据。例如“周视图”不能直接推导每个刻度按周；“支持 TXT/MD”若没有限定为允许清单，也不能直接把 PDF 定为非法。只固定来源明确的部分，将影响结论的单位、范围或排他性作为待确认解释，避免把常见实现习惯写成明确要求。
+新目标的 pointId 为 null，由 cases save 在整份提交中分配。已发布目标沿用编号，退役/拆分/合并显式说明，编号不复用。expectedVersion 与 previousSha256 拒绝覆盖；回执丢失重用同一请求读取已提交结果。
 
-冻结前逐个目标核对：
+JSON 原件包含版本、编号计数、来源、覆盖说明、场景及变更原因。条件有稳定 id，steps.dependsOn 只表达明确依赖。goal.requiredRefs 引用 condition:id、step:id 和 requiredPath。每个 goal 有 pointId、id、title、basis、expected、planState、preparationGaps、sourceAlias、clarificationQuestions。
 
-- 预期是否有可定位来源，是否保留全部必要语义？
-- 是否有适用的初态、身份、数据、动作与可观察结果？没有时说明缺口，不能只写预期而没有对应设计。
-- 用例细化新识别的前提是否已带回整轮资源依据？当前任务含实际测试时，已有实质缺口是否已向用户沟通，剩余范围是否清楚？
-- requiredRefs 是否覆盖该目标所需步骤、条件与必经路径？共享条件可以被多个目标引用。
-- 是否把不同身份或数据依赖混成一个无法分别判断的目标？拆分后仍须保留业务流程依赖。
-- 执行范围是否与判断范围一致？未覆盖的需求作为独立目标或覆盖缺口，不能在收尾时突然加入已执行目标的通过门槛。
+prepared 必须有必要计划与引用；未完整设计保留 unprepared 及缺口，不能从全量目录消失。本轮账号或数据是否就绪另记运行条件，不每轮改用例定义。参数有类型、用途及约束；绑定值独立，不全局替换或放宽预期。
 
-实际资源和操作授权按[资源指南](resource-readiness.md)核验，初期已知缺口不等全部用例写完才开始问。纯设计可以保留待补前提；首次或恢复实际测试前，须说明整轮已知条件和允许继续范围。未决验收规则才使用目标的 clarificationQuestions，资源不足不改变原规则；用户暂缓时保留目标和实际已完成范围，执行报告按真实观察给出状态及原因。
+## 审阅与覆盖
 
-## v8 字段
+cases review 保存实际收到的意见/确认及真实定位，工具计算所审版本的目标及必要计划指纹。离线 HTML 导出只是反馈数据，不能仅凭 approved 字段制造人类确认。用户或明确委托的评审可一次确认所选编号；普通评论不撤销确认，较新的明确修改要求不能靠挑旧确认绕过。
 
-根对象为 schemaVersion: 8、非空 project、非空 cases。每个 case 包含：
+重测不重复审阅未改内容。新版仅改部分目标时，匹配内容指纹的未变目标可复用旧确认；业务标准、共享约束、参数、来源或必要计划变化的影响范围重新审阅。审阅不证明本轮资源与真实操作授权。
 
-| 字段 | 含义 |
-| --- | --- |
-| id、title | 稳定用例 ID 与场景标题 |
-| criticalConditions | 所需前提字符串数组，不能借空数组省略已知条件 |
-| requiredPath | 必经业务路线；没有明确要求时为 null |
-| stepOrder | strict 保留业务依赖顺序；adaptive 允许在语义、前提与依赖不变时调整方法 |
-| steps | 非空有序数组，每步 id、action；表达业务意图与必要输入，不编造选择器 |
-| goals | 非空业务目标数组，ID 在本用例中唯一 |
+来源覆盖区分 mapped、pending、out_of_scope、retired。新需求未形成目标时保留覆盖缺口，不编造编号或四态填平统计。方法与边界参阅[设计经验](case-design-guide.md)、[资源准备](resource-readiness.md)、[回归复用](regression-reuse.md)。
 
-每个 goal 包含 id、title（业务标题）、basis（kind/source/text）、非空 expected、requiredRefs；可选 clarificationQuestions 和 followUpOf。requiredRefs 使用 step:步骤ID、condition:从0开始的索引，以及有值时的 requiredPath。步骤、前提和路径是必须履行的语义，不分别填写四态，也不机械计为目标数量。
+## 完整合成原件
 
-clarificationQuestions 非空的目标，在 final 和 attempt 中都不得给出 verified 或 violation；其他不依赖该歧义的目标可分别判断。澄清后新建修订基线，通过 followUpOf:{runId,caseId,goalId,reason} 关联原目标；保持原观察与旧口径，不在旧基线清空问题。
-
-## 合成示例
+以下仅说明 v9 结构，不是真实需求、审阅或执行证据。首次保存使用 examples/cases-save-request.example.json；下面是已保存原件的合成形态。
 
 ```json
 {
-  "schemaVersion": 8,
-  "project": "synthetic-config",
+  "schemaVersion": 9,
+  "projectId": "example-export-project",
+  "project": "Synthetic export example",
+  "pointPrefix": "SAMPLE",
+  "caseVersion": 1,
+  "previous": null,
+  "nextPointNumber": 3,
+  "retiredPoints": [],
+  "sources": [
+    {
+      "id": "synthetic-requirement",
+      "locator": "Explicitly synthetic example; replace with an actual requirement.",
+      "file": null,
+      "sha256": null,
+      "excerpt": "An authorized synthetic export preserves exact identifiers and values.",
+      "limitations": [
+        "Synthetic specification, not any deployed application requirement."
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "id": "export-values",
+      "sourceRefId": "synthetic-requirement",
+      "statement": "An authorized synthetic export preserves exact identifiers and values.",
+      "state": "mapped",
+      "pointIds": [
+        "SAMPLE-TP-000001",
+        "SAMPLE-TP-000002"
+      ],
+      "reason": "Two independent targets cover completion and content."
+    }
+  ],
   "cases": [
     {
-      "id": "CONFIG-01",
-      "title": "创建模板并读取保存结果",
+      "id": "export",
+      "title": "Authorized synthetic export",
       "criticalConditions": [
-        "实际身份已核验且允许创建",
-        "获授权的独立合成数据环境"
+        {
+          "id": "authorized",
+          "text": "Use only an authorized synthetic environment and object."
+        }
       ],
-      "requiredPath": "通过配置中心的模板功能创建",
+      "requiredPath": "Use the application export control and retain its real downloaded artifact.",
       "stepOrder": "strict",
       "steps": [
         {
-          "id": "create",
-          "action": "新建名称为演示模板A、字段为演示字段甲的模板"
+          "id": "request",
+          "action": "Use the authorized application export control once.",
+          "dependsOn": []
         },
         {
-          "id": "readback",
-          "action": "重新读取同一模板并核对名称与字段"
+          "id": "save",
+          "action": "Observe the download and save its actual bytes.",
+          "dependsOn": [
+            "request"
+          ]
+        },
+        {
+          "id": "inspect",
+          "action": "Read the exported values and compare them with the current authorized inputs.",
+          "dependsOn": [
+            "save"
+          ]
+        }
+      ],
+      "parameters": [
+        {
+          "id": "expectedId",
+          "type": "string",
+          "purpose": "Exact synthetic exported identifier",
+          "constraints": [
+            "Preserve leading zeros; do not relax the business criterion."
+          ]
         }
       ],
       "goals": [
         {
-          "id": "saved-content",
+          "id": "completion",
+          "pointId": "SAMPLE-TP-000001",
+          "title": "Download completion",
           "basis": {
             "kind": "explicit",
-            "source": "合成需求 CONFIG-01",
-            "text": "保存后重新读取仍保持模板名称与字段。"
+            "source": "Synthetic requirement",
+            "text": "The application export produces an actual readable downloaded artifact.",
+            "sourceRefIds": [
+              "synthetic-requirement"
+            ]
           },
-          "expected": "重新读取的模板名称为演示模板A，包含演示字段甲。",
+          "expected": "Actual download completion and the preserved file can be checked.",
           "requiredRefs": [
-            "condition:0",
-            "condition:1",
+            "condition:authorized",
             "requiredPath",
-            "step:create",
-            "step:readback"
+            "step:save"
           ],
-          "title": "重新读取的模板名称为演示模板A，包含演示字段甲。"
+          "clarificationQuestions": [],
+          "planState": "prepared",
+          "preparationGaps": [],
+          "sourceAlias": null
+        },
+        {
+          "id": "content",
+          "pointId": "SAMPLE-TP-000002",
+          "title": "Exported data integrity",
+          "basis": {
+            "kind": "explicit",
+            "source": "Synthetic requirement",
+            "text": "The export preserves the exact current input identifier and values.",
+            "sourceRefIds": [
+              "synthetic-requirement"
+            ]
+          },
+          "expected": "The exported identifier equals expectedId, including leading zeros; required values and records match.",
+          "requiredRefs": [
+            "condition:authorized",
+            "requiredPath",
+            "step:inspect"
+          ],
+          "clarificationQuestions": [],
+          "planState": "prepared",
+          "preparationGaps": [],
+          "sourceAlias": null
         }
       ]
     }
-  ]
+  ],
+  "changes": [],
+  "writeRequestSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "savedAt": "2026-11-01T00:00:00.000Z"
 }
 ```
-
-示例没有真实权限或执行结果。设计时考虑[相关经验](case-design-guide.md)，不要求填经验 ID 或套满通用方法。步骤不再承载独立 expected；需要独立判定的要求放入有来源的 goal。
-
-## 校验、冻结与执行
-
-validate-cases 只读检查结构，start 冻结基线并创建空结果账本；缺少 assessment 表示尚未入账，不能由此断言没有执行。结构合法或冻结成功不证明资源已齐备、实际沟通充分或业务覆盖完整，AI 仍审查来源、依赖和授权。整轮盘点不是所有目标同时就绪的要求，独立且条件充分、获授权的目标可继续。
-
-冻结后保留 goals、步骤、条件、路径和顺序。实际观察进入 observations，覆盖的必要语义用 coveredRefs 引用；assessment 引用观察、记录四态与缺口，不从计划推断已完成。同一观察可支撑多个相关目标，不强制每步单独 trace 或截图。关键 UI 结果需要真实截图，详见[证据与报告](evidence-and-report.md)。

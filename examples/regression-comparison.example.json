@@ -1,32 +1,21 @@
 {
-  "regressionVersion": 1,
+  "regressionVersion": 2,
   "left": {
-    "runDir": "C:\\SyntheticOnly\\replace-with-source-run",
-    "runId": "synthetic-source-run",
-    "baselineSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "runDir": "C:/example/testing/runs/run-001",
+    "runId": "00000000-0000-4000-8000-000000000001",
+    "baselineSha256": "9ac7f5ffe66e3357d860d6215db512a6dc6cbf35a93263bb211d56bbda6daba9",
     "resultsRevision": 1,
-    "resultsSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    "resultsSha256": "1111111111111111111111111111111111111111111111111111111111111111"
   },
   "right": {
-    "runDir": "C:\\SyntheticOnly\\replace-with-new-run",
-    "runId": "synthetic-new-run",
-    "baselineSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "runDir": "C:/example/testing/runs/run-002",
+    "runId": "00000000-0000-4000-8000-000000000002",
+    "baselineSha256": "9ac7f5ffe66e3357d860d6215db512a6dc6cbf35a93263bb211d56bbda6daba9",
     "resultsRevision": 1,
-    "resultsSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    "resultsSha256": "2222222222222222222222222222222222222222222222222222222222222222"
   },
-  "mappings": [
-    {
-      "id": "synthetic-goal-mapping",
-      "left": {
-        "caseId": "synthetic-case",
-        "goalId": "saved-value"
-      },
-      "right": {
-        "caseId": "synthetic-case",
-        "goalId": "saved-value"
-      },
-      "reason": "SYNTHETIC TEMPLATE ONLY: replace with an explicit, evidence-backed mapping and exact source receipts; these placeholders cannot be executed."
-    }
+  "pointIds": [
+    "SAMPLE-TP-000002"
   ],
   "comparability": []
 }
