@@ -67,9 +67,9 @@ Network observation implements the v3 design through network start/status/query/
 
 These screenshots come from user-provided case material and an actual test report, preserving their original export layouts rather than redrawing simulated results. The case-review source is labeled “方案 B / 设计样稿” (Plan B / design prototype); it demonstrates that document’s review layout, not the default interface of a released 0.1.8 build. Screenshots retain the source language.
 
-The excerpts select **2 scenarios and 7 goals** from an original run of **35 scenarios and 117 goals**: 3 verified, 1 violation, 1 inconclusive and 2 not tested. Original verdicts are preserved. These counts describe only the displayed subset, not overall effectiveness or a full-run pass rate.
+The excerpts select **2 scenarios and 7 goals** from an original run of **35 scenarios and 117 goals**: 3 verified, 1 violation, 1 inconclusive and 2 not tested. Original verdicts are preserved; the tests have not been rerun for this showcase. These counts describe only the displayed subset, not overall effectiveness or a full-run pass rate.
 
-Identities, URLs, paths and related identifiers are redacted. Original screenshots, attachments and conversations are not published. These are captures of the **redacted report pages**, not evidence from which original evidence completeness can be reverified. “Evidence not published” must not be interpreted as missing evidence in the original execution. The repository contains reviewed page images only, not original or redacted HTML/JSON or the private preview address.
+Identities, URLs, paths and related identifiers are redacted. Original full-resolution screenshots, attachments and conversations are not published. Image areas in the report contain **heavily blurred, privacy-processed placeholders** that show the evidence-panel layout only. They cannot be used to verify details and do not imply pixel-level fidelity. These are captures of the **redacted report pages**, not evidence from which original evidence completeness can be reverified. “Evidence not published” must not be interpreted as missing evidence in the original execution. The repository contains reviewed page images only, not original or redacted HTML/JSON or the private preview address.
 
 **Case-review layout: goals, steps, expectations and review areas.**
 
@@ -81,7 +81,7 @@ Identities, URLs, paths and related identifiers are redacted. Original screensho
 
 **Violation: original expectation, observation and executed steps.**
 
-![Redacted real violation report preserving the original expectation comparison, verdict and actual steps; original evidence is not public.](docs/images/real-example/real-report-violation.jpg)
+![Redacted real violation report preserving the original expectation comparison, verdict and actual steps; heavily blurred images show the evidence-panel layout, not verifiable evidence.](docs/images/real-example/real-report-violation.jpg)
 
 <details>
 <summary>Show the case overview, verified and not-tested examples</summary>
@@ -97,6 +97,10 @@ Identities, URLs, paths and related identifiers are redacted. Original screensho
 **Not-tested goal and reason.**
 
 ![Redacted report page for a not-tested goal; unexecuted goals are not counted as passed.](docs/images/real-example/real-report-not-tested.jpg)
+
+**Evidence image viewer: heavily blurred placeholder.**
+
+![A privacy-processed, heavily blurred placeholder from a screenshot associated with preparation for a not-tested goal. It shows the viewer layout only, does not mean the goal was executed or verified, and cannot be used to verify original details.](docs/images/real-example/real-report-blurred-preview.jpg)
 
 </details>
 

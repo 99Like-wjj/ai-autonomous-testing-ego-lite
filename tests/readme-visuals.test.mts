@@ -119,7 +119,7 @@ test('approved philosophy precedes version details and architecture visuals rema
   }
 });
 
-const realExamples = ['case-review-real-overview', 'case-review-real-example', 'real-report-overview', 'real-report-violation', 'real-report-verified', 'real-report-not-tested'];
+const realExamples = ['case-review-real-overview', 'case-review-real-example', 'real-report-overview', 'real-report-violation', 'real-report-verified', 'real-report-not-tested', 'real-report-blurred-preview'];
 test('README shows reviewed real excerpts rather than a simulated report diagram', async () => {
   for (const file of ['README.md', 'README.en.md']) {
     const page = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
@@ -128,6 +128,9 @@ test('README shows reviewed real excerpts rather than a simulated report diagram
     assert.match(page, /2.*7/);
     assert.match(page, /设计样稿|design prototype/);
     assert.match(page, /不能用它复核原始证据完整性|original evidence completeness can be reverified/);
+    assert.match(page, /强模糊占位|heavily blurred, privacy-processed placeholders/);
+    assert.match(page, /不表示像素级保真|do not imply pixel-level fidelity/);
+    assert.match(page, /不代表该目标已执行或验证|does not mean the goal was executed or verified/);
     assert.doesNotMatch(page, /netlify\.app/);
     for (const name of realExamples) {
       const target = `docs/images/real-example/${name}.jpg`;
