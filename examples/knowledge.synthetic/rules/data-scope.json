@@ -1,0 +1,88 @@
+{
+  "id": "data-scope",
+  "title": "完全合成：角色和数据范围",
+  "entries": [
+    {
+      "id": "owned-data",
+      "kind": "rule",
+      "title": "完全合成项目共用数据范围",
+      "aliases": [
+        "归属",
+        "borrow",
+        "return"
+      ],
+      "summary": "仅处理本组织归属的对象，特殊迁移仍查原手册。",
+      "moduleIds": [
+        "catalogue"
+      ],
+      "businessTags": [
+        "数据范围"
+      ],
+      "statements": [
+        {
+          "id": "rule-owned-data",
+          "text": "完全合成手册规定：借用与归还仅处理本组织归属的对象；特殊迁移另查手册第2节。",
+          "meta": {
+            "state": "confirmed",
+            "lifecycle": "active",
+            "sourceRefs": [
+              {
+                "sourceId": "manual-v1",
+                "locator": "完全合成手册第1节"
+              }
+            ],
+            "updatedAt": "2026-11-03T00:00:00+08:00",
+            "changeReason": "首次整理完全合成资料。",
+            "limitations": [
+              "完全合成；不是真实业务证据。"
+            ]
+          },
+          "relations": [],
+          "issueIds": [],
+          "appliesTo": "完全合成测试范围；实际软件版本未知。"
+        }
+      ]
+    },
+    {
+      "id": "catalogue-maintainer",
+      "kind": "role",
+      "title": "完全合成目录维护员",
+      "aliases": [
+        "馆员",
+        "管理员"
+      ],
+      "summary": "可维护本馆目录，不可查看其他馆或借阅者私人笔记。",
+      "moduleIds": [
+        "catalogue"
+      ],
+      "businessTags": [
+        "权限"
+      ],
+      "statements": [
+        {
+          "id": "role-permissions",
+          "text": "完全合成：维护员可查看和维护本馆目录；不能查看其他馆目录或借阅者私人笔记。",
+          "meta": {
+            "state": "confirmed",
+            "lifecycle": "active",
+            "sourceRefs": [
+              {
+                "sourceId": "manual-v1",
+                "locator": "完全合成手册第1节"
+              }
+            ],
+            "updatedAt": "2026-11-03T00:00:00+08:00",
+            "changeReason": "首次整理完全合成资料。",
+            "limitations": [
+              "完全合成；不是真实业务证据。"
+            ]
+          },
+          "relations": [],
+          "issueIds": [],
+          "appliesTo": "完全合成测试范围；实际软件版本未知。"
+        }
+      ]
+    }
+  ],
+  "issues": []
+}

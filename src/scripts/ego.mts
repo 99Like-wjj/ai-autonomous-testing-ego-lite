@@ -4,7 +4,6 @@ import {saveCases} from '../core/case-versions.mjs';
 import {reviewCases} from '../core/case-review.mjs';
 import {renderCases,verifyCaseDocuments} from '../report/case-documents.mjs';
 import {exportReviewFeedback,readFeedbackInput} from '../report/review-export.mjs';
-import {startReviewSession} from '../report/review-session.mjs';
 import {inspectFile} from '../files/inspect.mjs';
 import { readSourceRun, sourceContext } from '../regression/sources.mjs';
 import { selectRegression } from '../regression/selection.mjs';
@@ -26,6 +25,7 @@ import { startNetwork, statusNetwork, stopNetwork, queryNetwork } from '../obser
 import { exportNetworkEvidence } from '../observation/evidence-export.mjs';
 import { boundedJSON } from '../observation/store.mjs';
 import { codeOf, NetworkError } from '../observation/model.mjs';
+import { inspectKnowledge, queryKnowledge } from '../knowledge/commands.mjs';
 export { SOURCE_ROOT, safePath } from '../core/common.mjs';
 export { normalizeCases, validateCases, init, start } from '../core/cases.mjs';
 export { check, recordResult, registerEvidence, progress } from '../core/records.mjs';
@@ -35,6 +35,7 @@ export { readExecutionView, readExecutionQuery, executeRequest } from '../execut
 export { sealPacket } from '../execution/packets.mjs';
 
 interface Responses {
+  knowledge: unknown;
   regression: unknown;
   cases: unknown;
   files: unknown;
@@ -68,9 +69,10 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs cases render --cases ABS --output-dir ABS [--feedback ABS_JSON_OR_HTML] [--presentation ABS_JSON] [--ai-context ABS_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs cases verify --cases ABS --output-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs cases review --cases ABS --request ABS_JSON
-       node ABS_TOOL_ROOT/scripts/ego.mjs cases serve --cases ABS --output-dir ABS [--feedback ABS_JSON_OR_HTML] [--presentation ABS_JSON] [--ai-context ABS_JSON] [--idle-minutes N]
        node ABS_TOOL_ROOT/scripts/ego.mjs cases export-review --cases ABS --request ABS_JSON_OR_HTML --output-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs files inspect --request ABS_JSON --output-file ABS_NEW_JSON
+       node ABS_TOOL_ROOT/scripts/ego.mjs knowledge inspect [--knowledge-root ABS]
+       node ABS_TOOL_ROOT/scripts/ego.mjs knowledge query|read [--knowledge-root ABS] [--request ABS_JSON] [--output-file ABS_NEW_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS --cases ABS --output-dir ABS [--execution-config ABS_JSON] [--max-parallel-cases N] --binding ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS --request ABS_JSON
@@ -91,12 +93,11 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs regression select --request ABS_JSON [--output-file ABS_NEW_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs regression compare --request ABS_JSON [--output-dir ABS_NEW_DIRECTORY]
 Regression contracts use regressionVersion 2. Cases retain stable goal pointIds in whole-file versions. start requires a frozen selection, actual case review and current declarations. History never becomes current evidence or authorization.
-cases serve opens only a capability-scoped 127.0.0.1 listener. Native review saves create verified HTML/JSON files in the named output directory; they do not register approval or start testing. The default idle lifetime is 480 minutes. Treat its URL as private.
 cases export-review reads feedback as data and writes new native files without changing the source or Windows security settings. Browser-managed backup downloads can still carry source-zone metadata.
 Execution ACTION: inventory, capacity, reserve, attach-space, note, set-limit, reconcile, import.
 execution read defaults to a bounded metadata summary; assignment requires --assignment-id. Use --integrity full for a strictly checked compact view. --view full keeps the previous complete output and requires full checks. Metadata reads do not recover evidence or recheck historical files.
 max-parallel-cases is a positive safe integer; no fixed product ceiling. Host limits are used only when explicitly supplied, never probed or globally configured.
-All current data contracts use v9. Older formats are explicitly rejected; existing data is never migrated or overwritten.
+Test-asset contracts use v9; project knowledge independently uses knowledgeFormatVersion 3. Knowledge is optional; unsupported sources are unavailable context, never migrated or overwritten.
 record commits observations and explicit business-goal assessments through the same transaction as reviewed packet imports.
 Missing assessments are recording gaps, not inconclusive verdicts. Cases group goals and have no separate business verdict.
 packet-seal writes an immutable worker-local packet; it does not commit a verdict. Coordinator import requires an explicit AI review.
@@ -105,19 +106,26 @@ Generation and verify-report read back all three files; browserOpen stays not_ch
 network start/stop manage a scoped native-only Ego observation context. Queries read committed local evidence and make no business requests or verdicts.
 Network format is independently versioned (networkVersion 1). Old experimental protocol summaries are not read or migrated.
 No model calls, automatic UI actions, request replay or automatic business verdicts.`;
+  if(command==='knowledge'){
+    const [action,...args]=rest;if(!action||!['inspect','query','read'].includes(action))fail('Unknown knowledge action.');
+    const flags=parseFlags(args,action==='inspect'?['knowledge-root']:['knowledge-root','request','output-file'],[]);await toolInfo();
+    const knowledgeRoot=flags['knowledge-root'];
+    if(action==='inspect')return inspectKnowledge(knowledgeRoot);
+    if(!knowledgeRoot)return queryKnowledge(undefined,{},action==='read'?'read':'query');
+    if(!flags.request)fail('Knowledge query/read requires an explicit request.');
+    const result=await queryKnowledge(knowledgeRoot,await readJSON(await safePath(flags.request,{existing:true})),action==='read'?'read':'query');
+    if(flags['output-file']&&['available','partial'].includes(result.availability)&&result.selection.projectId&&result.selection.knowledgeId&&result.snapshotSha256){const file=await safePath(flags['output-file'],{external:true}),relative=path.relative(path.resolve(knowledgeRoot),file);if(!relative||relative!=='..'&&!relative.startsWith('..'+path.sep)&&!path.isAbsolute(relative))fail('Knowledge exports must be outside the knowledge directory.');const data=json(result);await writeNew(file,data);return{knowledgeReadVersion:3,availability:result.availability,projectId:result.selection.projectId,knowledgeId:result.selection.knowledgeId,snapshotSha256:result.snapshotSha256,returnedCount:result.pagination.returnedCount,truncated:result.pagination.truncated,outputFile:file,sourceRef:{id:'knowledge-'+hash(data).slice(0,20),locator:'knowledge:'+result.selection.knowledgeId+'/'+result.snapshotSha256,file,sha256:hash(data),excerpt:'Project common knowledge; states, scope and source limitations retained in the snapshot.',limitations:['Derived knowledge context; not a current execution observation or authorization.','Functional details remain in their source requirements.']}};}
+    return result;
+  }
   if(command==='cases'){
-    const [action,...args]=rest;if(!action||!['save','render','verify','review','serve','export-review'].includes(action))fail('Unknown cases action.');
-    const allowed=action==='save'?['work-dir','request']:action==='review'?['cases','request']:action==='export-review'?['cases','request','output-dir','presentation']:action==='serve'?['cases','output-dir','feedback','idle-minutes','presentation','ai-context']:action==='render'?['cases','output-dir','feedback','presentation','ai-context']:['cases','output-dir'];
+    const [action,...args]=rest;if(!action||!['save','render','verify','review','export-review'].includes(action))fail('Unknown cases action.');
+    const allowed=action==='save'?['work-dir','request']:action==='review'?['cases','request']:action==='export-review'?['cases','request','output-dir','presentation']:action==='render'?['cases','output-dir','feedback','presentation','ai-context']:['cases','output-dir'];
     const required=action==='save'?['work-dir','request']:action==='review'?['cases','request']:action==='export-review'?['cases','request','output-dir']:['cases','output-dir'];
     const flags=parseFlags(args,allowed,required);await toolInfo();
     if(action==='save')return saveCases({workDir:flags['work-dir'],request:await readJSON(await safePath(flags.request,{existing:true}))});
     if(action==='review')return reviewCases({casesFile:flags.cases,request:await readJSON(await safePath(flags.request,{existing:true}))});
     if(action==='render')return renderCases({casesFile:flags.cases,outputDir:flags['output-dir'],feedbackFile:flags.feedback,presentationFile:flags.presentation,aiContextFile:flags['ai-context']});
     if(action==='export-review')return exportReviewFeedback({casesFile:flags.cases,request:await readFeedbackInput(flags.request),outputDir:flags['output-dir'],...(flags.presentation?{presentation:await readPresentation(flags.presentation)}:{})});
-    if(action==='serve'){
-      if(flags['idle-minutes']&&!/^[1-9]\d*$/.test(flags['idle-minutes']))fail('Idle minutes must be a positive integer.');
-      const session=await startReviewSession({casesFile:flags.cases,outputDir:flags['output-dir'],feedbackFile:flags.feedback,presentationFile:flags.presentation,aiContextFile:flags['ai-context'],...(flags['idle-minutes']?{idleMinutes:Number(flags['idle-minutes'])}:{})});return session.info;
-    }
     return verifyCaseDocuments({casesFile:flags.cases,outputDir:flags['output-dir']});
   }
   if(command==='files'){const [action,...args]=rest;if(action!=='inspect')fail('Unknown files action.');const flags=parseFlags(args,['request','output-file'],['request','output-file']);await toolInfo();return inspectFile({request:await readJSON(await safePath(flags.request,{existing:true})),outputFile:flags['output-file']});}

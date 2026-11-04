@@ -1,52 +1,32 @@
-# 用例审阅与本机意见保存
+# 用例审阅与离线评审导出
 
-本指南说明用例审阅的展示和文件保存；用例、运行和实际审阅主契约仍为v9，不重写既有用例版本、意见、运行、报告或证据。
+直接打开 `cases render` 生成的本地 HTML，即可浏览场景、逐条填写意见、核对范围并导出评审结果。页面不连接服务器，不需要命令行或其他进程保持运行。当前用例和反馈仍为 v9；用例文档模型仍为 documentVersion 2。
 
-## 总览和逐条评审
+## 导出与恢复
 
-HTML先列出当前版本的全部场景。点击场景展开用例，点击具体用例进入左侧目录、中央正文、右侧意见栏的工作台。返回总览保留搜索、展开和滚动位置。场景、用例、规则待确认、计划缺口和已有意见分别展示，不把计划准备或意见数量当作测试通过。
+点击“导出评审结果”检查范围、总体意见、逐条意见和拟提交结论。没有意见时可明确记录“无修改意见”；未填写意见不等于无修改意见。有意见的点不在范围内时，须明确纳入后再导出，不会被静默丢弃。
 
-必要引用解析为可读的前提、必经路径和步骤，保留显式依赖；界面固定文案跟随所选展示语言，原始事实与证据不翻译或改写；原编号、原始引用、完整计划及来源指纹在折叠区保留。背景复用报告的8种主题。页面不修改业务目标或实际结果。
+默认导出一份可独立阅读并恢复意见的 HTML，正文包含项目、版本、范围和完整意见，唯一的 `review-feedback-data` 惰性 JSON 区保存相同的结构化反馈。可选导出独立 JSON 或复制完整数据。导出文件不登记正式人工确认，不启动测试。
 
-## 先交付文档，再提供本机审阅入口
+浏览器支持文件选择器时，由用户选择位置，写入关闭后读回逐字节核对。取消不触发其他导出；失败保留草稿并提供下载该次快照的操作。也可从“更多导出方式与完整数据”直接下载。下载只回报“已发起下载”，实际落盘和 Windows 打开情况需另行验证；文件选择器同样不能保证绕过宿主或操作系统安全策略。
+
+保存期间的新编辑不会变成已保存内容，页面会提示该文件对应点击时的快照。默认建议独立新文件名；旧用例、意见和历史文件不因生成新文档被覆盖。
+
+“恢复评审记录”接受同版本 HTML/JSON，检查项目、版本、指纹、编号及范围。它只提取并解析惰性数据，不执行导入文件中的脚本或加载资源；已有不同意见保留并报告冲突。
+
+浏览器草稿仅属于当前入口和当前浏览器。切换页面、浏览器或重生成文档前保管完整反馈，不保证自动继承存储。浏览器无法暂存或复制时，仍可导出，或从完整数据文本框手动选中复制。
+
+## 可选 CLI
 
 ```powershell
 node <ToolRoot>/scripts/ego.mjs cases render --cases <ABS_CASES> --output-dir <NEW_DOCUMENTS>
-node <ToolRoot>/scripts/ego.mjs cases serve --cases <ABS_CASES> --output-dir <REVIEW_FILES>
-```
-
-AI用Ego打开serve返回的实际URL，不猜路径，不接管其他任务Space。本机入口只绑定127.0.0.1和系统分配端口，使用随机会话路径；URL是私有能力地址，不公开。输出目录由命令显式指定且必须在源码仓库外。默认空闲480分钟结束，可用 `--idle-minutes` 设置1至1440分钟。
-
-页面“保存到本机文件”把意见提交给该本机入口，工具核对用例版本、指纹、编号和范围，再以原生文件写入新HTML、JSON和交付清单，读回后才回报成功。请求不能另行指定任意文件或输出目录；来源、Host和会话路径必须匹配，跨来源请求被拒绝。服务不读取意见数据里声明的任意source.file。
-
-重复内容按完整请求指纹核对已有文件，不覆盖历史，不产生另一个正式审阅。不同内容生成新文件，已有文件损坏则拒绝冒充成功。保存结果不明时保留浏览器草稿；再次显式保存会核对同一内容的已有文件。
-
-## Windows文件限制的处理范围
-
-浏览器从本地HTML发起的Blob下载可能附带Windows区域标记，导致JSON虽可解析却被系统阻止双击打开。把扩展名改为HTML不是可靠修复。
-
-主保存改由本地工具新建文件，不经过浏览器下载标记路径，不调整Windows安全设置，也不移除旧文件的Zone.Identifier。JSON和可读HTML保留同一份意见内容；可读HTML内嵌可恢复的v9意见数据。
-
-已有意见可直接用原生写入器保存：
-
-```powershell
 node <ToolRoot>/scripts/ego.mjs cases export-review --cases <ABS_CASES> --request <FEEDBACK_JSON_OR_HTML> --output-dir <REVIEW_FILES>
 ```
 
-该命令把输入作为有大小限制的数据读取，不启动其Windows关联程序。它不解除原文件标记、不修改原文件、不登记正式确认。
+`cases export-review` 是 AI 收到反馈文件后的可选文件事务，不是页面导出的前提。它校验输入后另存 HTML/JSON 和交付清单，核对重复内容且不覆盖历史；不调用 Windows 关联程序、不修改输入标记，不登记正式确认。审阅 HTTP 服务和 `cases serve` 已从当前版本移除。
 
-独立离线HTML仍可阅读、暂存和恢复意见。离线副本没有本机写入权限，可复制意见交回当前对话，或选择兼容JSON备份再由本地工具保存。兼容浏览器下载仍可能带区域标记，不当作原生保存成功的证明。
-
-## 意见和正式确认分开
-
-输入按当前用例暂存到当前浏览器。导出前检查所有意见：无范围或无意见时提示补充；有意见的用例不在范围内时必须明确纳入，不能静默过滤。导入JSON/可读HTML会核对项目、版本、用例指纹和编号，已有不同意见保持当前内容。HTML只提取惰性JSON，不把导入文件放进DOM，不加载其中资源。
-
-浏览器草稿属于当前入口和浏览器存储。换浏览器或本机会话重新分配地址后，应从已保存文件恢复，不能承诺自动继承另一个入口的存储。
-
-`cases render` 和 `cases serve` 可带 `--feedback <ABS_JSON_OR_HTML>` 载入已有意见副本。HTML/Markdown内部文档模型为documentVersion 2，原始用例仍是原v9及原字节指纹；新文档写入新目录，不原地升级旧HTML。导出副本的拟提交approved仍是反馈意图，实际人工确认必须由当前对话核对来源，再通过既有cases review登记。
+原用例指纹及正式审阅规则不变。实际收到的意见或确认仍需当前对话核对来源，再用 `cases review` 登记；文件内的 approved 只是拟提交结论。
 
 ## English summary
 
-The reader now opens with an expandable scene/case overview and a three-column review workbench. Shared report themes and resolved human-readable plan references are presentation only.
-
-`cases serve` supplies a private, capability-scoped IPv4 loopback page. Native saves validate feedback and create verified HTML/JSON files in the CLI-selected directory. `cases export-review` uses the same writer for received JSON or readable HTML. Neither command authenticates a reviewer, registers approval, starts tests, changes Windows security settings or alters historical files. Browser-managed backup downloads may still carry zone metadata; use the native writer for directly usable files. Offline HTML remains usable for reading and browser drafts. Saved feedback restores opinions after changing browsers or session URLs. Case data remains v9; documentVersion 2 identifies the new presentation model.
+The generated local HTML provides the complete offline review/export/restore workflow without a server. Export readable HTML with embedded v9 feedback, optional JSON or complete copied data. Supported file-picker saves are closed and read back; explicit downloads only report a download request. Cancellation and errors retain drafts. Verify actual files and Windows opening separately for each host. Imports validate exact case identity and preserve conflicting drafts. The optional cases export-review CLI is not a page dependency. Exporting never authenticates human approval or starts testing; historical files and Windows metadata remain intact.

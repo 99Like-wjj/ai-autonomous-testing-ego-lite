@@ -20,7 +20,11 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ## Current release
 
-Current release is **0.1.8 / report-language-model-1**. It implements the approved lean case/review/run design, stable-point reruns, official Ego download evidence/file inspection and historical comparisons. The case reader now provides a scene/case overview, three-column review workbench, shared report themes and native feedback files that avoid browser download-zone metadata. Contracts are v9, regressionVersion 2 and networkVersion 1. Release notes, the installable package and checksums are available in [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8). See [development validation](docs/v0.1.8-development-validation.md) and [review save details](docs/v0.1.8-case-review.md); builds do not update installed Skills. This revision adds [report language and two-stage model provenance](docs/v0.1.8-report-language-model-design.md), long scene IDs and baseline-aware scope labels.
+This development version also makes review export fully offline and removes the review server. Open the local HTML to export readable, restorable review HTML or optional JSON. See [offline export validation](docs/v0.1.9-offline-review-export-validation.md).
+
+Source development version is **0.1.9-dev.1 / project-knowledge-3**, not formally released. Knowledge v3 keeps structured maps/rules and uses lightweight user-provided project/account records; exact context exports retain provenance; functional details remain in source requirements. Test contracts stay at v9. See [development validation](docs/v0.1.9-development-validation.md). The last stable package remains [v0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8).
+
+Retained capabilities and sources from the previous stable **0.1.8 / report-language-model-1** follow. It implements the approved lean case/review/run design, stable-point reruns, official Ego download evidence/file inspection and historical comparisons. The case reader now provides a scene/case overview, three-column review workbench, shared report themes and native feedback files that avoid browser download-zone metadata. Contracts are v9, regressionVersion 2 and networkVersion 1. Release notes, the installable package and checksums are available in [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8). See [development validation](docs/v0.1.8-development-validation.md) and [review save details](docs/v0.1.8-case-review.md); builds do not update installed Skills. This revision adds [report language and two-stage model provenance](docs/v0.1.8-report-language-model-design.md), long scene IDs and baseline-aware scope labels.
 
 Adds provider-neutral conversation evidence, step input/reply summaries and the selected conversation drawer/fullscreen layout. Four quality layers address expected/observed phases, retained originals, readable findings and source validation; see the [design and validation](docs/v0.1.8-conversation-review.md). Main contracts remain v9; conversations use conversationVersion 1. Historical runs and reports are preserved.
 
@@ -29,11 +33,13 @@ Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidan
 
 ## Version evolution
 
-![Newest first: v0.1.8 released, then v0.1.7, v0.1.6 and v0.1.5 released. Capability illustration only.](docs/images/readme-version-history.png)
+![Newest first: v0.1.9 in development, then stable v0.1.8, v0.1.7 and v0.1.6. Capability illustration only.](docs/images/readme-version-history.png)
 
-README shows the current version plus three previous versions. 0.1.8 is the latest stable version, followed by stable 0.1.7–0.1.5. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. See [release validation](docs/v0.1.8-release-validation.md) for the engineering and package verification scope.
+README shows the current version plus three previous versions. 0.1.9 is in development, followed by stable 0.1.8, 0.1.7 and 0.1.6. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. See [release validation](docs/v0.1.8-release-validation.md) for the engineering and package verification scope.
 
-## What changed in 0.1.8
+## What changed in 0.1.9
+
+Adds optional project knowledge v3 inspection, bounded summaries and exact context exports, with project identity isolation and local Git/draft/conflict diagnostics. The independent maintenance Skill curates common rules; functional details stay in source requirements. Existing testing capabilities below remain available:
 
 - Whole case versions, stable IDs and same-source review; unchanged reruns add only a run.
 - points/status/full scope retains dependencies and never inherits unselected passes.
@@ -118,7 +124,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8 --expect-revision report-language-model-1
+node $Tool tool-info --expect-version 0.1.9-dev.1 --expect-revision project-knowledge-3
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))
@@ -133,7 +139,6 @@ $SaveRequest = Join-Path $Project 'cases-save-request.example.json'
 node $Tool cases save --work-dir $Project --request $SaveRequest
 $Cases = Join-Path $Project 'cases/v001.json'
 node $Tool cases render --cases $Cases --output-dir (Join-Path $Project 'case-documents')
-node $Tool cases serve --cases $Cases --output-dir (Join-Path $Project 'review-files')
 $Run = Join-Path $LocalRoot ('run-' + [guid]::NewGuid().ToString('N'))
 node $Tool validate-cases --cases $Cases
 # AI prepares this file from actual review, scope and current conditions.
@@ -141,7 +146,7 @@ $Binding = Join-Path $Project 'run-binding-request.json'
 node $Tool start --project-dir $Project --cases $Cases --binding $Binding --output-dir $Run
 ```
 
-Open the actual private loopback URL returned by serve in Ego. Native feedback saves write readable HTML/JSON without registering approval or running tests. Offline HTML remains readable and can restore opinions. cases export-review provides the same writer for a received JSON/HTML file. See [review save details](docs/v0.1.8-case-review.md).
+Open the generated offline HTML directly to write and export a readable, restorable review HTML, with optional JSON. No server is started, approval registered or test run created. Supported file-picker saves are read back; an explicit download remains available. Verify the actual file and Windows opening separately. Browser drafts do not automatically follow a different entry. cases export-review is only an optional CLI for received files. See [offline review export](docs/case-review.md).
 
 start creates local assets, not browser actions. Use the [toolbox guide](skills/ai-autonomous-testing-ego-lite/references/local-toolbox.en.md) and [synthetic requests](examples/record-request.example.json) to register evidence and goal assessments. Unique operation IDs and revisions protect data transactions; replaying a request recovers its receipt, not a business action.
 
@@ -170,7 +175,7 @@ The default is **1 (serial)**. Without a user request for concurrency or an expl
 
 ## Requirements and implementation boundaries
 
-0.1.8 is in development and self-test, rather than planning only. The current implemented scope is described above. Original [requirements](docs/v0.1.8-requirements.md), [research](docs/v0.1.8-feasibility-research.md) and [preview](docs/v0.1.8-preview.en.md) remain design history, not proof that every proposal shipped. Review and verification remain required before a formal release.
+0.1.9 is in local development and self-test; see [current validation](docs/v0.1.9-development-validation.md). The previous stable 0.1.8 [requirements](docs/v0.1.8-requirements.md), [research](docs/v0.1.8-feasibility-research.md) and [preview](docs/v0.1.8-preview.en.md) remain design history, not proof that every proposal shipped. Later releases must retain the actual verification limits.
 
 ## Further reading
 

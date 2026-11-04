@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { uiSegments } from '../src/report/ui-text.mjs';
 
 const root = path.resolve(process.cwd());
-const files = ['src/report/ui-text.mts', 'src/report/render.mts', 'src/report/shell.mts', 'src/report/case-reader.mts', 'src/report/case-reader-shell.mts', 'src/report/review-export.mts', 'src/report/reviewability.mts', 'src/report/assets.mts', 'src/report/conversations.mts', 'src/report/history.mts', 'src/contracts/case-view.mts', 'src/report-ui/main.ts', 'src/report-ui/conversations.ts', 'src/review-ui/app.ts', 'src/report/model-display.mts', 'src/report/scope-label.mts'];
+const files = ['src/report/ui-text.mts', 'src/report/render.mts', 'src/report/shell.mts', 'src/report/case-reader.mts', 'src/report/case-reader-shell.mts', 'src/report/review-feedback-document.mts', 'src/review-ui/save-file.mts', 'src/report/reviewability.mts', 'src/report/assets.mts', 'src/report/conversations.mts', 'src/report/history.mts', 'src/contracts/case-view.mts', 'src/report-ui/main.ts', 'src/report-ui/conversations.ts', 'src/review-ui/app.ts', 'src/report/model-display.mts', 'src/report/scope-label.mts'];
 const keys = new Set<string>();
 const add = (value: string) => { for (const key of uiSegments(value)) keys.add(key); };
 for (const file of files) {

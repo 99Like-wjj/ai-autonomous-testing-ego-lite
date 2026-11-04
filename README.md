@@ -20,7 +20,11 @@
 
 ## 当前版本
 
-当前版本为 **0.1.8 / report-language-model-1**。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。正式发布、安装包与校验值见 [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。当前修订增加[报告语言与两阶段模型来源](docs/v0.1.8-report-language-model-design.md)、长编号布局及首次执行范围文案。
+本开发版另将评审结果导出改为完整离线能力，移除审阅服务器；直接打开HTML可导出可读、可恢复的评审HTML及可选JSON。范围和验证见[离线导出自测](docs/v0.1.9-offline-review-export-validation.md)。
+
+当前源码开发版为 **0.1.9-dev.1 / project-knowledge-3**，尚未正式发布。项目知识v3保留结构化地图/规则，账号与项目配置改为用户提供的轻量记录，支持按需读取和精确摘录；无知识库时继续已有资料支持的任务。功能细则仍按需读取需求，测试主契约保持 v9。开发范围与验证见[开发自测](docs/v0.1.9-development-validation.md)。上一正式版及完整安装包仍为 [v0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。
+
+以下为上一正式版 **0.1.8 / report-language-model-1** 的保留能力与来源。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。正式发布、安装包与校验值见 [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。当前修订增加[报告语言与两阶段模型来源](docs/v0.1.8-report-language-model-design.md)、长编号布局及首次执行范围文案。
 
 新增通用对话证据、每步输入/回复摘要和方案2完整对话侧栏；四层质量改进覆盖预期/时机核对、原文取证、可读描述和来源校验，详见[本次设计及验证](docs/v0.1.8-conversation-review.md)。主契约仍为v9，独立对话格式为conversationVersion 1；历史运行与报告不改写。
 
@@ -28,11 +32,13 @@ Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-
 
 ## 版本演变
 
-![最新在前：v0.1.8 正式版本，其后为 v0.1.7、v0.1.6、v0.1.5 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
+![最新在前：v0.1.9 为开发版，其后为 v0.1.8、v0.1.7、v0.1.6 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本，0.1.7–0.1.5 为前三个正式版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。本次工程与安装包验证范围见[发布验证](docs/v0.1.8-release-validation.md)。
+README 展示当前版本与前三个历史版本：0.1.9 为当前开发版，0.1.8、0.1.7、0.1.6 为前三个正式版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。本次工程与安装包验证范围见[发布验证](docs/v0.1.8-release-validation.md)。
 
-## 0.1.8 做了什么
+## 0.1.9 做了什么
+
+提供项目知识v3的项目配置、功能地图、规则/角色和账号说明只读检索；支持项目身份隔离、本地 Git/草案和冲突/失效诊断。通用规则由独立维护 Skill 整理，功能细则仍留原文。下列既有测试能力继续保留：
 
 - 用例整份版本、内嵌稳定编号及同源 HTML/Markdown 审阅；定义不变复测只增 run。
 - points/status/full 三种范围，局部重测保留必要依赖，不继承未选点通过。
@@ -105,7 +111,7 @@ README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本�
 
 ## Windows 快速开始
 
-本节源码示例针对 0.1.8，使用本仓库构建的 .build/runtime；不会自动替换用户安装。安装与升级请先阅读[安装说明](INSTALL.zh-CN.md)，并核对版本、revision 和实际加载目录。
+本节源码示例针对 0.1.9-dev.1，使用本仓库构建的 .build/runtime；不会自动替换用户安装。安装与升级请先阅读[安装说明](INSTALL.zh-CN.md)，并核对版本、revision 和实际加载目录。
 
 完整安装包、SHA-256 校验值与发布说明见 [v0.1.8 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
 
@@ -117,7 +123,7 @@ README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本�
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8 --expect-revision report-language-model-1
+node $Tool tool-info --expect-version 0.1.9-dev.1 --expect-revision project-knowledge-3
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：
@@ -132,10 +138,9 @@ $SaveRequest = Join-Path $Project 'cases-save-request.example.json'
 node $Tool cases save --work-dir $Project --request $SaveRequest
 $Cases = Join-Path $Project 'cases/v001.json'
 node $Tool cases render --cases $Cases --output-dir (Join-Path $Project 'case-documents')
-node $Tool cases serve --cases $Cases --output-dir (Join-Path $Project 'review-files')
 ```
 
-用Ego打开serve实际返回的本机私有URL，页面保存意见时由本地工具写入可读HTML/JSON；不会登记正式确认或执行业务。原来的离线HTML仍可阅读和恢复意见。需要不经浏览器保存已有意见时，使用 cases export-review；命令和边界见[审阅保存说明](docs/v0.1.8-case-review.md)。
+直接打开生成的离线HTML即可填写并导出可读、可恢复的评审HTML，可选JSON；不启动服务器，不自动登记正式确认或开始测试。文件选择器支持时保存并读回，否则提供显式下载。实际文件和Windows打开能力需要分别核对；浏览器草稿不保证跨入口继承。cases export-review仅是收到反馈文件后的可选CLI。见[离线评审导出](docs/case-review.md)。
 
 实际人工审阅后登记确认，选择范围并填写本轮条件和绑定请求，再冻结：
 
@@ -180,7 +185,7 @@ AI workers 独立留证、封存包，协调者显式复核并导入。完整调
 
 ## 需求与实现边界
 
-0.1.8 已进入开发与自测，不再作为纯需求前瞻。当前已实现范围见上方版本介绍；原始[需求](docs/v0.1.8-requirements.md)、[调研](docs/v0.1.8-feasibility-research.md)和[前瞻](docs/v0.1.8-preview.md)保留为设计历史，不代表每项设想均已交付。正式发布前仍需审阅并核对实际验证范围。
+0.1.9 已进入本地开发与自测，实际范围见[本次验证](docs/v0.1.9-development-validation.md)。上一正式版 0.1.8 的原始[需求](docs/v0.1.8-requirements.md)、[调研](docs/v0.1.8-feasibility-research.md)和[前瞻](docs/v0.1.8-preview.md)保留为设计历史，不代表每项设想均已交付。后续发布仍需核对实际验证范围。
 
 ## 继续阅读
 

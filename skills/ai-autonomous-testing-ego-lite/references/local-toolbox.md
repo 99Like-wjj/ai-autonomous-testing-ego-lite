@@ -1,6 +1,6 @@
-# 本地确定性工具箱（0.1.8）
+# 本地确定性工具箱（0.1.9-dev.1）
 
-ToolRoot 为实际加载的 Skill 根目录；源码先构建，再使用 .build/runtime。tool-info 核对 0.1.8 / report-language-model-1、主契约 v9、regressionVersion 2、networkVersion 1 和 installationIntegrity。本地工具不调用模型，不选择业务路线或自动重试。
+ToolRoot 为实际加载的 Skill 根目录；源码先构建，再使用 .build/runtime。tool-info 核对 0.1.9-dev.1 / project-knowledge-3、主契约 v9、regressionVersion 2、networkVersion 1 和 installationIntegrity。本地工具不调用模型，不选择业务路线或自动重试。
 
 ## 用例与范围
 
@@ -10,7 +10,6 @@ node <ToolRoot>/scripts/ego.mjs cases save --work-dir <WORK> --request <SAVE_REQ
 node <ToolRoot>/scripts/ego.mjs validate-cases --cases <WORK>/cases/v001.json
 node <ToolRoot>/scripts/ego.mjs cases render --cases <WORK>/cases/v001.json --output-dir <DOCS>
 node <ToolRoot>/scripts/ego.mjs cases verify --cases <WORK>/cases/v001.json --output-dir <DOCS>
-node <ToolRoot>/scripts/ego.mjs cases serve --cases <WORK>/cases/v001.json --output-dir <REVIEW_FILES>
 node <ToolRoot>/scripts/ego.mjs cases export-review --cases <WORK>/cases/v001.json --request <FEEDBACK_JSON_OR_HTML> --output-dir <REVIEW_FILES>
 node <ToolRoot>/scripts/ego.mjs cases review --cases <WORK>/cases/v001.json --request <ACTUAL_REVIEW_REQUEST>
 node <ToolRoot>/scripts/ego.mjs regression select --request <SELECTION_REQUEST> --output-file <SELECTION_JSON>
@@ -21,7 +20,7 @@ node <ToolRoot>/scripts/ego.mjs regression compare --request <COMPARISON_REQUEST
 
 尖括号替换为实际绝对路径。init 创建合成请求与空 cases/runs 目录，不创建执行结果。保存请求见 examples/cases-save-request.example.json；用 select 的真实输出填写 binding.selection。实际审阅、当前条件、参数、暂缓点及历史引用由 AI 按真实来源填写，不能把合成请求当授权。文档与离线反馈不执行测试或认证人类身份。
 
-cases render和serve可带 --feedback <ABS_JSON_OR_HTML> 载入同版本意见副本。serve只监听127.0.0.1，返回带随机会话路径的私有URL；用Ego打开实际URL，不猜地址。原生保存仅写入命令指定的仓库外目录，校验来源和范围，按内容指纹生成新HTML/JSON及清单；重复内容核对已有文件，不覆盖历史。它不读取浏览器请求提供的任意文件路径，也不登记正式确认。默认空闲480分钟结束，可传 --idle-minutes 1至1440。会话URL不公开，离线草稿在换入口时用保存文件恢复。Windows旧文件及其Zone.Identifier保持原样；浏览器JSON备份不是原生保存的替代证明。
+cases render可带 --feedback <ABS_JSON_OR_HTML> 载入同版本意见。直接打开生成的本地HTML，核对范围后导出评审HTML，可选JSON或复制完整数据；不启动审阅服务器。支持时用文件选择器保存并读回，否则显式下载，下载提示不证明Windows可打开。浏览器草稿仅属于当前入口和浏览器，切换前保管导出文件。cases export-review只是可选的独立CLI转存；输入视为数据读取，不修改原文件或Windows标记。它与网页导出均不登记正式确认，不启动业务。
 
 ## 事实与协调
 

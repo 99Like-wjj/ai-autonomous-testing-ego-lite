@@ -1,0 +1,903 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/project-knowledge-v3",
+  "title": "ProjectKnowledgeV3",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/header"
+    },
+    {
+      "$ref": "#/$defs/configuration"
+    },
+    {
+      "$ref": "#/$defs/map"
+    },
+    {
+      "$ref": "#/$defs/topic"
+    },
+    {
+      "$ref": "#/$defs/source"
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^(?!.*\\.\\.)[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16000,
+      "pattern": "\\S"
+    },
+    "ids": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "maxItems": 2000,
+      "uniqueItems": true
+    },
+    "strings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 16000,
+        "pattern": "\\S"
+      },
+      "maxItems": 2000
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "locator"
+      ],
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/id"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "lifecycle",
+        "sourceRefs",
+        "updatedAt",
+        "changeReason",
+        "limitations"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "confirmed",
+            "observed",
+            "pending"
+          ]
+        },
+        "lifecycle": {
+          "enum": [
+            "active",
+            "superseded",
+            "retired"
+          ]
+        },
+        "sourceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          },
+          "maxItems": 2000
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "changeReason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "pattern": "\\S"
+          },
+          "maxItems": 2000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "confirmed",
+                  "observed"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sourceRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/sourceRef"
+                },
+                "maxItems": 2000,
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "targetId"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "requires",
+            "uses_role",
+            "operates_on",
+            "affects",
+            "navigates_to",
+            "related_to"
+          ]
+        },
+        "targetId": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "statement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "meta",
+        "relations",
+        "issueIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relation"
+          },
+          "maxItems": 2000
+        },
+        "issueIds": {
+          "$ref": "#/$defs/ids"
+        },
+        "appliesTo": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "recordIds",
+        "summary",
+        "sourceRefs",
+        "resolution"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "conflict",
+            "stale",
+            "needs_review",
+            "missing"
+          ]
+        },
+        "recordIds": {
+          "$ref": "#/$defs/ids"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "sourceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          },
+          "maxItems": 2000
+        },
+        "resolution": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "text",
+                "sourceRefs"
+              ],
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000,
+                  "pattern": "\\S"
+                },
+                "sourceRefs": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/sourceRef"
+                  },
+                  "maxItems": 2000,
+                  "minItems": 1
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "targetId",
+        "actorNote",
+        "outcome",
+        "coverage",
+        "observedAt",
+        "description",
+        "sourceRefs",
+        "limitations"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "targetId": {
+          "$ref": "#/$defs/id"
+        },
+        "actorNote": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 16000,
+              "pattern": "\\S"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "verified",
+            "violation",
+            "inconclusive",
+            "not_tested"
+          ]
+        },
+        "coverage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "observedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "sourceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sourceRef"
+          },
+          "maxItems": 2000
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "pattern": "\\S"
+          },
+          "maxItems": 2000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "verified",
+                  "violation"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sourceRefs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/sourceRef"
+                },
+                "maxItems": 2000,
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "aliases"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "pattern": "\\S"
+          },
+          "maxItems": 2000
+        }
+      }
+    },
+    "entryPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "menuPath",
+        "accessNotes",
+        "meta"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "menuPath": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "pattern": "\\S"
+          },
+          "maxItems": 2000
+        },
+        "accessNotes": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 16000,
+              "pattern": "\\S"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meta": {
+          "$ref": "#/$defs/meta"
+        },
+        "appliesTo": {
+          "$ref": "#/$defs/text"
+        },
+        "application": {
+          "$ref": "#/$defs/text"
+        },
+        "page": {
+          "$ref": "#/$defs/text"
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "^https?://"
+        }
+      }
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "domainId",
+        "title",
+        "aliases",
+        "summary",
+        "descriptions",
+        "entryPoints",
+        "ruleIds",
+        "roleIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "domainId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "pattern": "\\S"
+          },
+          "maxItems": 2000
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "descriptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/statement"
+          },
+          "maxItems": 2000
+        },
+        "entryPoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entryPoint"
+          },
+          "maxItems": 2000
+        },
+        "ruleIds": {
+          "$ref": "#/$defs/ids"
+        },
+        "roleIds": {
+          "$ref": "#/$defs/ids"
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "aliases",
+        "summary",
+        "moduleIds",
+        "businessTags",
+        "statements"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "rule",
+            "role"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "pattern": "\\S"
+          },
+          "maxItems": 2000
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "moduleIds": {
+          "$ref": "#/$defs/ids"
+        },
+        "businessTags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "pattern": "\\S"
+          },
+          "maxItems": 2000
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/statement"
+          },
+          "maxItems": 2000
+        }
+      }
+    },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "knowledgeFormatVersion",
+        "knowledgeId",
+        "projectId",
+        "projectName",
+        "createdAt"
+      ],
+      "properties": {
+        "knowledgeFormatVersion": {
+          "const": 3
+        },
+        "knowledgeId": {
+          "$ref": "#/$defs/id"
+        },
+        "projectId": {
+          "$ref": "#/$defs/id"
+        },
+        "projectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "project": {
+      "$ref": "#/$defs/configuration"
+    },
+    "map": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domains",
+        "modules",
+        "checks",
+        "issues"
+      ],
+      "properties": {
+        "domains": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/domain"
+          },
+          "maxItems": 2000
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/module"
+          },
+          "maxItems": 2000
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/check"
+          },
+          "maxItems": 2000
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/issue"
+          },
+          "maxItems": 2000
+        }
+      }
+    },
+    "topic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "entries",
+        "issues"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entry"
+          },
+          "maxItems": 2000
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/issue"
+          },
+          "maxItems": 2000
+        }
+      }
+    },
+    "accounts": {
+      "$ref": "#/$defs/configuration"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "documentId",
+        "title",
+        "kind",
+        "version",
+        "issuedAt",
+        "sha256",
+        "locator",
+        "limitations"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "documentId": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "kind": {
+          "enum": [
+            "requirement",
+            "manual",
+            "observation",
+            "confirmation",
+            "other"
+          ]
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 16000,
+              "pattern": "\\S"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "issuedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000,
+          "pattern": "\\S"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "pattern": "\\S"
+          },
+          "maxItems": 2000
+        }
+      }
+    },
+    "jsonValue": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        {
+          "$ref": "#/$defs/jsonObject"
+        }
+      ]
+    },
+    "jsonObject": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/jsonValue"
+      }
+    },
+    "configurationRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "summary": {
+          "$ref": "#/$defs/text"
+        },
+        "tags": {
+          "$ref": "#/$defs/strings"
+        },
+        "description": {
+          "$ref": "#/$defs/text"
+        },
+        "properties": {
+          "$ref": "#/$defs/jsonObject"
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/configurationRecord"
+          },
+          "maxItems": 2000
+        }
+      }
+    }
+  }
+}

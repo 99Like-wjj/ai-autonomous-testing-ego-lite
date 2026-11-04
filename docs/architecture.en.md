@@ -1,6 +1,8 @@
-# Architecture — v9 / 0.1.8
+# Architecture — v9 / 0.1.9-dev.1
 
 ![Architecture responsibilities: AI, Ego and deterministic tools.](images/architecture.png)
+
+knowledge/commands adds read-only inspection, task summaries and exact reads using format v3 shared with the independent maintenance project. The optional project/modules/rules/accounts categories are read on demand. Only matched common knowledge enters the AI context; sources, state, scope and local-version limits remain explicit. Functional details stay in source requirements. External knowledge is outside the cases/reviews/runs ledger and grants no operation permissions. The retained diagram shows the original test chain; knowledge is optional external context.
 
 Current development contracts use version 9, regressionVersion 2 and networkVersion 1. AI owns interpretation, planning, exploration, action choice and business assessment. Ego owns browser primitives. Local code owns deterministic transactions, integrity, file reading and report presentation, without a business decision tree or automatic retries.
 
@@ -16,7 +18,7 @@ report/history retains exact source-run provenance outside current evidence/coun
 
 core/conversations and conversation-store validate conversationVersion 1, retained-source mappings, exact quotations and actual-action ownership. Imports remap external IDs without rewriting message bytes. The explicit capture-text helper reads AI-selected DOM nodes and records scope rather than detecting site protocols or deciding completion/business success. report/conversations produces registered or retrospective views; the selected conversation drawer/fullscreen reader presents step summaries, message/source fidelity and coverage. Markdown parsing/sanitization is bundled offline; foreign HTML and remote images are not executed/loaded. reviewability emits structural prompts without choosing verdicts or further actions.
 
-case-reader provides the scene/case overview and three-column review workbench. The optional review-session listens only on a private capability-scoped 127.0.0.1 path, with case input and output directory fixed by the CLI. review-export validates and writes readable HTML/JSON natively, avoiding browser download-zone metadata. It makes no model calls, browser actions or approval registrations. Offline reading and browser drafts remain separate from formal reviews; see [review saving](v0.1.8-case-review.md).
+case-reader provides the scene/case overview and three-column workbench. review-ui generates readable review HTML with embedded feedback, or optional JSON, directly in the offline page. File-picker saving and explicit downloading need no server. review-feedback-document is shared by the browser and optional CLI; review-export handles CLI file transactions only. Drafts and exported feedback remain separate from formal reviews; see [offline review export](case-review.md).
 
 See [contracts](asset-formats.en.md), [regression reuse](regression-reuse.md) and [development validation](v0.1.8-development-validation.md). Historical user data is not migrated or overwritten.
 

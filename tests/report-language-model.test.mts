@@ -14,7 +14,8 @@ import { parsePresentation, withPresentation } from '../src/report/presentation.
 import { uiText, uiHtml, uiMarkup, formatUi } from '../src/report/ui-text.mjs';
 import { modelDisplay, modelHeader } from '../src/report/model-display.mjs';
 import { scopeLabel } from '../src/report/scope-label.mjs';
-import { startReviewSession } from '../src/report/review-session.mjs';
+import { exportReviewFeedback } from '../src/report/review-export.mjs';
+import { reviewDocuments } from '../src/report/review-feedback-document.mjs';
 import { makeReviewFeedback } from '../src/contracts/review-feedback.mjs';
 import { SOURCE_ROOT, hash } from '../src/core/common.mjs';
 import type { AiContext } from '../src/contracts/model.mjs';
@@ -132,18 +133,17 @@ test('two report stages retain their own producers and language across generatio
   assert.deepEqual(await fs.readFile(resultFile), bytes);
 });
 
-test('native review keeps its selected language through page delivery and saved feedback', async t => {
+test('offline review documents and optional CLI exports retain the selected language', async t => {
   const f=await fixture(t),saved=await readCasesFile(f.casesFile),pointIds=saved.baseline.cases.flatMap(c=>c.goals.map(g=>g.pointId));
-  const session=await startReviewSession({casesFile:f.casesFile,outputDir:path.join(f.root,'native-fr'),presentationFile:path.join(SOURCE_ROOT,'examples/presentation-fr.json')});
-  try{
-    const page=await(await fetch(session.info.url)).text();
-    assert.match(page,/lang="fr"/);assert.match(page,/Modèle de génération des cas/);
-    const feedback=makeReviewFeedback({cases:saved.ref,pointIds},0,'comment_only',pointIds,[{pointId:pointIds[0]!,text:'Avis synthétique uniquement.'}]);
-    const response=await fetch(new URL('save',session.info.url),{method:'POST',headers:{'content-type':'application/json',origin:new URL(session.info.url).origin},body:JSON.stringify(feedback)});
-    assert.equal(response.status,200);
-    const files=await fs.readdir(path.join(f.root,'native-fr')),htmlFile=files.find(n=>n.endsWith('.html'));
-    assert.ok(htmlFile);const html=await fs.readFile(path.join(f.root,'native-fr',htmlFile),'utf8');
-    assert.match(html,/lang="fr"/);assert.match(html,/Avis synthétique uniquement/);assert.match(html,/Avis de relecture/);
-    assert.deepEqual((await readCasesFile(f.casesFile)).ref,saved.ref);
-  }finally{await session.close();}
+  const fr=await presentation('fr');
+  const output=await renderCases({casesFile:f.casesFile,outputDir:path.join(f.root,'offline-fr'),presentationFile:path.join(SOURCE_ROOT,'examples/presentation-fr.json')});
+  const page=await fs.readFile(output.html,'utf8');
+  assert.match(page,/lang="fr"/);assert.match(page,/Modèle de génération des cas/);
+  const feedback=makeReviewFeedback({cases:saved.ref,pointIds},0,'comment_only',pointIds,[{pointId:pointIds[0]!,text:'Avis synthétique uniquement.'}]);
+  const titles=new Map(saved.baseline.cases.flatMap(c=>c.goals.map(g=>[g.pointId,g.title] as const)));
+  const document=withPresentation(fr,()=>reviewDocuments(feedback,{cases:saved.ref,pointIds},saved.baseline.project,titles));
+  assert.match(document.html,/lang="fr"/);assert.match(document.html,/Avis de relecture/);
+  const receipt=await exportReviewFeedback({casesFile:f.casesFile,request:feedback,outputDir:path.join(f.root,'cli-fr'),presentation:fr});
+  assert.equal(await fs.readFile(receipt.html,'utf8'),document.html);
+  assert.deepEqual((await readCasesFile(f.casesFile)).ref,saved.ref);
 });

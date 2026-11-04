@@ -1,4 +1,4 @@
-# 架构与职责（v9 / 0.1.8）
+# 架构与职责（v9 / 0.1.9-dev.1）
 
 ![架构职责示意：AI、Ego 与本地工具的分工。](images/architecture.zh-CN.png)
 
@@ -22,6 +22,8 @@ flowchart LR
 
 ## 资料与模块
 
+knowledge/commands 提供只读检查、摘要检索与精确读取，contract/store及生成的Schema与独立维护项目的格式v3源一致。按需读取project、modules、rules、accounts四类资料；没有知识库时跳过。默认只将匹配的通用知识送入 AI 上下文，保留来源、状态、范围和本地版本局限；功能细则按任务读原需求。外部知识不属于 cases/reviews/runs 资产账本，读取不授予业务操作权限。上图保留原测试主链，知识是该主链按需读取的外部上下文。
+
 core/case-versions 负责整份版本、编号和不可变发布；core/case-review 保存相邻实际意见/确认及内容指纹。资料只有用例、审阅、运行，不抽象通用 AssetStore。定义不变直接复用，规则/任务内嵌语义，问题保留原记录。
 
 regression/selection 计算 points/status/full 与已声明依赖闭包，binding 冻结引用、审阅、当前条件、参数和历史；sources 只读验证精确结果前缀，compare 展示事实差异。baseline.json 是完整原件，run-binding.json 不另造用例定义。未选点不产生本轮四态。
@@ -34,7 +36,7 @@ report/history 只读收集精确父运行，旧证据单独包装、不进当�
 
 core/conversations和conversation-store验证独立conversationVersion 1的消息、原件映射、精确引文和动作归属；并行导入只映射外部证据ID，不重写消息文件。ego-helpers/capture-text仅由AI显式调用，读取明确节点、保存长文本及采集范围，不识别站点协议或判断结束/业务成功。report/conversations构造注册或事后来源视图，report-ui/conversations按方案2显示步骤摘要、聊天侧栏/全屏、来源和完整性。Markdown解析与净化被打入离线脚本，不执行外来HTML或加载外部图片。reviewability只给结构提示，不替AI判定或规划补测。
 
-用例审阅通过case-reader提供场景总览和三栏工作台。可选review-session只监听带随机会话路径的127.0.0.1入口，限定CLI给定的用例和输出目录；review-export校验后原生保存可读HTML/JSON，避免Blob下载区域标记。它不调用模型、不操控浏览器、不登记确认。离线副本与兼容备份仍保留，浏览器草稿和正式审阅分开；见[审阅保存说明](v0.1.8-case-review.md)。
+用例审阅由case-reader提供场景总览和三栏工作台。review-ui在离线HTML中生成可读且内嵌完整反馈数据的评审HTML，可选JSON；浏览器文件选择器保存或显式下载，不连接服务器。review-feedback-document为浏览器及可选CLI共用纯生成器，review-export仅负责CLI文件事务。浏览器草稿、导出反馈与正式审阅分别保留，见[离线审阅导出](case-review.md)。
 
 observation 继续按明确授权采集接口，AI 自主决定何时查询。网络格式保持 1。分发使用 layout 清单、预打包读取库和完整第三方许可，用户运行时无需 npm install。
 

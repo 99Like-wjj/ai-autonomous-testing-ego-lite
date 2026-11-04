@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "id": "synthetic-uat",
+      "title": "完全合成测试环境",
+      "summary": "完全合成的阅览门户及管理入口，采用人工登录。",
+      "tags": [
+        "完全合成",
+        "测试环境"
+      ],
+      "properties": {
+        "首页": "https://portal.example.invalid/",
+        "管理入口": "https://console.example.invalid/catalogue",
+        "登录说明": "由用户人工完成完全合成登录。"
+      }
+    }
+  ]
+}

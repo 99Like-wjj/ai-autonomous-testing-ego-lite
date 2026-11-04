@@ -1,0 +1,13 @@
+{
+  "id": "manual-v1",
+  "documentId": "fictional-manual",
+  "title": "完全合成：共用规则手册",
+  "kind": "manual",
+  "version": "fictional-v1",
+  "issuedAt": null,
+  "sha256": null,
+  "locator": "完全合成手册第1–2节",
+  "limitations": [
+    "Synthetic fixture; no real business evidence."
+  ]
+}

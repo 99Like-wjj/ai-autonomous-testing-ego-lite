@@ -1,0 +1,25 @@
+{
+  "knowledgeFormatVersion": 3,
+  "owner": "project-knowledge-maintainer",
+  "ownerVersion": "0.1.0-dev.3",
+  "sourceCommit": "293c3778f79e2019e59f3bfdb705552d4d8a821a",
+  "note": "V3 contract pinned to the exact maintenance source commit and per-file SHA-256.",
+  "files": {
+    "src/knowledge/contract.mts": {
+      "ownerPath": "src/contract.mts",
+      "sha256": "1d4c118d866837cf0ce6903c238d3303de28f63e120544e03d0e3a4372b8514e"
+    },
+    "src/knowledge/store.mts": {
+      "ownerPath": "src/store.mts",
+      "sha256": "068b18797960d37133be122327508fcdaa302e2db4fd746698e1b23ce290080e"
+    },
+    "src/knowledge/schema.generated.mts": {
+      "ownerPath": "src/schema.generated.mts",
+      "sha256": "16cd9d08fe8433ceb60bbbe960d9e2e96d524f5d8971867ed9c3cf7481a2f804"
+    },
+    "schemas/project-knowledge.schema.json": {
+      "ownerPath": "schemas/project-knowledge.schema.json",
+      "sha256": "4401ac8d58fb3ea49dcaa313ccc8782fddb78fe9af7bba7ea47555c928652395"
+    }
+  }
+}

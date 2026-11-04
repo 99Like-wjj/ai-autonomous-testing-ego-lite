@@ -8,7 +8,7 @@ export async function checkPublication(root: string, { development = false, inst
   root = path.resolve(root);
   const rootFiles = new Set(['README.md', 'README.en.md', 'AGENTS.md', 'LICENSE', 'SECURITY.md', 'CHANGELOG.md', 'package.json', '.gitignore', '.gitattributes',
     ...(installed ? ['SKILL.md', 'runtime-manifest.json'] : ['INSTALL.zh-CN.md', 'package-lock.json', 'tsconfig.json', 'tsconfig.node.json', 'tsconfig.browser.json', 'tsconfig.tools.json'])]);
-  const dirs = new Set(installed ? ['agents', 'scripts', 'core', 'contracts', 'execution', 'observation', 'regression', 'report', 'report-ui', 'schemas', 'references', 'docs', 'examples', 'files', 'ego-helpers', 'review-ui', 'vendor'] : ['src', 'skills', 'scripts', 'schemas', 'examples', 'docs', 'tests', 'tools']);
+  const dirs = new Set(installed ? ['agents', 'scripts', 'core', 'contracts', 'execution', 'observation', 'regression', 'report', 'report-ui', 'schemas', 'references', 'docs', 'examples', 'files', 'ego-helpers', 'review-ui', 'vendor', 'knowledge'] : ['src', 'skills', 'scripts', 'schemas', 'examples', 'docs', 'tests', 'tools']);
   const textExtensions = new Set(installed ? ['.md', '.mjs', '.js', '.json', '.svg', '.yaml', '.yml'] : ['.md', '.mts', '.ts', '.mjs', '.json', '.svg', '.yaml', '.yml']);
   const forbiddenSegments = /^(?:\.env(?:\..*)?|\.local|local|private|projects|runs|run-output|evidence|reports|screenshots|traces|profiles|node_modules|credentials.*|secrets.*|auth\.json|cookies.*|storage-?state.*)$/i;
   const secretPatterns: [string, RegExp][] = [
@@ -56,7 +56,15 @@ export async function checkPublication(root: string, { development = false, inst
           try { target = path.resolve(path.dirname(path.join(root, name)), decodeURIComponent(ref)); }
           catch { errors.push(`${name}: invalid link encoding`); continue; }
           const rel = path.relative(root, target);
-          if (rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)) { errors.push(`${name}: link leaves publication root`); continue; }
+          if (rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)) {
+            // Reviewed source-only design navigation. These documents never enter runtime packages.
+            const peerDesign = development && !installed && (
+              /^docs\/v0\.1\.9-/.test(name) && /^\.\.\/\.\.\/project-knowledge-maintainer\/docs\/(?:v0\.1\.9-requirements-and-design|data-contract-draft|initialization-and-first-build-design)\.md$/.test(ref) ||
+              name === 'docs/project-knowledge-lightweight-integration-design.md' && ref === '../../project-knowledge-maintainer/docs/project-knowledge-lightweight-design.md'
+            );
+            if (!peerDesign) errors.push(`${name}: link leaves publication root`);
+            continue;
+          }
           try { await fs.stat(target); } catch { errors.push(`${name}: missing relative link (target suppressed)`); }
         }
       }

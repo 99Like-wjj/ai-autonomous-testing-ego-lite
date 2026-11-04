@@ -39,7 +39,7 @@ test('README timeline contains four versions and labels the current release cons
     else {
       assert.ok(readme.includes(pkg.version));
       assert.equal(versions[1], stable);
-      assert.match(svg, /RC\.2 · NOT RELEASED|候选 rc\.2 · 未发布/);
+      assert.match(svg, /DEV\.1 · NOT RELEASED|开发 dev\.1 · 未发布/);
     }
     assert.ok((await fs.stat(path.join(SOURCE_ROOT, `docs/images/version-history${suffix}.svg`))).size > 0);
   }
@@ -48,9 +48,9 @@ test('README timeline contains four versions and labels the current release cons
  test('current illustrations explain report and regression boundaries in both languages', async () => {
   for (const suffix of ['', '.zh-CN']) {
     const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
-    assert.match(await read('hero'), /0\.1\.8/);
-    assert.match(await read('hero'), /STABLE RELEASE|正式版本/);
-    assert.doesNotMatch(await read('hero'), /RC\.2|NOT RELEASED|未发布/);
+    assert.match(await read('hero'), /0\.1\.9-dev\.1/);
+    assert.match(await read('hero'), /DEVELOPMENT|开发中/);
+    assert.match(await read('hero'), /NOT RELEASED|未发布/);
     assert.match(await read('workflow'), /whole scenarios|整条场景/);
     assert.match(await read('workflow'), /not automatically replayed|不自动重放/);
     assert.match(await read('result-specimen'), /NOT A REAL REPORT SCREENSHOT|非真实报告截图/);
@@ -91,10 +91,10 @@ test('version history pages and diagrams list developed versions newest first, e
     const full = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/version-history${suffix}.svg`), 'utf8');
     const recent = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/readme-version-history${suffix}.svg`), 'utf8');
     const versions = (svg: string) => [...svg.matchAll(/>v(\d+\.\d+\.\d+)</g)].map(match => match[1]);
-    assert.deepEqual(versions(full), ['0.1.8', '0.1.7', '0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2']);
-    assert.deepEqual(versions(recent), ['0.1.8', '0.1.7', '0.1.6', '0.1.5']);
+    assert.deepEqual(versions(full), ['0.1.9', '0.1.8', '0.1.7', '0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2']);
+    assert.deepEqual(versions(recent), ['0.1.9', '0.1.8', '0.1.7', '0.1.6']);
     const page = await fs.readFile(path.join(SOURCE_ROOT, suffix ? 'docs/version-history.md' : 'docs/version-history.en.md'), 'utf8');
-    assert.deepEqual([...page.matchAll(/^## v(\d+\.\d+\.\d+)/gm)].map(match => match[1]), ['0.1.8', '0.1.7', '0.1.6', '0.1.5']);
+    assert.deepEqual([...page.matchAll(/^## v(\d+\.\d+\.\d+)/gm)].map(match => match[1]), ['0.1.9', '0.1.8', '0.1.7', '0.1.6', '0.1.5']);
     assert.match(page,/0\.1\.8.*(?:正式版本|Stable release)/);
   }
 });

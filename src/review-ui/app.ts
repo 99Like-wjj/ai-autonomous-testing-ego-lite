@@ -2,6 +2,8 @@ import { uiText as u, uiMarkup, uiHtml, uiTemplate, formatUi } from '../report/u
 import type { Baseline, Case, CasesRef, Goal } from '../contracts/model.mjs';
 import { goalPlan } from '../contracts/case-view.mjs';
 import { feedbackFromText, makeReviewFeedback, parseReviewFeedback, type FeedbackDecision, type ReviewFeedback } from '../contracts/review-feedback.mjs';
+import { reviewDocuments } from '../report/review-feedback-document.mjs';
+import { saveReviewFile, type ReviewFile, type SaveHost } from './save-file.mjs';
 
 interface Model { kind: 'case_review'; schemaVersion: 9; cases: CasesRef; baseline: Baseline; expectedReviewNumber: number; initialFeedback: ReviewFeedback | null }
 interface Row { c: Case; g: Goal }
@@ -23,13 +25,14 @@ let globalNote = '', decision: FeedbackDecision = 'comment_only', restored = fal
 let viewMode: 'overview' | 'workbench' = 'overview', overviewReturnY = 0, lastLocation = '';
 const expanded = new Set<string>();
 let filterCollapsed = false, toastTimer: number | undefined;
-let nativeBase: URL | null = null, nativeOutputDir = '', nativeBusy = false;
+let exportBusy = false;
+let pendingDownload: { file: ReviewFile; request: string } | null = null;
 
 function noteEntries() { return rows.flatMap(r => (notes[r.g.pointId] ?? '').trim() ? [{ pointId: r.g.pointId, text: notes[r.g.pointId]! }] : []); }
 function toast(text: string) { $('toast').textContent = text; $('toast').hidden = false; window.clearTimeout(toastTimer); toastTimer = window.setTimeout(() => { $('toast').hidden = true; }, 5000); }
 function persist() {
   try { localStorage.setItem(key, JSON.stringify({ draftVersion: 1, cases: model.cases, notes, globalNote, current, selected: [...selected], openCases: [...openCases], decision })); storageOk = true; } catch { storageOk = false; }
-  $('storage-status').textContent = storageOk ? u('意见草稿已暂存到当前浏览器') : u('当前浏览器无法保存草稿，请复制或保存到本机文件');
+  $('storage-status').textContent = storageOk ? u('意见草稿已暂存到当前浏览器') : u('当前浏览器无法暂存草稿，请导出评审结果或复制完整数据');
 }
 function mergeFeedback(feedback: ReviewFeedback) {
   const incoming: Record<string, string> = Object.create(null) as Record<string, string>; let overall = '';
@@ -127,50 +130,60 @@ function saveOpinion(id: string, value: string, explicit = false) {
   if (!points.has(id)) return; notes[id] = value;
   if (explicit && value.trim() && !selected.has(id)) { selected.add(id); toast(u('本条意见已保存，并纳入导出范围。')); }
   else if (explicit) toast(u('本条意见已保存到当前浏览器。'));
-  persist(); updateCounts(); const state = document.getElementById('editor-save-state'); if (state) state.textContent = storageOk ? (explicit ? u('本条意见已保存') : u('输入已暂存到当前浏览器')) : u('草稿暂存失败，请保存到本机文件');
+  persist(); updateCounts(); const state = document.getElementById('editor-save-state'); if (state) state.textContent = storageOk ? (explicit ? u('本条意见已保存') : u('输入已暂存到当前浏览器')) : u('草稿暂存失败，请导出评审结果');
 }
 
 function requestFeedback(): ReviewFeedback { return makeReviewFeedback(identity, model.expectedReviewNumber, decision, rows.filter(r => selected.has(r.g.pointId)).map(r => r.g.pointId), [...(globalNote.trim() ? [{ pointId: null, text: globalNote }] : []), ...noteEntries()]); }
 function exportBlocked() { return { empty: !noteEntries().length && !globalNote.trim(), noScope: !selected.size, outside: noteEntries().filter(c => !selected.has(c.pointId)) }; }
-function updateNativeStatus() {
-  const b = exportBlocked(); $<HTMLButtonElement>('save-native').disabled = !nativeBase || nativeBusy || b.empty || b.noScope || b.outside.length > 0;
-  if (nativeBusy) $('native-status').textContent = u('正在写入并核对本机文件……');
-  else if (nativeBase) $('native-status').textContent = u('本机保存入口已连接。文件写入：') + nativeOutputDir;
-  else $('native-status').textContent = u('当前是离线副本，意见会暂存到浏览器。从本地审阅入口打开可直接保存文件；也可复制意见交回当前对话保存。');
+function saveHost(): SaveHost {
+  const pick = (window as unknown as { showSaveFilePicker?: SaveHost['pick'] }).showSaveFilePicker;
+  return {
+    ...(typeof pick === 'function' && window.isSecureContext ? { pick: (options: Parameters<NonNullable<SaveHost['pick']>>[0]) => pick.call(window, options) } : {}),
+    download(file) {
+      const url = URL.createObjectURL(new Blob([file.content], { type: file.mime }));
+      const link = document.createElement('a'); link.href = url; link.download = file.name; document.body.append(link);
+      try { link.click(); } finally { link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 15000); }
+    }
+  };
+}
+function updateExportControls() {
+  const b = exportBlocked(), blocked = exportBusy || b.empty || b.noScope || b.outside.length > 0;
+  for (const id of ['save-html', 'save-json', 'download-html', 'download-json', 'copy-review']) $<HTMLButtonElement>(id).disabled = !!blocked;
+  $<HTMLButtonElement>('save-html').textContent = saveHost().pick ? u('保存评审结果 HTML') : u('下载评审结果 HTML');
+  $<HTMLButtonElement>('download-export').disabled = exportBusy;
+  $('export-fallback').hidden = !pendingDownload;
 }
 function renderExport() {
   const b = exportBlocked(), valid = !b.empty && !b.noScope && !b.outside.length;
-  $('export-body').innerHTML = uiHtml`<div class="export-metrics"><span><b>${selected.size}</b>导出用例</span><span><b>${noteEntries().length}</b>逐条意见</span><span><b>${globalNote.trim() ? 1 : 0}</b>总体意见</span></div>${b.empty ? uiMarkup('<div class="export-warn">尚无意见。请填写意见，或明确点击“无修改意见”，避免生成空记录。</div>') : ''}${b.noScope ? uiMarkup('<div class="export-warn">尚未选择导出范围。</div>') : ''}${b.outside.length ? uiHtml`<div class="export-warn">有 ${b.outside.length} 条意见未纳入范围，不会静默丢弃。<br><button id="include-noted">把这些用例纳入导出范围</button></div>` : ''}${globalNote.trim() ? uiHtml`<div class="export-row"><strong>总体意见</strong><pre>${esc(globalNote)}</pre></div>` : ''}${noteEntries().map(c => `<div class="export-row"><span class="small muted">${esc(c.pointId)}</span><strong>${esc(points.get(c.pointId)!.g.title)}</strong><pre>${esc(c.text)}</pre></div>`).join('')}<div class="decision-row"><label for="export-decision">拟提交结论</label><select id="export-decision" ${nativeBusy ? 'disabled' : ''}><option value="comment_only" ${decision === 'comment_only' ? 'selected' : ''}>仅记录意见</option><option value="changes_requested" ${decision === 'changes_requested' ? 'selected' : ''}>需要修改</option><option value="approved" ${decision === 'approved' ? 'selected' : ''}>拟确认所选范围</option></select></div><p class="small muted">文件保存不会登记正式确认，也不会开始测试。</p><details class="advanced"><summary>浏览器数据备份</summary><button id="download-json" ${valid ? '' : 'disabled'}>下载 JSON 备份</button><p class="small muted">此兼容下载可能带 Windows 来源区域标记。可在本页恢复读取；需要可直接打开的文件时，请使用本机保存。</p>${valid ? `<pre class="export-json">${esc(JSON.stringify(requestFeedback(), null, 2))}</pre>` : ''}</details>`;
-  $('saved-links').replaceChildren(); updateNativeStatus();
+  const noNote = [...selected].filter(id => !(notes[id] ?? '').trim()).length;
+  $('export-body').innerHTML = uiHtml`<div class="export-metrics"><span><b>${selected.size}</b>导出用例</span><span><b>${noteEntries().length}</b>逐条意见</span><span><b>${globalNote.trim() ? 1 : 0}</b>总体意见</span><span><b>${noNote}</b>未填写逐条意见</span></div>${b.empty ? uiMarkup('<div class="export-warn">尚无意见。请填写意见，或明确点击“无修改意见”，避免生成空记录。</div>') : ''}${b.noScope ? uiMarkup('<div class="export-warn">尚未选择导出范围。</div>') : ''}${b.outside.length ? uiHtml`<div class="export-warn">有 ${b.outside.length} 条意见未纳入范围，不会静默丢弃。<br><button id="include-noted">把这些用例纳入导出范围</button></div>` : ''}${globalNote.trim() ? uiHtml`<div class="export-row"><strong>总体意见</strong><pre>${esc(globalNote)}</pre></div>` : ''}${noteEntries().map(c => `<div class="export-row"><span class="small muted">${esc(c.pointId)}</span><strong>${esc(points.get(c.pointId)!.g.title)}</strong><pre>${esc(c.text)}</pre></div>`).join('')}<div class="decision-row"><label for="export-decision">拟提交结论</label><select id="export-decision" ${exportBusy ? 'disabled' : ''}><option value="comment_only" ${decision === 'comment_only' ? 'selected' : ''}>仅记录意见</option><option value="changes_requested" ${decision === 'changes_requested' ? 'selected' : ''}>需要修改</option><option value="approved" ${decision === 'approved' ? 'selected' : ''}>拟确认所选范围</option></select></div><p class="small muted">文件保存不会登记正式确认，也不会开始测试。</p><details class="advanced"><summary>更多导出方式与完整数据</summary><button id="download-html">直接下载 HTML</button> <button id="save-json">导出 JSON 数据</button> <button id="download-json">直接下载 JSON</button><p class="small muted">HTML 可独立阅读并恢复意见；JSON 用于数据交换。下载后请核对实际文件，浏览器提示不代表已通过 Windows 打开验证。</p>${valid ? `<textarea id="export-data" aria-label="${esc(u('完整评审数据'))}" class="export-json" readonly rows="8" style="width:100%">${esc(JSON.stringify(requestFeedback(), null, 2))}</textarea>` : ''}</details>`;
+  pendingDownload = null;
+  $('export-status').textContent = u('直接从此离线页面导出，无需启动服务。浏览器草稿不能替代已导出的文件。');
+  updateExportControls();
 }
-async function connectNative() {
-  if (location.protocol !== 'http:' || location.hostname !== '127.0.0.1' || !/^\/review\/[a-f0-9]{48}\/$/.test(location.pathname)) return;
+async function writeExport(file: ReviewFile, request: string, downloadOnly = false) {
+  exportBusy = true; pendingDownload = null; updateExportControls();
+  $('export-status').textContent = u('正在导出评审结果，草稿仍保留……');
   try {
-    const response = await fetch(new URL('capabilities', location.href), { credentials: 'omit', cache: 'no-store' });
-    const value: unknown = await response.json();
-    if (!response.ok || !isObject(value) || value.kind !== 'case-review-session' || !sameRef(value.cases) || typeof value.outputDir !== 'string') throw Error(u('本机入口与当前用例不匹配。'));
-    nativeBase = new URL(location.href); nativeOutputDir = value.outputDir;
-    if ($<HTMLDialogElement>('export-dialog').open) updateNativeStatus();
-  } catch (error) { nativeBase = null; if ($<HTMLDialogElement>('export-dialog').open) { updateNativeStatus(); $('native-status').textContent = u('本机保存未连接：') + (error instanceof Error ? error.message : String(error)); } }
+    const result = await saveReviewFile(file, saveHost(), downloadOnly);
+    let changed = true; try { changed = JSON.stringify(requestFeedback()) !== request; } catch { /* Current edits are independent from the exported snapshot. */ }
+    const suffix = changed ? u(' 当前内容已有新修改，导出的是点击时的版本。') : '';
+    if (result.status === 'saved') $('export-status').textContent = u('已保存并读回核对：') + file.name + suffix;
+    else if (result.status === 'download_requested') $('export-status').textContent = u('已发起下载，请核对实际文件：') + file.name + suffix;
+    else if (result.status === 'cancelled') $('export-status').textContent = u('已取消保存，评审草稿保持原样。');
+    else { pendingDownload = { file, request }; $('export-status').textContent = u('未确认保存成功，草稿仍保留。可下载本次快照或复制完整数据。') + ' ' + result.message; }
+  } finally { exportBusy = false; updateExportControls(); }
 }
-async function saveNative() {
-  const b = exportBlocked(); if (!nativeBase || nativeBusy || b.empty || b.noScope || b.outside.length) return;
-  const request = requestFeedback(), base = nativeBase, controller = new AbortController(); nativeBusy = true; updateNativeStatus();
-  const timer = window.setTimeout(() => controller.abort(), 20000);
+function exportFile(format: 'html' | 'json', downloadOnly = false) {
+  const b = exportBlocked(); if (exportBusy || b.empty || b.noScope || b.outside.length) return;
   try {
-    const response = await fetch(new URL('save', base), { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request), signal: controller.signal });
-    const value: unknown = await response.json();
-    if (!response.ok) throw Error(isObject(value) && typeof value.error === 'string' ? value.error : u('本机保存失败。'));
-    if (!isObject(value) || value.nativeWrite !== true || value.reviewRegistered !== false || typeof value.outputDir !== 'string' || !Array.isArray(value.files) || value.files.length !== 2) throw Error(u('本机保存回执无效。'));
-    $('saved-links').replaceChildren();
-    for (const item of value.files) {
-      if (!isObject(item) || typeof item.name !== 'string' || !/^[A-Za-z0-9.-]+\.(?:html|json)$/.test(item.name)) throw Error(u('本机保存文件名无效。'));
-      const link = document.createElement('a'); link.href = new URL('files/' + encodeURIComponent(item.name), base).href; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = item.name.endsWith('.html') ? u('打开可读评审记录') : u('查看 JSON 数据'); $('saved-links').append(link);
-    }
-    let changed = true; try { changed = JSON.stringify(requestFeedback()) !== JSON.stringify(request); } catch { /* A changed scope must not be mistaken for the saved snapshot. */ }
-    $('native-status').textContent = (value.replayed === true ? u('已核对本次意见的已有文件。') : u('已写入并读回核对 HTML 和 JSON。')) + u('目录：') + value.outputDir + (changed ? u(' 当前意见已有新修改，请再次保存。') : '');
-  } catch (error) { $('native-status').textContent = u('未确认保存成功，浏览器草稿仍保留。可再次保存以核对已有文件。') + (error instanceof Error ? error.message : String(error)); }
-  finally { window.clearTimeout(timer); nativeBusy = false; const block = exportBlocked(); $<HTMLButtonElement>('save-native').disabled = !nativeBase || block.empty || block.noScope || !!block.outside.length; }
+    const request = requestFeedback(), titles = new Map(rows.map(r => [r.g.pointId, r.g.title]));
+    const documents = reviewDocuments(request, identity, model.baseline.project, titles);
+    const stamp = new Date().toISOString().replace(/[-:.]/g, '').replace('T', '-').replace('Z', '');
+    const file: ReviewFile = { name: 'v' + String(model.cases.caseVersion).padStart(3, '0') + '-review-' + stamp + '.' + format,
+      content: documents[format], extension: format === 'html' ? '.html' : '.json', mime: format === 'html' ? 'text/html;charset=utf-8' : 'application/json;charset=utf-8', description: format === 'html' ? u('评审结果 HTML') : u('评审 JSON 数据') };
+    void writeExport(file, JSON.stringify(request), downloadOnly);
+  } catch (error) { $('export-status').textContent = u('无法导出，草稿仍保留：') + (error instanceof Error ? error.message : String(error)); }
 }
 async function importFile(file: File | undefined) {
   if (!file) return;
@@ -237,16 +250,16 @@ document.addEventListener('click', event => {
     case 'export-review': renderExport(); $<HTMLDialogElement>('export-dialog').showModal(); break;
     case 'close-export': $<HTMLDialogElement>('export-dialog').close(); renderMain(); renderNav(); break;
     case 'include-noted': noteEntries().forEach(c => selected.add(c.pointId)); persist(); updateCounts(); renderExport(); break;
-    case 'save-native': void saveNative(); break;
-    case 'download-json': {
-      const b = exportBlocked(); if (b.empty || b.noScope || b.outside.length) break;
-      const url = URL.createObjectURL(new Blob([JSON.stringify(requestFeedback(), null, 2) + '\n'], { type: 'application/json;charset=utf-8' }));
-      const a = document.createElement('a'); a.href = url; a.download = 'v' + String(model.cases.caseVersion).padStart(3, '0') + '-review-feedback.json'; document.body.append(a); a.click(); a.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 15000); toast(u('已发起浏览器备份下载；可在本页恢复读取。')); break;
-    }
+    case 'save-html': exportFile('html'); break;
+    case 'save-json': exportFile('json'); break;
+    case 'download-html': exportFile('html', true); break;
+    case 'download-json': exportFile('json', true); break;
+    case 'download-export': { const snapshot = pendingDownload; if (snapshot && !exportBusy) void writeExport(snapshot.file, snapshot.request, true); break; }
     case 'copy-review': {
-      const text = uiTemplate`${model.baseline.project} · 用例 v${model.cases.caseVersion} 评审意见\n\n` + (globalNote.trim() ? uiTemplate`总体意见\n${globalNote}\n\n` : '') + noteEntries().map(c => `${c.pointId} · ${points.get(c.pointId)!.g.title}\n${c.text}`).join('\n\n');
-      if (!navigator.clipboard) { toast(u('当前浏览器未提供复制接口，可直接选中预览文字复制。')); break; }
-      void navigator.clipboard.writeText(text).then(() => toast(u('已复制评审文字。'))).catch(() => toast(u('复制未获允许，可直接选中预览文字复制。'))); break;
+      const b = exportBlocked(); if (b.empty || b.noScope || b.outside.length) break;
+      const text = JSON.stringify(requestFeedback(), null, 2);
+      if (!navigator.clipboard) { toast(u('当前浏览器未提供复制接口，请在完整评审数据框中选中复制。')); break; }
+      void navigator.clipboard.writeText(text).then(() => toast(u('已复制完整评审数据。'))).catch(() => toast(u('复制未获允许，请在完整评审数据框中选中复制。'))); break;
     }
     case 'theme-button': { const index = themeButtons.findIndex(b => b.dataset.themeId === document.documentElement.dataset.theme); applyTheme(themeButtons[(index + 1) % themeButtons.length]?.dataset.themeId ?? 'A'); break; }
     case 'theme-options-button': $('theme-menu').hidden = !$('theme-menu').hidden; break;
@@ -264,6 +277,5 @@ let theme = 'A'; try { theme = localStorage.getItem('ego-report-theme-v1') ?? 'A
 renderMain(); renderNav(); persist();
 try { history.scrollRestoration = 'manual'; } catch { /* Manual return position remains usable. */ }
 if (!location.hash) history.replaceState({ caseReview: true }, '', '#overview'); restoreLocation();
-void connectNative();
 
 if(typeof ResizeObserver!=='undefined'){const resize=new ResizeObserver(()=>{for(const [selector,key]of [['.view-nav','--case-nav-height'],['.overview-toolbar','--case-filter-height']]){const e=document.querySelector(selector!);if(e)document.documentElement.style.setProperty(key!,e.getBoundingClientRect().height+'px');}});for(const selector of ['.view-nav','.overview-toolbar']){const e=document.querySelector(selector);if(e)resize.observe(e);}}

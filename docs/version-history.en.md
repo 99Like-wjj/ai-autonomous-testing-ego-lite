@@ -6,6 +6,10 @@ The AI interprets goals and judges business outcomes, Ego operates the browser, 
 
 ![Newest first: v0.1.8 released, then v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
 
+## v0.1.9 · Project common knowledge (development, not released)
+
+0.1.9-dev.1 adds optional knowledge v3 lookup across structured rules/maps and lightweight project/account records and task-scoped use; main contracts stay v9. See [development validation](v0.1.9-development-validation.md). No formal release package, tag or release has been created.
+
 ## v0.1.8 · Stable release
 
 Current revision report-language-model-1 adds user-language reports, stage-specific model/reasoning provenance, wrapping long IDs and baseline-aware scope labels. Original evidence is not translated, and model metadata does not establish business correctness. See [local validation](v0.1.8-report-language-model-validation.md).

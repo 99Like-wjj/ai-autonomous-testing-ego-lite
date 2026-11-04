@@ -12,7 +12,7 @@ Each goal has id, title, pointId, basis, expected, requiredRefs, planState, prep
 
 cases save atomically allocates new IDs and publishes a new immutable whole file, guarded by expectedVersion and previousSha256. Replaying the exact committed request recovers its receipt without reallocating IDs. cases review records exact scope, derived definition hashes and actual human/delegated provenance. Offline approved flags do not authenticate human review. Changed necessary semantics require review; unchanged hashes can reuse it.
 
-Case HTML/Markdown use internal documentVersion 2 for the overview, three-column review and optional initialFeedback snapshot. This does not change v9 case definitions or fingerprints. New documents use new output directories. Native feedback HTML/JSON and their exportVersion 1 delivery manifest are opinion copies, not adjacent formal reviews. See [review save details](case-review.md) for the private loopback writer and Windows zone-metadata boundary.
+Case HTML/Markdown retain internal documentVersion 2, case v9 and exact case fingerprints. New documents use new directories. The offline page directly exports readable HTML with one inert review-feedback-data JSON block holding complete v9 feedback, and optional standalone JSON. These are feedback copies, not formal reviews. cases export-review is an optional CLI with an exportVersion 1 delivery manifest, never a page or server dependency. See [offline review export](case-review.md) for scope, restoration and Windows verification boundaries.
 
 start requires a binding. baseline.json preserves the complete original case-file bytes, while run-binding.json freezes scope, plan references, deferrals, reviews, current conditions, parameter values and exact parent-run references. Parameter binding never weakens a criterion. points selects exact goals with declared dependency closure; status reruns whole matching scenarios; full retains all in-scope definitions and gaps.
 
@@ -33,3 +33,11 @@ Both document types accept --presentation JSON with language and a complete mess
 Case documents can accept a retrospective --ai-context file bound to the exact casesRef, without modifying published cases or approval. Test reports combine this run's committed contributions and the supplied reading context into one test_execution header, excluding generators, historical parent runs and pure rendering callers.
 
 New fields require the matching tool revision. Existing files are never rewritten; old standalone HTML stays readable, while byte-for-byte verification of old presentation requires its original renderer revision. Regenerate into a new directory for a new presentation.
+
+## Project knowledge format v3
+
+knowledgeFormatVersion 3 and knowledgeReadVersion 3 are independent of test contracts v9. knowledge.json identifies the project. project.json and accounts.json use {"items":[]}; records require only id/title, with optional summary/tags/description/properties. Custom JSON remains opaque and does not require environment or role registries.
+
+Maps directly describe applications/pages and module entries. Rules retain full text, sources and confirmation state, with natural-language appliesTo. User configuration is a declaration, not a verified rule. Sources retain independent versions/hashes.
+
+Knowledge remains optional. Missing configuration does not create a full-project readiness task. Query returns summaries; read expands details for AI interpretation. Malformed files differ from valid empty collections. Old formats are not read, converted or overwritten; history remains intact.

@@ -330,7 +330,7 @@ body[data-view=overview] .ov-scene-toggle{min-height:var(--overview-row-height);
 
 .save-status{font-size:11px;line-height:1.8;color:var(--muted);margin:10px 0;overflow-wrap:anywhere}
 .saved-links{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;margin-top:10px}
-.native-save-note{padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12px;line-height:1.8}
+.offline-save-note{padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12px;line-height:1.8}
 .sources-list{font-size:12px;line-height:1.9}
 .sources-list article{padding:12px 0;border-top:1px solid var(--line)}
 .variant-B .review-pane{max-height:calc(100dvh - 32px);overflow:auto}
