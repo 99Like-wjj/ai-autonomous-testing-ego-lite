@@ -8,7 +8,7 @@
 
 ## 配套工具：项目知识库维护 Skill
 
-[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) 负责创建、维护和更新项目知识库。本仓库负责在测试时按需读取、查询和使用知识，二者通过独立的**项目知识格式 v3**协作，而不是相互代理调用。维护仓库目前为私有，需要已有访问权限；链接不可访问不影响 Ego 的其他测试能力。
+[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) 负责创建、维护和更新项目知识库。本仓库负责在测试时按需读取、查询和使用知识，二者通过独立的**项目知识格式 v3**协作，而不是相互代理调用。维护仓库现已公开，可直接访问。真实项目资料与生成的知识库仍须保存在源码仓库外的私有目录。
 
 使用顺序：先在授权范围内由维护 Skill 整理项目资料，保存到源码仓库外的私有知识目录；再向 Ego 提供该目录及独立确认的项目身份，按需调用 `knowledge inspect/query/read`。更新知识后重新读取，不自动改写已冻结用例或历史结果。无需在每次测试中调用维护 Skill；没有知识库时继续已有资料支持的工作。
 

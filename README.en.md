@@ -8,7 +8,7 @@
 
 ## Companion tool: project knowledge maintenance
 
-[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) creates and updates project knowledge. Ego reads, queries and uses that independent asset during testing through shared **knowledge format v3**; the maintenance Skill is not a runtime query proxy. The maintenance repository is currently private and requires existing access. An inaccessible link does not disable other Ego testing capabilities.
+[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) creates and updates project knowledge. Ego reads, queries and uses that independent asset during testing through shared **knowledge format v3**; the maintenance Skill is not a runtime query proxy. The maintenance repository is now public and can be accessed directly. Real project materials and generated knowledge must still remain in private directories outside source repositories.
 
 First, use the maintenance Skill with authorized materials and keep its output in a private directory outside source repositories. Then give Ego that directory and an independently confirmed project identity, using `knowledge inspect/query/read` on demand. Read again after updates; frozen cases and historical results are not rewritten. Maintenance is not required on every test run, and tasks can continue from existing sources without a knowledge base.
 
