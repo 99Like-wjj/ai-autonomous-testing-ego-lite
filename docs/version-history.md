@@ -4,11 +4,13 @@
 
 基于 Ego Lite 的 AI 自主测试 Skill：AI 理解目标、选择方法并判断业务，Ego 操作浏览器，本地工具保存证据和交付报告。
 
-![版本演变：0.1.8 正式版本，其后为 0.1.7 正式版、0.1.6、0.1.5、0.1.4、0.1.3、0.1.2，按最新在前展示；图为能力示意。](images/version-history.zh-CN.png)
+![最新在前：0.1.9 开发版，其后为 0.1.8 至 0.1.2 历史版本；仅为能力示意。](images/version-history.zh-CN.png)
 
 ## v0.1.9 · 项目通用知识（开发中，未发布）
 
 0.1.9-dev.1 新增独立知识格式v3的四类资料只读检索、可选来源处理与按任务使用，主契约仍为 v9。详见[v0.1.9 开发自测](v0.1.9-development-validation.md)；当前没有正式发布包、Tag 或 Release。
+
+本版还补强设计/执行阶段的知识使用经验，并提供离线评审 HTML/JSON 导出。配套 [project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) 创建和更新知识，Ego 独立读取格式 v3；维护仓库为私有，不自动授予访问权限。
 
 ## v0.1.8 · 正式版本
 

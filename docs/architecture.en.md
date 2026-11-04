@@ -2,7 +2,20 @@
 
 ![Architecture responsibilities: AI, Ego and deterministic tools.](images/architecture.png)
 
-knowledge/commands adds read-only inspection, task summaries and exact reads using format v3 shared with the independent maintenance project. The optional project/modules/rules/accounts categories are read on demand. Only matched common knowledge enters the AI context; sources, state, scope and local-version limits remain explicit. Functional details stay in source requirements. External knowledge is outside the cases/reviews/runs ledger and grants no operation permissions. The retained diagram shows the original test chain; knowledge is optional external context.
+## Knowledge maintenance and test-time use
+
+[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) is an independent creation/maintenance tool; its repository is private and requires existing access. It curates authorized materials into project knowledge outside source repositories. Ego reads format v3 directly with its own tools, not through a maintenance query proxy. Generic testing experience stays in Ego guidance; project knowledge is neither part of the test ledger nor shipped in an installation package.
+
+```mermaid
+flowchart LR
+  M[project-knowledge-maintainer] -->|create / update| K[Independent knowledge v3]
+  K -->|inspect / query / read| T[Ego knowledge tools]
+  T -->|context with provenance| A[AI plans and tests]
+  G[Generic testing experience] --> A
+  R[Current requirements and authorization] --> A
+```
+
+knowledge/commands adds read-only inspection, task summaries and exact reads using format v3 shared with the independent maintenance project. The optional project/modules/rules/accounts categories are read on demand. Only matched common knowledge enters the AI context; sources, state, scope and local-version limits remain explicit. Functional details stay in source requirements. External knowledge is outside the cases/reviews/runs ledger and grants no operation permissions. Knowledge is optional task context, not a mandatory prerequisite or fixed business route.
 
 Current development contracts use version 9, regressionVersion 2 and networkVersion 1. AI owns interpretation, planning, exploration, action choice and business assessment. Ego owns browser primitives. Local code owns deterministic transactions, integrity, file reading and report presentation, without a business decision tree or automatic retries.
 
@@ -20,7 +33,7 @@ core/conversations and conversation-store validate conversationVersion 1, retain
 
 case-reader provides the scene/case overview and three-column workbench. review-ui generates readable review HTML with embedded feedback, or optional JSON, directly in the offline page. File-picker saving and explicit downloading need no server. review-feedback-document is shared by the browser and optional CLI; review-export handles CLI file transactions only. Drafts and exported feedback remain separate from formal reviews; see [offline review export](case-review.md).
 
-See [contracts](asset-formats.en.md), [regression reuse](regression-reuse.md) and [development validation](v0.1.8-development-validation.md). Historical user data is not migrated or overwritten.
+See [contracts](asset-formats.en.md), [regression reuse](regression-reuse.md) and [current development validation](v0.1.9-development-validation.md). Historical user data is not migrated or overwritten.
 
 ## Report language and model provenance
 

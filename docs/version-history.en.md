@@ -4,11 +4,13 @@
 
 The AI interprets goals and judges business outcomes, Ego operates the browser, and local tools retain evidence and deliver reports.
 
-![Newest first: v0.1.8 released, then v0.1.7 released, v0.1.6, v0.1.5, v0.1.4, v0.1.3 and v0.1.2. Capability illustration only.](images/version-history.png)
+![Newest first: 0.1.9 development, followed by historical 0.1.8 through 0.1.2; capability illustration only.](images/version-history.png)
 
 ## v0.1.9 · Project common knowledge (development, not released)
 
 0.1.9-dev.1 adds optional knowledge v3 lookup across structured rules/maps and lightweight project/account records and task-scoped use; main contracts stay v9. See [development validation](v0.1.9-development-validation.md). No formal release package, tag or release has been created.
+
+This version also strengthens knowledge-related design/execution guidance and supports offline review HTML/JSON exports. The companion [project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) creates and updates knowledge; Ego reads format v3 directly. The maintenance repository is private; this link does not grant access.
 
 ## v0.1.8 · Stable release
 
@@ -32,7 +34,7 @@ v0.1.6 also concretized design/execution topics and misjudgment examples, shared
 
 ### v0.1.6 detailed capabilities and validation sources
 
-v0.1.6 delivered more than experience documentation: goal assessment, unified serial/parallel records, native network observation and the linked CLI/host handoff fix. The current version continues these capabilities. v0.1.6 used schema v5; the current v0.1.7 v8 contract is not attributed retroactively to that release.
+v0.1.6 delivered more than experience documentation: goal assessment, unified serial/parallel records, native network observation and the linked CLI/host handoff fix. The current version continues these capabilities. v0.1.6 used schema v5; the later v0.1.7 v8 contract is not attributed retroactively to that release.
 
 - Stage-specific design and execution experience: concise stable indexes and concrete scenarios for prerequisites, data relationships, boundaries/roles, unknown submissions, drag/download, asynchronous observations and recovery risks. Navigation checks and semantic exercises support human-maintained, read-only guidance; there is no RAG, automatic learning or fixed business route.
 

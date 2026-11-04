@@ -1,8 +1,10 @@
 # Ego项目知识轻量化接入方案
 
+> 跨仓库链接指向维护项目开发分支；该仓库当前私有，需要已有访问权限，不是 Ego 运行时依赖。
+
 日期：2026-11-03。状态：**设计已批准；已实现格式v3并完成合成自测，未安装或发布。** 更新：2026-11-04。
 
-共用格式唯一设计源为[知识维护项目方案](../../project-knowledge-maintainer/docs/project-knowledge-lightweight-design.md)。本文只规定Ego的读取、检索及AI使用，不另造账号/项目格式。当前实现仍以[已实现v2设计](v0.1.9-project-knowledge-v2-integration-design.md)为基线。
+共用格式唯一设计源为[知识维护项目方案](https://github.com/99Like-wjj/project-knowledge-maintainer/blob/feat/v0.1.0-project-knowledge/docs/project-knowledge-lightweight-design.md)。本文只规定Ego的读取、检索及AI使用，不另造账号/项目格式。[v2 设计](v0.1.9-project-knowledge-v2-integration-design.md)保留历史基线；本方案中的轻量 v3 结构与筛选规则取代旧版相应约定。
 
 ## 1. 改动目标
 

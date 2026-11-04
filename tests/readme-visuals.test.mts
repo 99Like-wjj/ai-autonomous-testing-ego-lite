@@ -102,7 +102,7 @@ test('version history pages and diagrams list developed versions newest first, e
 test('approved philosophy precedes version details and architecture visuals remain available', async () => {
   for (const [readme, philosophy, version, architecture, suffix] of [
     ['README.md', '## 设计理念：AI 主导，工具提供能力', '## 当前版本', 'docs/architecture.md', '.zh-CN'],
-    ['README.en.md', '## Design philosophy: AI leads, tools provide capabilities', '## Current release', 'docs/architecture.en.md', '']
+    ['README.en.md', '## Design philosophy: AI leads, tools provide capabilities', '## Current version', 'docs/architecture.en.md', '']
   ] as const) {
     const page = await fs.readFile(path.join(SOURCE_ROOT, readme), 'utf8');
     assert.equal(page.split(philosophy).length - 1, 1);
@@ -142,4 +142,23 @@ test('README shows reviewed real excerpts rather than a simulated report diagram
   }
   const files = await fs.readdir(path.join(SOURCE_ROOT, 'docs/images/real-example'));
   assert.deepEqual(files.sort(), realExamples.map(name => `${name}.jpg`).sort());
+});
+
+
+test('knowledge maintenance is separate from direct Ego reading in bilingual guides and diagrams', async () => {
+  for (const [file, suffix] of [['README.md', '.zh-CN'], ['README.en.md', '']] as const) {
+    const page = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
+    assert.match(page, /https:\/\/github.com\/99Like-wjj\/project-knowledge-maintainer/);
+    assert.match(page, /私有|private/);
+    assert.match(page, /knowledge inspect\/query\/read/);
+    assert.ok(page.indexOf('https://github.com/99Like-wjj/project-knowledge-maintainer') < page.indexOf('## 当前版本') || file === 'README.en.md' && page.indexOf('https://github.com/99Like-wjj/project-knowledge-maintainer') < page.indexOf('## Current version'));
+    assert.doesNotMatch(page, /以下为上一正式版|Retained capabilities and sources from the previous stable/);
+    for (const name of ['design-philosophy', 'architecture', 'workflow']) {
+      const svg = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
+      assert.match(svg, /project-knowledge-maintainer/);
+      assert.match(svg, /Independent knowledge v3|独立项目知识 v3/);
+      assert.match(svg, /Ego reads directly|Ego 直接按需读取/);
+      assert.match(svg, /No maintenance query proxy|不经维护端代理查询/);
+    }
+  }
 });

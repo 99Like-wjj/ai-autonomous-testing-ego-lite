@@ -18,16 +18,19 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ![AI at the center selects parallel capabilities and adapts to factual feedback, not a fixed execution sequence.](docs/images/design-philosophy.png)
 
-## Current release
+## Companion tool: project knowledge maintenance
+
+[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) creates and updates project knowledge. Ego reads, queries and uses that independent asset during testing through shared **knowledge format v3**; the maintenance Skill is not a runtime query proxy. The maintenance repository is currently private and requires existing access. An inaccessible link does not disable other Ego testing capabilities.
+
+First, use the maintenance Skill with authorized materials and keep its output in a private directory outside source repositories. Then give Ego that directory and an independently confirmed project identity, using `knowledge inspect/query/read` on demand. Read again after updates; frozen cases and historical results are not rewritten. Maintenance is not required on every test run, and tasks can continue from existing sources without a knowledge base.
+
+Generic testing experience stays in Ego’s separate design/execution guides. Project maps, common rules and user-declared configuration/account notes stay in the knowledge base. Configuration uses lightweight records, not a mandatory permission matrix; feature-specific details remain in source requirements. Real knowledge, business materials and credentials are never shipped with either Skill. See the [knowledge usage guide (Chinese)](skills/ai-autonomous-testing-ego-lite/references/project-knowledge.md).
+
+## Current version
 
 This development version also makes review export fully offline and removes the review server. Open the local HTML to export readable, restorable review HTML or optional JSON. See [offline export validation](docs/v0.1.9-offline-review-export-validation.md).
 
 Source development version is **0.1.9-dev.1 / project-knowledge-3**, not formally released. Knowledge v3 keeps structured maps/rules and uses lightweight user-provided project/account records; exact context exports retain provenance; functional details remain in source requirements. Test contracts stay at v9. See [development validation](docs/v0.1.9-development-validation.md). The last stable package remains [v0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8).
-
-Retained capabilities and sources from the previous stable **0.1.8 / report-language-model-1** follow. It implements the approved lean case/review/run design, stable-point reruns, official Ego download evidence/file inspection and historical comparisons. The case reader now provides a scene/case overview, three-column review workbench, shared report themes and native feedback files that avoid browser download-zone metadata. Contracts are v9, regressionVersion 2 and networkVersion 1. Release notes, the installable package and checksums are available in [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8). See [development validation](docs/v0.1.8-development-validation.md) and [review save details](docs/v0.1.8-case-review.md); builds do not update installed Skills. This revision adds [report language and two-stage model provenance](docs/v0.1.8-report-language-model-design.md), long scene IDs and baseline-aware scope labels.
-
-Adds provider-neutral conversation evidence, step input/reply summaries and the selected conversation drawer/fullscreen layout. Four quality layers address expected/observed phases, retained originals, readable findings and source validation; see the [design and validation](docs/v0.1.8-conversation-review.md). Main contracts remain v9; conversations use conversationVersion 1. Historical runs and reports are preserved.
-
 
 Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidance, compiled Node ESM tools, schemas, examples and an integrity manifest. Source is TypeScript; installed use requires Node.js >=22.
 
@@ -35,12 +38,14 @@ Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidan
 
 ![Newest first: v0.1.9 in development, then stable v0.1.8, v0.1.7 and v0.1.6. Capability illustration only.](docs/images/readme-version-history.png)
 
-README shows the current version plus three previous versions. 0.1.9 is in development, followed by stable 0.1.8, 0.1.7 and 0.1.6. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. See [release validation](docs/v0.1.8-release-validation.md) for the engineering and package verification scope.
+README shows the current version plus three previous versions. 0.1.9 is in development, followed by stable 0.1.8, 0.1.7 and 0.1.6. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. See [0.1.9 development validation](docs/v0.1.9-development-validation.md). Previous release checks do not establish a release of this development version.
 
 ## What changed in 0.1.9
 
 Adds optional project knowledge v3 inspection, bounded summaries and exact context exports, with project identity isolation and local Git/draft/conflict diagnostics. The independent maintenance Skill curates common rules; functional details stay in source requirements. Existing testing capabilities below remain available:
 
+- **Stage-specific testing experience.** Design guidance checks knowledge provenance/applicability; execution/recovery guidance handles changed knowledge without treating old observations as current acceptance evidence.
+- **Offline review export.** Export readable, restorable review HTML and optional JSON directly from the page, without a review server. Formal confirmation remains a separate record.
 - Whole case versions, stable IDs and same-source review; unchanged reruns add only a run.
 - points/status/full scope retains dependencies and never inherits unselected passes.
 - Official Ego download/saveAs, explicit manager reconciliation and read-only file facts.
@@ -49,7 +54,7 @@ Adds optional project knowledge v3 inspection, bounded summaries and exact conte
 - **Model provenance stays explicit.** Each report shows its corresponding stage’s model and reasoning effort in one place, retaining multiple configurations, unknown values and sources without inferring quality from model names.
 - **Readable conversations and long IDs.** Steps expose input/reply summaries and full conversation access. Long scene IDs wrap without truncation, and first-run/regression scope labels follow the actual comparison baseline.
 
-See [final design](docs/v0.1.8-design.md) and [contracts](docs/asset-formats.en.md).
+See the current [lightweight knowledge design](docs/project-knowledge-lightweight-integration-design.md), [task integration](skills/ai-autonomous-testing-ego-lite/references/project-knowledge.md) and [contracts](docs/asset-formats.en.md).
 
 Regression interfaces and behavior are documented in [regression assets](docs/regression-reuse.md) and the [usage guide](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md).
 
@@ -71,7 +76,7 @@ Network observation implements the v3 design through network start/status/query/
 
 ### Real case material and test report (redacted excerpts)
 
-These screenshots come from user-provided case material and an actual test report, preserving their original export layouts rather than redrawing simulated results. The case-review source is labeled “方案 B / 设计样稿” (Plan B / design prototype); it demonstrates that document’s review layout, not the default interface of a released 0.1.8 build. Screenshots retain the source language.
+These screenshots come from user-provided case material and an actual test report, preserving their original export layouts rather than redrawing simulated results. The case-review source is labeled “方案 B / 设计样稿” (Plan B / design prototype); it demonstrates that document’s review layout, not a new validation capture of the current 0.1.9 interface. Screenshots retain the source language.
 
 The excerpts select **2 scenarios and 7 goals** from an original run of **35 scenarios and 117 goals**: 3 verified, 1 violation, 1 inconclusive and 2 not tested. Original verdicts are preserved; the tests have not been rerun for this showcase. These counts describe only the displayed subset, not overall effectiveness or a full-run pass rate.
 
@@ -112,7 +117,7 @@ Identities, URLs, paths and related identifiers are redacted. Original full-reso
 
 ## Quick start on Windows
 
-This source example targets 0.1.8 in .build/runtime without replacing the user installation. Follow the [installation and upgrade guide (Chinese)](INSTALL.zh-CN.md), verifying the version, revision and actual loaded directory.
+This source example targets 0.1.9-dev.1 in .build/runtime without replacing the user installation. Follow the [installation and upgrade guide (Chinese)](INSTALL.zh-CN.md), verifying the version, revision and actual loaded directory.
 
 Download the full installation package, SHA-256 checksums and release notes from [v0.1.8 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8). GitHub-generated Source code archives are not full installation packages.
 
@@ -169,7 +174,7 @@ Spaces do not guarantee separate accounts or backend data. File updates are not 
 
 ![Independent workers capture evidence; the coordinator reviews and imports their packets.](docs/images/parallel.svg)
 
-Repair commit 8e6e2d9 is integrated while retaining v8 goal assessment and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-autonomous-testing-ego-lite; Claude Code uses /ai-autonomous-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
+Repair commit 8e6e2d9 is integrated while retaining goal assessment under the current v9 contract and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-autonomous-testing-ego-lite; Claude Code uses /ai-autonomous-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
 
 The default is **1 (serial)**. Without a user request for concurrency or an explicit setting, execute cases one at a time. Set `start --max-parallel-cases N` or project execution-config.json to opt in; N is a positive safe integer with no fixed 2/4/8 product ceiling. The AI chooses tool calls, batches and worker use within that limit; it need not fill all slots. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.
 

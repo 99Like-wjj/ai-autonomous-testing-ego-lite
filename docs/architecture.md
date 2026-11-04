@@ -2,6 +2,19 @@
 
 ![架构职责示意：AI、Ego 与本地工具的分工。](images/architecture.zh-CN.png)
 
+## 知识维护与测试使用的分工
+
+[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) 是独立的创建与维护工具，仓库当前私有、需已有访问权限。它将授权资料整理为源码仓库外的项目知识资产；Ego 使用自身的只读工具直接消费格式 v3，不把维护端作为查询代理。通用测试经验仍在本项目指南中，项目知识不进入测试资产账本或安装包。
+
+```mermaid
+flowchart LR
+  M[project-knowledge-maintainer] -->|create / update| K[Independent knowledge v3]
+  K -->|inspect / query / read| T[Ego knowledge tools]
+  T -->|context with provenance| A[AI plans and tests]
+  G[Generic testing experience] --> A
+  R[Current requirements and authorization] --> A
+```
+
 AI 理解需求、设计目标、探索页面、选择方法并判断业务四态；Ego 提供浏览器原语。固定代码负责准确的文件事务、引用、证据保管、确定性读取和同源呈现，不调用模型或替 AI 选择业务路径。默认并发 1，上限不是必须跑满。
 
 ```mermaid
@@ -22,7 +35,7 @@ flowchart LR
 
 ## 资料与模块
 
-knowledge/commands 提供只读检查、摘要检索与精确读取，contract/store及生成的Schema与独立维护项目的格式v3源一致。按需读取project、modules、rules、accounts四类资料；没有知识库时跳过。默认只将匹配的通用知识送入 AI 上下文，保留来源、状态、范围和本地版本局限；功能细则按任务读原需求。外部知识不属于 cases/reviews/runs 资产账本，读取不授予业务操作权限。上图保留原测试主链，知识是该主链按需读取的外部上下文。
+knowledge/commands 提供只读检查、摘要检索与精确读取，contract/store及生成的Schema与独立维护项目的格式v3源一致。按需读取project、modules、rules、accounts四类资料；没有知识库时跳过。默认只将匹配的通用知识送入 AI 上下文，保留来源、状态、范围和本地版本局限；功能细则按任务读原需求。外部知识不属于 cases/reviews/runs 资产账本，读取不授予业务操作权限。原测试主链继续保留；知识是按任务选择的外部上下文，不是强制前置阶段。
 
 core/case-versions 负责整份版本、编号和不可变发布；core/case-review 保存相邻实际意见/确认及内容指纹。资料只有用例、审阅、运行，不抽象通用 AssetStore。定义不变直接复用，规则/任务内嵌语义，问题保留原记录。
 
@@ -44,7 +57,7 @@ observation 继续按明确授权采集接口，AI 自主决定何时查询。�
 
 Schema 源文件、生成类型、代码和当前指南保持一致。旧格式不兜底读取，旧资料不搬迁或覆盖。工程、合成与实际 Ego 验证分别说明；实际业务验收需其明确授权。
 
-参见[契约](asset-formats.md)、[最终设计](v0.1.8-design.md)、[开发自测](v0.1.8-development-validation.md)及[宿主边界](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。
+参见[契约](asset-formats.md)、[当前知识设计](project-knowledge-lightweight-integration-design.md)、[当前开发自测](v0.1.9-development-validation.md)及[宿主边界](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。
 
 ## 语言与模型来源
 
