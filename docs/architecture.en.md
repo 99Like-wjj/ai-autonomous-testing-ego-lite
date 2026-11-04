@@ -1,4 +1,4 @@
-# Architecture — v9 / 0.1.9-dev.1
+# Architecture — v9 / 0.1.9
 
 ![Architecture responsibilities: AI, Ego and deterministic tools.](images/architecture.png)
 
@@ -17,7 +17,7 @@ flowchart LR
 
 knowledge/commands adds read-only inspection, task summaries and exact reads using format v3 shared with the independent maintenance project. The optional project/modules/rules/accounts categories are read on demand. Only matched common knowledge enters the AI context; sources, state, scope and local-version limits remain explicit. Functional details stay in source requirements. External knowledge is outside the cases/reviews/runs ledger and grants no operation permissions. Knowledge is optional task context, not a mandatory prerequisite or fixed business route.
 
-Current development contracts use version 9, regressionVersion 2 and networkVersion 1. AI owns interpretation, planning, exploration, action choice and business assessment. Ego owns browser primitives. Local code owns deterministic transactions, integrity, file reading and report presentation, without a business decision tree or automatic retries.
+Current contracts use version 9, regressionVersion 2 and networkVersion 1. AI owns interpretation, planning, exploration, action choice and business assessment. Ego owns browser primitives. Local code owns deterministic transactions, integrity, file reading and report presentation, without a business decision tree or automatic retries.
 
 Whole case versions, adjacent actual reviews and separate runs are the persistent units. core/case-versions allocates stable embedded point IDs within publication; case-review validates actual review provenance and necessary-definition hashes. Unchanged reruns reuse the original file. Rules and task semantics stay in cases; issues stay in run findings/assessments.
 

@@ -1,8 +1,8 @@
 {
   "knowledgeFormatVersion": 3,
   "owner": "project-knowledge-maintainer",
-  "ownerVersion": "0.1.0-dev.3",
-  "sourceCommit": "293c3778f79e2019e59f3bfdb705552d4d8a821a",
+  "ownerVersion": "0.1.0",
+  "sourceCommit": "2c2372489ec15c9e1460d1be08b0b1a8907836e0",
   "note": "V3 contract pinned to the exact maintenance source commit and per-file SHA-256.",
   "files": {
     "src/knowledge/contract.mts": {

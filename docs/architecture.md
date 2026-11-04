@@ -1,4 +1,4 @@
-# 架构与职责（v9 / 0.1.9-dev.1）
+# 架构与职责（v9 / 0.1.9）
 
 ![架构职责示意：AI、Ego 与本地工具的分工。](images/architecture.zh-CN.png)
 

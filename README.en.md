@@ -28,17 +28,17 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ## Current version
 
-This development version also makes review export fully offline and removes the review server. Open the local HTML to export readable, restorable review HTML or optional JSON. See [offline export validation](docs/v0.1.9-offline-review-export-validation.md).
+This version also makes review export fully offline and removes the review server. Open the local HTML to export readable, restorable review HTML or optional JSON. See [offline export validation](docs/v0.1.9-offline-review-export-validation.md).
 
-Source development version is **0.1.9-dev.1 / project-knowledge-3**, not formally released. Knowledge v3 keeps structured maps/rules and uses lightweight user-provided project/account records; exact context exports retain provenance; functional details remain in source requirements. Test contracts stay at v9. See [development validation](docs/v0.1.9-development-validation.md). The last stable package remains [v0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8).
+The current stable version is **0.1.9 / project-knowledge-3**. Knowledge v3 keeps structured maps/rules and uses lightweight user-provided project/account records; exact context exports retain provenance; functional details remain in source requirements. Test contracts stay at v9. See [development validation](docs/v0.1.9-development-validation.md). Get the stable package from [v0.1.9](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9); see [release validation and limits](docs/v0.1.9-release-validation.md).
 
 Invoke `$ai-autonomous-testing-ego-lite`. Complete packages include Skill guidance, compiled Node ESM tools, schemas, examples and an integrity manifest. Source is TypeScript; installed use requires Node.js >=22.
 
 ## Version evolution
 
-![Newest first: v0.1.9 in development, then stable v0.1.8, v0.1.7 and v0.1.6. Capability illustration only.](docs/images/readme-version-history.png)
+![Newest first: stable v0.1.9, then stable v0.1.8, v0.1.7 and v0.1.6. Capability illustration only.](docs/images/readme-version-history.png)
 
-README shows the current version plus three previous versions. 0.1.9 is in development, followed by stable 0.1.8, 0.1.7 and 0.1.6. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. See [0.1.9 development validation](docs/v0.1.9-development-validation.md). Previous release checks do not establish a release of this development version.
+README shows the current version plus three previous versions. 0.1.9 is the current stable version, followed by stable 0.1.8, 0.1.7 and 0.1.6. [Full version history](docs/version-history.en.md) retains older releases. Hero, workflow, architecture, concurrency and report illustrations now describe this version, not real test evidence. See [0.1.9 release validation](docs/v0.1.9-release-validation.md). Historical development records retain their original scope.
 
 ## What changed in 0.1.9
 
@@ -117,9 +117,9 @@ Identities, URLs, paths and related identifiers are redacted. Original full-reso
 
 ## Quick start on Windows
 
-This source example targets 0.1.9-dev.1 in .build/runtime without replacing the user installation. Follow the [installation and upgrade guide (Chinese)](INSTALL.zh-CN.md), verifying the version, revision and actual loaded directory.
+This source example targets 0.1.9 in .build/runtime without replacing the user installation. Follow the [installation and upgrade guide (Chinese)](INSTALL.zh-CN.md), verifying the version, revision and actual loaded directory.
 
-Download the full installation package, SHA-256 checksums and release notes from [v0.1.8 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8). GitHub-generated Source code archives are not full installation packages.
+Download the full installation package, SHA-256 checksums and release notes from [v0.1.9 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9). GitHub-generated Source code archives are not full installation packages.
 
 Prepare Ego and the official ego-browser Skill using the [official guide](https://lite.ego.app/document/en/docs/windows/quick-start). This project does not install or replace Ego. Case design alone requires no browser connection.
 
@@ -129,7 +129,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.9-dev.1 --expect-revision project-knowledge-3
+node $Tool tool-info --expect-version 0.1.9 --expect-revision project-knowledge-3
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))
@@ -180,7 +180,7 @@ The default is **1 (serial)**. Without a user request for concurrency or an expl
 
 ## Requirements and implementation boundaries
 
-0.1.9 is in local development and self-test; see [current validation](docs/v0.1.9-development-validation.md). The previous stable 0.1.8 [requirements](docs/v0.1.8-requirements.md), [research](docs/v0.1.8-feasibility-research.md) and [preview](docs/v0.1.8-preview.en.md) remain design history, not proof that every proposal shipped. Later releases must retain the actual verification limits.
+0.1.9 is the current stable version; see [release validation and limits](docs/v0.1.9-release-validation.md). The previous stable 0.1.8 [requirements](docs/v0.1.8-requirements.md), [research](docs/v0.1.8-feasibility-research.md) and [preview](docs/v0.1.8-preview.en.md) remain design history, not proof that every proposal shipped. Later releases must retain the actual verification limits.
 
 ## Further reading
 

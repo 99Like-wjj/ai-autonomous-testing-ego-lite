@@ -1,6 +1,6 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.9-dev.1",
+  "version": "0.1.9",
   "egoLiteTest": {
     "toolRevision": "project-knowledge-3",
     "formatVersions": {

@@ -1,4 +1,4 @@
-# Contracts — v9 / 0.1.9-dev.1
+# Contracts — v9 / 0.1.9
 
 Retained from 0.1.8: optional Observation.phase, Assessment.display and ActionFact inputSummary/replySummary/inputPresentation/conversations. Facts and four-state judgments remain separate. Missing data is not inferred from plans. conversationVersion 1 records provider-neutral messages, source references, fidelity, coverage and completion basis; see schemas/conversation.schema.json and examples/conversation.example.json. Local source IDs map to retained same-case originals through metadata.conversationSources; parallel imports remap external IDs without changing artifact bytes. Limits: 8MiB per artifact and 262144 UTF-16 code units per message. Explicitly scoped parts are authored by AI rather than silently truncated.
 

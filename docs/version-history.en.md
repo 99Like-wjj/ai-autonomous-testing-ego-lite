@@ -4,11 +4,11 @@
 
 The AI interprets goals and judges business outcomes, Ego operates the browser, and local tools retain evidence and deliver reports.
 
-![Newest first: 0.1.9 development, followed by historical 0.1.8 through 0.1.2; capability illustration only.](images/version-history.png)
+![Newest first: 0.1.9 stable, followed by historical 0.1.8 through 0.1.2; capability illustration only.](images/version-history.png)
 
-## v0.1.9 · Project knowledge, testing experience and offline review export (development, not released)
+## v0.1.9 · Project knowledge, testing experience and offline review export (Stable release)
 
-0.1.9-dev.1 adds optional knowledge v3 lookup across structured rules/maps and lightweight project/account records and task-scoped use; main contracts stay v9. See [development validation](v0.1.9-development-validation.md). No formal release package, tag or release has been created.
+0.1.9 adds optional knowledge v3 lookup across structured rules/maps and lightweight project/account records and task-scoped use; main contracts stay v9. See [development validation](v0.1.9-development-validation.md). The stable package is available from [v0.1.9 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9); see [release validation](v0.1.9-release-validation.md).
 
 This version also strengthens knowledge-related design/execution guidance and supports offline review HTML/JSON exports. The companion [project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) creates and updates knowledge; Ego reads format v3 directly. The maintenance repository is private; this link does not grant access.
 

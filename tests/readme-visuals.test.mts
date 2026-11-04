@@ -48,9 +48,9 @@ test('README timeline contains four versions and labels the current release cons
  test('current illustrations explain report and regression boundaries in both languages', async () => {
   for (const suffix of ['', '.zh-CN']) {
     const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
-    assert.match(await read('hero'), /0\.1\.9-dev\.1/);
-    assert.match(await read('hero'), /DEVELOPMENT|开发中/);
-    assert.match(await read('hero'), /NOT RELEASED|未发布/);
+    assert.match(await read('hero'), /0\.1\.9/);
+    assert.match(await read('hero'), /STABLE RELEASE|正式版本/);
+    assert.doesNotMatch(await read('hero'), /NOT RELEASED|未发布|dev\.1/);
     assert.match(await read('workflow'), /whole scenarios|整条场景/);
     assert.match(await read('workflow'), /not automatically replayed|不自动重放/);
     assert.match(await read('result-specimen'), /NOT A REAL REPORT SCREENSHOT|非真实报告截图/);
