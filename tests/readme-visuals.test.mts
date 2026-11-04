@@ -152,13 +152,27 @@ test('knowledge maintenance is separate from direct Ego reading in bilingual gui
     assert.match(page, /私有|private/);
     assert.match(page, /knowledge inspect\/query\/read/);
     assert.ok(page.indexOf('https://github.com/99Like-wjj/project-knowledge-maintainer') < page.indexOf('## 当前版本') || file === 'README.en.md' && page.indexOf('https://github.com/99Like-wjj/project-knowledge-maintainer') < page.indexOf('## Current version'));
+    assert.ok(page.indexOf('https://github.com/99Like-wjj/project-knowledge-maintainer') < page.indexOf(suffix ? '## 设计理念' : '## Design philosophy'));
     assert.doesNotMatch(page, /以下为上一正式版|Retained capabilities and sources from the previous stable/);
     for (const name of ['design-philosophy', 'architecture', 'workflow']) {
       const svg = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
-      assert.match(svg, /project-knowledge-maintainer/);
-      assert.match(svg, /Independent knowledge v3|独立项目知识 v3/);
+      assert.match(svg, /project-knowledge-maintainer|项目知识库维护 Skill/);
+      assert.match(svg, /Independent project knowledge|独立项目知识库/);
       assert.match(svg, /Ego reads directly|Ego 直接按需读取/);
       assert.match(svg, /No maintenance query proxy|不经维护端代理查询/);
+      assert.doesNotMatch(svg, /knowledge v3|知识 v3|知识格式\s*v3/i);
+      if (suffix) { assert.doesNotMatch(svg, /project-knowledge-maintainer|knowledge inspect/); assert.match(svg, /检查 · 查询 · 读取/); }
+      if (name === 'design-philosophy') assert.match(svg, /data-diagram-role="knowledge-input-to-ai"/);
+      if (name === 'workflow') assert.ok(svg.indexOf('knowledge-before-testing') < svg.indexOf('translate(0 250)'));
     }
+  }
+});
+
+
+test('promotional diagrams avoid coupling labels to the knowledge schema version', async () => {
+  const images = path.join(SOURCE_ROOT, 'docs/images');
+  for (const name of (await fs.readdir(images)).filter(name => name.endsWith('.svg'))) {
+    const svg = await fs.readFile(path.join(images, name), 'utf8');
+    assert.doesNotMatch(svg, /knowledge(?: format)?\s*v3|知识(?:格式)?\s*v3/i, name);
   }
 });

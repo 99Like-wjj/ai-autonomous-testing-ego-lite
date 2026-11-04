@@ -6,6 +6,14 @@
 
 **An AI-led Web testing Skill built on Ego Lite.** For first launches, new features and regression, using existing cases or cases generated from requirements.
 
+## Companion tool: project knowledge maintenance
+
+[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) creates and updates project knowledge. Ego reads, queries and uses that independent asset during testing through shared **knowledge format v3**; the maintenance Skill is not a runtime query proxy. The maintenance repository is currently private and requires existing access. An inaccessible link does not disable other Ego testing capabilities.
+
+First, use the maintenance Skill with authorized materials and keep its output in a private directory outside source repositories. Then give Ego that directory and an independently confirmed project identity, using `knowledge inspect/query/read` on demand. Read again after updates; frozen cases and historical results are not rewritten. Maintenance is not required on every test run, and tasks can continue from existing sources without a knowledge base.
+
+Generic testing experience stays in Ego’s separate design/execution guides. Project maps, common rules and user-declared configuration/account notes stay in the knowledge base. Configuration uses lightweight records, not a mandatory permission matrix; feature-specific details remain in source requirements. Real knowledge, business materials and credentials are never shipped with either Skill. See the [knowledge usage guide (Chinese)](skills/ai-autonomous-testing-ego-lite/references/project-knowledge.md).
+
 ## Design philosophy: AI leads, tools provide capabilities
 
 AI leads the testing: understanding requirements, designing cases, exploring pages, choosing actions and verification methods, and judging results from actual evidence. We provide composable capabilities, testing guidance and experience references to support this work, rather than a fixed process that decides every step for the AI.
@@ -16,15 +24,7 @@ AI leads the testing: understanding requirements, designing cases, exploring pag
 
 As models improve, we aim to let AI use these capabilities more effectively. Actual testing quality must still be verified; a model upgrade does not guarantee improvement.
 
-![AI at the center selects parallel capabilities and adapts to factual feedback, not a fixed execution sequence.](docs/images/design-philosophy.png)
-
-## Companion tool: project knowledge maintenance
-
-[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) creates and updates project knowledge. Ego reads, queries and uses that independent asset during testing through shared **knowledge format v3**; the maintenance Skill is not a runtime query proxy. The maintenance repository is currently private and requires existing access. An inaccessible link does not disable other Ego testing capabilities.
-
-First, use the maintenance Skill with authorized materials and keep its output in a private directory outside source repositories. Then give Ego that directory and an independently confirmed project identity, using `knowledge inspect/query/read` on demand. Read again after updates; frozen cases and historical results are not rewritten. Maintenance is not required on every test run, and tasks can continue from existing sources without a knowledge base.
-
-Generic testing experience stays in Ego’s separate design/execution guides. Project maps, common rules and user-declared configuration/account notes stay in the knowledge base. Configuration uses lightweight records, not a mandatory permission matrix; feature-specific details remain in source requirements. Real knowledge, business materials and credentials are never shipped with either Skill. See the [knowledge usage guide (Chinese)](skills/ai-autonomous-testing-ego-lite/references/project-knowledge.md).
+![Goals and optional project knowledge provide AI context; AI selects capabilities and adapts to factual feedback.](docs/images/design-philosophy.png)
 
 ## Current version
 

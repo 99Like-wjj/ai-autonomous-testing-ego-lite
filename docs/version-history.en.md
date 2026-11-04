@@ -6,7 +6,7 @@ The AI interprets goals and judges business outcomes, Ego operates the browser, 
 
 ![Newest first: 0.1.9 development, followed by historical 0.1.8 through 0.1.2; capability illustration only.](images/version-history.png)
 
-## v0.1.9 · Project common knowledge (development, not released)
+## v0.1.9 · Project knowledge, testing experience and offline review export (development, not released)
 
 0.1.9-dev.1 adds optional knowledge v3 lookup across structured rules/maps and lightweight project/account records and task-scoped use; main contracts stay v9. See [development validation](v0.1.9-development-validation.md). No formal release package, tag or release has been created.
 
