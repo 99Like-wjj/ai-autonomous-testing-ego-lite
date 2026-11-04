@@ -39,7 +39,7 @@ test('README timeline contains four versions and labels the current release cons
     else {
       assert.ok(readme.includes(pkg.version));
       assert.equal(versions[1], stable);
-      assert.match(svg, /RC\.2 · NOT RELEASED|候选 rc\.2 · 未发布/);
+      assert.match(svg, /DEV\.1 · NOT RELEASED|开发 dev\.1 · 未发布/);
     }
     assert.ok((await fs.stat(path.join(SOURCE_ROOT, `docs/images/version-history${suffix}.svg`))).size > 0);
   }
@@ -48,9 +48,9 @@ test('README timeline contains four versions and labels the current release cons
  test('current illustrations explain report and regression boundaries in both languages', async () => {
   for (const suffix of ['', '.zh-CN']) {
     const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
-    assert.match(await read('hero'), /0\.1\.8/);
+    assert.match(await read('hero'), /0\.1\.9/);
     assert.match(await read('hero'), /STABLE RELEASE|正式版本/);
-    assert.doesNotMatch(await read('hero'), /RC\.2|NOT RELEASED|未发布/);
+    assert.doesNotMatch(await read('hero'), /NOT RELEASED|未发布|dev\.1/);
     assert.match(await read('workflow'), /whole scenarios|整条场景/);
     assert.match(await read('workflow'), /not automatically replayed|不自动重放/);
     assert.match(await read('result-specimen'), /NOT A REAL REPORT SCREENSHOT|非真实报告截图/);
@@ -91,10 +91,10 @@ test('version history pages and diagrams list developed versions newest first, e
     const full = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/version-history${suffix}.svg`), 'utf8');
     const recent = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/readme-version-history${suffix}.svg`), 'utf8');
     const versions = (svg: string) => [...svg.matchAll(/>v(\d+\.\d+\.\d+)</g)].map(match => match[1]);
-    assert.deepEqual(versions(full), ['0.1.8', '0.1.7', '0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2']);
-    assert.deepEqual(versions(recent), ['0.1.8', '0.1.7', '0.1.6', '0.1.5']);
+    assert.deepEqual(versions(full), ['0.1.9', '0.1.8', '0.1.7', '0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2']);
+    assert.deepEqual(versions(recent), ['0.1.9', '0.1.8', '0.1.7', '0.1.6']);
     const page = await fs.readFile(path.join(SOURCE_ROOT, suffix ? 'docs/version-history.md' : 'docs/version-history.en.md'), 'utf8');
-    assert.deepEqual([...page.matchAll(/^## v(\d+\.\d+\.\d+)/gm)].map(match => match[1]), ['0.1.8', '0.1.7', '0.1.6', '0.1.5']);
+    assert.deepEqual([...page.matchAll(/^## v(\d+\.\d+\.\d+)/gm)].map(match => match[1]), ['0.1.9', '0.1.8', '0.1.7', '0.1.6', '0.1.5']);
     assert.match(page,/0\.1\.8.*(?:正式版本|Stable release)/);
   }
 });
@@ -102,7 +102,7 @@ test('version history pages and diagrams list developed versions newest first, e
 test('approved philosophy precedes version details and architecture visuals remain available', async () => {
   for (const [readme, philosophy, version, architecture, suffix] of [
     ['README.md', '## 设计理念：AI 主导，工具提供能力', '## 当前版本', 'docs/architecture.md', '.zh-CN'],
-    ['README.en.md', '## Design philosophy: AI leads, tools provide capabilities', '## Current release', 'docs/architecture.en.md', '']
+    ['README.en.md', '## Design philosophy: AI leads, tools provide capabilities', '## Current version', 'docs/architecture.en.md', '']
   ] as const) {
     const page = await fs.readFile(path.join(SOURCE_ROOT, readme), 'utf8');
     assert.equal(page.split(philosophy).length - 1, 1);
@@ -142,4 +142,37 @@ test('README shows reviewed real excerpts rather than a simulated report diagram
   }
   const files = await fs.readdir(path.join(SOURCE_ROOT, 'docs/images/real-example'));
   assert.deepEqual(files.sort(), realExamples.map(name => `${name}.jpg`).sort());
+});
+
+
+test('knowledge maintenance is separate from direct Ego reading in bilingual guides and diagrams', async () => {
+  for (const [file, suffix] of [['README.md', '.zh-CN'], ['README.en.md', '']] as const) {
+    const page = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
+    assert.match(page, /https:\/\/github.com\/99Like-wjj\/project-knowledge-maintainer/);
+    assert.match(page, /私有|private/);
+    assert.match(page, /knowledge inspect\/query\/read/);
+    assert.ok(page.indexOf('https://github.com/99Like-wjj/project-knowledge-maintainer') < page.indexOf('## 当前版本') || file === 'README.en.md' && page.indexOf('https://github.com/99Like-wjj/project-knowledge-maintainer') < page.indexOf('## Current version'));
+    assert.ok(page.indexOf('https://github.com/99Like-wjj/project-knowledge-maintainer') < page.indexOf(suffix ? '## 设计理念' : '## Design philosophy'));
+    assert.doesNotMatch(page, /以下为上一正式版|Retained capabilities and sources from the previous stable/);
+    for (const name of ['design-philosophy', 'architecture', 'workflow']) {
+      const svg = await fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
+      assert.match(svg, /project-knowledge-maintainer|项目知识库维护 Skill/);
+      assert.match(svg, /Independent project knowledge|独立项目知识库/);
+      assert.match(svg, /Ego reads directly|Ego 直接按需读取/);
+      assert.match(svg, /No maintenance query proxy|不经维护端代理查询/);
+      assert.doesNotMatch(svg, /knowledge v3|知识 v3|知识格式\s*v3/i);
+      if (suffix) { assert.doesNotMatch(svg, /project-knowledge-maintainer|knowledge inspect/); assert.match(svg, /检查 · 查询 · 读取/); }
+      if (name === 'design-philosophy') assert.match(svg, /data-diagram-role="knowledge-input-to-ai"/);
+      if (name === 'workflow') assert.ok(svg.indexOf('knowledge-before-testing') < svg.indexOf('translate(0 250)'));
+    }
+  }
+});
+
+
+test('promotional diagrams avoid coupling labels to the knowledge schema version', async () => {
+  const images = path.join(SOURCE_ROOT, 'docs/images');
+  for (const name of (await fs.readdir(images)).filter(name => name.endsWith('.svg'))) {
+    const svg = await fs.readFile(path.join(images, name), 'utf8');
+    assert.doesNotMatch(svg, /knowledge(?: format)?\s*v3|知识(?:格式)?\s*v3/i, name);
+  }
 });

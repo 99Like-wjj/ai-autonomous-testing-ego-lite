@@ -1,8 +1,8 @@
 {
   "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "egoLiteTest": {
-    "toolRevision": "report-language-model-1",
+    "toolRevision": "project-knowledge-3",
     "formatVersions": {
       "cases": 9,
       "manifest": 9,
@@ -15,7 +15,8 @@
       "executionRead": 9
     },
     "networkFormatVersion": 1,
-    "regressionVersion": 2
+    "regressionVersion": 2,
+    "knowledgeFormatVersion": 3
   },
   "description": "AI autonomous Web test automation with Ego Lite: evidence-driven planning, execution and offline HTML reports.",
   "private": true,
@@ -37,6 +38,7 @@
     "check:ui": "npm run build:bootstrap && node .build/bootstrap/tools/generate-ui-catalog.mjs --check"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "22.20.5",
     "esbuild": "0.28.2",
     "json-schema-to-typescript": "16.0.0",

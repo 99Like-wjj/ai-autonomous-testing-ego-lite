@@ -93,6 +93,13 @@
   - 检索别名：请求、响应、动作回执、下载事件
   - 正文位置：[按需获取可区分解释的观察](experience-execution.md#e-targeted-observation)
 
+- 标识：E-KNOWLEDGE
+  - 阶段：执行
+  - 主题：历史知识与冻结预期的变化
+  - 触发线索：恢复测试或知识库更新后，条件或规则可能变化
+  - 检索别名：知识库、最新版本、已提交、草案、规则变化
+  - 正文位置：[历史知识与冻结预期的变化](experience-execution.md#e-knowledge)
+
 ## 共用规范
 
 权限、资源和实际澄清见 [资源充分性](resource-readiness.md) 与 [Ego 边界](ego-usage-boundaries.md)；结论与替代解释见 [判断与归因](judgment-and-diagnosis.md)；截图、首次异常和未测范围见 [证据与报告](evidence-and-report.md)。只读是维护约定，不代表 OS 强制保护。经验查阅本身不新增接口监控工具，也不为查经验调用额外模型；项目现有接口观测能力见[接口观测指南](network-observation.md)。

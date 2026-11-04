@@ -6,7 +6,7 @@
 
 AI 撰写的标题、步骤、观察、理由、缺口、诊断、问题描述及阅读摘要使用选定语言。原始证据、产品报错、对话原文、代码和标识符保持原样；解释使用报告语言。工具不翻译业务事实，不调用其他模型。
 
-`cases render`、`cases serve`和`report`可接收`--presentation ABS_JSON`，该文件包含`language`（BCP 47语言标签）和`messages`（固定文案映射）。查看工具同版本`report/ui-catalog.mjs`的`uiMessageKeys`，为目标语言提供全部键的纯文本值；也可参考同版本的`examples/presentation-en.json`。键是模板原文标识，值是目标语言文案，不包含HTML。模板插值、业务内容和证据不经过文案替换。
+`cases render`和`report`可接收`--presentation ABS_JSON`，该文件包含`language`（BCP 47语言标签）和`messages`（固定文案映射）。查看工具同版本`report/ui-catalog.mjs`的`uiMessageKeys`，为目标语言提供全部键的纯文本值；也可参考同版本的`examples/presentation-en.json`。键是模板原文标识，值是目标语言文案，不包含HTML。模板插值、业务内容和证据不经过文案替换。
 
 中文源模板可使用`{"language":"zh-CN","messages":{}}`；这是源模板调用示例，不是用户语言的默认选择。未传展示参数的底层调用保留源模板语言，AI应为本次选定语言显式提供展示参数。指定其他语言却缺少文案会明确报出缺项，不退回中文。用户要求其他语言时，由当前AI提供相同结构的完整文案，不限于中英两种语言。
 
@@ -23,6 +23,6 @@ AI 撰写的标题、步骤、观察、理由、缺口、诊断、问题描述�
 
 同一阶段有多种模型或等级时保留所有贡献来源，在该报告的一处位置展开明细；不把用例生成模型、历史父运行模型或纯文件渲染调用者混入本轮执行来源。工作包保留实际执行者，协调者不覆盖为自身配置。重取幂等回执沿用原请求来源。
 
-已发布用例定义未改时保留原生成者。为旧用例补充已核实来源，可向`cases render`或`cases serve`传`--ai-context ABS_JSON`：文件为`{cases:{projectId,caseVersion,sha256},aiContext:{uses:[...]}}`，必须精确匹配原件；文档明确标注事后补充，不改用例、编号或审阅。纯重新渲染不填写新的模型贡献。
+已发布用例定义未改时保留原生成者。为旧用例补充已核实来源，可向`cases render`传`--ai-context ABS_JSON`：文件为`{cases:{projectId,caseVersion,sha256},aiContext:{uses:[...]}}`，必须精确匹配原件；文档明确标注事后补充，不改用例、编号或审阅。纯重新渲染不填写新的模型贡献。
 
 模型和思考等级是来源事实，不能据其名称或max自动判定业务正确或适合该难度。

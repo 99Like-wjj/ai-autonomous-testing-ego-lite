@@ -1,8 +1,23 @@
-# Architecture — v9 / 0.1.8
+# Architecture — v9 / 0.1.9
 
 ![Architecture responsibilities: AI, Ego and deterministic tools.](images/architecture.png)
 
-Current development contracts use version 9, regressionVersion 2 and networkVersion 1. AI owns interpretation, planning, exploration, action choice and business assessment. Ego owns browser primitives. Local code owns deterministic transactions, integrity, file reading and report presentation, without a business decision tree or automatic retries.
+## Knowledge maintenance and test-time use
+
+[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) is an independent creation/maintenance tool; its repository is private and requires existing access. It curates authorized materials into project knowledge outside source repositories. Ego reads format v3 directly with its own tools, not through a maintenance query proxy. Generic testing experience stays in Ego guidance; project knowledge is neither part of the test ledger nor shipped in an installation package.
+
+```mermaid
+flowchart LR
+  M[project-knowledge-maintainer] -->|create / update| K[Independent knowledge v3]
+  K -->|inspect / query / read| T[Ego knowledge tools]
+  T -->|context with provenance| A[AI plans and tests]
+  G[Generic testing experience] --> A
+  R[Current requirements and authorization] --> A
+```
+
+knowledge/commands adds read-only inspection, task summaries and exact reads using format v3 shared with the independent maintenance project. The optional project/modules/rules/accounts categories are read on demand. Only matched common knowledge enters the AI context; sources, state, scope and local-version limits remain explicit. Functional details stay in source requirements. External knowledge is outside the cases/reviews/runs ledger and grants no operation permissions. Knowledge is optional task context, not a mandatory prerequisite or fixed business route.
+
+Current contracts use version 9, regressionVersion 2 and networkVersion 1. AI owns interpretation, planning, exploration, action choice and business assessment. Ego owns browser primitives. Local code owns deterministic transactions, integrity, file reading and report presentation, without a business decision tree or automatic retries.
 
 Whole case versions, adjacent actual reviews and separate runs are the persistent units. core/case-versions allocates stable embedded point IDs within publication; case-review validates actual review provenance and necessary-definition hashes. Unchanged reruns reuse the original file. Rules and task semantics stay in cases; issues stay in run findings/assessments.
 
@@ -16,9 +31,9 @@ report/history retains exact source-run provenance outside current evidence/coun
 
 core/conversations and conversation-store validate conversationVersion 1, retained-source mappings, exact quotations and actual-action ownership. Imports remap external IDs without rewriting message bytes. The explicit capture-text helper reads AI-selected DOM nodes and records scope rather than detecting site protocols or deciding completion/business success. report/conversations produces registered or retrospective views; the selected conversation drawer/fullscreen reader presents step summaries, message/source fidelity and coverage. Markdown parsing/sanitization is bundled offline; foreign HTML and remote images are not executed/loaded. reviewability emits structural prompts without choosing verdicts or further actions.
 
-case-reader provides the scene/case overview and three-column review workbench. The optional review-session listens only on a private capability-scoped 127.0.0.1 path, with case input and output directory fixed by the CLI. review-export validates and writes readable HTML/JSON natively, avoiding browser download-zone metadata. It makes no model calls, browser actions or approval registrations. Offline reading and browser drafts remain separate from formal reviews; see [review saving](v0.1.8-case-review.md).
+case-reader provides the scene/case overview and three-column workbench. review-ui generates readable review HTML with embedded feedback, or optional JSON, directly in the offline page. File-picker saving and explicit downloading need no server. review-feedback-document is shared by the browser and optional CLI; review-export handles CLI file transactions only. Drafts and exported feedback remain separate from formal reviews; see [offline review export](case-review.md).
 
-See [contracts](asset-formats.en.md), [regression reuse](regression-reuse.md) and [development validation](v0.1.8-development-validation.md). Historical user data is not migrated or overwritten.
+See [contracts](asset-formats.en.md), [regression reuse](regression-reuse.md) and [current development validation](v0.1.9-development-validation.md). Historical user data is not migrated or overwritten.
 
 ## Report language and model provenance
 

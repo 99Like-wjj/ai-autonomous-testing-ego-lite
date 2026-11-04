@@ -1,4 +1,4 @@
-# 数据契约（v9 / 0.1.8）
+# 数据契约（v9 / 0.1.9）
 
 当前开发版主契约 v9、regressionVersion 2、networkVersion 1。源码 Schema 是外部结构定义，运行时同时验证引用、内容指纹与事务语义；类型从 Schema 生成，不直接改生成文件。工程通过不是业务验收。
 
@@ -14,7 +14,7 @@ requiredRefs 使用 condition:id、step:id、requiredPath。points 投影保留�
 
 ## 审阅与冻结
 
-用例HTML/Markdown采用documentVersion 2的内部展示模型：场景/用例总览、三栏评审和可选initialFeedback副本。它不改变v9用例定义、编号或用例指纹。新文档写入新目录，旧文件原样保留。cases serve和cases export-review原生保存意见HTML/JSON及exportVersion 1交付清单；这些是意见副本，不是相邻正式审阅记录。来源与范围校验、Windows区域标记处理及私有本机入口见[审阅保存说明](case-review.md)。
+用例HTML/Markdown采用documentVersion 2的内部展示模型：场景/用例总览、三栏评审和可选initialFeedback副本；用例定义、编号、v9及原字节指纹不变。新文档写入新目录。离线HTML自行导出可读评审HTML，唯一review-feedback-data惰性JSON区保存完整v9反馈，可选单独JSON；它们不是正式审阅。cases export-review是可选CLI，另附exportVersion 1交付清单；页面不依赖该命令或服务器。范围、恢复及Windows验证边界见[离线评审导出](case-review.md)。
 
 case-review 保存精确 casesRef、reviewNumber、pointIds、工具计算的目标指纹、意见、实际 source/sourceKind、委托来源及记录指纹。离线反馈字段不是人类身份认证。较新的修改要求不能挑旧确认绕过；未改目标可按指纹复用旧确认。
 
@@ -63,3 +63,11 @@ v9在用例、RecordPayload及report-context中增加可选aiContext，uses项�
 用例文档读取已保存生成来源；可用--ai-context传入精确casesRef绑定的事后补充，并保留其指纹。执行报告仅汇总本轮入账和本次阅读整理的来源，形成一处test_execution展示，不混入用例生成或历史父运行配置。两阶段及展示规则见ToolRoot/references/report-language-model.md 使用指南。
 
 新增字段和展示需配套当前工具修订；旧工具可能拒绝新增字段。已有文件不自动改写，旧HTML可独立阅读，精确校验旧展示应使用原工具修订。补充或换语言时另存新文件。
+
+## 项目知识格式 v3
+
+知识独立使用knowledgeFormatVersion 3，读取结果为knowledgeReadVersion 3，不改变测试主契约v9。knowledge.json只标识项目；project.json与accounts.json都是{"items":[]}，每条仅id/title必填，summary/tags/description/properties可选。自定义属性原样保留，不绑定环境、角色或组织档案。
+
+feature-map.json直接写模块所属应用/页面和入口；rules保留完整规则/角色正文、来源与确认状态，appliesTo自然语言说明适用范围。配置是用户声明，不套规则确认状态。Source版本与SHA独立保留。
+
+知识是可选上下文。缺账号/配置不自动生成全项目准备任务；query先读摘要，read再展开详情，实际适用性由AI判断。JSON损坏与合法空集合分别说明。旧格式不兼容、不转换或自动覆盖；历史资料保留。

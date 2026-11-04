@@ -11,6 +11,13 @@ import { objectValue } from './support.mjs';
 
 const exec = promisify(execFile);
 
+test('review export no longer exposes or accepts a server command', async () => {
+  const entry = path.join(TOOL_ROOT, 'scripts/ego.mjs');
+  const help = await exec(process.execPath, [entry, '--help']);
+  assert.doesNotMatch(help.stdout, /cases serve|idle-minutes/);
+  await assert.rejects(exec(process.execPath, [entry, 'cases', 'serve']), /Unknown cases action/);
+});
+
 async function fixture(t: TestContext) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'ego-cli-entrypoint-'));
   const link = path.join(root, 'linked skill with spaces');

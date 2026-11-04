@@ -6,6 +6,14 @@
 
 **基于 Ego Lite 的 AI 自主 Web 测试 Skill。** 面向新项目首次上线、新功能交付和已有功能回归，支持接收现成用例或根据需求生成用例。
 
+## 配套工具：项目知识库维护 Skill
+
+[project-knowledge-maintainer](https://github.com/99Like-wjj/project-knowledge-maintainer) 负责创建、维护和更新项目知识库。本仓库负责在测试时按需读取、查询和使用知识，二者通过独立的**项目知识格式 v3**协作，而不是相互代理调用。维护仓库目前为私有，需要已有访问权限；链接不可访问不影响 Ego 的其他测试能力。
+
+使用顺序：先在授权范围内由维护 Skill 整理项目资料，保存到源码仓库外的私有知识目录；再向 Ego 提供该目录及独立确认的项目身份，按需调用 `knowledge inspect/query/read`。更新知识后重新读取，不自动改写已冻结用例或历史结果。无需在每次测试中调用维护 Skill；没有知识库时继续已有资料支持的工作。
+
+通用测试经验留在 Ego 的设计/执行指南中，项目特有地图、公共规则和用户声明的配置/账号说明留在知识库中。配置是轻量记录，不强制建立权限矩阵；功能细则仍按任务读取原始需求。真实知识、原始业务资料和凭据不随任何 Skill 发布。详见[知识使用指南](skills/ai-autonomous-testing-ego-lite/references/project-knowledge.md)。
+
 ## 设计理念：AI 主导，工具提供能力
 
 本项目由 AI 主导自动化测试。AI 负责理解需求、设计用例、自主探索页面、选择操作与验证方法，并依据实际证据判断结果。我们提供可按需组合的具体能力工具，以及测试规范和经验参考，帮助 AI 完成工作，而不是用固定流程替它决定每一步。
@@ -16,24 +24,28 @@
 
 我们希望随着模型能力提升，让 AI 更好地运用这些能力完成测试；实际效果仍通过验证来判断，不预设升级就一定更好。
 
-![AI 位于中心，按需调用并列能力并根据事实反馈调整方法；不是固定执行顺序。](docs/images/design-philosophy.zh-CN.png)
+![需求目标与可选项目知识共同提供 AI 上下文；AI 按需调用并列能力，并根据事实反馈调整方法。](docs/images/design-philosophy.zh-CN.png)
 
 ## 当前版本
 
-当前版本为 **0.1.8 / report-language-model-1**。按已确认的轻量设计开发用例版本与人工审阅、稳定编号重测、官方下载取证和文件检查、历次报告对照。新增场景/用例总览、三栏评审、报告同款背景，以及避开浏览器下载区域标记的本机意见保存。主契约 v9、regressionVersion 2、networkVersion 1。正式发布、安装包与校验值见 [0.1.8](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。范围见[开发自测](docs/v0.1.8-development-validation.md)和[审阅修复说明](docs/v0.1.8-case-review.md)，构建不自动更新已安装 Skill。当前修订增加[报告语言与两阶段模型来源](docs/v0.1.8-report-language-model-design.md)、长编号布局及首次执行范围文案。
+本版另将评审结果导出改为完整离线能力，移除审阅服务器；直接打开HTML可导出可读、可恢复的评审HTML及可选JSON。范围和验证见[离线导出自测](docs/v0.1.9-offline-review-export-validation.md)。
 
-新增通用对话证据、每步输入/回复摘要和方案2完整对话侧栏；四层质量改进覆盖预期/时机核对、原文取证、可读描述和来源校验，详见[本次设计及验证](docs/v0.1.8-conversation-review.md)。主契约仍为v9，独立对话格式为conversationVersion 1；历史运行与报告不改写。
+当前正式版本为 **0.1.9 / project-knowledge-3**。项目知识v3保留结构化地图/规则，账号与项目配置改为用户提供的轻量记录，支持按需读取和精确摘录；无知识库时继续已有资料支持的任务。功能细则仍按需读取需求，测试主契约保持 v9。开发范围与验证见[开发自测](docs/v0.1.9-development-validation.md)。正式安装包见 [v0.1.9](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9)，本轮验证与限制见[发布验证](docs/v0.1.9-release-validation.md)。
 
 Skill 标识为 `ai-autonomous-testing-ego-lite`，显式调用 `$ai-autonomous-testing-ego-lite`。完整包提供 Skill、指南、Node ESM 工具、schema、示例和文件清单。源码维护 TypeScript，安装使用 Node.js >=22。
 
 ## 版本演变
 
-![最新在前：v0.1.8 正式版本，其后为 v0.1.7、v0.1.6、v0.1.5 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
+![最新在前：v0.1.9 为正式版，其后为 v0.1.8、v0.1.7、v0.1.6 正式版。图为能力示意，非测试截图。](docs/images/readme-version-history.zh-CN.png)
 
-README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本，0.1.7–0.1.5 为前三个正式版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。本次工程与安装包验证范围见[发布验证](docs/v0.1.8-release-validation.md)。
+README 展示当前版本与前三个历史版本：0.1.9 为当前正式版，0.1.8、0.1.7、0.1.6 为前三个正式版本。更早版本及完整介绍保留在[完整版本演变](docs/version-history.md)中。头图、流程、架构、并发与报告示意已对齐本版本；图片是能力说明，不是真实测试证据。本版范围见[0.1.9 发布验证](docs/v0.1.9-release-validation.md)，历史开发自测保留各阶段事实。
 
-## 0.1.8 做了什么
+## 0.1.9 做了什么
 
+提供项目知识v3的项目配置、功能地图、规则/角色和账号说明只读检索；支持项目身份隔离、本地 Git/草案和冲突/失效诊断。通用规则由独立维护 Skill 整理，功能细则仍留原文。下列既有测试能力继续保留：
+
+- **通用经验按阶段补强。** 设计阶段核对知识来源与适用性，执行/恢复阶段识别知识变化；不把过时观察当作当前验收依据。
+- **离线审阅导出。** 直接从 HTML 导出可读、可恢复的评审 HTML 和可选 JSON，不启动审阅服务器；正式审阅确认仍单独登记。
 - 用例整份版本、内嵌稳定编号及同源 HTML/Markdown 审阅；定义不变复测只增 run。
 - points/status/full 三种范围，局部重测保留必要依赖，不继承未选点通过。
 - 官方 Ego 下载监听/saveAs、显式管理页补证、原件及只读 JSON/CSV/XLSX 检查。
@@ -42,7 +54,7 @@ README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本�
 - **模型来源清楚可查。** 两类报告分别在一处展示对应阶段的模型和思考等级，保留多配置、未知项及来源，不凭模型名称推断质量。
 - **对话和长编号更易阅读。** 步骤展示输入/回复摘要及完整对话入口，长场景编号完整换行；首次执行与回归根据实际比较基准说明范围。
 
-详见[最终设计](docs/v0.1.8-design.md)及[当前契约](docs/asset-formats.md)。
+本版设计见[轻量知识集成](docs/project-knowledge-lightweight-integration-design.md)、[按任务使用](skills/ai-autonomous-testing-ego-lite/references/project-knowledge.md)及[当前契约](docs/asset-formats.md)。
 
 回归接口与行为边界见[回归资料](docs/regression-reuse.md)和[回归使用指南](skills/ai-autonomous-testing-ego-lite/references/regression-reuse.md)。
 
@@ -64,7 +76,7 @@ README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本�
 
 ### 真实用例与测试报告（脱敏节选）
 
-以下截图来自用户提供的实际用例资料和测试报告，保留原始导出格式；不是重绘的模拟结果。用例审阅原件带有“方案 B／设计样稿”标签，仅用于展示这份资料的审阅格式，不代表 0.1.8 正式版的默认界面。
+以下截图来自用户提供的实际用例资料和测试报告，保留原始导出格式；不是重绘的模拟结果。用例审阅原件带有“方案 B／设计样稿”标签，仅用于展示这份资料的审阅格式，不是当前 0.1.9 界面的重新验收截图。
 
 从原整轮 **35 个场景、117 个目标**中精选 **2 个场景、7 个目标**：3 个已验证、1 个发现违反、1 个无法判断、2 个未测试。节选保留原结论，未重新执行测试；统计只代表这些展示样本，不代表整体效果或通过率。
 
@@ -105,9 +117,9 @@ README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本�
 
 ## Windows 快速开始
 
-本节源码示例针对 0.1.8，使用本仓库构建的 .build/runtime；不会自动替换用户安装。安装与升级请先阅读[安装说明](INSTALL.zh-CN.md)，并核对版本、revision 和实际加载目录。
+本节源码示例针对 0.1.9，使用本仓库构建的 .build/runtime；不会自动替换用户安装。安装与升级请先阅读[安装说明](INSTALL.zh-CN.md)，并核对版本、revision 和实际加载目录。
 
-完整安装包、SHA-256 校验值与发布说明见 [v0.1.8 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.8)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
+完整安装包、SHA-256 校验值与发布说明见 [v0.1.9 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
 
 先按 [Ego 官方 Windows 快速开始](https://lite.ego.app/document/en/docs/windows/quick-start)准备 Ego 与官方 ego-browser Skill。本仓库不安装或替代官方浏览器。仅设计用例无需浏览器连接。
 
@@ -117,7 +129,7 @@ README 展示当前版本与前三个历史版本：0.1.8 为最新正式版本�
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.1.8 --expect-revision report-language-model-1
+node $Tool tool-info --expect-version 0.1.9 --expect-revision project-knowledge-3
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：
@@ -132,10 +144,9 @@ $SaveRequest = Join-Path $Project 'cases-save-request.example.json'
 node $Tool cases save --work-dir $Project --request $SaveRequest
 $Cases = Join-Path $Project 'cases/v001.json'
 node $Tool cases render --cases $Cases --output-dir (Join-Path $Project 'case-documents')
-node $Tool cases serve --cases $Cases --output-dir (Join-Path $Project 'review-files')
 ```
 
-用Ego打开serve实际返回的本机私有URL，页面保存意见时由本地工具写入可读HTML/JSON；不会登记正式确认或执行业务。原来的离线HTML仍可阅读和恢复意见。需要不经浏览器保存已有意见时，使用 cases export-review；命令和边界见[审阅保存说明](docs/v0.1.8-case-review.md)。
+直接打开生成的离线HTML即可填写并导出可读、可恢复的评审HTML，可选JSON；不启动服务器，不自动登记正式确认或开始测试。文件选择器支持时保存并读回，否则提供显式下载。实际文件和Windows打开能力需要分别核对；浏览器草稿不保证跨入口继承。cases export-review仅是收到反馈文件后的可选CLI。见[离线评审导出](docs/case-review.md)。
 
 实际人工审阅后登记确认，选择范围并填写本轮条件和绑定请求，再冻结：
 
@@ -180,7 +191,7 @@ AI workers 独立留证、封存包，协调者显式复核并导入。完整调
 
 ## 需求与实现边界
 
-0.1.8 已进入开发与自测，不再作为纯需求前瞻。当前已实现范围见上方版本介绍；原始[需求](docs/v0.1.8-requirements.md)、[调研](docs/v0.1.8-feasibility-research.md)和[前瞻](docs/v0.1.8-preview.md)保留为设计历史，不代表每项设想均已交付。正式发布前仍需审阅并核对实际验证范围。
+0.1.9 已整理为正式版本，实际范围与限制见[发布验证](docs/v0.1.9-release-validation.md)。上一正式版 0.1.8 的原始[需求](docs/v0.1.8-requirements.md)、[调研](docs/v0.1.8-feasibility-research.md)和[前瞻](docs/v0.1.8-preview.md)保留为设计历史，不代表每项设想均已交付。后续发布仍需核对实际验证范围。
 
 ## 继续阅读
 

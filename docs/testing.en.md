@@ -1,5 +1,11 @@
 # Validation record and coverage limits
 
+See the [cloud documentation and engineering review (Chinese)](v0.1.9-cloud-documentation-validation.md).
+
+## Current v0.1.9 release and historical development validation
+
+Current source is `0.1.9 / project-knowledge-3`, knowledge format v3. See [stable release validation](v0.1.9-release-validation.md). See the 2026-11-04 lightweight v3 section in [development validation](v0.1.9-development-validation.md) and [offline review export validation](v0.1.9-offline-review-export-validation.md). Earlier v1/v2 sections are historical, not the current format. The user reports 264 local passes and two permission-related skips; cloud checks are recorded separately and do not convert local results into a cloud rerun or business acceptance. Earlier-version records follow.
+
 ## v0.1.8 cloud release validation (2026-11-02)
 
 Release identity is `0.1.8 / report-language-model-1`, with contracts v9, regressionVersion 2 and networkVersion 1. Linux / Node.js 24.22.1: 241 tests, 240 passed, none failed, one Windows-only checkpoint recovery skipped. Type/build/public checks and the lean ZIP verification passed. See [release validation (Chinese)](v0.1.8-release-validation.md) for engineering and lean-package checks. Builds/publication do not update the user installation, and real business UAT was not rerun.
@@ -10,21 +16,17 @@ That validation used 0.1.8-rc.2 / report-language-model-1, with contracts v9, re
 
 Earlier [development validation](v0.1.8-development-validation.md), [case review/save validation](v0.1.8-case-review.md) and [conversation review](v0.1.8-conversation-review.md) retain their individual scope. That earlier validation did not publish a formal release or update an installed Skill. Historical reports stay unchanged. All sections below are historical: their old commands, formats and then-planned capabilities are not current usage instructions.
 
-
 ## v0.1.7 release finalization (2026-10-31)
 
 The owner approved merging and publication. Package and Skill metadata are 0.1.7, revision report-step-evidence-1; the stable package and Codex display names have no dev/rc suffix. Linux / Node.js 24.22.1: 213 tests, 212 passed, 0 failed, 1 Windows-only checkpoint replacement-recovery skip. Type, contract/build, publication and Git diff checks passed. All 312 SVG text elements fit their canvases; 12 changed version illustrations were visually reviewed. See [release validation](v0.1.7-release-validation.md) for complete-package and ZIP verification scope. No real Ego/UAT rerun or automatic user installation; the sections below preserve historical stage results.
-
 
 ## v0.1.7 full documentation and illustration review (2026-10-31)
 
 Reviewed 88 Markdown files, including all 17 Skill references, plus the bilingual illustration set. Current guides were compared with v8 runtime contracts, CLI, report UI and regression selection; historical stage records retain their original evidence. Corrected stale contract prose, missing goal titles, report/context examples and delivery boundaries. Removed duplicate verification sections only after line-by-line equality checks. The README now leads with approved design philosophy and current 0.1.7 changes; v0.1.6 details remain in history, and developed versions run newest-first without v0.1.8 planning entries. All 16 generated illustrations have visual review; 312 SVG text elements remain inside their canvases; the existing contact QR is unchanged. New guards cover prose contracts, real case validation, history ordering, philosophy and relocated architecture images. The final suite has 211 tests: 210 passed, zero failed, one Windows-only checkpoint recovery skip; strict types, contract/build and public/link checks pass. No live Ego/UAT or user installation was rerun; no formal package, main merge, Tag or Release. See [review scope and changes](v0.1.7-cloud-review.md).
 
-
 ## v0.1.7 first cloud integration and documentation review (2026-10-31)
 
 All four candidate branch heads are ancestors of `6040a1a`; no duplicate merge was needed. The review branch updates bilingual documentation and twelve illustrations while preserving runtime behavior and v0.1.8 planning boundaries. Linux / Node v24.22.1: strict types, contract drift, build and public-file checks pass; 204 tests, 203 passed, zero failed, one Windows-only checkpoint recovery test skipped. All updated PNGs were visually inspected; 222 SVG text bounds remain inside their canvases. An initially missing review-document package entry was fixed and the full suite rerun. See [cloud review](v0.1.7-cloud-review.md) for scope and publication gates. No real Ego/UAT run, user installation, main merge, Tag or Release in this phase.
-
 
 ## v0.1.7 local closeout and v0.1.8 requirements (2026-10-31)
 
@@ -49,7 +51,6 @@ The v6 facts, evidence delivery, scene-first report and eight themes in 0.1.7-rc
 See the [release validation record (Chinese)](v0.1.6-release-validation.md) for the cloud checks and the maintainer’s scoped local trial. Candidate results below remain historical.
 
 
-
 ## v0.1.6 historical network-observation candidate (2026-10-28)
 
 0.1.6-rc.1 / native-network-observation-1 implements the v3 design. Regression: 115 tests, 114 passed, 0 failed, 1 Windows file-symlink privilege skip; 34 network tests. See [network validation (Chinese)](v0.1.6-network-validation.md) for real Ego, loopback data, standalone packaging and limits. Older results below remain historical.
@@ -65,7 +66,6 @@ The isolated repair branch preserves first failures, its 4/4 entrypoint checks a
 Current validation scope is the unified v5 contracts, business-goal granularity, shared serial/parallel records, incremental updates/history, three-format report consistency, explicit legacy rejection and documentation examples. Meaningful checks include missing assessments staying separate from business outcomes, violations with unknown causes, required-semantics coverage, historical attempts not changing current results, evidence/reference integrity rejection and follow-up links preserving original claims.
 
 That validation used version/revision: 0.1.6-rc.1 / goal-assessment-1. Historical counts below apply only to their original versions; current commands, results and limitations must come from this delivery's validation record. Scoped isolated Ego observations are listed below; guidance or API names alone do not validate other capabilities. Synthetic checks do not substitute for UAT; builds do not update the user's installed Skill or constitute a formal release.
-
 
 Engineering regression on Windows / Node.js v24.19.0: **88 tests, 87 PASS, 0 FAIL, 1 SKIP** (file-symlink creation privilege unavailable). Strict compilation, contracts, standalone package and report tests passed. See the [detailed current validation record](v0.1.6-goal-assessment-validation.md) for first failures, independent case-design review and limitations.
 
@@ -108,7 +108,6 @@ Ego opened local bilingual desktop/360px previews and synthetic reports; DOM, in
 
 Fixed source `c56a9cf` passed strict types, contract drift checks, compilation, 96/96 synthetic tests (0 failures, 0 skips), and current-tree publication checks on Linux / Node v24.22.1. Integration preserves main's Chinese default entry, contacts, QR code, and company-name cleanup, and updates both language guides. This does not replace Windows permission skips or constitute a rerun of real UAT. Historical evidence and limits remain. See release notes for final integrated-tree and package checks.
 
-
 The integrated documentation tree also passed all 96 synthetic tests, type checks, and current-tree checks. A bilingual parallel diagram was added and the hero version updated to 0.1.4. The first rerun failed the old eight-image count; updating the assertion to the ten-image set restored a full pass, retaining byte comparisons and overwrite refusal checks.
 
 ## C/B shared capabilities and metadata reads (2026-10-24)
@@ -146,7 +145,6 @@ Version, Skill metadata and runtime checks are aligned at 0.1.3. The full Linux 
 Not run: four symlink scenarios, full mobile visual acceptance, and new-session acceptance of real business screenshot capture/default delivery. On 2026-10-22, the owner reported no major issues in local trial use, accepted the version, and authorized merging and release. This does not establish that the listed untested scopes passed.
 
 ## Historical checks before this repair
-
 
 On 2026-10-22, Linux / Node v24.19.0: `npm test` passed 56/56 tests (44 helper tests and 12 publication-checker tests), with zero failures or skips. `npm run check:public` passed and printed the current 64-file allowlisted manifest. These checks cover this branch's local helper and synthetic assets; they are not Ego or application tests.
 

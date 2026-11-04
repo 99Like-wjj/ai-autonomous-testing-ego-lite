@@ -1,8 +1,20 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.8';
-export const TOOL_REVISION = 'report-language-model-1';
+export const TOOL_VERSION = '0.1.9';
+export const TOOL_REVISION = 'project-knowledge-3';
 export const FORMAT_VERSIONS = { cases: 9, manifest: 9, results: 9, evidence: 9, report: 9, execution: 9, configuration: 9, workerPacket: 9, executionRead: 9 } as const;
 export const runtimeFiles = [
+  'knowledge/commands.mjs',
+  'knowledge/contract.mjs',
+  'knowledge/store.mjs',
+  'knowledge/schema.generated.mjs',
+  'schemas/project-knowledge.schema.json',
+  'schemas/project-knowledge.origin.json',
+  'examples/knowledge.synthetic/knowledge.json',
+  'examples/knowledge.synthetic/sources/manual-v1.json',
+  'examples/knowledge.synthetic/project.json',
+  'examples/knowledge.synthetic/feature-map.json',
+  'examples/knowledge.synthetic/accounts.json',
+  'examples/knowledge.synthetic/rules/data-scope.json',
   'examples/presentation-en.json',
   'examples/presentation-fr.json',
   'core/ai-context.mjs',
@@ -26,7 +38,7 @@ export const runtimeFiles = [
   'report/case-reader-layout.mjs',
   'report/case-reader-shell.mjs',
   'report/review-export.mjs',
-  'report/review-session.mjs',
+  'report/review-feedback-document.mjs',
   'contracts/review-feedback.mjs',
   'contracts/case-view.mjs',
   'report/history.mjs',
@@ -132,6 +144,7 @@ export const runtimeFiles = [
   'schemas/network-evidence-export.schema.json',
 ];
 export const referenceNames = [
+  'project-knowledge',
   'download-files',
   'report-language-model',
   'conversation-evidence',

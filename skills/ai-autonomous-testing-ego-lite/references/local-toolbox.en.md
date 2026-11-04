@@ -1,12 +1,12 @@
-# Local toolbox — 0.1.8
+# Local toolbox — 0.1.9
 
 Before `report --run-dir ABS --output-dir ABS --delivery auto`, explicitly create a new empty output directory: report requires an existing directory and never overwrites existing target files. Auto uses a bundle for required originals, conversations or historical attachments; keep the attachments directory with the HTML. A successful file receipt does not prove browser opening or business acceptance.
 
-Verify tool-info: 0.1.8 / report-language-model-1, contracts v9, regressionVersion 2, networkVersion 1. Source development uses .build/runtime; parsers are bundled without runtime npm installation.
+Verify tool-info: 0.1.9 / project-knowledge-3, contracts v9, regressionVersion 2, networkVersion 1. Source development uses .build/runtime; parsers are bundled without runtime npm installation.
 
 cases save publishes whole immutable case versions and allocates point IDs within that transaction. cases render/verify generate same-source offline HTML/Markdown without runs. cases review retains actual review provenance; offline approved flags are not human authentication.
 
-cases serve --cases ABS --output-dir ABS starts a capability-scoped 127.0.0.1 review page. Open its actual private URL in Ego. The default view is the scene/case overview, followed by the three-column review workbench. Native saves write and read back immutable HTML/JSON exports in the named directory, avoiding browser Blob-download zone metadata. cases export-review --cases ABS --request ABS_JSON_OR_HTML --output-dir ABS provides the same native writer without a browser. render/serve accept --feedback ABS_JSON_OR_HTML for matching received opinions. Neither operation registers approval or runs tests. The listener expires after 480 idle minutes by default; --idle-minutes accepts 1–1440. Browser drafts are scoped to their current entry, so restore saved files after changing browsers or session URLs. Existing files and Windows zone metadata remain intact; browser backup downloads can still carry zone metadata.
+cases render --feedback ABS_JSON_OR_HTML can load matching feedback. Open the generated local HTML directly: it exports a readable and restorable review HTML, optional JSON, or complete copied data without a server. File-picker saves are read back; browser downloads only report a requested download. Verify the actual file and Windows opening separately. Browser drafts belong to their current entry and browser; retain feedback before switching. cases export-review is an optional serverless CLI for received files, never a prerequisite for page export. Existing files and Windows zone metadata remain intact. Saving does not register approval or start testing.
 
 regression select supports points with dependency closure, status with whole matching scenarios, and full including unprepared/deferred scope. start requires exact source, review, scope, current conditions, parameter and history binding. Unchanged reruns create only a new run.
 

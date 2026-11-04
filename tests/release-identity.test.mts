@@ -9,13 +9,13 @@ test('release identity agrees across package, lockfile, Skill and current guides
   const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, name), 'utf8');
   const pkg = JSON.parse(await read('package.json'));
   const lock = JSON.parse(await read('package-lock.json'));
-  assert.equal(TOOL_VERSION, '0.1.8');
+  assert.equal(TOOL_VERSION, '0.1.9');
   assert.equal(pkg.name, 'ai-autonomous-testing-ego-lite');
   assert.equal(pkg.version, TOOL_VERSION);
   assert.equal(lock.version, TOOL_VERSION);
   assert.equal(lock.packages[''].version, TOOL_VERSION);
   assert.equal(pkg.egoLiteTest.toolRevision, TOOL_REVISION);
-  assert.match(await read('skills/ai-autonomous-testing-ego-lite/SKILL.md'), /version: "0\.1\.8"/);
+  assert.match(await read('skills/ai-autonomous-testing-ego-lite/SKILL.md'), /version: "0\.1\.9"/);
   const config = await read('skills/ai-autonomous-testing-ego-lite/agents/openai.yaml');
   assert.match(config, /display_name: "AI 自主自动化测试 · Ego Lite"/);
   assert.doesNotMatch(config, /dev|rc\.\d+/i);

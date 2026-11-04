@@ -1,0 +1,85 @@
+{
+  "domains": [
+    {
+      "id": "catalogue-domain",
+      "title": "完全合成馆藏协作",
+      "aliases": [
+        "图书"
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": "catalogue",
+      "domainId": "catalogue-domain",
+      "title": "完全合成馆藏管理",
+      "aliases": [
+        "目录维护",
+        "borrow",
+        "return"
+      ],
+      "summary": "定位馆藏模块的门户和管理端入口，规则正文按关联读取。",
+      "descriptions": [
+        {
+          "id": "catalogue-description",
+          "text": "完全合成功能索引；具体字段和完整流程回原手册。",
+          "meta": {
+            "state": "pending",
+            "lifecycle": "active",
+            "sourceRefs": [
+              {
+                "sourceId": "manual-v1",
+                "locator": "完全合成手册第1节"
+              }
+            ],
+            "updatedAt": "2026-11-03T00:00:00+08:00",
+            "changeReason": "首次整理完全合成资料。",
+            "limitations": [
+              "完全合成；不是真实业务证据。"
+            ]
+          },
+          "relations": [],
+          "issueIds": [],
+          "appliesTo": "完全合成导航用途，具体部署版本未知。"
+        }
+      ],
+      "entryPoints": [
+        {
+          "id": "catalogue-entry",
+          "menuPath": [
+            "示例门户",
+            "馆藏管理"
+          ],
+          "accessNotes": "按当前用户的示例馆别授权进入。",
+          "meta": {
+            "state": "confirmed",
+            "lifecycle": "active",
+            "sourceRefs": [
+              {
+                "sourceId": "manual-v1",
+                "locator": "完全合成手册第1节"
+              }
+            ],
+            "updatedAt": "2026-11-03T00:00:00+08:00",
+            "changeReason": "首次整理完全合成资料。",
+            "limitations": [
+              "完全合成；不是真实业务证据。"
+            ]
+          },
+          "application": "完全合成馆藏管理端",
+          "page": "完全合成馆藏页",
+          "url": "https://console.example.invalid/catalogue",
+          "appliesTo": "完全合成测试环境。"
+        }
+      ],
+      "ruleIds": [
+        "owned-data"
+      ],
+      "roleIds": [
+        "catalogue-maintainer"
+      ]
+    }
+  ],
+  "checks": [],
+  "issues": []
+}
