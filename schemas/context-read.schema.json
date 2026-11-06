@@ -1,0 +1,528 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "context-read.schema.json",
+  "title": "Bounded context projection v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "contextReadVersion",
+        "scope",
+        "integrity",
+        "counts",
+        "filteredCounts",
+        "items",
+        "point",
+        "unresolved",
+        "pagination",
+        "unresolvedPagination",
+        "omissions",
+        "limitations",
+        "readEffects"
+      ],
+      "properties": {
+        "contextReadVersion": {
+          "const": 1
+        },
+        "scope": {
+          "type": "object",
+          "required": [
+            "kind",
+            "baselineSha256",
+            "resultsSha256",
+            "evidenceScope",
+            "runId",
+            "resultsRevision",
+            "evidenceRevision",
+            "view",
+            "caseId",
+            "pointId"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "current",
+                "historical"
+              ]
+            },
+            "baselineSha256": {
+              "type": "string"
+            },
+            "resultsSha256": {
+              "type": "string"
+            },
+            "evidenceScope": {
+              "type": "string"
+            },
+            "runId": {
+              "type": "string"
+            },
+            "resultsRevision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "evidenceRevision": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "view": {
+              "enum": [
+                "summary",
+                "goals",
+                "point"
+              ]
+            },
+            "caseId": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pointId": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "integrity": {
+          "type": "object",
+          "required": [
+            "results",
+            "evidence",
+            "evidenceScope",
+            "execution"
+          ],
+          "properties": {
+            "results": {
+              "const": "checked"
+            },
+            "evidence": {
+              "const": "hash_verified"
+            },
+            "evidenceScope": {
+              "type": "string"
+            },
+            "execution": {
+              "enum": [
+                "checked",
+                "not_checked_as_current"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "counts": {
+          "$ref": "common.schema.json#/$defs/counts"
+        },
+        "filteredCounts": {
+          "$ref": "common.schema.json#/$defs/counts"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "pointId",
+              "caseId",
+              "goalId",
+              "title",
+              "assessed",
+              "status",
+              "observationIds",
+              "gapCount"
+            ],
+            "properties": {
+              "pointId": {
+                "type": "string"
+              },
+              "caseId": {
+                "type": "string"
+              },
+              "goalId": {
+                "type": "string"
+              },
+              "title": {
+                "type": "object",
+                "required": [
+                  "text",
+                  "truncated"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "truncated": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "assessed": {
+                "type": "boolean"
+              },
+              "status": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "verified",
+                      "violation",
+                      "inconclusive",
+                      "not_tested"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "observationIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "gapCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "point": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [
+                "definition",
+                "requiredRefs",
+                "plan",
+                "assessment",
+                "observations",
+                "actions",
+                "contexts",
+                "findings",
+                "evidence"
+              ],
+              "properties": {
+                "definition": {
+                  "$ref": "common.schema.json#/$defs/goal"
+                },
+                "requiredRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "plan": {
+                  "type": "object",
+                  "required": [
+                    "conditions",
+                    "steps",
+                    "order",
+                    "path"
+                  ],
+                  "properties": {
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "common.schema.json#/$defs/condition"
+                      }
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "common.schema.json#/$defs/step"
+                      }
+                    },
+                    "order": {
+                      "enum": [
+                        "strict",
+                        "adaptive"
+                      ]
+                    },
+                    "path": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "parameters": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "common.schema.json#/$defs/parameter"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "assessment": {
+                  "anyOf": [
+                    {
+                      "$ref": "common.schema.json#/$defs/committedAssessment"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "observations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/observation"
+                  }
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/actionEvent"
+                  }
+                },
+                "contexts": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/executionContext"
+                  }
+                },
+                "findings": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/finding"
+                  }
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/evidenceItem"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unresolved": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "caseId",
+              "actionId",
+              "eventIds",
+              "reasons"
+            ],
+            "properties": {
+              "caseId": {
+                "type": "string"
+              },
+              "actionId": {
+                "type": "string"
+              },
+              "eventIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "reasons": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "text",
+                    "truncated"
+                  ],
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    },
+                    "truncated": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "pagination": {
+          "type": "object",
+          "required": [
+            "offset",
+            "limit",
+            "total",
+            "returned",
+            "nextOffset",
+            "truncated"
+          ],
+          "properties": {
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "total": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "returned": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "nextOffset": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "truncated": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "unresolvedPagination": {
+          "type": "object",
+          "required": [
+            "offset",
+            "limit",
+            "total",
+            "returned",
+            "nextOffset",
+            "truncated"
+          ],
+          "properties": {
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "total": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "returned": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "nextOffset": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "truncated": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "omissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "readEffects": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "contextReadVersion",
+        "outputFile",
+        "sha256",
+        "bytes",
+        "scope",
+        "businessExecuted"
+      ],
+      "properties": {
+        "contextReadVersion": {
+          "const": 1
+        },
+        "outputFile": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "businessExecuted": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import { FORMAT_VERSIONS } from '../src/contracts/layout.mjs';
 import { SOURCE_ROOT } from '../src/scripts/toolchain.mjs';
 
 test('current request examples in guides use the runtime contract, without rewriting historical documents', async () => {
-  const files = ['skills/ai-autonomous-testing-ego-lite/references/case-authoring.md', 'skills/ai-autonomous-testing-ego-lite/references/local-toolbox.md', 'skills/ai-autonomous-testing-ego-lite/references/parallel-testing.md', 'docs/asset-formats.md'];
+  const files = ['skills/ai-testing-ego-lite/references/case-authoring.md', 'skills/ai-testing-ego-lite/references/local-toolbox.md', 'skills/ai-testing-ego-lite/references/parallel-testing.md', 'docs/asset-formats.md'];
   let requests = 0;
   const visit = (value: unknown, source: string) => {
     if (value === null || typeof value !== 'object') return;
@@ -27,7 +27,7 @@ test('current prose agrees with runtime configuration and execution view version
   const read = (file: string) => fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
   assert.match(await read('docs/architecture.en.md'), new RegExp(`contracts use version ${FORMAT_VERSIONS.cases}`));
   assert.match(await read('docs/asset-formats.md'), new RegExp(`配置 schemaVersion 为 ${FORMAT_VERSIONS.configuration}`));
-  assert.match(await read('skills/ai-autonomous-testing-ego-lite/references/local-toolbox.en.md'), new RegExp(`execution query viewVersion ${FORMAT_VERSIONS.executionRead}`));
+  assert.match(await read('skills/ai-testing-ego-lite/references/local-toolbox.en.md'), new RegExp(`execution read viewVersion ${FORMAT_VERSIONS.executionRead}`));
   assert.match(await read('docs/asset-formats.md'), /每个 goal 有 id、title/);
   assert.match(await read('docs/asset-formats.en.md'), /Each goal has id, title/);
 });
@@ -43,7 +43,7 @@ test('validation indexes keep one copy of each historical section', async () => 
 });
 
 test('case-authoring documentation contains cases accepted by the real runtime validator', async () => {
-  const content = await fs.readFile(path.join(SOURCE_ROOT, 'skills/ai-autonomous-testing-ego-lite/references/case-authoring.md'), 'utf8');
+  const content = await fs.readFile(path.join(SOURCE_ROOT, 'skills/ai-testing-ego-lite/references/case-authoring.md'), 'utf8');
   const examples = [...content.matchAll(/```json\s*\n([\s\S]*?)```/g)];
   assert.ok(examples.length > 0);
   for (const example of examples) {

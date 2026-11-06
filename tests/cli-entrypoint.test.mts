@@ -8,8 +8,21 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { TOOL_ROOT, TOOL_VERSION } from '../src/scripts/toolchain.mjs';
 import { objectValue } from './support.mjs';
+import { fixture as runFixture,request,untested,writeJSON } from './goals-fixture.mjs';
 
 const exec = promisify(execFile);
+
+test('CLI exposes scoped reads, commit feedback and explicit usage through the built runtime',async t=>{
+  const f=await runFixture(t),entry=path.join(TOOL_ROOT,'scripts/ego.mjs');
+  const call=async(...args:string[])=>objectValue(JSON.parse((await exec(process.execPath,[entry,...args])).stdout));
+  const index=await call('progress','--run-dir',f.runDir,'--view','goals','--limit','1');assert.equal(index.contextReadVersion,1);assert.equal(objectValue(index.pagination).total,4);
+  const req=path.join(f.root,'record.json');await writeJSON(req,request(untested()));const committed=await call('record','--run-dir',f.runDir,'--request',req);assert.equal(committed.recordResponseVersion,1);assert.equal(committed.committed,true);assert.equal(objectValue(committed.receipt).revision,1);
+  const replay=await call('record','--run-dir',f.runDir,'--request',req);assert.equal(objectValue(replay.receipt).replayed,true);
+  const history=await call('regression','context','--run-dir',f.runDir,'--results-revision','0');assert.equal(objectValue(history.scope).resultsRevision,0);
+  const usage=path.join(f.root,'usage.json'),ur=path.join(f.root,'usage-request.json');await writeJSON(usage,{usageVersion:1,sources:[],records:[]});await writeJSON(ur,{inputFile:usage});const summary=await call('usage','summarize','--request',ur);assert.equal(summary.usageSummaryVersion,1);assert.equal(objectValue(summary.coverage).modelData,'not_supplied');
+  await assert.rejects(call('progress','--run-dir',f.runDir,'--view','point'),/INVALID_CONTEXT_FILTER/);
+  await assert.rejects(call('regression','context','--run-dir',f.runDir,'--view','full'),/REQUIRES_OUTPUT_FILE/);
+});
 
 test('review export no longer exposes or accepts a server command', async () => {
   const entry = path.join(TOOL_ROOT, 'scripts/ego.mjs');

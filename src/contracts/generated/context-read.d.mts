@@ -1,0 +1,357 @@
+/* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
+
+export type BoundedContextProjectionV1 =
+  | {
+      contextReadVersion: 1;
+      scope: {
+        kind: 'current' | 'historical';
+        baselineSha256: string;
+        resultsSha256: string;
+        evidenceScope: string;
+        runId: string;
+        resultsRevision: number;
+        evidenceRevision: number;
+        view: 'summary' | 'goals' | 'point';
+        caseId: string | null;
+        pointId: string | null;
+      };
+      integrity: {
+        results: 'checked';
+        evidence: 'hash_verified';
+        evidenceScope: string;
+        execution: 'checked' | 'not_checked_as_current';
+      };
+      counts: GoalCounts;
+      filteredCounts: GoalCounts;
+      items: {
+        pointId: string;
+        caseId: string;
+        goalId: string;
+        title: {
+          text: string;
+          truncated: boolean;
+        };
+        assessed: boolean;
+        status: ('verified' | 'violation' | 'inconclusive' | 'not_tested') | null;
+        observationIds: string[];
+        gapCount: number;
+      }[];
+      point: {
+        definition: Goal;
+        requiredRefs: string[];
+        plan: {
+          conditions: CriticalCondition[];
+          steps: Step[];
+          order: 'strict' | 'adaptive';
+          path: string | null;
+          parameters?: ParameterDefinition[];
+        };
+        assessment: CommittedAssessment | null;
+        observations: Observation[];
+        actions: ActionEvent[];
+        contexts: ExecutionContext[];
+        findings: Finding[];
+        evidence: EvidenceItem[];
+      } | null;
+      unresolved: {
+        caseId: string;
+        actionId: string;
+        eventIds: string[];
+        reasons: {
+          text: string;
+          truncated: boolean;
+        }[];
+      }[];
+      pagination: {
+        offset: number;
+        limit: number;
+        total: number;
+        returned: number;
+        nextOffset: number | null;
+        truncated: boolean;
+      };
+      unresolvedPagination: {
+        offset: number;
+        limit: number;
+        total: number;
+        returned: number;
+        nextOffset: number | null;
+        truncated: boolean;
+      };
+      omissions: string[];
+      limitations: string[];
+      readEffects: string;
+    }
+  | {
+      contextReadVersion: 1;
+      outputFile: string;
+      sha256: string;
+      bytes: number;
+      scope: {} | null;
+      businessExecuted: false;
+    };
+/**
+ * One immutable fact event of an action attempt. The kind-specific fields below are conditional requirements, not a fixed execution route. Dispatch acceptance is separate from business result; unknown facts may be recorded without inventing evidence. IDs, source ownership, previous-event references and timestamp ordering are checked by the runtime.
+ */
+export type ActionEvent = {
+  id: string;
+  actionId: string;
+  kind: 'intent' | 'dispatch' | 'result' | 'reconciliation' | 'disposition';
+  purpose: 'prepare' | 'test' | 'reproduce' | 'recover' | 'cleanup' | 'explore';
+  contextId: string;
+  actor: string;
+  summary: string;
+  sideEffectRisk: 'none' | 'possible' | 'unknown';
+  evidenceIds: string[];
+  occurredAt?: string;
+  timeSource?: string;
+  planRef?: string;
+  target?: string;
+  inputs?: string[];
+  sideEffects?: string[];
+  dispatchState?: 'issued' | 'not_issued' | 'unknown';
+  acceptanceState?: 'accepted' | 'rejected' | 'unknown' | 'not_applicable';
+  resultState?: 'known' | 'processing' | 'window_incomplete' | 'failed' | 'unknown';
+  readOnly?: true;
+  observationWindow?: ActionObservationWindow;
+  disposition?: ActionDisposition;
+  conflictsWithEventIds?: string[];
+  retry?: ActionRetry;
+};
+export type FactSource = {
+  kind: 'evidence' | 'requirement' | 'user_confirmation' | 'resource' | 'other';
+  reference: string;
+  evidenceIds: string[];
+};
+export type ContextFact = {
+  state: 'known' | 'unknown' | 'not_applicable';
+  summary: string;
+  sources: FactSource[];
+};
+export type EvidenceMetadata = {
+  mediaType?: string;
+  encoding?: string;
+  scope?: 'page' | 'viewport' | 'element' | 'document' | 'unknown';
+  page?: string;
+  object?: string;
+  purpose?: string;
+  limitations?: string[];
+  contextEvidenceIds?: string[];
+  contentState?: 'full' | 'selected_fields' | 'summary' | 'truncated' | 'excluded' | 'failed' | 'unknown';
+  redaction?: string;
+  omissionReason?: string;
+  width?: number;
+  height?: number;
+  artifactRole?: 'download_original' | 'inspection' | 'capture_receipt';
+  deliveryRequired?: boolean;
+  /**
+   * @minItems 1
+   */
+  conversationSources?: ConversationSourceBinding[];
+};
+
+export interface GoalCounts {
+  verified: number;
+  violation: number;
+  inconclusive: number;
+  not_tested: number;
+  unassessed: number;
+}
+export interface Goal {
+  id: string;
+  basis: Basis;
+  expected: string;
+  requiredRefs: string[];
+  clarificationQuestions: string[];
+  followUpOf?: {
+    /**
+     * Use self for a goal in the same frozen run; otherwise use the explicit source run ID. A relation never resolves or replaces the source verdict.
+     */
+    runId: string;
+    caseId: string;
+    goalId: string;
+    reason: string;
+  };
+  title: string;
+  pointId: string;
+  planState: 'prepared' | 'unprepared';
+  preparationGaps: string[];
+  sourceAlias: string | null;
+}
+export interface Basis {
+  kind: 'explicit' | 'interpretation' | 'hypothesis';
+  source: string;
+  text: string;
+  sourceRefIds: string[];
+}
+export interface CriticalCondition {
+  id: string;
+  text: string;
+}
+export interface Step {
+  id: string;
+  action: string;
+  dependsOn: string[];
+}
+export interface ParameterDefinition {
+  id: string;
+  type: 'string' | 'integer' | 'decimal' | 'date' | 'object_ref' | 'account_ref';
+  purpose: string;
+  constraints: string[];
+}
+export interface CommittedAssessment {
+  goalId: string;
+  status: 'verified' | 'violation' | 'inconclusive' | 'not_tested';
+  rationale: string;
+  observationIds: string[];
+  gaps: string[];
+  diagnosis?: Diagnosis;
+  operationId: string;
+  revision: number;
+  recordedAt: string;
+  summary?: string;
+  phenomena?: Phenomenon[];
+  gapDetails?: GapDetail[];
+  revisionReason?: string;
+  previousOperationId?: string;
+  reproduction?: ReproductionPreparation;
+}
+export interface Diagnosis {
+  state: 'unknown' | 'hypothesis' | 'confirmed';
+  category: 'product' | 'agent' | 'environment' | 'spec' | 'unknown';
+  summary: string;
+  evidenceIds: string[];
+}
+export interface Phenomenon {
+  id: string;
+  title: string;
+  actual: string;
+  observationIds: string[];
+  evidenceIds: string[];
+  limitations: string[];
+}
+export interface GapDetail {
+  kind: 'record' | 'evidence' | 'environment' | 'authorization' | 'requirement';
+  missing: string;
+  impact: string;
+  nextStep?: string;
+}
+export interface ReproductionPreparation {
+  preparation: string[];
+  limitations: string[];
+  objectState: string;
+  repeatability: string;
+}
+export interface Observation {
+  id: string;
+  summary: string;
+  coveredRefs: string[];
+  evidenceIds: string[];
+  contextId?: string;
+  actual?: string;
+  occurredAt?: string;
+  actions?: ActionFact[];
+  evidenceLinks?: EvidenceLink[];
+  actionEventIds?: string[];
+  phase?: ObservationPhase;
+}
+export interface ActionFact {
+  id: string;
+  description: string;
+  input?: string;
+  result?: string;
+  planRefs: string[];
+  evidenceIds: string[];
+  occurredAt?: string;
+  inputSummary?: string;
+  replySummary?: string;
+  inputPresentation?: 'verbatim' | 'summary' | 'unknown';
+  /**
+   * @minItems 1
+   */
+  conversations?: ConversationActionReference[];
+}
+export interface ConversationActionReference {
+  evidenceId: string;
+  /**
+   * @minItems 1
+   */
+  messageIds: string[];
+}
+export interface EvidenceLink {
+  evidenceId: string;
+  purpose: string;
+  fact: string;
+  actionId?: string;
+  limitations: string[];
+}
+export interface ObservationPhase {
+  expected: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  observed: 'before' | 'during' | 'after' | 'static' | 'unknown';
+  basis: string;
+}
+/**
+ * Actual observation bounds and their source. Runtime validation additionally checks that endedAt is not earlier than startedAt; this window does not create a product SLA.
+ */
+export interface ActionObservationWindow {
+  startedAt: string;
+  endedAt: string;
+  source: string;
+  limitation: string;
+}
+export interface ActionDisposition {
+  state: 'confirmed_occurred' | 'confirmed_not_occurred' | 'unknown' | 'deferred' | 'conflicting';
+  rationale: string;
+  scope: string;
+  limitations: string[];
+  /**
+   * @minItems 1
+   */
+  resolvesEventIds: string[];
+}
+export interface ActionRetry {
+  actionId: string;
+  rationale: string;
+  /**
+   * @minItems 1
+   */
+  authorizationSources: FactSource[];
+  idempotencyBasis?: ContextFact;
+}
+export interface ExecutionContext {
+  id: string;
+  environment: ContextFact;
+  identity: ContextFact;
+  objects: ContextFact;
+  initialState: ContextFact;
+  authorization: ContextFact;
+  notes?: string;
+}
+export interface Finding {
+  id: string;
+  title: string;
+  goalIds: string[];
+  observationIds: string[];
+  evidenceIds: string[];
+  relationReason: string;
+  reviewState: 'proposed' | 'reviewed';
+  scope: 'original' | 'additional';
+}
+export interface EvidenceItem {
+  id: string;
+  path: string;
+  caseId: string;
+  kind: 'screenshot' | 'dom' | 'tool_receipt' | 'log' | 'other' | 'conversation';
+  capturedAt?: string;
+  collectedAt: string;
+  source: string;
+  description: string;
+  sha256: string;
+  bytes: number;
+  operationId: string;
+  metadata?: EvidenceMetadata;
+}
+export interface ConversationSourceBinding {
+  sourceId: string;
+  evidenceId: string;
+}

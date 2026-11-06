@@ -1,4 +1,7 @@
-# Architecture — v9 / 0.1.9
+# Architecture — v9 / 0.2.1-rc.1
+
+0.2.1-rc.1 is an unreleased development candidate. The Skill/package is ai-testing-ego-lite; storage remains v9. Bounded progress/context outputs use contextReadVersion 1; CLI record wraps the unchanged receipt in recordResponseVersion 1. Explicit usage exports are independent of business results. See [current design](v0.2.1-design.md) and [validation](v0.2.1-development-validation.md).
+
 
 ![Architecture responsibilities: AI, Ego and deterministic tools.](images/architecture.png)
 
@@ -33,7 +36,7 @@ core/conversations and conversation-store validate conversationVersion 1, retain
 
 case-reader provides the scene/case overview and three-column workbench. review-ui generates readable review HTML with embedded feedback, or optional JSON, directly in the offline page. File-picker saving and explicit downloading need no server. review-feedback-document is shared by the browser and optional CLI; review-export handles CLI file transactions only. Drafts and exported feedback remain separate from formal reviews; see [offline review export](case-review.md).
 
-See [contracts](asset-formats.en.md), [regression reuse](regression-reuse.md) and [current development validation](v0.1.9-development-validation.md). Historical user data is not migrated or overwritten.
+See [contracts](asset-formats.en.md), [regression reuse](regression-reuse.md) and [current development validation](v0.2.1-development-validation.md). Historical user data is not migrated or overwritten.
 
 ## Report language and model provenance
 

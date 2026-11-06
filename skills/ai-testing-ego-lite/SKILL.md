@@ -1,14 +1,14 @@
 ---
-name: ai-autonomous-testing-ego-lite
+name: ai-testing-ego-lite
 description: AI 自主 Web 自动化测试：由当前 AI 会话理解需求、设计可独立判断的业务目标，通过已安装的 Ego Lite / Ego Browser 执行并用真实证据验证；接收外部用例或生成用例，区分业务违反、执行问题、证据不足与未测试。适用于新需求、新功能、权限及业务流程测试；不是固定流程自动化器或 Agent 能力评测框架。
 metadata:
-  version: "0.1.9"
-  tool-revision: "project-knowledge-3"
+  version: "0.2.1-rc.1"
+  tool-revision: "execution-efficiency-1"
 ---
 
 # AI 自主自动化测试 · Ego Lite
 
-当前 AI 负责规划、页面探索、方法选择与业务判断，Ego 提供浏览器原语，本地工具负责冻结目标、保存观察与证据、校验引用并渲染报告；接口观测适配器提供范围内的后台采集与本地查询。工具不调用模型、不自动选择下一动作、不自动判定业务结果。本正式版本为 0.1.9；构建和自测不代表所有业务、模型或宿主均已验收。
+当前 AI 负责规划、页面探索、方法选择与业务判断，Ego 提供浏览器原语，本地工具负责冻结目标、保存观察与证据、校验引用并渲染报告；接口观测适配器提供范围内的后台采集与本地查询。工具不调用模型、不自动选择下一动作、不自动判定业务结果。本开发候选版本为 0.2.1-rc.1；构建和自测不代表所有业务、模型或宿主均已验收。
 
 ## 语言与两阶段模型来源
 
@@ -32,7 +32,7 @@ metadata:
 
 记录前读[本地工具箱指南](references/local-toolbox.md)。完整安装包的 ToolRoot 是实际加载的 SKILL.md 所在绝对目录，包含 scripts、schemas、docs 和清单。源码先在明确仓库构建，使用该仓库的 .build/runtime；不要把源码 Skill 子目录当作工具根，不猜旧安装路径或自动更新用户安装。
 
-执行 tool-info，核对 0.1.9、project-knowledge-3、knowledgeFormatVersion 3、formatVersions 和 installationIntegrity。工具缺失或版本混用时保存真实事实并说明交付限制，不能伪造回执。用例校验与冻结只创建本地资产，不执行浏览器动作。
+执行 tool-info，核对 0.2.1-rc.1、execution-efficiency-1、knowledgeFormatVersion 3、formatVersions 和 installationIntegrity。工具缺失或版本混用时保存真实事实并说明交付限制，不能伪造回执。用例校验与冻结只创建本地资产，不执行浏览器动作。
 
 ## 项目通用知识
 
@@ -45,6 +45,10 @@ metadata:
 用户可按稳定编号选择 points、按精确历史四态命中整条场景 status，或对明确版本 full。核对本次条件并创建独立 run；用例不变不增版本，不重复审阅已确认且指纹未变的点。资料只有用例版本、相邻审阅、历次运行，用例/运行之外的通用知识是显式选择的独立外部资料，不新增测试资产注册中心。未知副作用先只读对账，不自动重放。
 
 ## 执行、入账与判断
+
+独立脚本文件不等于独立模型回合。当前事实足以确定动作时，可在同一次宿主编排中顺序写入新脚本、检查保存成功、执行并返回最终观察；不要仅为发出已知运行命令再请求模型。需要中间结果、身份核对或授权时保留决策边界；未知副作用先核对，不自动重放。按目标读取摘要及必要正文，原件保存在文件。
+
+CLI record返回recordResponseVersion 1，receipt说明提交，feedback给出该revision的结构缺项，不改变四态。及时记录未完成原因，恢复时复用同一来源。progress默认summary，goals列索引，point保留必要语义；历史context的full须导出。usage只汇总明确的非秘密导出，无数据保留未知。用法见本地工具箱。
 
 执行浏览器测试时读取本机已安装 Ego 官方 Skill 和当次版本文档。没有可用本机 Ego 链路时明确未执行，不以云端观察冒充。冻结后遵守 steps、stepOrder 和 requiredPath：strict 保留依赖顺序，adaptive 可调整方法但不能省略必要语义或换掉对象、身份、输入。
 

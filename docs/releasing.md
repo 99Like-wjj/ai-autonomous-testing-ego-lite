@@ -69,7 +69,7 @@ npm run build:skill -- --output-dir <仓库外尚不存在的绝对目录>
 
 ```text
 INSTALL.zh-CN.md
-ai-autonomous-testing-ego-lite/
+ai-testing-ego-lite/
   SKILL.md
   package.json
   runtime-manifest.json

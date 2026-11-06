@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "record-response.schema.json",
+  "title": "CLI record response v1",
+  "type": "object",
+  "required": [
+    "recordResponseVersion",
+    "committed",
+    "receipt",
+    "feedback"
+  ],
+  "properties": {
+    "recordResponseVersion": {
+      "const": 1
+    },
+    "committed": {
+      "const": true
+    },
+    "receipt": {
+      "type": "object",
+      "required": [
+        "operationId",
+        "revision",
+        "caseId",
+        "mode",
+        "replayed"
+      ],
+      "properties": {
+        "operationId": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "caseId": {
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "attempt",
+            "final"
+          ]
+        },
+        "replayed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "feedback": {
+      "type": "object",
+      "required": [
+        "status",
+        "asOfResultsRevision",
+        "scope",
+        "affectedPointIds",
+        "caseUnassessedCount",
+        "hints",
+        "total",
+        "truncated"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable",
+            "disabled"
+          ]
+        },
+        "asOfResultsRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "const": "commit_prefix_without_retrospective_notes"
+        },
+        "affectedPointIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "caseUnassessedCount": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "caseId",
+              "goalId",
+              "pointId",
+              "code",
+              "observationId",
+              "actionId"
+            ],
+            "properties": {
+              "caseId": {
+                "type": "string"
+              },
+              "goalId": {
+                "type": "string"
+              },
+              "pointId": {
+                "type": "string"
+              },
+              "code": {
+                "enum": [
+                  "missing_reading",
+                  "repeated_reading",
+                  "phase_mismatch",
+                  "missing_input_summary",
+                  "missing_reply_summary"
+                ]
+              },
+              "observationId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "actionId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "total": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "reasonCode": {
+          "const": "FEEDBACK_UNAVAILABLE"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

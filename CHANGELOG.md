@@ -1,5 +1,14 @@
 # 更新记录 / Changelog
 
+## 0.2.1-rc.1 / execution-efficiency-1 — 2026-11-06 · 开发候选，未发布
+
+- Skill/包短标识改为`ai-testing-ego-lite`，中文名称保留“AI 自主自动化测试”。构建身份与目录引用同步；当前GitHub仓库地址、用户安装和历史Release未变更。
+- 明确独立脚本与模型回合的区别，推荐合并已确定的本地准备、执行和取证，保留需要新观察、授权或未知副作用的判断边界。
+- progress和regression context默认有界summary，支持goals索引、单point完整预期/依赖及显式导出。历史full仅导出；新读取输出contextReadVersion 1。
+- CLI record返回recordResponseVersion 1，原receipt与提交时结构反馈分开；内部记录事务和并行收据不变。提示不改四态，重放仍绑定原revision。
+- usage summarize只读取指定非秘密导出，按唯一请求去重并分列缓存/推理子项；未知不当0，不扫描宿主目录或推测账单。
+- 继续主存储v9、知识v3、回归v2，不重写旧资产或提供旧名兼容别名。CLI输出有意变化，调用者需同步；真实模型成本及业务效果另行验证。
+
 ## 0.1.9 / project-knowledge-3 — 2026-11-04 · 正式版本
 
 - 按已通过人工审核的分支发布；软件、Skill、双语当前文档与图示统一正式版本 0.1.9，不带 dev 后缀。下列开发条目保留当时身份与验证事实。

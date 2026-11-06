@@ -17,7 +17,7 @@
 | ZCode 本地（Z.ai） | general-purpose 与只读 Explore 用途不同；前台并行和后台回传不同。自定义白名单及项目指令注入的版本条件会影响工具和上下文。[官方资料](https://zcode.z.ai/cn/docs/subagents) | 未验证本 Skill 的真实终端完整链路 |
 | 其他 / 远程 / 云端 / WSL | 另行确认文件与本机 Ego 是否可达；本机安装成功不证明远端能操作该浏览器 | 未验证，不作全面支持声明 |
 
-Codex 可用 `$ai-autonomous-testing-ego-lite`；Claude Code 使用 `/ai-autonomous-testing-ego-lite`，通常安装于 `.claude/skills`；ZCode 支持自己的技能目录及外部复制/软链导入。应安装完整编译包并核对实际 ToolRoot，不能只复制源码 SKILL.md。包中的 `agents/openai.yaml` 是随清单保留的元数据，不是各宿主共用的子 Agent 定义。[Claude Skills](https://code.claude.com/docs/en/skills) [ZCode Skill](https://zcode.z.ai/cn/docs/skill)
+Codex 可用 `$ai-testing-ego-lite`；Claude Code 使用 `/ai-testing-ego-lite`，通常安装于 `.claude/skills`；ZCode 支持自己的技能目录及外部复制/软链导入。应安装完整编译包并核对实际 ToolRoot，不能只复制源码 SKILL.md。包中的 `agents/openai.yaml` 是随清单保留的元数据，不是各宿主共用的子 Agent 定义。[Claude Skills](https://code.claude.com/docs/en/skills) [ZCode Skill](https://zcode.z.ai/cn/docs/skill)
 
 目录链接入口修复限于 CLI 主模块识别，不放松运行/证据目录的防链接检查。使用默认 Node 调用链接安装目录后，以非空 `tool-info` 回执返回的真实 `toolRoot` 继续；特殊 Node 加载选项、各宿主的实际软链导入仍需另验。退出码 0 但没有预期回执或产物时应记录执行问题。
 

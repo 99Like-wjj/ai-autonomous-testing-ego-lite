@@ -22,7 +22,7 @@ node ABS_TOOL_ROOT/scripts/ego.mjs execution read --run-dir ABS_RUN --view full
 node ABS_TOOL_ROOT/scripts/ego.mjs execution ACTION --run-dir ABS_RUN --request ABS_REQUEST
 ```
 
-摘要与单例视图默认检查 metadata，明示 results/历史证据未复核；full integrity 可完整检查后仍只返回摘要，full view 严格核验。viewVersion 为 8。total/truncated 显示省略，不能把摘要当全量。工具不证明 worker 实时状态或业务完成，不固定轮询。
+摘要与单例视图默认检查 metadata，明示 results/历史证据未复核；full integrity 可完整检查后仍只返回摘要，full view 严格核验。viewVersion 为 9。total/truncated 显示省略，不能把摘要当全量。工具不证明 worker 实时状态或业务完成，不固定轮询。
 
 ACTION 包含 inventory、capacity、reserve、attach-space、note、set-limit、reconcile、import。请求统一 schemaVersion 9、唯一 operationId、expectedRevision、kind、reason；具体必填字段读当前 schemas/execution-request.schema.json。对初始 Space、分派、所有权、证据路径和在途状态的结构保护仍有效。
 

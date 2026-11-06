@@ -1,4 +1,7 @@
-# 数据契约（v9 / 0.1.9）
+# 数据契约（v9 / 0.2.1-rc.1）
+
+0.2.1-rc.1为未发布开发候选，Skill/包名ai-testing-ego-lite，存储仍v9。progress/context使用contextReadVersion 1；CLI record以recordResponseVersion 1封装原收据及结构反馈；显式usage汇总独立于业务结果。设计与开发自测保留在源码仓库，不进入运行包。
+
 
 当前开发版主契约 v9、regressionVersion 2、networkVersion 1。源码 Schema 是外部结构定义，运行时同时验证引用、内容指纹与事务语义；类型从 Schema 生成，不直接改生成文件。工程通过不是业务验收。
 
@@ -32,7 +35,7 @@ evidence 原件及操作不可变留存，元数据可标 artifactRole=download_
 
 ## 执行与下载
 
-配置 schemaVersion 为 9，maxParallelCases 默认 1。execution query viewVersion 9 默认仅检查元数据，full 才核对当前结果及物理引用。串行与工作包共享目标范围、引用和证据校验。worker 只写自己的目录，协调者审核后写共享账本。
+配置 schemaVersion 为 9，maxParallelCases 默认 1。execution read viewVersion 9 默认仅检查元数据，full 才核对当前结果及物理引用。串行与工作包共享目标范围、引用和证据校验。worker 只写自己的目录，协调者审核后写共享账本。
 
 既有 execution note 增加 category=download 和 download={captureId,caseId,pointIds,actionId,state}。active/unknown 保留一个 activeDownload 标记，resolved 需要显式留存对账事实；不按时间解除，也不新增租约或下载服务。该标记不隔离其他对话或用户下载。
 

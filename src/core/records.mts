@@ -156,7 +156,7 @@ export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, avai
   validateReportFactsAgainstCase(c, payload, availableObservations, evidenceById, {contexts:priorFacts.contexts,findings:priorFacts.findings??[],entries:priorFacts.entries??[]});
 }
 /** Current assessments are a projection of explicit final events; attempt events remain historical. */
-export function projectCases(baseline: Baseline, entries: readonly ResultEntry[], selectedPointIds?:readonly string[]): CheckedCase[] {
+export function projectCases(baseline: Pick<Baseline,'cases'>, entries: readonly ResultEntry[], selectedPointIds?:readonly string[]): CheckedCase[] {
   return baseline.cases.filter(c=>selectedPointIds===undefined||c.goals.some(g=>selectedPointIds.includes(g.pointId))).map(original => {
     const c=selectedPointIds===undefined?original:{...original,goals:original.goals.filter(g=>selectedPointIds.includes(g.pointId))};
     const own = entries.filter(entry => entry.caseId === c.id), observations = new Map<string, Observation>(), current = new Map<string, CommittedAssessment>();
@@ -314,7 +314,8 @@ export function resultOperationReceipt(entry: ResultEntry, replayed = false): Re
 export function evidenceOperationReceipt(op: EvidenceOperation, replayed = false): EvidenceReceipt {
   return { operationId: op.operationId, revision: op.revision, caseId: op.caseId, evidenceId: op.evidenceId, path: op.path, sha256: op.sha256, bytes: op.bytes, collectedAt: op.committedAt, replayed };
 }
-export async function recordResultUnlocked(root: string, input: unknown, testHooks: TestHooks = {}): Promise<ResultReceipt> {
+export type CommitObserver = (receipt:ResultReceipt, checked:Report, results:Results) => void;
+export async function recordResultUnlocked(root: string, input: unknown, testHooks: TestHooks = {}, onReceipt?:CommitObserver): Promise<ResultReceipt> {
   await recoverEvidence(root);
   const checked = await checkUnlocked(root), request = parseRecordRequest(input);
   await verifyAiContext(request.record.aiContext);
@@ -322,7 +323,7 @@ export async function recordResultUnlocked(root: string, input: unknown, testHoo
   const payloadSha256 = canonicalHash(request), existing = results.entries.find(entry => entry.operationId === request.operationId);
   if (existing) {
     if (existing.payloadSha256 !== payloadSha256) fail('Operation ID was already used with a different payload.');
-    return resultOperationReceipt(existing, true);
+    const receipt=resultOperationReceipt(existing, true);onReceipt?.(receipt,checked,results);return receipt;
   }
   if (checked.evidenceCatalog.operations.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by an evidence operation.');
   if (request.expectedRevision !== results.revision) fail('Revision conflict: expected ' + request.expectedRevision + ', current ' + results.revision + '.');
@@ -338,7 +339,9 @@ export async function recordResultUnlocked(root: string, input: unknown, testHoo
   const entry: ResultEntry = { operationId: request.operationId, payloadSha256, expectedRevision: request.expectedRevision, revision: results.revision + 1, recordedAt: now(), caseId: request.caseId, mode: request.mode, record: request.record };
   await atomicReplace(resultsPath, json({ schemaVersion: 9, revision: entry.revision, entries: [...results.entries, entry] }));
   if (testHooks.afterCommit) await testHooks.afterCommit();
-  return resultOperationReceipt(entry, false);
+  const receipt=resultOperationReceipt(entry, false);
+  onReceipt?.(receipt,checked,{schemaVersion:9,revision:entry.revision,entries:[...results.entries,entry]});
+  return receipt;
 }
 export async function recordResult({ runDir, request }: { runDir: unknown; request: unknown }, testHooks: TestHooks = {}): Promise<ResultReceipt> {
   return withRunLock(runDir, root => recordResultUnlocked(root, request, testHooks));

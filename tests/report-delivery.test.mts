@@ -99,12 +99,12 @@ test('standalone package contains resolvable guides/scripts/schemas and runs fro
     const root = await temporary(t), bundle = path.join(root, 'standalone skill');
     const built = await buildSkill(bundle), identity = await toolInfo(bundle);
     assert.equal(identity.installationIntegrity, 'verified');
-    assert.equal(identity.name, 'ai-autonomous-testing-ego-lite');
+    assert.equal(identity.name, 'ai-testing-ego-lite');
     const skillText = await fs.readFile(path.join(bundle, 'SKILL.md'), 'utf8');
-    assert.ok(skillText.startsWith('---\nname: ai-autonomous-testing-ego-lite\n'));
+    assert.ok(skillText.startsWith('---\nname: ai-testing-ego-lite\n'));
     const ui = await fs.readFile(path.join(bundle, 'agents/openai.yaml'), 'utf8');
     assert.ok(ui.includes('display_name: "AI 自主自动化测试 · Ego Lite"'));
-    assert.ok(ui.includes('$ai-autonomous-testing-ego-lite'));
+    assert.ok(ui.includes('$ai-testing-ego-lite'));
     assert.equal((await read(path.join(bundle, 'package.json'))).name, identity.name);
     assert.equal(identity.fingerprint, built.fingerprint);
     assert.deepEqual(await fs.readFile(path.join(bundle, 'scripts/ego.mjs')), await fs.readFile(path.join(TOOL_ROOT, 'scripts/ego.mjs')));
@@ -164,10 +164,10 @@ test('runtime rejects missing assets, changed installed files and wrong requeste
     await assert.rejects(toolInfo(bundle), { code: 'ENOENT' });
 });
 test('renamed package rejects legacy Skill identity and changed Codex metadata', async (t) => {
-    const root = await temporary(t), bundle = path.join(root, 'ai-autonomous-testing-ego-lite');
+    const root = await temporary(t), bundle = path.join(root, 'ai-testing-ego-lite');
     await buildSkill(bundle);
     const skillPath = path.join(bundle, 'SKILL.md'), skill = await fs.readFile(skillPath, 'utf8');
-    await fs.writeFile(skillPath, skill.replace('name: ai-autonomous-testing-ego-lite', 'name: ego-lite-test'));
+    await fs.writeFile(skillPath, skill.replace('name: ai-testing-ego-lite', 'name: ego-lite-test'));
     await assert.rejects(toolInfo(bundle), /version or revision mismatch/);
     await fs.writeFile(skillPath, skill);
     assert.equal((await toolInfo(bundle)).installationIntegrity, 'verified');

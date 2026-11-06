@@ -6,6 +6,10 @@
 
 ![最新在前：0.1.9 正式版，其后为 0.1.8 至 0.1.2 历史版本；仅为能力示意。](images/version-history.zh-CN.png)
 
+## v0.2.1 · 开发候选，未发布
+
+0.2.1-rc.1改进执行编排、按目标读取、入账结构反馈及可选用量摘要；新标识ai-testing-ego-lite。存储仍为v9。见[开发自测](v0.2.1-development-validation.md)。
+
 ## v0.1.9 · 项目知识库、测试经验与离线审阅导出（正式版本）
 
 0.1.9 新增独立知识格式v3的四类资料只读检索、可选来源处理与按任务使用，主契约仍为 v9。详见[v0.1.9 开发自测](v0.1.9-development-validation.md)；正式安装包见 [v0.1.9 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9)，本轮工程检查见[发布验证](v0.1.9-release-validation.md)。

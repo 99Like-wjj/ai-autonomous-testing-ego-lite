@@ -1,13 +1,13 @@
 # Skill 安装与更新
 
-适用于 `ai-autonomous-testing-ego-lite` 的完整编译安装包。具体版本、revision、环境要求、格式变化和验证范围，以该次 GitHub Release 说明及包内 `package.json` 为准。本说明不表示当前开发分支已经正式发布。
+适用于 `ai-testing-ego-lite` 的完整编译安装包。具体版本、revision、环境要求、格式变化和验证范围，以该次 GitHub Release 说明及包内 `package.json` 为准。本说明不表示当前开发分支已经正式发布。
 
 ## 安装前准备
 
-- 从项目的 [GitHub Releases](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases) 下载对应版本的完整 Skill ZIP 和 `SHA256SUMS`。自动生成的 **Source code ZIP 不是编译安装包**。
+- 从项目的 [GitHub Releases](https://github.com/99Like-wjj/ai-testing-ego-lite/releases) 下载对应版本的完整 Skill ZIP 和 `SHA256SUMS`。自动生成的 **Source code ZIP 不是编译安装包**。
 - 按所选版本要求准备 Node.js、Ego 和官方 ego-browser Skill。它们不由本安装包自动安装或替换。
 - 在 PowerShell 中对实际下载文件运行 `Get-FileHash <ZIP路径> -Algorithm SHA256`，将结果与同次 Release 的 `SHA256SUMS` 比较；不一致时停止安装。
-- 解压到独立临时目录，保留完整的 `ai-autonomous-testing-ego-lite` 文件夹，不能只复制 `SKILL.md`。
+- 解压到独立临时目录，保留完整的 `ai-testing-ego-lite` 文件夹，不能只复制 `SKILL.md`。
 
 ## 首次安装
 
@@ -20,7 +20,7 @@
 
    核对 `toolRoot`、版本与 `installationIntegrity`。若不一致或校验失败，停止并检查，不修改 manifest 来绕过校验。
 3. 确认目标没有同名旧安装后，将完整 Skill 文件夹放入客户端的 Skill 目录；有旧安装时，执行下面的更新流程。
-4. 从**实际安装根目录**再次运行上述命令。开启新客户端会话，确认实际加载目录，并调用 `$ai-autonomous-testing-ego-lite` 验证入口可用。
+4. 从**实际安装根目录**再次运行上述命令。开启新客户端会话，确认实际加载目录，并调用 `$ai-testing-ego-lite` 验证入口可用。
 
 ## 从旧版更新
 

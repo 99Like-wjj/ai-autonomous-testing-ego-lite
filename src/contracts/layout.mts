@@ -1,8 +1,19 @@
 /** Explicit shipped assets; test tools and real run data never enter this list. */
-export const TOOL_VERSION = '0.1.9';
-export const TOOL_REVISION = 'project-knowledge-3';
+export const TOOL_NAME = 'ai-testing-ego-lite';
+export const SKILL_SOURCE = 'skills/' + TOOL_NAME;
+export const TOOL_VERSION = '0.2.1-rc.1';
+export const TOOL_REVISION = 'execution-efficiency-1';
 export const FORMAT_VERSIONS = { cases: 9, manifest: 9, results: 9, evidence: 9, report: 9, execution: 9, configuration: 9, workerPacket: 9, executionRead: 9 } as const;
 export const runtimeFiles = [
+  'core/result-views.mjs',
+  'core/review-hints.mjs',
+  'core/record-feedback.mjs',
+  'diagnostics/usage.mjs',
+  'schemas/context-read.schema.json',
+  'schemas/record-response.schema.json',
+  'schemas/usage-input.schema.json',
+  'schemas/usage-request.schema.json',
+  'schemas/usage-summary.schema.json',
   'knowledge/commands.mjs',
   'knowledge/contract.mjs',
   'knowledge/store.mjs',
