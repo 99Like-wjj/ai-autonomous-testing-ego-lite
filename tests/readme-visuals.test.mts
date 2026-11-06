@@ -188,3 +188,13 @@ test('stable release READMEs use the renamed repository and Skill entrypoints', 
     assert.ok(page.includes('deliveryVersion 2'));
   }
 });
+
+
+test('Chinese README uses the reviewed title and AI Testing Skill description without renaming the Skill', async () => {
+  const readme = await fs.readFile(path.join(SOURCE_ROOT, 'README.md'), 'utf8');
+  assert.ok(readme.includes('<h1 align="center">AI 自动化测试 · Ego Lite</h1>'));
+  assert.ok(readme.includes('**面向 Web 应用的 AI Testing Skill。**'));
+  assert.ok(readme.includes('AI 自主分析需求、设计用例、通过 Ego Lite 执行并依据真实证据判断结果'));
+  const pkg = JSON.parse(await fs.readFile(path.join(SOURCE_ROOT, 'package.json'), 'utf8')) as { name: string };
+  assert.equal(pkg.name, 'ai-testing-ego-lite');
+});

@@ -1,12 +1,12 @@
-<p align="center"><img src="docs/images/hero.zh-CN.png" alt="AI 自主自动化测试 · ai-testing-ego-lite" width="100%"></p>
+<p align="center"><img src="docs/images/hero.zh-CN.png" alt="AI 自动化测试 · ai-testing-ego-lite" width="100%"></p>
 
 > **发布前人工审核快照：** 本分支为 0.2.1 发布准备，按用户要求先合并供审核，尚未创建 Tag 或发布 Release。下文正式版措辞、下载入口与图示为拟发布内容预览，审核通过前不表示已发布。
 
-<h1 align="center">AI 自主自动化测试 · Ego Lite</h1>
+<h1 align="center">AI 自动化测试 · Ego Lite</h1>
 
 <p align="center"><a href="README.en.md">English</a> · <strong>简体中文</strong><br><a href="#windows-快速开始">快速开始</a> · <a href="docs/architecture.md">架构</a> · <a href="docs/asset-formats.md">格式与命令</a> · <a href="docs/testing.md">验证状态</a></p>
 
-**面向 Web 应用的 AI 自动化测试（AI testing / test automation）Skill。** AI 自主分析需求、设计用例、通过 Ego Lite 执行并依据真实证据判断结果，支持新功能与已有功能回归。
+**面向 Web 应用的 AI Testing Skill。** AI 自主分析需求、设计用例、通过 Ego Lite 执行并依据真实证据判断结果，支持新功能与已有功能回归。
 
 ## 配套工具：项目知识库维护 Skill
 
@@ -30,7 +30,7 @@
 
 ## 当前版本
 
-当前正式版本为 **[0.2.1](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1) / attachments-review-2**。仓库、安装包与 Skill 标识统一为 `ai-testing-ego-lite`，显式调用 `$ai-testing-ego-lite`；中文展示名保留“AI 自主自动化测试”。使用前核对完整安装内容的身份。本次附件与评审改动及验证范围见[验证记录](docs/evaluations/attachment-review-20261106/validation.md)。
+当前正式版本为 **[0.2.1](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1) / attachments-review-2**。仓库、安装包与 Skill 标识统一为 `ai-testing-ego-lite`，显式调用 `$ai-testing-ego-lite`；中文展示名为“AI 自动化测试”。使用前核对完整安装内容的身份。本次附件与评审改动及验证范围见[验证记录](docs/evaluations/attachment-review-20261106/validation.md)。
 
 完整编译包与安装说明见[安装指南](INSTALL.zh-CN.md)，不把源码ZIP当作安装包。升级时完整安装新名称 Skill，验证后删除旧入口，不保留旧名别名；历史数据保持原样。实现设计见[0.2.1设计](docs/v0.2.1-design.md)，当前验证范围见[开发自测](docs/v0.2.1-development-validation.md)。
 

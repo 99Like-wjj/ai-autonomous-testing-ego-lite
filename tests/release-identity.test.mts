@@ -17,9 +17,23 @@ test('release identity agrees across package, lockfile, Skill and current guides
   assert.equal(pkg.egoLiteTest.toolRevision, TOOL_REVISION);
   assert.ok((await read('skills/ai-testing-ego-lite/SKILL.md')).includes('version: "'+TOOL_VERSION+'"'));
   const config = await read('skills/ai-testing-ego-lite/agents/openai.yaml');
-  assert.match(config, /display_name: "AI 自主自动化测试 · Ego Lite"/);
+  assert.match(config, /display_name: "AI 自动化测试 · Ego Lite"/);
   assert.doesNotMatch(config, /dev|rc\.\d+/i);
   for (const file of ['README.md', 'README.en.md', 'docs/asset-formats.md', 'docs/asset-formats.en.md', 'docs/architecture.md', 'docs/architecture.en.md', 'docs/regression-reuse.md', 'docs/version-history.md', 'docs/version-history.en.md', 'skills/ai-testing-ego-lite/SKILL.md', 'skills/ai-testing-ego-lite/references/local-toolbox.md', 'skills/ai-testing-ego-lite/references/local-toolbox.en.md']) {
     assert.doesNotMatch(await read(file), /0\.1\.7-(?:dev|rc)/, file);
   }
+});
+
+
+test('current branding is consistent without changing autonomous-testing behavior or historical names', async () => {
+  const current = ['README.md', 'README.en.md', 'INSTALL.zh-CN.md', 'skills/ai-testing-ego-lite/SKILL.md', 'skills/ai-testing-ego-lite/agents/openai.yaml', 'docs/v0.2.1-design.md', 'docs/v0.2.1-rename-design.md', 'docs/images/render.mts', 'docs/images/hero.svg', 'docs/images/hero.zh-CN.svg'];
+  for (const name of current) {
+    const text = await fs.readFile(path.join(SOURCE_ROOT, name), 'utf8');
+    assert.doesNotMatch(text, /AI 自主自动化测试|AI Autonomous Testing|AI AUTONOMOUS TESTING/, name);
+  }
+  const config = await fs.readFile(path.join(SOURCE_ROOT, 'skills/ai-testing-ego-lite/agents/openai.yaml'), 'utf8');
+  assert.match(config, /由 AI 自主分析与规划/);
+  assert.match(config, /使用 \$ai-testing-ego-lite/);
+  assert.match(await fs.readFile(path.join(SOURCE_ROOT, 'docs/images/hero.zh-CN.svg'), 'utf8'), /AI 自主规划与执行/);
+  assert.match(await fs.readFile(path.join(SOURCE_ROOT, 'docs/v0.1.7-release-validation.md'), 'utf8'), /AI 自主自动化测试 · Ego Lite/);
 });

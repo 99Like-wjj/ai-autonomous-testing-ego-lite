@@ -103,7 +103,7 @@ test('standalone package contains resolvable guides/scripts/schemas and runs fro
     const skillText = await fs.readFile(path.join(bundle, 'SKILL.md'), 'utf8');
     assert.ok(skillText.startsWith('---\nname: ai-testing-ego-lite\n'));
     const ui = await fs.readFile(path.join(bundle, 'agents/openai.yaml'), 'utf8');
-    assert.ok(ui.includes('display_name: "AI 自主自动化测试 · Ego Lite"'));
+    assert.ok(ui.includes('display_name: "AI 自动化测试 · Ego Lite"'));
     assert.ok(ui.includes('$ai-testing-ego-lite'));
     assert.equal((await read(path.join(bundle, 'package.json'))).name, identity.name);
     assert.equal(identity.fingerprint, built.fingerprint);

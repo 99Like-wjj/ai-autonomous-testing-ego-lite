@@ -2,11 +2,11 @@
 
 > **Pre-release manual review snapshot:** This branch prepares 0.2.1. The user requested merging for review before publishing; no tag or Release has been created. Stable-release wording, download links and illustrations below preview the proposed publication, not a completed release.
 
-<h1 align="center">AI Autonomous Testing with Ego Lite</h1>
+<h1 align="center">AI Testing with Ego Lite</h1>
 
 <p align="center"><strong>English</strong> · <a href="README.md">简体中文</a></p>
 
-**An AI-led Web testing Skill built on Ego Lite.** For first launches, new features and regression, using existing cases or cases generated from requirements.
+**An AI Testing Skill built on Ego Lite.** For first launches, new features and regression, using existing cases or cases generated from requirements.
 
 ## Companion tool: project knowledge maintenance
 
@@ -30,7 +30,7 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ## Current version
 
-The stable release is **[0.2.1](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1) / attachments-review-2**. The repository, installation package and Skill use `ai-testing-ego-lite`; invoke `$ai-testing-ego-lite`. The Chinese display name remains “AI 自主自动化测试”. Verify the complete installation identity before use. See the [attachment and review validation](docs/evaluations/attachment-review-20261106/validation.md) for scope and results.
+The stable release is **[0.2.1](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1) / attachments-review-2**. The repository, installation package and Skill use `ai-testing-ego-lite`; invoke `$ai-testing-ego-lite`. The Chinese display name is “AI 自动化测试”. Verify the complete installation identity before use. See the [attachment and review validation](docs/evaluations/attachment-review-20261106/validation.md) for scope and results.
 
 Use the complete compiled package described in [installation guidance](INSTALL.zh-CN.md), not the source ZIP. Install the complete renamed Skill, verify it, then remove the old discovered entry without retaining an alias; historical data stays intact. See [0.2.1 design](docs/v0.2.1-design.md) and [development validation](docs/v0.2.1-development-validation.md).
 
