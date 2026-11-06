@@ -30,7 +30,7 @@ export function validateAssessment(packet: WorkerPacket, c: Case, review?: Packe
   }
   if (committed && committed.case.id !== c.id) fail('Committed packet facts belong to a different case.');
   // Preserve real IDs for explicit reuse or a resumed import. New local evidence gets a validation-only ID.
-  const evidence = new Map((committed?.catalog.items ?? []).map(item => [item.id, { caseId: item.caseId }])), ids = new Map<string, string>();
+  const evidence = new Map((committed?.catalog.items ?? []).map(item => [item.id, { caseId: item.caseId, ...(item.metadata ? { metadata: item.metadata } : {}) }])), ids = new Map<string, string>();
   for (const item of packet.evidence) {
     const importedId = committed?.evidenceIds?.get(item.key), existingId = item.reuseEvidenceId ?? importedId;
     if (importedId && item.reuseEvidenceId && importedId !== item.reuseEvidenceId) fail('Resumed import changed its explicit evidence reuse ID.');
@@ -40,7 +40,7 @@ export function validateAssessment(packet: WorkerPacket, c: Case, review?: Packe
       matchRegisteredEvidence({...item,...(meta?{metadata:meta}:{})}, existingId, c.id, committed.catalog);
     }
     const id = existingId ?? 'packet-local-' + canonicalHash({ packetId: packet.packetId, key: item.key }).slice(0, 40);
-    ids.set(item.key, id); evidence.set(id, { caseId: c.id });
+    ids.set(item.key, id); evidence.set(id, { caseId: c.id, ...(item.metadata ? { metadata: item.metadata } : {}) });
   }
   const mapped = mapRecordEvidence(record, key => { const id = ids.get(key); if (!id) fail('Unknown packet evidence key: ' + key); return id; });
   validatePayloadAgainstCase(c, mapped, committed?.case.observations ?? [], evidence, committed?.case);

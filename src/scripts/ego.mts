@@ -5,7 +5,6 @@ import {reviewCases} from '../core/case-review.mjs';
 import {renderCases,verifyCaseDocuments} from '../report/case-documents.mjs';
 import {exportReviewFeedback,readFeedbackInput} from '../report/review-export.mjs';
 import {inspectFile} from '../files/inspect.mjs';
-import { readSourceRun, sourceContext } from '../regression/sources.mjs';
 import { selectRegression } from '../regression/selection.mjs';
 import { compareRuns, writeComparison } from '../regression/compare.mjs';
 /** Local deterministic transactions only. The host AI owns browser actions and verdicts. */
@@ -26,6 +25,10 @@ import { exportNetworkEvidence } from '../observation/evidence-export.mjs';
 import { boundedJSON } from '../observation/store.mjs';
 import { codeOf, NetworkError } from '../observation/model.mjs';
 import { inspectKnowledge, queryKnowledge } from '../knowledge/commands.mjs';
+import { readCurrentContext, readHistoricalContext } from '../core/result-views.mjs';
+import type { ContextOptions } from '../core/result-views.mjs';
+import { recordWithFeedback } from '../core/record-feedback.mjs';
+import { summarizeUsageFile } from '../diagnostics/usage.mjs';
 export { SOURCE_ROOT, safePath } from '../core/common.mjs';
 export { normalizeCases, validateCases, init, start } from '../core/cases.mjs';
 export { check, recordResult, registerEvidence, progress } from '../core/records.mjs';
@@ -42,8 +45,9 @@ interface Responses {
   'tool-info': Omit<Awaited<ReturnType<typeof toolInfo>>, 'files'>;
   'validate-cases': Awaited<ReturnType<typeof validateCases>>;
   init: Awaited<ReturnType<typeof init>>; start: Awaited<ReturnType<typeof start>>;
-  'evidence-add': Awaited<ReturnType<typeof registerEvidence>>; record: Awaited<ReturnType<typeof recordResult>>;
-  progress: Awaited<ReturnType<typeof progress>>; check: Awaited<ReturnType<typeof check>>;
+  'evidence-add': Awaited<ReturnType<typeof registerEvidence>>; record: Awaited<ReturnType<typeof recordWithFeedback>>;
+  progress: Awaited<ReturnType<typeof readCurrentContext>>; check: Awaited<ReturnType<typeof check>>;
+  usage: Awaited<ReturnType<typeof summarizeUsageFile>>;
   report: Awaited<ReturnType<typeof report>>; 'verify-report': Awaited<ReturnType<typeof verifyReport>>;
   execution: Awaited<ReturnType<typeof readExecutionQuery>> | Awaited<ReturnType<typeof executeRequest>>;
   'packet-seal': Awaited<ReturnType<typeof sealPacket>>;
@@ -58,6 +62,11 @@ export function parseFlags(args: readonly string[], allowed: readonly string[], 
   }
   if (required.some(key => !flags[key])) fail('Missing required option. Use --help.');
   return flags;
+}
+const contextFlags=['view','case-id','point-id','offset','limit','max-bytes','expected-results-revision','output-file'];
+function readOptions(flags:Record<string,string>):ContextOptions{
+  const number=(name:string)=>{const s=flags[name];if(s===undefined)return undefined;if(!/^\d+$/.test(s)||!Number.isSafeInteger(Number(s)))fail('Invalid context numeric option.');return Number(s);};
+  return{view:flags.view,caseId:flags['case-id'],pointId:flags['point-id'],offset:number('offset'),limit:number('limit'),maxBytes:number('max-bytes'),expectedResultsRevision:number('expected-results-revision'),outputFile:flags['output-file']};
 }
 export async function main<C extends keyof Responses>(argv: readonly [C, ...string[]]): Promise<Responses[C]>;
 export async function main(argv: readonly string[]): Promise<unknown>;
@@ -76,8 +85,9 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs validate-cases --cases ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs start --project-dir ABS --cases ABS --output-dir ABS [--execution-config ABS_JSON] [--max-parallel-cases N] --binding ABS_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs evidence-add --run-dir ABS --request ABS_JSON
-       node ABS_TOOL_ROOT/scripts/ego.mjs record --run-dir ABS --request ABS_JSON
-       node ABS_TOOL_ROOT/scripts/ego.mjs progress --run-dir ABS
+       node ABS_TOOL_ROOT/scripts/ego.mjs record --run-dir ABS --request ABS_JSON [--feedback summary|none]
+       node ABS_TOOL_ROOT/scripts/ego.mjs progress --run-dir ABS [--view summary|goals|point] [--case-id ID] [--point-id ID] [--offset N] [--limit N] [--max-bytes N] [--expected-results-revision N] [--output-file ABS_NEW_JSON]
+       node ABS_TOOL_ROOT/scripts/ego.mjs usage summarize --request ABS_JSON [--output-file ABS_NEW_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs check --run-dir ABS
        node ABS_TOOL_ROOT/scripts/ego.mjs report --run-dir ABS [--output-dir ABS_EXISTING_DIR] [--context ABS_JSON] [--presentation ABS_JSON] [--history-locations ABS_MAP_JSON] [--delivery auto|inline|bundle] [--allow-missing-screenshots true|false]
        node ABS_TOOL_ROOT/scripts/ego.mjs verify-report --run-dir ABS --report-dir ABS
@@ -89,7 +99,7 @@ export async function main(argv: readonly string[]): Promise<unknown> {
        node ABS_TOOL_ROOT/scripts/ego.mjs network query --run-dir ABS --request ABS_JSON [--output-file ABS_NEW_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs network export --run-dir ABS --request ABS_JSON --output-file ABS_NEW_JSON
        node ABS_TOOL_ROOT/scripts/ego.mjs network stop --run-dir ABS [--capture-id ID]
-       node ABS_TOOL_ROOT/scripts/ego.mjs regression context --run-dir ABS [--results-revision N] [--output-file ABS_NEW_JSON]
+       node ABS_TOOL_ROOT/scripts/ego.mjs regression context --run-dir ABS [--results-revision N] [--view summary|goals|point|full] [--case-id ID] [--point-id ID] [--offset N] [--limit N] [--max-bytes N] [--expected-results-revision N] [--output-file ABS_NEW_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs regression select --request ABS_JSON [--output-file ABS_NEW_JSON]
        node ABS_TOOL_ROOT/scripts/ego.mjs regression compare --request ABS_JSON [--output-dir ABS_NEW_DIRECTORY]
 Regression contracts use regressionVersion 2. Cases retain stable goal pointIds in whole-file versions. start requires a frozen selection, actual case review and current declarations. History never becomes current evidence or authorization.
@@ -99,6 +109,9 @@ execution read defaults to a bounded metadata summary; assignment requires --ass
 max-parallel-cases is a positive safe integer; no fixed product ceiling. Host limits are used only when explicitly supplied, never probed or globally configured.
 Test-asset contracts use v9; project knowledge independently uses knowledgeFormatVersion 3. Knowledge is optional; unsupported sources are unavailable context, never migrated or overwritten.
 record commits observations and explicit business-goal assessments through the same transaction as reviewed packet imports.
+record returns recordResponseVersion 1, the unchanged receipt and revision-pinned structural feedback. Feedback does not alter business statuses.
+progress/context default to bounded summary. Point views retain required plan semantics; full historical context requires an output file. Output files must be outside the source run.
+usage summarizes explicit local exports only. Unknown metrics are not zero; input/cache and output/reasoning are not added twice. No model calls or billing inference.
 Missing assessments are recording gaps, not inconclusive verdicts. Cases group goals and have no separate business verdict.
 packet-seal writes an immutable worker-local packet; it does not commit a verdict. Coordinator import requires an explicit AI review.
 report writes report.json, report.md, and a standalone offline report.html; it refuses to overwrite them. Invalid run data or registered evidence stops report generation.
@@ -106,6 +119,13 @@ Generation and verify-report read back all three files; browserOpen stays not_ch
 network start/stop manage a scoped native-only Ego observation context. Queries read committed local evidence and make no business requests or verdicts.
 Network format is independently versioned (networkVersion 1). Old experimental protocol summaries are not read or migrated.
 No model calls, automatic UI actions, request replay or automatic business verdicts.`;
+  if(command==='usage'){
+    const [action,...args]=rest;if(action!=='summarize')fail('Unknown usage action.');
+    const flags=parseFlags(args,['request','output-file'],['request']);await toolInfo();return summarizeUsageFile(await readJSON(await safePath(flags.request,{existing:true})),flags['output-file']);
+  }
+  if(command==='progress'){
+    const flags=parseFlags(rest,['run-dir',...contextFlags],['run-dir']);await toolInfo();return readCurrentContext(flags['run-dir'],readOptions(flags));
+  }
   if(command==='knowledge'){
     const [action,...args]=rest;if(!action||!['inspect','query','read'].includes(action))fail('Unknown knowledge action.');
     const flags=parseFlags(args,action==='inspect'?['knowledge-root']:['knowledge-root','request','output-file'],[]);await toolInfo();
@@ -131,8 +151,8 @@ No model calls, automatic UI actions, request replay or automatic business verdi
   if(command==='files'){const [action,...args]=rest;if(action!=='inspect')fail('Unknown files action.');const flags=parseFlags(args,['request','output-file'],['request','output-file']);await toolInfo();return inspectFile({request:await readJSON(await safePath(flags.request,{existing:true})),outputFile:flags['output-file']});}
   if(command==='regression'){
     const [action,...args]=rest;if(!action||!['context','select','compare'].includes(action))fail('Unknown regression action; definitions now use cases save/review.');
-    const flags=parseFlags(args,action==='context'?['run-dir','results-revision','output-file']:action==='compare'?['request','output-dir']:['request','output-file'],action==='context'?['run-dir']:['request']);await toolInfo();let result:unknown;
-    if(action==='context'){if(flags['results-revision']&&!/^\d+$/.test(flags['results-revision']))fail('Invalid results revision.');result=sourceContext(await readSourceRun(flags['run-dir'],flags['results-revision']===undefined?{}:{resultsRevision:Number(flags['results-revision'])}));}
+    const flags=parseFlags(args,action==='context'?['run-dir','results-revision',...contextFlags]:action==='compare'?['request','output-dir']:['request','output-file'],action==='context'?['run-dir']:['request']);await toolInfo();let result:unknown;
+    if(action==='context'){if(flags['results-revision']&&!/^\d+$/.test(flags['results-revision']))fail('Invalid results revision.');return readHistoricalContext(flags['run-dir'],readOptions(flags),flags['results-revision']===undefined?undefined:Number(flags['results-revision']));}
     else if(action==='select')result=await selectRegression({request:await readJSON(await safePath(flags.request,{existing:true}))});
     else{const comparison=await compareRuns({request:await readJSON(await safePath(flags.request,{existing:true}))});result=flags['output-dir']?await writeComparison({outputDir:flags['output-dir'],comparison}):comparison;}
     if(flags['output-file']){const outputFile=await safePath(flags['output-file'],{external:true}),bytes=json(result);await writeNew(outputFile,bytes);return{outputFile,sha256:hash(bytes),regressionVersion:2,businessExecuted:false};}return result;
@@ -164,10 +184,10 @@ No model calls, automatic UI actions, request replay or automatic business verdi
     if (parseRequest(request).kind !== action) fail('Execution action and request kind disagree.');
     return executeRequest({ runDir: flags['run-dir'], request });
   }
-  const options: Record<string, readonly string[]> = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir', 'execution-config', 'max-parallel-cases', 'binding'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request'], progress: ['run-dir'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'presentation', 'context', 'history-locations', 'delivery', 'allow-missing-screenshots'], 'verify-report': ['run-dir', 'report-dir'] };
+  const options: Record<string, readonly string[]> = { 'tool-info': ['expect-version', 'expect-revision'], init: ['project-dir'], 'validate-cases': ['cases'], start: ['project-dir', 'cases', 'output-dir', 'execution-config', 'max-parallel-cases', 'binding'], 'evidence-add': ['run-dir', 'request'], record: ['run-dir', 'request','feedback'], check: ['run-dir'], report: ['run-dir', 'output-dir', 'presentation', 'context', 'history-locations', 'delivery', 'allow-missing-screenshots'], 'verify-report': ['run-dir', 'report-dir'] };
   const allowed = options[command];
   if (!allowed) fail('Unknown command. Use --help.');
-  const required = command === 'tool-info' ? [] : command === 'report' ? ['run-dir'] : command === 'start' ? ['project-dir', 'cases', 'output-dir', 'binding'] : allowed;
+  const required = command === 'tool-info' ? [] : command === 'report' ? ['run-dir'] : command === 'start' ? ['project-dir', 'cases', 'output-dir', 'binding'] : command==='record'?['run-dir','request']:allowed;
   const flags = parseFlags(rest, allowed, required);
   const info = await toolInfo();
   if (command === 'tool-info') {
@@ -178,8 +198,7 @@ No model calls, automatic UI actions, request replay or automatic business verdi
   if (command === 'init') return init(flags['project-dir']);
   if (command === 'start') return start({ projectDir: flags['project-dir'], casesFile: flags.cases, outputDir: flags['output-dir'], configFile: flags['execution-config'], bindingFile: flags.binding, maxParallelCases: flags['max-parallel-cases'] === undefined ? undefined : cliParallelLimit(flags['max-parallel-cases']) });
   if (command === 'evidence-add') return registerEvidence({ runDir: flags['run-dir'], request: await readJSON(await safePath(flags.request, { existing: true })) });
-  if (command === 'record') return recordResult({ runDir: flags['run-dir'], request: await readJSON(await safePath(flags.request, { existing: true })) });
-  if (command === 'progress') return progress(flags['run-dir']);
+  if (command === 'record') return recordWithFeedback({ runDir: flags['run-dir'], request: await readJSON(await safePath(flags.request, { existing: true })),feedback:flags.feedback });
   if (command === 'check') return check(flags['run-dir']);
   if (command === 'verify-report') return verifyReport(flags['run-dir'], flags['report-dir']);
   return report(flags['run-dir'], { outputDir: flags['output-dir'] ?? flags['run-dir'], contextFile: flags.context, presentationFile:flags.presentation, ...(flags['history-locations']?{historyLocationsFile:flags['history-locations']}:{}) , deliveryMode: flags.delivery === undefined ? 'auto' : flags.delivery === 'auto' || flags.delivery === 'inline' || flags.delivery === 'bundle' ? flags.delivery : fail('Invalid delivery mode.'), allowMissingScreenshots: flags['allow-missing-screenshots'] === undefined ? false : flags['allow-missing-screenshots'] === 'true' ? true : flags['allow-missing-screenshots'] === 'false' ? false : fail('Invalid missing-screenshots flag.') });

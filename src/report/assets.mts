@@ -6,8 +6,13 @@ import type { EvidenceItem, HtmlPayload, Preview, Report, ReportAsset } from '..
 import { errorInfo, fail, hash, safePath } from '../core/common.mjs';
 import { evidenceFile } from '../core/file-integrity.mjs';
 import { readingConversationViews, registeredConversationViews } from './conversations.mjs';
+import { testFilesView } from './test-files.mjs';
+import { testFileArchive } from './file-archive.mjs';
+import { portableFileName } from '../contracts/attachment-path.mjs';
 
 export const TEXT_PREVIEW_LIMIT = 256 * 1024;
+export const TEST_FILE_DOWNLOAD_LIMIT = 4 * 1024 * 1024;
+export const TEST_FILE_DOWNLOAD_TOTAL_LIMIT = 16 * 1024 * 1024;
 export interface PayloadOptions { mode?: 'inline' | 'bundle'; textPreviewLimitBytes?: number; allowMissingScreenshots?: boolean }
 export function rasterMime(bytes: Buffer): string | null {
   if (bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return 'image/png';
@@ -46,7 +51,10 @@ function textPrefix(bytes: Buffer, limit: number): { text: string; retainedBytes
   while (end >= minimum) { const text = utf8(bytes.subarray(0, end)); if (text !== undefined) return { text, retainedBytes: end }; end--; }
   return { text: '', retainedBytes: 0 };
 }
-export function attachmentName(sha256: string, mediaType?: string): string {
+export function attachmentName(sha256: string, mediaType?: string, originalName?: string): string {
+  if (originalName) {
+    return 'attachments/' + sha256 + '-' + hash(Buffer.from(originalName)).slice(0, 12) + '/' + portableFileName(originalName);
+  }
   const extension = mediaType === 'image/png' ? '.png' : mediaType === 'image/jpeg' ? '.jpg' : mediaType === 'image/webp' ? '.webp' : mediaType?.startsWith('text/') || mediaType === 'application/json' ? '.txt' : '.bin';
   return 'attachments/' + sha256 + extension;
 }
@@ -57,8 +65,9 @@ export async function htmlReportPayload(root: string, report: Report, options: P
   if (report.schemaVersion !== 9) fail('Unsupported report format; v9 is required. Historical files remain unchanged.');
   const mode = options.mode ?? 'inline', textPreviewLimitBytes = options.textPreviewLimitBytes ?? TEXT_PREVIEW_LIMIT;
   if (!['inline', 'bundle'].includes(mode) || !Number.isSafeInteger(textPreviewLimitBytes) || textPreviewLimitBytes < 256 || textPreviewLimitBytes > 16 * 1024 * 1024) fail('Invalid report delivery options.');
-  const previews: Record<string, Preview> = {}, assets: Record<string, ReportAsset> = {};
+  const previews: Record<string, Preview> = {}, assets: Record<string, ReportAsset> = {}, testFileDownloads: Record<string, string> = {};
   let complete = report.history?.complete ?? true;
+  let testFileDownloadBytes = 0;
   for (const {key,item,runDir} of reportEvidence(report)) {
     const meta = item.metadata, p: Preview = { preview: null, previewNote: '', contentState: meta?.contentState ?? 'unknown' };
     previews[key] = p;
@@ -82,7 +91,7 @@ export async function htmlReportPayload(root: string, report: Report, options: P
       complete = false; continue;
     }
     const mime = rasterMime(bytes);
-    if (item.kind === 'screenshot') {
+    if (item.kind === 'screenshot' || meta?.testFile && mime) {
       if (mime) {
         p.assetId = item.sha256; p.mediaType = mime; Object.assign(p, rasterDimensions(bytes));
         assets[item.sha256] ??= { kind: 'image', mediaType: mime, bytes: bytes.length, retainedBytes: bytes.length, truncated: false, data: 'data:' + mime + ';base64,' + bytes.toString('base64') };
@@ -99,8 +108,13 @@ export async function htmlReportPayload(root: string, report: Report, options: P
         else p.previewNote = u('展示已留存的 UTF-8 文件正文；来源内容状态为 ') + p.contentState + u('，不据此声称完整 HTTP 响应。');
       } else { p.contentState = 'unsupported'; p.previewNote = u('该证据为二进制或不支持的文字编码，未作为文本/HTML执行或猜测解码。'); if (mode === 'inline') complete = false; }
     }
-    if (mode === 'bundle') p.attachmentPath = attachmentName(item.sha256, p.mediaType);
-    else if(meta?.deliveryRequired || meta?.artifactRole==='download_original'){complete=false;p.previewNote+=u(' 原件要求随报告交付；当前 inline 未携带独立原件。');}
+    if (mode === 'bundle') {
+      p.attachmentPath = attachmentName(item.sha256, p.mediaType, meta?.testFile?.name);
+      if (meta?.testFile && meta.contentState === 'full' && bytes.length <= TEST_FILE_DOWNLOAD_LIMIT && !Object.hasOwn(testFileDownloads, item.sha256) && testFileDownloadBytes + bytes.length <= TEST_FILE_DOWNLOAD_TOTAL_LIMIT) {
+        testFileDownloads[item.sha256] = bytes.toString('base64'); testFileDownloadBytes += bytes.length;
+      }
+    }
+    else if(meta?.testFile || meta?.deliveryRequired || meta?.artifactRole==='download_original'){complete=false;p.previewNote+=u(' 原件要求随报告交付；当前 inline 未携带独立原件。');}
   }
   const conversations={...await registeredConversationViews(root,report,reportEvidence(report),historyFiles),...(report.context?await readingConversationViews(report.context,report,root):{})};
   for(const {key,item}of reportEvidence(report))if(item.kind==='conversation'&&key!==item.id&&!conversations[key]&&!['excluded','failed'].includes(item.metadata?.contentState??'')){complete=false;previews[key]!.previewNote+=u(' 历史对话或其原始来源未能完整核验，未生成可信聊天视图。');}
@@ -117,5 +131,12 @@ export async function htmlReportPayload(root: string, report: Report, options: P
     if(view.artifactSource&&conversationFiles[reading.sourceLabel])view.artifactSource.attachmentPath=conversationFiles[reading.sourceLabel]!.attachmentPath;
     for(const binding of reading.sourceBindings)if(binding.sourceLabel&&conversationFiles[binding.sourceLabel]){const source=view.sources.find(s=>s.sourceId===binding.sourceId);if(source)source.attachmentPath=conversationFiles[binding.sourceLabel]!.attachmentPath;}
   }
-  return { htmlPayloadVersion: 9, report, previews, assets, ...(Object.keys(conversations).length?{conversations}:{}),...(Object.keys(conversationFiles).length?{conversationFiles}:{}), delivery: { mode, textPreviewLimitBytes, complete, allowMissingScreenshots: options.allowMissingScreenshots === true } };
+  const payload: HtmlPayload = { htmlPayloadVersion: 9, report, previews, assets, ...(Object.keys(conversations).length?{conversations}:{}),...(Object.keys(conversationFiles).length?{conversationFiles}:{}), ...(Object.keys(testFileDownloads).length ? { testFileDownloads } : {}), delivery: { mode, textPreviewLimitBytes, complete, allowMissingScreenshots: options.allowMissingScreenshots === true } };
+  const files = testFilesView(payload);
+  if (files) {
+    payload.testFiles = files;
+    if (!files.complete) payload.delivery.complete = false;
+    if (mode === 'bundle') { const bytes = await testFileArchive(root, payload, historyFiles); if (bytes) files.archive = { path: 'test-attachments.zip', sha256: hash(bytes), bytes: bytes.length, fileCount: new Set(files.items.flatMap(f => f.status === 'retained' ? [f.sha256 + '/' + f.name] : [])).size }; }
+  }
+  return payload;
 }

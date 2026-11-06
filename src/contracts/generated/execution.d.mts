@@ -1,5 +1,16 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
+/**
+ * Either a retained original reference, or an explicit missing/unknown original. The runtime validates action/observation/case ownership.
+ */
+export type ActualTestFileUse = {
+  [k: string]: unknown;
+} & {
+  role: 'upload_input' | 'download_output' | 'ai_input' | 'ai_output';
+  evidenceId?: string;
+  name?: string;
+  unavailableReason?: string;
+};
 export type OriginalProblemReference = {
   [k: string]: unknown;
 } & {
@@ -82,6 +93,7 @@ export type EvidenceMetadata = {
    * @minItems 1
    */
   conversationSources?: ConversationSourceBinding[];
+  testFile?: TestFileDescription;
 };
 export type EgoLiteExecutionRequestV9 =
   | {
@@ -317,6 +329,10 @@ export interface ActionFact {
    * @minItems 1
    */
   conversations?: ConversationActionReference[];
+  /**
+   * @minItems 1
+   */
+  fileUses?: ActualTestFileUse[];
 }
 export interface ConversationActionReference {
   evidenceId: string;
@@ -468,6 +484,14 @@ export interface PacketEvidence {
 export interface ConversationSourceBinding {
   sourceId: string;
   evidenceId: string;
+}
+/**
+ * Actual retained test file name and provenance, independent of input/output use. No case-design-time file generation.
+ */
+export interface TestFileDescription {
+  name: string;
+  origin: 'generated' | 'user_provided' | 'system_download' | 'ai_output' | 'other';
+  note?: string;
 }
 export interface ExecutionWindow1 {
   startedAt: string;

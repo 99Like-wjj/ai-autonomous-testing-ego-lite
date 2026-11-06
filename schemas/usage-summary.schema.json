@@ -1,0 +1,2006 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "usage-summary.schema.json",
+  "title": "Usage summary v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "usageSummaryVersion",
+        "sources",
+        "duplicateCount",
+        "modelRequests",
+        "toolEvents",
+        "tokens",
+        "noncachedInputTokens",
+        "durationMs",
+        "outputBytes",
+        "truncated",
+        "inputDistribution",
+        "purposes",
+        "attribution",
+        "limitations",
+        "coverage"
+      ],
+      "properties": {
+        "usageSummaryVersion": {
+          "const": 1
+        },
+        "sources": {
+          "type": "object",
+          "required": [
+            "total",
+            "truncated",
+            "items"
+          ],
+          "properties": {
+            "total": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "truncated": {
+              "type": "boolean"
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "kind",
+                  "locator",
+                  "completeness"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "enum": [
+                      "host_export",
+                      "provider_export",
+                      "operator_normalized"
+                    ]
+                  },
+                  "locator": {
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "completeness": {
+                    "enum": [
+                      "complete",
+                      "partial",
+                      "unknown"
+                    ]
+                  },
+                  "start": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "end": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "duplicateCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "modelRequests": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "toolEvents": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tokens": {
+          "type": "object",
+          "required": [
+            "inputTokens",
+            "cachedInputTokens",
+            "cacheWriteInputTokens",
+            "outputTokens",
+            "reasoningOutputTokens",
+            "totalTokens"
+          ],
+          "properties": {
+            "inputTokens": {
+              "type": "object",
+              "required": [
+                "knownSum",
+                "knownCount",
+                "unknownCount",
+                "complete"
+              ],
+              "properties": {
+                "knownSum": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "knownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unknownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "complete": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "cachedInputTokens": {
+              "type": "object",
+              "required": [
+                "knownSum",
+                "knownCount",
+                "unknownCount",
+                "complete"
+              ],
+              "properties": {
+                "knownSum": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "knownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unknownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "complete": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "cacheWriteInputTokens": {
+              "type": "object",
+              "required": [
+                "knownSum",
+                "knownCount",
+                "unknownCount",
+                "complete"
+              ],
+              "properties": {
+                "knownSum": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "knownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unknownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "complete": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "outputTokens": {
+              "type": "object",
+              "required": [
+                "knownSum",
+                "knownCount",
+                "unknownCount",
+                "complete"
+              ],
+              "properties": {
+                "knownSum": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "knownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unknownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "complete": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "reasoningOutputTokens": {
+              "type": "object",
+              "required": [
+                "knownSum",
+                "knownCount",
+                "unknownCount",
+                "complete"
+              ],
+              "properties": {
+                "knownSum": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "knownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unknownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "complete": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "totalTokens": {
+              "type": "object",
+              "required": [
+                "knownSum",
+                "knownCount",
+                "unknownCount",
+                "complete"
+              ],
+              "properties": {
+                "knownSum": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "knownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unknownCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "complete": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "noncachedInputTokens": {
+          "type": "object",
+          "required": [
+            "knownSum",
+            "knownCount",
+            "unknownCount",
+            "complete"
+          ],
+          "properties": {
+            "knownSum": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "knownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unknownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "complete": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "durationMs": {
+          "type": "object",
+          "required": [
+            "knownSum",
+            "knownCount",
+            "unknownCount",
+            "complete"
+          ],
+          "properties": {
+            "knownSum": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "knownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unknownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "complete": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "outputBytes": {
+          "type": "object",
+          "required": [
+            "knownSum",
+            "knownCount",
+            "unknownCount",
+            "complete"
+          ],
+          "properties": {
+            "knownSum": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "knownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unknownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "complete": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "truncated": {
+          "type": "object",
+          "required": [
+            "knownSum",
+            "knownCount",
+            "unknownCount",
+            "complete"
+          ],
+          "properties": {
+            "knownSum": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "knownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unknownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "complete": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "inputDistribution": {
+          "type": "object",
+          "required": [
+            "knownCount",
+            "unknownCount",
+            "mean",
+            "median",
+            "p90",
+            "max"
+          ],
+          "properties": {
+            "knownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unknownCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "mean": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "median": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "p90": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "max": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "purposes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "purpose",
+              "modelRequests",
+              "toolEvents",
+              "tokens",
+              "noncachedInputTokens",
+              "durationMs",
+              "outputBytes",
+              "truncated"
+            ],
+            "properties": {
+              "purpose": {
+                "enum": [
+                  "model",
+                  "compaction",
+                  "unknown"
+                ]
+              },
+              "modelRequests": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "toolEvents": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "tokens": {
+                "type": "object",
+                "required": [
+                  "inputTokens",
+                  "cachedInputTokens",
+                  "cacheWriteInputTokens",
+                  "outputTokens",
+                  "reasoningOutputTokens",
+                  "totalTokens"
+                ],
+                "properties": {
+                  "inputTokens": {
+                    "type": "object",
+                    "required": [
+                      "knownSum",
+                      "knownCount",
+                      "unknownCount",
+                      "complete"
+                    ],
+                    "properties": {
+                      "knownSum": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "knownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "unknownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "complete": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "cachedInputTokens": {
+                    "type": "object",
+                    "required": [
+                      "knownSum",
+                      "knownCount",
+                      "unknownCount",
+                      "complete"
+                    ],
+                    "properties": {
+                      "knownSum": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "knownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "unknownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "complete": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "cacheWriteInputTokens": {
+                    "type": "object",
+                    "required": [
+                      "knownSum",
+                      "knownCount",
+                      "unknownCount",
+                      "complete"
+                    ],
+                    "properties": {
+                      "knownSum": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "knownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "unknownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "complete": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "outputTokens": {
+                    "type": "object",
+                    "required": [
+                      "knownSum",
+                      "knownCount",
+                      "unknownCount",
+                      "complete"
+                    ],
+                    "properties": {
+                      "knownSum": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "knownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "unknownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "complete": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "reasoningOutputTokens": {
+                    "type": "object",
+                    "required": [
+                      "knownSum",
+                      "knownCount",
+                      "unknownCount",
+                      "complete"
+                    ],
+                    "properties": {
+                      "knownSum": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "knownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "unknownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "complete": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "totalTokens": {
+                    "type": "object",
+                    "required": [
+                      "knownSum",
+                      "knownCount",
+                      "unknownCount",
+                      "complete"
+                    ],
+                    "properties": {
+                      "knownSum": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "knownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "unknownCount": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "complete": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "noncachedInputTokens": {
+                "type": "object",
+                "required": [
+                  "knownSum",
+                  "knownCount",
+                  "unknownCount",
+                  "complete"
+                ],
+                "properties": {
+                  "knownSum": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "knownCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "unknownCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "durationMs": {
+                "type": "object",
+                "required": [
+                  "knownSum",
+                  "knownCount",
+                  "unknownCount",
+                  "complete"
+                ],
+                "properties": {
+                  "knownSum": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "knownCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "unknownCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "outputBytes": {
+                "type": "object",
+                "required": [
+                  "knownSum",
+                  "knownCount",
+                  "unknownCount",
+                  "complete"
+                ],
+                "properties": {
+                  "knownSum": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "knownCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "unknownCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "truncated": {
+                "type": "object",
+                "required": [
+                  "knownSum",
+                  "knownCount",
+                  "unknownCount",
+                  "complete"
+                ],
+                "properties": {
+                  "knownSum": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "knownCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "unknownCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "attribution": {
+          "type": "object",
+          "required": [
+            "unattributed",
+            "stages",
+            "points"
+          ],
+          "properties": {
+            "unattributed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "stages": {
+              "type": "object",
+              "required": [
+                "additive",
+                "total",
+                "truncated",
+                "items"
+              ],
+              "properties": {
+                "additive": {
+                  "const": false
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "truncated": {
+                  "type": "boolean"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "modelRequests",
+                      "toolEvents",
+                      "tokens",
+                      "noncachedInputTokens",
+                      "durationMs",
+                      "outputBytes",
+                      "truncated"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "modelRequests": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "toolEvents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "tokens": {
+                        "type": "object",
+                        "required": [
+                          "inputTokens",
+                          "cachedInputTokens",
+                          "cacheWriteInputTokens",
+                          "outputTokens",
+                          "reasoningOutputTokens",
+                          "totalTokens"
+                        ],
+                        "properties": {
+                          "inputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "cachedInputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "cacheWriteInputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "outputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "reasoningOutputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "totalTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "noncachedInputTokens": {
+                        "type": "object",
+                        "required": [
+                          "knownSum",
+                          "knownCount",
+                          "unknownCount",
+                          "complete"
+                        ],
+                        "properties": {
+                          "knownSum": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "knownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "unknownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "complete": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "durationMs": {
+                        "type": "object",
+                        "required": [
+                          "knownSum",
+                          "knownCount",
+                          "unknownCount",
+                          "complete"
+                        ],
+                        "properties": {
+                          "knownSum": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "knownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "unknownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "complete": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "outputBytes": {
+                        "type": "object",
+                        "required": [
+                          "knownSum",
+                          "knownCount",
+                          "unknownCount",
+                          "complete"
+                        ],
+                        "properties": {
+                          "knownSum": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "knownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "unknownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "complete": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "truncated": {
+                        "type": "object",
+                        "required": [
+                          "knownSum",
+                          "knownCount",
+                          "unknownCount",
+                          "complete"
+                        ],
+                        "properties": {
+                          "knownSum": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "knownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "unknownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "complete": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "points": {
+              "type": "object",
+              "required": [
+                "additive",
+                "total",
+                "truncated",
+                "items"
+              ],
+              "properties": {
+                "additive": {
+                  "const": false
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "truncated": {
+                  "type": "boolean"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "modelRequests",
+                      "toolEvents",
+                      "tokens",
+                      "noncachedInputTokens",
+                      "durationMs",
+                      "outputBytes",
+                      "truncated"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "modelRequests": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "toolEvents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "tokens": {
+                        "type": "object",
+                        "required": [
+                          "inputTokens",
+                          "cachedInputTokens",
+                          "cacheWriteInputTokens",
+                          "outputTokens",
+                          "reasoningOutputTokens",
+                          "totalTokens"
+                        ],
+                        "properties": {
+                          "inputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "cachedInputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "cacheWriteInputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "outputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "reasoningOutputTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "totalTokens": {
+                            "type": "object",
+                            "required": [
+                              "knownSum",
+                              "knownCount",
+                              "unknownCount",
+                              "complete"
+                            ],
+                            "properties": {
+                              "knownSum": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "knownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "unknownCount": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "complete": {
+                                "type": "boolean"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "noncachedInputTokens": {
+                        "type": "object",
+                        "required": [
+                          "knownSum",
+                          "knownCount",
+                          "unknownCount",
+                          "complete"
+                        ],
+                        "properties": {
+                          "knownSum": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "knownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "unknownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "complete": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "durationMs": {
+                        "type": "object",
+                        "required": [
+                          "knownSum",
+                          "knownCount",
+                          "unknownCount",
+                          "complete"
+                        ],
+                        "properties": {
+                          "knownSum": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "knownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "unknownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "complete": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "outputBytes": {
+                        "type": "object",
+                        "required": [
+                          "knownSum",
+                          "knownCount",
+                          "unknownCount",
+                          "complete"
+                        ],
+                        "properties": {
+                          "knownSum": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "knownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "unknownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "complete": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "truncated": {
+                        "type": "object",
+                        "required": [
+                          "knownSum",
+                          "knownCount",
+                          "unknownCount",
+                          "complete"
+                        ],
+                        "properties": {
+                          "knownSum": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "knownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "unknownCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "complete": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "coverage": {
+          "type": "object",
+          "required": [
+            "sourceComplete",
+            "modelData",
+            "toolData"
+          ],
+          "properties": {
+            "sourceComplete": {
+              "type": "boolean"
+            },
+            "modelData": {
+              "enum": [
+                "supplied",
+                "not_supplied"
+              ]
+            },
+            "toolData": {
+              "enum": [
+                "supplied",
+                "not_supplied"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "input": {
+          "type": "object",
+          "required": [
+            "file",
+            "sha256",
+            "bytes"
+          ],
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "usageSummaryVersion",
+        "outputFile",
+        "sha256",
+        "bytes",
+        "input",
+        "businessExecuted"
+      ],
+      "properties": {
+        "usageSummaryVersion": {
+          "const": 1
+        },
+        "outputFile": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "input": {
+          "type": "object",
+          "required": [
+            "file",
+            "sha256",
+            "bytes"
+          ],
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "businessExecuted": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

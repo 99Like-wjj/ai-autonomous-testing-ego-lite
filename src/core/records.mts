@@ -33,7 +33,7 @@ export function progressFor(cases: readonly CheckedCase[]) {
   return { caseCount: cases.length, goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
     recordedEntries: cases.reduce((sum, c) => sum + c.entries.length, 0) };
 }
-function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, prior: { contexts?: readonly ExecutionContext[]; findings?: readonly Finding[]; entries?: readonly ResultEntry[] } = {}): void {
+function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId' | 'metadata'>>, prior: { contexts?: readonly ExecutionContext[]; findings?: readonly Finding[]; entries?: readonly ResultEntry[] } = {}): void {
   parsePayload(payload);
   const refs = new Set(requiredRefs(c)), observations = new Map<string, Observation>();
   const checkEvidence = (ids: readonly string[]) => {
@@ -58,6 +58,10 @@ function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availab
       if (action.planRefs.some(ref => !refs.has(ref))) fail('Action refers to an unknown plan reference: ' + action.id);
       if (action.evidenceIds.some(id => !o.evidenceIds.includes(id))) fail('Action evidence must be included in its observation: ' + action.id);
       for (const ref of action.conversations ?? []) if (!action.evidenceIds.includes(ref.evidenceId)) fail('Conversation evidence must belong to its actual action.');
+      for (const use of action.fileUses ?? []) if (use.evidenceId) {
+        if (!action.evidenceIds.includes(use.evidenceId)) fail('Test file evidence must belong to its actual action.');
+        if (evidenceById && !evidenceById.get(use.evidenceId)?.metadata?.testFile) fail('Test file use requires registered filename and provenance metadata.');
+      }
     }
     for (const link of o.evidenceLinks ?? []) {
       if (!o.evidenceIds.includes(link.evidenceId)) fail('Evidence link must belong to its observation.');
@@ -107,7 +111,7 @@ function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availab
 }
 
 /** Pure semantic validation shared by serial records and reviewed parallel packets. */
-export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, priorFacts: ActionFacts & {findings?: readonly Finding[];entries?: readonly ResultEntry[]} = { contexts: [], actionEvents: [] }): void {
+export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId' | 'metadata'>>, priorFacts: ActionFacts & {findings?: readonly Finding[];entries?: readonly ResultEntry[]} = { contexts: [], actionEvents: [] }): void {
   parsePayload(payload);
   const refs = new Set(requiredRefs(c)), observations = new Map<string, Observation>();
   const checkEvidence = (ids: readonly string[]) => {
@@ -156,7 +160,7 @@ export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, avai
   validateReportFactsAgainstCase(c, payload, availableObservations, evidenceById, {contexts:priorFacts.contexts,findings:priorFacts.findings??[],entries:priorFacts.entries??[]});
 }
 /** Current assessments are a projection of explicit final events; attempt events remain historical. */
-export function projectCases(baseline: Baseline, entries: readonly ResultEntry[], selectedPointIds?:readonly string[]): CheckedCase[] {
+export function projectCases(baseline: Pick<Baseline,'cases'>, entries: readonly ResultEntry[], selectedPointIds?:readonly string[]): CheckedCase[] {
   return baseline.cases.filter(c=>selectedPointIds===undefined||c.goals.some(g=>selectedPointIds.includes(g.pointId))).map(original => {
     const c=selectedPointIds===undefined?original:{...original,goals:original.goals.filter(g=>selectedPointIds.includes(g.pointId))};
     const own = entries.filter(entry => entry.caseId === c.id), observations = new Map<string, Observation>(), current = new Map<string, CommittedAssessment>();
@@ -203,7 +207,7 @@ export function assertAssessmentScope(c:Case,payload:RecordPayload,binding:Regre
   if(!c.goals.some(g=>binding.selection.selectedPointIds.includes(g.pointId)))fail('Case is outside the frozen selection.');
   for(const a of payload.assessments){const g=c.goals.find(g=>g.id===a.goalId);if(!g||!binding.selection.selectedPointIds.includes(g.pointId))fail('Assessment is outside the frozen point selection: '+a.goalId);if(a.status==='verified'&&!binding.plans.some(p=>p.pointIds.includes(g.pointId)))fail('Deferred or unreviewed point cannot be verified.');}
 }
-export function validateResultEntries(baseline: Baseline, results: Results, evidenceById: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, operationIds: Set<string>, binding?:RegressionBinding): CheckedCase[] {
+export function validateResultEntries(baseline: Baseline, results: Results, evidenceById: ReadonlyMap<string, Pick<EvidenceItem, 'caseId' | 'metadata'>>, operationIds: Set<string>, binding?:RegressionBinding): CheckedCase[] {
   const factsByCase = new Map<string, ActionFacts & {findings?: Finding[];entries?: ResultEntry[]}>(), factOwners = new Map<string, string>();
   const observationsByCase = new Map<string, Observation[]>(), casesById = new Map(baseline.cases.map(c => [c.id, c]));
   let revision = 0;
@@ -314,7 +318,8 @@ export function resultOperationReceipt(entry: ResultEntry, replayed = false): Re
 export function evidenceOperationReceipt(op: EvidenceOperation, replayed = false): EvidenceReceipt {
   return { operationId: op.operationId, revision: op.revision, caseId: op.caseId, evidenceId: op.evidenceId, path: op.path, sha256: op.sha256, bytes: op.bytes, collectedAt: op.committedAt, replayed };
 }
-export async function recordResultUnlocked(root: string, input: unknown, testHooks: TestHooks = {}): Promise<ResultReceipt> {
+export type CommitObserver = (receipt:ResultReceipt, checked:Report, results:Results) => void;
+export async function recordResultUnlocked(root: string, input: unknown, testHooks: TestHooks = {}, onReceipt?:CommitObserver): Promise<ResultReceipt> {
   await recoverEvidence(root);
   const checked = await checkUnlocked(root), request = parseRecordRequest(input);
   await verifyAiContext(request.record.aiContext);
@@ -322,7 +327,7 @@ export async function recordResultUnlocked(root: string, input: unknown, testHoo
   const payloadSha256 = canonicalHash(request), existing = results.entries.find(entry => entry.operationId === request.operationId);
   if (existing) {
     if (existing.payloadSha256 !== payloadSha256) fail('Operation ID was already used with a different payload.');
-    return resultOperationReceipt(existing, true);
+    const receipt=resultOperationReceipt(existing, true);onReceipt?.(receipt,checked,results);return receipt;
   }
   if (checked.evidenceCatalog.operations.some(op => op.operationId === request.operationId)) fail('Operation ID is already used by an evidence operation.');
   if (request.expectedRevision !== results.revision) fail('Revision conflict: expected ' + request.expectedRevision + ', current ' + results.revision + '.');
@@ -338,7 +343,9 @@ export async function recordResultUnlocked(root: string, input: unknown, testHoo
   const entry: ResultEntry = { operationId: request.operationId, payloadSha256, expectedRevision: request.expectedRevision, revision: results.revision + 1, recordedAt: now(), caseId: request.caseId, mode: request.mode, record: request.record };
   await atomicReplace(resultsPath, json({ schemaVersion: 9, revision: entry.revision, entries: [...results.entries, entry] }));
   if (testHooks.afterCommit) await testHooks.afterCommit();
-  return resultOperationReceipt(entry, false);
+  const receipt=resultOperationReceipt(entry, false);
+  onReceipt?.(receipt,checked,{schemaVersion:9,revision:entry.revision,entries:[...results.entries,entry]});
+  return receipt;
 }
 export async function recordResult({ runDir, request }: { runDir: unknown; request: unknown }, testHooks: TestHooks = {}): Promise<ResultReceipt> {
   return withRunLock(runDir, root => recordResultUnlocked(root, request, testHooks));

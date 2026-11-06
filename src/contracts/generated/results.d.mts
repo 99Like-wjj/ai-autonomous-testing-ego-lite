@@ -1,5 +1,16 @@
 /* Generated from schemas; run npm run contracts:write. Runtime validation is still required. */
 
+/**
+ * Either a retained original reference, or an explicit missing/unknown original. The runtime validates action/observation/case ownership.
+ */
+export type ActualTestFileUse = {
+  [k: string]: unknown;
+} & {
+  role: 'upload_input' | 'download_output' | 'ai_input' | 'ai_output';
+  evidenceId?: string;
+  name?: string;
+  unavailableReason?: string;
+};
 export type OriginalProblemReference = {
   [k: string]: unknown;
 } & {
@@ -114,6 +125,10 @@ export interface ActionFact {
    * @minItems 1
    */
   conversations?: ConversationActionReference[];
+  /**
+   * @minItems 1
+   */
+  fileUses?: ActualTestFileUse[];
 }
 export interface ConversationActionReference {
   evidenceId: string;

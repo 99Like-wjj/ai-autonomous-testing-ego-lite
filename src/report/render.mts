@@ -1,3 +1,4 @@
+import { attachmentHref } from '../contracts/attachment-path.mjs';
 import { uiText as u } from './ui-text.mjs';
 import { withPresentation } from './presentation.mjs';
 import { modelDisplay, modelHeader } from './model-display.mjs';
@@ -38,6 +39,13 @@ function markdownBody(report: Report, payload?: HtmlPayload): string {
     lines.push('');
   }
   const unresolved = (report.actionAttempts ?? []).filter(a => a.unresolved);
+  if (payload?.testFiles) {
+    lines.push(u('## 测试附件'), '', u('复测附件完整：') + payload.testFiles.complete + u('；文件可用性不代表业务通过。'), '');
+    if (payload.testFiles.archive) lines.push(u('[下载全部测试附件.zip](test-attachments.zip)'), '');
+    for (const file of payload.testFiles.items) lines.push('- ' + escape(file.name) + ' · ' + escape(file.status) + (file.attachmentPath ? u(' · [下载原件](') + attachmentHref(file.attachmentPath) + ')' : '') + (file.note ? ' · ' + escape(file.note) : ''),
+      ...file.uses.map(use => '  - ' + escape([use.pointId ?? use.caseId, use.observationId, use.actionId, use.role].filter(Boolean).join(' / '))));
+    lines.push('');
+  }
   if (unresolved.length) lines.push(u('## 尚待核对的动作'), '', ...unresolved.flatMap(a => ['### ' + escape(report.cases.find(c => c.id === a.caseId)?.title ?? a.caseId) + ' · ' + escape(a.label) + '（' + escape(a.caseId) + '）', '', escape(a.detail), '', u('核对原因：') + escape(a.reasons.join('；')), '', u('原始标识：') + escape(a.caseId + '/' + a.actionId), '']), u('不自动重放业务动作；是否重试由 AI 结合事实、幂等依据和授权决定。'), '');
   lines.push(producer.title+': '+producer.summary,...producer.detail.map(v=>v.model+' · '+v.reasoningEffort+' · '+v.sourceKind+' · '+v.source.locator),'');
   if (report.context) {
@@ -149,7 +157,7 @@ function markdownBody(report: Report, payload?: HtmlPayload): string {
       const preview = payload.previews[item.id]; if (!preview) continue;
       lines.push('### ' + escape(item.id) + '：' + escape(item.description), '', u('源内容状态：') + preview.contentState + '。' + escape(preview.previewNote), '');
       if (item.metadata) lines.push(u('证据上下文与局限：') + escape(JSON.stringify(item.metadata)), '');
-      if (preview.attachmentPath) lines.push(u('附件：[') + escape(item.id) + '](' + preview.attachmentPath + ')', '');
+      if (preview.attachmentPath) lines.push(u('附件：[') + escape(item.id) + '](' + attachmentHref(preview.attachmentPath) + ')', '');
       const asset = preview.assetId ? payload.assets[preview.assetId] : undefined;
       if (asset?.kind === 'text' && preview.assetId) {
         if (shown.has(preview.assetId)) lines.push(u('同内容已在前面的证据正文中展示；证据ID和归属保留。'), '');

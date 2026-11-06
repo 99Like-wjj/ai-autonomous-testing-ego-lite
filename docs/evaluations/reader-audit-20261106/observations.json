@@ -1,0 +1,467 @@
+{
+  "kind": "synthetic_local_reader_audit",
+  "date": "2026-11-06",
+  "sourceCommit": "c4e7e872dea50337b03bf50d1ddb30e2967367e8",
+  "scope": "Own generated local HTML only; no UAT, user outputs, product code or installed Skill changed.",
+  "observations": {
+    "case-next-observation.json": {
+      "before": {
+        "hash": "#point=SYNTHETIC-TP-000001",
+        "y": 440,
+        "treeY": 0,
+        "reviewY": 0,
+        "crumb": "测试用例 / Synthetic review scene 1 / SYNTHETIC-TP-000001 · v1"
+      },
+      "after": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 0,
+        "treeY": 0,
+        "reviewY": 0,
+        "crumb": "测试用例 / Synthetic review scene 1 / SYNTHETIC-TP-000002 · v1"
+      }
+    },
+    "case-other-nav-observations.json": {
+      "initial": {
+        "hash": "#point=SYNTHETIC-TP-000001",
+        "y": 0,
+        "treeY": 0,
+        "openDetails": 0
+      },
+      "afterBrowserBack": {
+        "hash": "#point=SYNTHETIC-TP-000001",
+        "y": 0,
+        "treeY": 0,
+        "openDetails": 0
+      },
+      "beforeSameTab": {
+        "hash": "#point=SYNTHETIC-TP-000001",
+        "y": 407.5,
+        "treeY": 0,
+        "openDetails": 0
+      },
+      "afterSameTab": {
+        "hash": "#point=SYNTHETIC-TP-000001",
+        "y": 0,
+        "treeY": 0,
+        "openDetails": 0
+      }
+    },
+    "case-detail-filter-observations.json": {
+      "beforeHistoryBack": {
+        "hash": "#point=SYNTHETIC-TP-000001",
+        "y": 0,
+        "openDetails": 0,
+        "filter": "all",
+        "nav": [
+          {
+            "id": "SYNTHETIC-TP-000001",
+            "current": "true"
+          },
+          {
+            "id": "SYNTHETIC-TP-000002",
+            "current": "false"
+          },
+          {
+            "id": "SYNTHETIC-TP-000003",
+            "current": "false"
+          }
+        ]
+      },
+      "afterHistoryBack": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 0,
+        "openDetails": 0,
+        "filter": "all",
+        "nav": [
+          {
+            "id": "SYNTHETIC-TP-000001",
+            "current": "false"
+          },
+          {
+            "id": "SYNTHETIC-TP-000002",
+            "current": "true"
+          },
+          {
+            "id": "SYNTHETIC-TP-000003",
+            "current": "false"
+          }
+        ]
+      },
+      "beforeNoChange": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 1630,
+        "openDetails": 1,
+        "filter": "all",
+        "nav": [
+          {
+            "id": "SYNTHETIC-TP-000001",
+            "current": "false"
+          },
+          {
+            "id": "SYNTHETIC-TP-000002",
+            "current": "true"
+          },
+          {
+            "id": "SYNTHETIC-TP-000003",
+            "current": "false"
+          }
+        ]
+      },
+      "afterNoChange": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 1630,
+        "openDetails": 0,
+        "filter": "all",
+        "nav": [
+          {
+            "id": "SYNTHETIC-TP-000001",
+            "current": "false"
+          },
+          {
+            "id": "SYNTHETIC-TP-000002",
+            "current": "true"
+          },
+          {
+            "id": "SYNTHETIC-TP-000003",
+            "current": "false"
+          }
+        ]
+      },
+      "beforeFilteredNext": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 1630,
+        "openDetails": 0,
+        "filter": "has-note",
+        "nav": [
+          {
+            "id": "SYNTHETIC-TP-000002",
+            "current": "true"
+          }
+        ]
+      },
+      "afterFilteredNext": {
+        "hash": "#point=SYNTHETIC-TP-000003",
+        "y": 0,
+        "openDetails": 0,
+        "filter": "has-note",
+        "nav": [
+          {
+            "id": "SYNTHETIC-TP-000002",
+            "current": "false"
+          }
+        ]
+      }
+    },
+    "case-history-export-observations.json": {
+      "returnToScrolledPoint": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 0,
+        "openDetails": 0
+      },
+      "beforeExport": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 1630,
+        "openDetails": 1
+      },
+      "exportOpen": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 0,
+        "openDetails": 1
+      },
+      "afterExportClose": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 0,
+        "openDetails": 0
+      }
+    },
+    "case-refresh-observation.json": {
+      "before": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 1630,
+        "filter": "has-note",
+        "openDetails": 1,
+        "opinion": "无修改意见。"
+      },
+      "after": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 0,
+        "filter": "all",
+        "openDetails": 0,
+        "opinion": "无修改意见。"
+      }
+    },
+    "report-filter-observation.json": {
+      "before": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs%2Fa0&proof=ev-8c624832-542e-4962-9c0a-14bcc4c57074",
+        "y": 1054,
+        "proofY": 170.5,
+        "stepY": 0
+      },
+      "after": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs%2Fa0&proof=ev-8c624832-542e-4962-9c0a-14bcc4c57074&status=inconclusive",
+        "y": 1054,
+        "proofY": 170.5,
+        "stepY": 0
+      }
+    },
+    "report-step-observation.json": {
+      "before": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs%2Fa0&proof=ev-6f3b6c23-1007-4fda-9b9a-83ea6c1a46f0&status=inconclusive",
+        "y": 1054,
+        "proofY": 327.5,
+        "stepY": 0
+      },
+      "nextStep": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs%2Fa1&proof=ev-8c624832-542e-4962-9c0a-14bcc4c57074&status=inconclusive",
+        "y": 1054,
+        "proofY": 0,
+        "stepY": 605
+      },
+      "returned": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs%2Fa0&proof=ev-8c624832-542e-4962-9c0a-14bcc4c57074&status=inconclusive",
+        "y": 1054,
+        "proofY": 0,
+        "stepY": 154
+      }
+    },
+    "report-conversation-observations.json": {
+      "initial": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 730.5,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 38,
+        "evidenceOpen": false
+      },
+      "beforeClose": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 730.5,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 650.5,
+        "evidenceOpen": false
+      },
+      "afterClose": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace",
+        "pageY": 730.5,
+        "proofY": 149,
+        "conversationOpen": false,
+        "chatY": 0,
+        "evidenceOpen": false
+      },
+      "afterReopen": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 730.5,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 38,
+        "evidenceOpen": false
+      },
+      "beforeFile": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 1054,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 7288.5,
+        "evidenceOpen": false
+      },
+      "fileOpen": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&evidence=ev-6f3b6c23-1007-4fda-9b9a-83ea6c1a46f0&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 1054,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 7288.5,
+        "evidenceOpen": true
+      }
+    },
+    "report-nested-file-observation.json": {
+      "before": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&evidence=ev-6f3b6c23-1007-4fda-9b9a-83ea6c1a46f0&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 1054,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 7288.5,
+        "evidenceOpen": true
+      },
+      "after": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 1054,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 7288.5,
+        "evidenceOpen": false
+      }
+    },
+    "report-chat-layout-observation.json": {
+      "full": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 1054,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 4325,
+        "evidenceOpen": false
+      },
+      "side": {
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0",
+        "pageY": 1054,
+        "proofY": 149,
+        "conversationOpen": true,
+        "chatY": 7288.5,
+        "evidenceOpen": false
+      }
+    },
+    "supplementary-case-observations.json": {
+      "sameBefore": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 407.5,
+        "filter": "all",
+        "openDetails": 0
+      },
+      "sameAfter": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 0,
+        "filter": "all",
+        "openDetails": 0
+      },
+      "historyBefore": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 407.5,
+        "filter": "all",
+        "openDetails": 0
+      },
+      "historyAfter": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 0,
+        "filter": "all",
+        "openDetails": 0
+      },
+      "detailBefore": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 1630,
+        "filter": "all",
+        "openDetails": 1
+      },
+      "detailAfter": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 1630,
+        "filter": "all",
+        "openDetails": 0
+      },
+      "filterBefore": {
+        "hash": "#point=SYNTHETIC-TP-000002",
+        "y": 502.5,
+        "filter": "has-note",
+        "openDetails": 0
+      },
+      "filterAfter": {
+        "hash": "#point=SYNTHETIC-TP-000003",
+        "y": 0,
+        "filter": "has-note",
+        "openDetails": 0
+      }
+    },
+    "supplementary-chat-observations.json": {
+      "before": {
+        "pageY": 730.5,
+        "chatY": 650.5,
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0"
+      },
+      "after": {
+        "pageY": 730.5,
+        "chatY": 38,
+        "hash": "#view=scene&case=scene-0&goal=g0&step=obs-files%2Fask-files&proof=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&conversation=ev-e500fdb3-95c6-4cc4-bf66-a06a65fc6ace&messages=u0%2Ca0"
+      }
+    },
+    "ordinary-attachment-observation.json": {
+      "mode": "inline",
+      "complete": true,
+      "attachments": []
+    }
+  },
+  "captures": [
+    {
+      "file": "case04-after-next.png",
+      "sha256": "8d5ff6529b190f25832ca58ae4fd2af670591324fd2c122931b270c8749f2357"
+    },
+    {
+      "file": "case04-before-next.png",
+      "sha256": "b18a01b081753269b8b0944a1eec7cef8b293d596ee342bbf72e8d5d6e24b8fd"
+    },
+    {
+      "file": "case07-filtered-next.png",
+      "sha256": "0f47edb718e41c4ddce34257e07e88321fca8a8446858aa60d7bce3cb82bb51a"
+    },
+    {
+      "file": "case16-after-refresh.png",
+      "sha256": "486db1cf18c11e78306436b2c13918f6835e0e3c86cda8d861991b257a956a05"
+    },
+    {
+      "file": "case16-before-refresh.png",
+      "sha256": "b17f89853ac804097e18ace805daf53d7e10aca2546c10e2473a2785751e65c8"
+    },
+    {
+      "file": "case17-detail-after.png",
+      "sha256": "d0bb1c48ee9193cf4d985be6296490115a2ceb76176c6257482e1edca9f11714"
+    },
+    {
+      "file": "case17-detail-before.png",
+      "sha256": "cb32d0592ef4437317892f40a1ef0544bb6eeae7a4e4d35f4d5965e654eee641"
+    },
+    {
+      "file": "case17-filter-after.png",
+      "sha256": "fcda2c8117f6f3ddaf0cfccb244145b53d18dce61d843a5c00b061f306f08434"
+    },
+    {
+      "file": "case17-filter-before.png",
+      "sha256": "8581f3fe914b5c70bf3e2cec4c5e9f81d4f544511819b9dbe19c829f49708cc2"
+    },
+    {
+      "file": "case17-history-after.png",
+      "sha256": "ab69e618e60f6e5a75d37fd2efc5e3caaa2198525df01fa92f0dc8a41607cfa2"
+    },
+    {
+      "file": "case17-history-before.png",
+      "sha256": "282e14aad1c85e1487e68d9db516bf727e93be67d1cc02fb7c0dd79c3bb0ffb8"
+    },
+    {
+      "file": "case17-same-after.png",
+      "sha256": "ab69e618e60f6e5a75d37fd2efc5e3caaa2198525df01fa92f0dc8a41607cfa2"
+    },
+    {
+      "file": "case17-same-before.png",
+      "sha256": "4ff1f64424ee5c87e56e16b60bcade93da11ec4d2bdaf84613d893ceb7cb6758"
+    },
+    {
+      "file": "report10-scene.png",
+      "sha256": "5bb3a3b5b8b3feb7884a917bcd33b086ab69638c49fe0b9a7b6ac85d699f30d2"
+    },
+    {
+      "file": "report12-after-step.png",
+      "sha256": "df59cc3d733aeece7a1d0dd2eb46d4403d5aa6af56353987190d1a0457645593"
+    },
+    {
+      "file": "report12-before-step.png",
+      "sha256": "1fe095d7faa7724c1a730d87f30e5cf0d7ec9e1ca877d61f1e471a322fafddb9"
+    },
+    {
+      "file": "report14-chat-mid.png",
+      "sha256": "5dcfb442c764146e51519d9f6f3a03282ed33afd0a7790b7c75886cde371d31c"
+    },
+    {
+      "file": "report14-file-modal.png",
+      "sha256": "78033ea95bf90b314f4e50724e9e722cb52e2d74570141637f27b0522743bda9"
+    },
+    {
+      "file": "report15-return-from-file.png",
+      "sha256": "67208884fbe37de76546ef1ba9dddb03b0e4fc4e3f5d8fe61d271c0481cf4f81"
+    },
+    {
+      "file": "report17-chat-after.png",
+      "sha256": "9f47aad4d5d2983876aa84268bee7057c25f91d3eb51bbecf74a23a16ba96668"
+    },
+    {
+      "file": "report17-chat-before.png",
+      "sha256": "5dcfb442c764146e51519d9f6f3a03282ed33afd0a7790b7c75886cde371d31c"
+    }
+  ]
+}

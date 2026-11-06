@@ -146,15 +146,30 @@ export function parsePendingEvidence(value: unknown): PendingEvidence {
 
 export function parseExecutionContext(value: unknown): ExecutionContext { return parseRunContext(value); }
 
+export function testFileName(value: unknown): string {
+  const name = textValue(value, 'test file name', { limit: 1024 });
+  if (/[\\/\x00-\x1f\x7f]/.test(name) || name === '.' || name === '..') fail('Test file name must be a filename, not a path.');
+  return name;
+}
 export function parseActionFact(value: unknown): ActionFact {
-  assertClosed(value, ['id', 'description', 'input', 'result', 'planRefs', 'evidenceIds', 'occurredAt', 'inputSummary', 'replySummary', 'inputPresentation', 'conversations'], 'action fact');
+  assertClosed(value, ['id', 'description', 'input', 'result', 'planRefs', 'evidenceIds', 'occurredAt', 'inputSummary', 'replySummary', 'inputPresentation', 'conversations', 'fileUses'], 'action fact');
+  const fileUses = value.fileUses === undefined ? undefined : arrayValue(value.fileUses, 'test file uses').map(v => {
+    assertClosed(v, ['role', 'evidenceId', 'name', 'unavailableReason'], 'test file use');
+    const role = oneOf(v.role, ['upload_input', 'download_output', 'ai_input', 'ai_output'], 'test file role');
+    if (v.evidenceId !== undefined) {
+      if (v.name !== undefined || v.unavailableReason !== undefined) fail('A retained test file use cannot also claim an unavailable original.');
+      return { role, evidenceId: safeIdentifier(v.evidenceId, 'test file evidence') };
+    }
+    return { role, name: testFileName(v.name), unavailableReason: textValue(v.unavailableReason, 'unavailable test file reason') };
+  });
+  if (fileUses && (!fileUses.length || new Set(fileUses.map(f => JSON.stringify(f))).size !== fileUses.length)) fail('Test file uses must be nonempty and unique.');
   const conversations = value.conversations === undefined ? undefined : arrayValue(value.conversations,'action conversations').map(v => { assertClosed(v,['evidenceId','messageIds'],'action conversation'); const messageIds = uniqueStrings(v.messageIds,'conversation messages',true); if (!messageIds.length) fail('Action conversation needs message IDs.'); return { evidenceId: safeIdentifier(v.evidenceId), messageIds }; });
   if (conversations && (!conversations.length || new Set(conversations.map(c => c.evidenceId)).size !== conversations.length)) fail('Action conversations must be nonempty and unique.');
   if (value.inputPresentation !== undefined && value.input === undefined) fail('Input presentation requires the input record itself.');
   return { id: safeIdentifier(value.id, 'action ID'), description: textValue(value.description, 'actual action'), planRefs: uniqueStrings(value.planRefs, 'action plan references'), evidenceIds: uniqueStrings(value.evidenceIds, 'action evidence', true),
     ...(value.input === undefined ? {} : { input: textValue(value.input, 'action input') }), ...(value.result === undefined ? {} : { result: textValue(value.result, 'action result') }),
     ...(value.inputSummary === undefined ? {} : { inputSummary: textValue(value.inputSummary,'input summary') }), ...(value.replySummary === undefined ? {} : { replySummary: textValue(value.replySummary,'reply summary') }),
-    ...(value.inputPresentation === undefined ? {} : { inputPresentation: oneOf(value.inputPresentation,['verbatim','summary','unknown'],'input presentation') }), ...(conversations === undefined ? {} : { conversations }),
+    ...(value.inputPresentation === undefined ? {} : { inputPresentation: oneOf(value.inputPresentation,['verbatim','summary','unknown'],'input presentation') }), ...(conversations === undefined ? {} : { conversations }), ...(fileUses === undefined ? {} : { fileUses }),
     ...(value.occurredAt === undefined ? {} : { occurredAt: timeValue(value.occurredAt, 'action occurredAt') }) };
 }
 export function parseEvidenceLink(value: unknown): EvidenceLink {
@@ -178,8 +193,12 @@ export function parseFinding(value: unknown): Finding {
   return { id: safeIdentifier(value.id, 'finding ID'), title: textValue(value.title, 'finding title'), goalIds: uniqueStrings(value.goalIds, 'finding goals', true), observationIds: uniqueStrings(value.observationIds, 'finding observations', true), evidenceIds: uniqueStrings(value.evidenceIds, 'finding evidence', true), relationReason: textValue(value.relationReason, 'finding relation reason'), reviewState: oneOf(value.reviewState, ['proposed', 'reviewed'], 'finding review state'), scope: oneOf(value.scope, ['original', 'additional'], 'finding scope') };
 }
 export function parseEvidenceMetadata(value: unknown): EvidenceMetadata {
-  assertClosed(value, ['mediaType', 'encoding', 'scope', 'page', 'object', 'purpose', 'limitations', 'contextEvidenceIds', 'contentState', 'redaction', 'omissionReason', 'width', 'height', 'artifactRole', 'deliveryRequired', 'conversationSources'], 'evidence metadata');
+  assertClosed(value, ['mediaType', 'encoding', 'scope', 'page', 'object', 'purpose', 'limitations', 'contextEvidenceIds', 'contentState', 'redaction', 'omissionReason', 'width', 'height', 'artifactRole', 'deliveryRequired', 'conversationSources', 'testFile'], 'evidence metadata');
   const result: EvidenceMetadata = {};
+  if (value.testFile !== undefined) {
+    assertClosed(value.testFile, ['name', 'origin', 'note'], 'test file description');
+    result.testFile = { name: testFileName(value.testFile.name), origin: oneOf(value.testFile.origin, ['generated', 'user_provided', 'system_download', 'ai_output', 'other'], 'test file origin'), ...(value.testFile.note === undefined ? {} : { note: textValue(value.testFile.note, 'test file provenance note') }) };
+  }
   if (value.artifactRole !== undefined) result.artifactRole = oneOf(value.artifactRole, ['download_original', 'inspection', 'capture_receipt'], 'artifact role');
   if (value.deliveryRequired !== undefined) { if (typeof value.deliveryRequired !== 'boolean') fail('Invalid deliveryRequired.'); result.deliveryRequired = value.deliveryRequired; }
   for (const field of ['mediaType', 'encoding', 'page', 'object', 'purpose', 'redaction', 'omissionReason'] as const) if (value[field] !== undefined) result[field] = textValue(value[field], 'evidence ' + field, { limit: 4096 });

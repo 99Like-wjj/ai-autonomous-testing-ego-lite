@@ -1,0 +1,13 @@
+{
+  "originalCount": 6,
+  "indexPresent": true,
+  "names": [
+    "输入数据.csv",
+    "实际输出.xlsx",
+    "同字节另一个名字.csv",
+    "AI返回说明.txt",
+    "主动内容示例.html",
+    "普通输入图片.png"
+  ],
+  "allHashesMatch": true
+}

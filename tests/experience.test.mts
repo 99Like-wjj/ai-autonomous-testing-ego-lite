@@ -6,7 +6,7 @@ import os from 'node:os';
 import { checkExperience } from '../tools/check-experience.mjs';
 import { SOURCE_ROOT } from '../src/scripts/ego.mjs';
 import { referenceNames } from '../src/contracts/layout.mjs';
-const source = path.join(SOURCE_ROOT, 'skills/ai-autonomous-testing-ego-lite/references');
+const source = path.join(SOURCE_ROOT, 'skills/ai-testing-ego-lite/references');
 const added = ['case-design-guide', 'case-design-methods', 'experience-guide', 'experience-data-safety', 'experience-execution'];
 test('experience indexes and shipped reference bytes agree without changing contracts', async () => {
   assert.deepEqual(await checkExperience(source), []);

@@ -1014,6 +1014,13 @@
           "items": {
             "$ref": "#/$defs/conversationActionRef"
           }
+        },
+        "fileUses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/testFileUse"
+          }
         }
       },
       "required": [
@@ -1301,6 +1308,9 @@
           "items": {
             "$ref": "#/$defs/conversationSourceBinding"
           }
+        },
+        "testFile": {
+          "$ref": "#/$defs/testFileDescription"
         }
       },
       "required": [],
@@ -2859,6 +2869,97 @@
         }
       },
       "additionalProperties": false
+    },
+    "testFileDescription": {
+      "title": "Test file description",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "origin": {
+          "enum": [
+            "generated",
+            "user_provided",
+            "system_download",
+            "ai_output",
+            "other"
+          ]
+        },
+        "note": {
+          "$ref": "#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "name",
+        "origin"
+      ],
+      "additionalProperties": false,
+      "description": "Actual retained test file name and provenance, independent of input/output use. No case-design-time file generation."
+    },
+    "testFileUse": {
+      "title": "Actual test file use",
+      "type": "object",
+      "properties": {
+        "role": {
+          "enum": [
+            "upload_input",
+            "download_output",
+            "ai_input",
+            "ai_output"
+          ]
+        },
+        "evidenceId": {
+          "$ref": "#/$defs/safeId"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "unavailableReason": {
+          "$ref": "#/$defs/nonempty"
+        }
+      },
+      "required": [
+        "role"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "evidenceId"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "name"
+                ]
+              },
+              {
+                "required": [
+                  "unavailableReason"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "name",
+            "unavailableReason"
+          ],
+          "not": {
+            "required": [
+              "evidenceId"
+            ]
+          }
+        }
+      ],
+      "description": "Either a retained original reference, or an explicit missing/unknown original. The runtime validates action/observation/case ownership."
     }
   }
 }

@@ -56,7 +56,7 @@ test('normal build cleans its generated runtime before staging, not user install
 test('clean-build removes obsolete generated files while preserving source-side user data', async () => {
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'skill-clean-build-test-'));
   try {
-    await fs.writeFile(path.join(temporary, 'package.json'), JSON.stringify({ name: 'ai-autonomous-testing-ego-lite' }));
+    await fs.writeFile(path.join(temporary, 'package.json'), JSON.stringify({ name: 'ai-testing-ego-lite' }));
     await fs.mkdir(path.join(temporary, '.build/runtime/docs'), { recursive: true });
     await fs.writeFile(path.join(temporary, '.build/runtime/docs/old-design.md'), 'retired generated file');
     await fs.mkdir(path.join(temporary, 'private-project'));

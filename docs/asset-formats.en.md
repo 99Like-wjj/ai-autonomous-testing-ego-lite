@@ -1,4 +1,7 @@
-# Contracts — v9 / 0.1.9
+# Contracts — v9 / 0.2.1
+
+0.2.1 is the release version. The Skill/package is ai-testing-ego-lite; storage remains v9. Bounded progress/context outputs use contextReadVersion 1; CLI record wraps the unchanged receipt in recordResponseVersion 1. Explicit usage exports are independent of business results. Source design and development validation stay in the source repository, outside the runtime package.
+
 
 Retained from 0.1.8: optional Observation.phase, Assessment.display and ActionFact inputSummary/replySummary/inputPresentation/conversations. Facts and four-state judgments remain separate. Missing data is not inferred from plans. conversationVersion 1 records provider-neutral messages, source references, fidelity, coverage and completion basis; see schemas/conversation.schema.json and examples/conversation.example.json. Local source IDs map to retained same-case originals through metadata.conversationSources; parallel imports remap external IDs without changing artifact bytes. Limits: 8MiB per artifact and 262144 UTF-16 code units per message. Explicitly scoped parts are authored by AI rather than silently truncated.
 

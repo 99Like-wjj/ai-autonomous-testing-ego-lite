@@ -4,7 +4,11 @@
 
 基于 Ego Lite 的 AI 自主测试 Skill：AI 理解目标、选择方法并判断业务，Ego 操作浏览器，本地工具保存证据和交付报告。
 
-![最新在前：0.1.9 正式版，其后为 0.1.8 至 0.1.2 历史版本；仅为能力示意。](images/version-history.zh-CN.png)
+![最新在前：0.2.1 正式版，其后为 0.1.9 至 0.1.2 历史版本；仅为能力示意。](images/version-history.zh-CN.png)
+
+## v0.2.1 · 执行效率、测试附件、评审体验与更名（正式版本）
+
+0.2.1 改进执行编排、按目标读取、入账结构反馈及可选用量摘要，增加测试附件入口/下载和评审导航修复；仓库、包和 Skill 标识统一为 ai-testing-ego-lite。存储仍为 v9，交付清单为 deliveryVersion 2。完整新名称安装包见 [v0.2.1 Release](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1)，验证和限制见[发布验证](v0.2.1-release-validation.md)。本机安装未因发布自动更新，历史资料不改写。
 
 ## v0.1.9 · 项目知识库、测试经验与离线审阅导出（正式版本）
 

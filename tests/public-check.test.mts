@@ -29,6 +29,16 @@ test('publication checker accepts a small generic source tree', async t => {
   assert.equal(r.status, 0, r.stderr);
   assert.equal(JSON.parse(r.stdout).ok, true);
 });
+
+test('only the reviewed synthetic review demo HTML is allowed, never arbitrary execution reports', async t => {
+  const f = await fixture(t);
+  await f.write('docs/demos/review-pass-20261106.html', '<!doctype html><p>Synthetic review interaction only</p>');
+  assert.equal(f.run().status, 0);
+  await f.write('docs/demos/unreviewed-report.html', '<html>Unreviewed output</html>');
+  assert.match(f.run().stderr, /unsupported publication file type/);
+  await fs.rm(path.join(f.dir, 'docs/demos/unreviewed-report.html'));
+  assert.match(f.run(['--installed']).stderr, /unsupported publication file type/);
+});
 test('publication checker flags a synthetic secret without echoing it', async t => {
   const f = await fixture(t);
   const fake = ['ghp', '_', 'x'.repeat(36)].join('');

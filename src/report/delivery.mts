@@ -12,6 +12,8 @@ import { markdown, htmlReport, htmlReportPayload } from './render.mjs';
 import { evidenceFile } from '../core/file-integrity.mjs';
 import { reportEvidence, TEXT_PREVIEW_LIMIT, type PayloadOptions } from './assets.mjs';
 import { collectHistory, parseHistoryLocations, validateHistory } from './history.mjs';
+import { testFileArchive } from './file-archive.mjs';
+import { safeAttachmentPath } from '../contracts/attachment-path.mjs';
 import { caseGoals } from './execution-view.mjs';
 import { reviewPrompts } from './reviewability.mjs';
 
@@ -92,9 +94,9 @@ export async function validateReportContext(input: unknown, result: Report, runR
 
 interface Attachment { path: string; sha256: string; bytes: number; evidenceIds: string[]; contextSourceLabels?:string[] }
 interface DeliveryManifest {
-  deliveryVersion: 1; reportSchemaVersion: 9; runId: string; revision: number; evidenceRevision: number; historySha256:string|null;
+  deliveryVersion: 2; reportSchemaVersion: 9; runId: string; revision: number; evidenceRevision: number; historySha256:string|null;
   options: { mode: 'inline' | 'bundle'; textPreviewLimitBytes: number; allowMissingScreenshots: boolean };
-  complete: boolean; attachments: Attachment[];
+  complete: boolean; attachments: Attachment[]; testFiles?: HtmlPayload['testFiles'];
 }
 function manifestFor(payload: HtmlPayload): DeliveryManifest {
   const unique = new Map<string, Attachment>();
@@ -108,14 +110,14 @@ function manifestFor(payload: HtmlPayload): DeliveryManifest {
     let attachment=unique.get(file.attachmentPath);if(!attachment){attachment={path:file.attachmentPath,sha256:file.sha256,bytes:file.bytes,evidenceIds:[]};unique.set(file.attachmentPath,attachment);}
     (attachment.contextSourceLabels??=[]).push(label);
   }
-  return { deliveryVersion: 1, reportSchemaVersion: 9, runId: payload.report.runId, revision: payload.report.revision, evidenceRevision: payload.report.evidenceRevision, historySha256:payload.report.history?.contentSha256??null,
+  return { deliveryVersion: 2, reportSchemaVersion: 9, runId: payload.report.runId, revision: payload.report.revision, evidenceRevision: payload.report.evidenceRevision, historySha256:payload.report.history?.contentSha256??null,
     options: { mode: payload.delivery.mode, textPreviewLimitBytes: payload.delivery.textPreviewLimitBytes, allowMissingScreenshots: payload.delivery.allowMissingScreenshots },
-    complete: payload.delivery.complete, attachments: [...unique.values()] };
+    complete: payload.delivery.complete, attachments: [...unique.values()], ...(payload.testFiles ? { testFiles: payload.testFiles } : {}) };
 }
 async function readDeliveryOptions(target: string): Promise<Required<PayloadOptions>> {
   const value = await readJSON(await safePath(path.join(target, 'report-delivery.json'), { existing: true }));
-  assertClosed(value, ['deliveryVersion', 'reportSchemaVersion', 'runId', 'revision', 'evidenceRevision', 'historySha256', 'options', 'complete', 'attachments'], 'report delivery');
-  if (value.deliveryVersion !== 1 || value.reportSchemaVersion !== 9) fail('Unsupported report delivery manifest.');
+  assertClosed(value, ['deliveryVersion', 'reportSchemaVersion', 'runId', 'revision', 'evidenceRevision', 'historySha256', 'options', 'complete', 'attachments', 'testFiles'], 'report delivery');
+  if (value.deliveryVersion !== 2 || value.reportSchemaVersion !== 9) fail('Unsupported report delivery manifest.');
   assertClosed(value.options, ['mode', 'textPreviewLimitBytes', 'allowMissingScreenshots'], 'report delivery options');
   const options = value.options;
   if (options.mode !== 'inline' && options.mode !== 'bundle' || !Number.isSafeInteger(options.textPreviewLimitBytes) || typeof options.textPreviewLimitBytes !== 'number' || options.textPreviewLimitBytes < 256 || options.textPreviewLimitBytes > 16 * 1024 * 1024 || typeof options.allowMissingScreenshots !== 'boolean') fail('Invalid report delivery options.');
@@ -160,7 +162,14 @@ async function verifyReportFilesBody(root: string, reportDir: string, result: Re
     if (hash(bytes) !== attachment.sha256 || bytes.length !== attachment.bytes) fail('Report attachment hash or byte count mismatch: ' + attachment.path);
     artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
   }
-  return { filesVerified: true, artifacts, browserOpen: 'not_checked', renderer: 'v9', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete, reviewPrompts:reviewPrompts(result) };
+  if (payload.testFiles?.archive) {
+    const file = payload.testFiles.archive, filename = await safePath(path.join(reportDir, file.path), { existing: true });
+    if (!(await fs.lstat(filename)).isFile()) fail('Test attachment ZIP is not a regular file.');
+    const bytes = await fs.readFile(filename);
+    if (hash(bytes) !== file.sha256 || bytes.length !== file.bytes) fail('Test attachment ZIP hash or byte count mismatch.');
+    artifacts.push({ path: filename, bytes: bytes.length, sha256: hash(bytes) });
+  }
+  return { filesVerified: true, artifacts, ...(payload.testFiles ? { testFilesComplete: payload.testFiles.complete, testFileCount: payload.testFiles.items.length } : {}), browserOpen: 'not_checked', renderer: 'v9', deliveryMode: payload.delivery.mode, deliveryComplete: payload.delivery.complete, reviewPrompts:reviewPrompts(result) };
 }
 export async function verifyReport(runDir: unknown, reportDir: unknown = runDir) {
   const saved=await readJSON(path.join(await directory(reportDir),'report.json'));
@@ -183,7 +192,7 @@ async function verifyReportBody(runDir: unknown, reportDir: unknown) {
       const manifest=await readJSON(path.join(target,'report-delivery.json'));
       if(!object(manifest)||manifest.historySha256!==result.history.contentSha256||!Array.isArray(manifest.attachments))fail('Historical delivery fingerprint mismatch.');
       const allowed=new Set(result.history.evidence.map(e=>e.key));
-      for(const raw of manifest.attachments){if(!object(raw)||typeof raw.path!=='string'||!/^attachments\/[a-f0-9]{64}\.(?:png|jpg|webp|txt|bin)$/.test(raw.path)||!Array.isArray(raw.evidenceIds))fail('Invalid delivery attachment path.');for(const key of raw.evidenceIds)if(typeof key==='string'&&allowed.has(key))historicalFiles.set(key,path.join(target,...raw.path.split('/')));}
+      for(const raw of manifest.attachments){if(!object(raw)||typeof raw.path!=='string'||!safeAttachmentPath(raw.path)||!Array.isArray(raw.evidenceIds))fail('Invalid delivery attachment path.');for(const key of raw.evidenceIds)if(typeof key==='string'&&allowed.has(key))historicalFiles.set(key,path.join(target,...raw.path.split('/')));}
     }
     return verifyReportFiles(root, target, result, await htmlReportPayload(root, result, options,historicalFiles));
   });
@@ -203,35 +212,42 @@ async function writeReport(runDir: unknown, { outputDir = runDir, contextFile, h
     if (contextFile !== undefined) result.context = await validateReportContext(await readJSON(contextFile), result, root);
     if(result.context){const ai=mergeAiContexts([...(result.cases.some(c=>c.entries.length)?[result.aiContext]:[]),result.context.aiContext]);if(ai)result.aiContext=ai;}
     await verifyAiContext(result.aiContext);
-    const mode = deliveryMode === 'auto' ? ((result.history?.evidence.length??0)>0 || (result.context?.conversations?.length??0)>0 || result.evidenceCatalog.items.some(e => e.kind==='conversation' || e.metadata?.deliveryRequired || e.metadata?.artifactRole === 'download_original') ? 'bundle' : 'inline') : deliveryMode;
+    const mode = deliveryMode === 'auto' ? ((result.history?.evidence.length??0)>0 || (result.context?.conversations?.length??0)>0 || result.evidenceCatalog.items.some(e => e.kind==='conversation' || e.metadata?.testFile || e.metadata?.deliveryRequired || e.metadata?.artifactRole === 'download_original') ? 'bundle' : 'inline') : deliveryMode;
     const payload = await htmlReportPayload(root, result, { mode, textPreviewLimitBytes, allowMissingScreenshots }), manifest = manifestFor(payload);
     const contents = [json(result), markdown(result, payload), htmlReport(payload), json(manifest)];
     const filenames = ['report.json', 'report.md', 'report.html', 'report-delivery.json'].map(name => path.join(target, name));
+    const archiveBytes = await testFileArchive(root, payload), archiveFile = payload.testFiles?.archive ? path.join(target, payload.testFiles.archive.path) : undefined;
+    if (archiveBytes && (!payload.testFiles?.archive || hash(archiveBytes) !== payload.testFiles.archive.sha256)) fail('Test attachment archive projection changed.');
     const attachmentDir = path.join(target, 'attachments');
-    for (const filename of [...filenames, ...(manifest.attachments.length ? [attachmentDir] : [])]) {
+    for (const filename of [...filenames, ...(archiveFile ? [archiveFile] : []), ...(manifest.attachments.length ? [attachmentDir] : [])]) {
       await safePath(filename);
       try { await fs.lstat(filename); fail('Refusing to overwrite ' + path.basename(filename) + '.'); }
       catch (caught) { if (errorInfo(caught).code !== 'ENOENT') throw caught; }
     }
-    const created: { filename: string; identity: FileIdentity }[] = []; let createdDir: FileIdentity | undefined;
+    const created: { filename: string; identity: FileIdentity }[] = [], createdDirs: { filename: string; identity: FileIdentity }[] = [];
+    const mkdir = async (filename: string) => { await safePath(filename); await fs.mkdir(filename); const stat = await fs.lstat(filename); createdDirs.push({ filename, identity: { dev: stat.dev, ino: stat.ino } }); };
     try {
-      if (manifest.attachments.length) { await fs.mkdir(attachmentDir); const stat = await fs.lstat(attachmentDir); createdDir = { dev: stat.dev, ino: stat.ino }; }
+      if (manifest.attachments.length) await mkdir(attachmentDir);
       for (const attachment of manifest.attachments) {
         const source = reportEvidence(result).find(e => e.key === attachment.evidenceIds[0]);
         const contextual=attachment.contextSourceLabels?.[0],external=contextual?result.context?.sources.find(s=>s.label===contextual):undefined;
         if (!source&&!external) fail('Missing report attachment source.');
         const bytes = await fs.readFile(source?await evidenceFile(source.runDir??root, source.item.path):await safePath(external!.file,{existing:true}));
         if (hash(bytes) !== attachment.sha256 || bytes.length !== attachment.bytes) fail('Evidence changed during bundle generation.');
-        const filename = path.join(target, ...attachment.path.split('/')); created.push({ filename, identity: await writeBinaryNew(filename, bytes) });
+        if (!safeAttachmentPath(attachment.path)) fail('Unsafe report attachment path.');
+        const filename = path.join(target, ...attachment.path.split('/')), parent = path.dirname(filename);
+        if (parent !== attachmentDir && !createdDirs.some(dir => dir.filename === parent)) await mkdir(parent);
+        created.push({ filename, identity: await writeBinaryNew(filename, bytes) });
       }
+      if (archiveFile && archiveBytes) created.push({ filename: archiveFile, identity: await writeBinaryNew(archiveFile, archiveBytes) });
       for (const [index, filename] of filenames.entries()) created.push({ filename, identity: await writeNew(filename, contents[index]!) });
       const verification = await verifyReportFiles(root, target, result, payload);
       return { reportJson: filenames[0]!, reportMarkdown: filenames[1]!, reportHtml: filenames[2]!, reportDeliveryManifest: filenames[3]!, schemaVersion: result.schemaVersion, ...verification };
     } catch (caught) {
       const error = errorInfo(caught), cleanupErrors: string[] = [];
       for (const item of created.reverse()) { try { await removeOwnedFileIfPresent(item.filename, item.identity); } catch (cleanup) { cleanupErrors.push(errorInfo(cleanup).message); } }
-      if (createdDir) {
-        try { const stat = await fs.lstat(attachmentDir); if (!stat.isDirectory() || stat.isSymbolicLink() || stat.dev !== createdDir.dev || stat.ino !== createdDir.ino) fail('Attachment directory identity changed; preserving it.'); await fs.rmdir(attachmentDir); }
+      for (const dir of createdDirs.reverse()) {
+        try { const stat = await fs.lstat(dir.filename); if (!stat.isDirectory() || stat.isSymbolicLink() || stat.dev !== dir.identity.dev || stat.ino !== dir.identity.ino) fail('Attachment directory identity changed; preserving it.'); await fs.rmdir(dir.filename); }
         catch (cleanup) { cleanupErrors.push(errorInfo(cleanup).message); }
       }
       if (cleanupErrors.length) error.cleanupError = [error.cleanupError, ...cleanupErrors].filter(Boolean).join('; ');

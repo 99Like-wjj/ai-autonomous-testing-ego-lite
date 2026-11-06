@@ -1,0 +1,11 @@
+{
+  "overall": {
+    "pointIds": [],
+    "commentCount": 1,
+    "disabled": false
+  },
+  "empty": {
+    "disabled": true,
+    "warning": true
+  }
+}

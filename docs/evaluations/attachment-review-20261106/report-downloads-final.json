@@ -1,0 +1,59 @@
+{
+  "movedBundle": true,
+  "files": {
+    "cards": 6,
+    "names": [
+      "输入数据.csv",
+      "实际输出.xlsx",
+      "同字节另一个名字.csv",
+      "AI返回说明.txt",
+      "主动内容示例.html",
+      "普通输入图片.png"
+    ],
+    "goalOptions": 3,
+    "zip": "test-attachments.zip"
+  },
+  "receipts": [
+    {
+      "name": "input-original-final.csv",
+      "suggestedFilename": "输入数据.csv",
+      "expected": "输入数据.csv",
+      "sha256": "f5f0ccaab031d324e026a6ddb830b75a32ea0fd4855d02cce75c41f28f0d0291",
+      "hashMatches": true
+    },
+    {
+      "name": "output-original-final.xlsx",
+      "suggestedFilename": "实际输出.xlsx",
+      "expected": "实际输出.xlsx",
+      "sha256": "d6e01c366ed6a217192bfc2429cb4613e70e47472a3fbf139ef5a6579dc9fb00",
+      "hashMatches": true
+    },
+    {
+      "name": "active-original-final.html",
+      "suggestedFilename": "主动内容示例.html",
+      "expected": "主动内容示例.html",
+      "sha256": "89e2065a80bfb2b5859218e773d05167e30f5011e9cfd38a776f6a3cf946abb8",
+      "hashMatches": true
+    },
+    {
+      "name": "all-test-attachments-final.zip",
+      "suggestedFilename": "test-attachments.zip",
+      "expected": "test-attachments.zip",
+      "sha256": "68dd34b2f7b0cb64bb79091464487397b1fcfb77b6e76d692d83d7167a8be2bb",
+      "hashMatches": true
+    }
+  ],
+  "activeSafety": {
+    "executed": false,
+    "stillReport": true
+  },
+  "filtered": {
+    "cards": 1,
+    "name": "AI返回说明.txt"
+  },
+  "step": {
+    "hash": "#view=scene&case=files-0&goal=goal-1&step=actual-files%2Fchat&proof=ev-d6be8059-afdf-4f10-9234-dcf86fcc291d",
+    "fileCount": 2,
+    "selected": "3AI消息使用输入与输出附件已记录 · 4 份引用 · 含共享引用"
+  }
+}

@@ -1,0 +1,9 @@
+[
+  {
+    "kind": "text",
+    "downloaded": false,
+    "navigated": false,
+    "executed": false,
+    "error": "Error: page.waitForEvent(\"download\") timed out after 5000ms"
+  }
+]

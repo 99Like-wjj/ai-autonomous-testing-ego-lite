@@ -1,0 +1,45 @@
+{
+  "editorBefore": {
+    "y": 380,
+    "start": 100
+  },
+  "editorAfter": {
+    "y": 380,
+    "start": 100
+  },
+  "protectedByConfirmation": true,
+  "cancelKeptOpinion": true,
+  "approved": {
+    "editorCount": 0,
+    "bodyStatus": "✓ 评审通过",
+    "nav": "SYNTHETIC-TP-000001普通上传与下载✓ 评审通过",
+    "globalValue": "统一补充异常条件和必要数据说明。",
+    "continueVisible": true
+  },
+  "resumedEmpty": true,
+  "outside": {
+    "message": "当前用例未命中筛选",
+    "prev": true,
+    "next": true
+  },
+  "single": {
+    "point": "SYNTHETIC-TP-000002",
+    "position": "1 / 1",
+    "prev": true,
+    "next": true,
+    "shown": 1
+  },
+  "zero": {
+    "shown": 0,
+    "prev": true,
+    "next": true
+  },
+  "export": {
+    "pointIds": [
+      "SYNTHETIC-TP-000002"
+    ],
+    "commentCount": 2,
+    "jsonMatches": true,
+    "htmlMatches": true
+  }
+}

@@ -1,3 +1,4 @@
+import { TOOL_NAME } from '../src/contracts/layout.mjs';
 /** JSON Schema is the external contract. Generation does not replace runtime checks. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -7,7 +8,7 @@ const root = path.resolve(process.cwd());
 const mode = process.argv[2];
 if (!['--check', '--write'].includes(mode ?? '')) throw new Error('Use --check or --write from the source root.');
 const pkg: unknown = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
-if (!pkg || typeof pkg !== 'object' || !('name' in pkg) || pkg.name !== 'ai-autonomous-testing-ego-lite') throw new Error('Expected the source root.');
+if (!pkg || typeof pkg !== 'object' || !('name' in pkg) || pkg.name !== TOOL_NAME) throw new Error('Expected the source root.');
 const directory = path.join(root, 'src/contracts/generated');
 if (mode === '--write') await fs.mkdir(directory, { recursive: true });
 for (const name of (await fs.readdir(path.join(root, 'schemas'))).filter(name => name.endsWith('.schema.json')).sort()) {

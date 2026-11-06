@@ -8,7 +8,7 @@ export async function checkPublication(root: string, { development = false, inst
   root = path.resolve(root);
   const rootFiles = new Set(['README.md', 'README.en.md', 'AGENTS.md', 'LICENSE', 'SECURITY.md', 'CHANGELOG.md', 'package.json', '.gitignore', '.gitattributes',
     ...(installed ? ['SKILL.md', 'runtime-manifest.json'] : ['INSTALL.zh-CN.md', 'package-lock.json', 'tsconfig.json', 'tsconfig.node.json', 'tsconfig.browser.json', 'tsconfig.tools.json'])]);
-  const dirs = new Set(installed ? ['agents', 'scripts', 'core', 'contracts', 'execution', 'observation', 'regression', 'report', 'report-ui', 'schemas', 'references', 'docs', 'examples', 'files', 'ego-helpers', 'review-ui', 'vendor', 'knowledge'] : ['src', 'skills', 'scripts', 'schemas', 'examples', 'docs', 'tests', 'tools']);
+  const dirs = new Set(installed ? ['agents', 'scripts', 'core', 'contracts', 'execution', 'observation', 'regression', 'report', 'report-ui', 'schemas', 'references', 'docs', 'examples', 'files', 'ego-helpers', 'review-ui', 'vendor', 'knowledge', 'diagnostics'] : ['src', 'skills', 'scripts', 'schemas', 'examples', 'docs', 'tests', 'tools']);
   const textExtensions = new Set(installed ? ['.md', '.mjs', '.js', '.json', '.svg', '.yaml', '.yml'] : ['.md', '.mts', '.ts', '.mjs', '.json', '.svg', '.yaml', '.yml']);
   const forbiddenSegments = /^(?:\.env(?:\..*)?|\.local|local|private|projects|runs|run-output|evidence|reports|screenshots|traces|profiles|node_modules|credentials.*|secrets.*|auth\.json|cookies.*|storage-?state.*)$/i;
   const secretPatterns: [string, RegExp][] = [
@@ -38,7 +38,9 @@ export async function checkPublication(root: string, { development = false, inst
       const showcaseJpeg = !installed && /^docs\/images\/real-example\/[a-z0-9][a-z0-9-]*\.jpg$/.test(name);
       if (name.startsWith('docs/images/real-example/') && !showcaseJpeg) { errors.push(`${name}: unsupported publication file type`); continue; }
       const bundledLicense = installed ? name === 'vendor/THIRD-PARTY-LICENSES.txt' : name === 'docs/third-party-licenses/worker-f-0.1.21.txt';
-      if (!rootFiles.has(name) && !textExtensions.has(extension) && !bundledLicense && name !== 'tests/fixtures/legacy-report-frame.html' && !(name.startsWith('docs/images/') && extension === '.png') && !showcaseJpeg) { errors.push(`${name}: unsupported publication file type`); continue; }
+      // The reviewed self-contained synthetic review demo is source documentation, never a runtime asset.
+      const reviewDemo = !installed && name === 'docs/demos/review-pass-20261106.html';
+      if (!rootFiles.has(name) && !textExtensions.has(extension) && !bundledLicense && !reviewDemo && name !== 'tests/fixtures/legacy-report-frame.html' && !(name.startsWith('docs/images/') && extension === '.png') && !showcaseJpeg) { errors.push(`${name}: unsupported publication file type`); continue; }
       const bytes = await fs.readFile(path.join(root, name));
       if (bytes.length > 10 * 1024 * 1024) errors.push(`${name}: exceeds per-file review size`);
       if (extension === '.png') {

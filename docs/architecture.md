@@ -1,4 +1,7 @@
-# 架构与职责（v9 / 0.1.9）
+# 架构与职责（v9 / 0.2.1）
+
+0.2.1 正式版本，Skill/包名ai-testing-ego-lite，存储仍v9。progress/context使用contextReadVersion 1；CLI record以recordResponseVersion 1封装原收据及结构反馈；显式usage汇总独立于业务结果。见[当前设计](v0.2.1-design.md)和[发布验证](v0.2.1-release-validation.md)。
+
 
 ![架构职责示意：AI、Ego 与本地工具的分工。](images/architecture.zh-CN.png)
 
@@ -57,7 +60,7 @@ observation 继续按明确授权采集接口，AI 自主决定何时查询。�
 
 Schema 源文件、生成类型、代码和当前指南保持一致。旧格式不兜底读取，旧资料不搬迁或覆盖。工程、合成与实际 Ego 验证分别说明；实际业务验收需其明确授权。
 
-参见[契约](asset-formats.md)、[当前知识设计](project-knowledge-lightweight-integration-design.md)、[当前开发自测](v0.1.9-development-validation.md)及[宿主边界](../skills/ai-autonomous-testing-ego-lite/references/host-compatibility.md)。
+参见[契约](asset-formats.md)、[当前知识设计](project-knowledge-lightweight-integration-design.md)、[当前发布验证](v0.2.1-release-validation.md)及[宿主边界](../skills/ai-testing-ego-lite/references/host-compatibility.md)。
 
 ## 语言与模型来源
 

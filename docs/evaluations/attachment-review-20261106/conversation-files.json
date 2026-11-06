@@ -1,0 +1,34 @@
+{
+  "cards": {
+    "open": true,
+    "count": 2,
+    "names": [
+      "输入数据.csv",
+      "AI返回说明.txt"
+    ]
+  },
+  "receipts": [
+    {
+      "name": "chat-input.csv",
+      "suggestedFilename": "输入数据.csv",
+      "hashMatches": true
+    },
+    {
+      "name": "chat-output.txt",
+      "suggestedFilename": "AI返回说明.txt",
+      "hashMatches": true
+    }
+  ],
+  "before": {
+    "chatY": 38,
+    "pageY": 730.5
+  },
+  "preview": {
+    "text": true,
+    "parentOpen": true
+  },
+  "after": {
+    "chatY": 38,
+    "pageY": 730.5
+  }
+}

@@ -1,5 +1,11 @@
 # v0.1.5 名称变更与升级 / Naming and upgrade
 
+## 0.2.1 新名称替换安装
+
+新Skill标识为`ai-testing-ego-lite`，中文名保留“AI 自主自动化测试”。下次使用完整新包安装、核验后删除旧名称Skill，不保留旧调用别名。GitHub 原仓库已更名为 [ai-testing-ego-lite](https://github.com/99Like-wjj/ai-testing-ego-lite)，repository ID 1427997656 保持；本机安装未执行，历史运行和报告保留。见[更名设计](v0.2.1-rename-design.md)及[安装说明](../INSTALL.zh-CN.md)。以下为原0.1.5迁移记录，名称和版本属于当时事实。
+
+
+
 此变更属于 **0.1.5 / branding-rename-1**，正式包中的软件与 Skill 版本统一为 0.1.5；版本号收尾不增加业务验收范围。资源澄清能力沿用 resource-clarification-3；数据格式、Ego 命令/API 与官方 ego-browser Skill 不变。
 
 ## 名称对应

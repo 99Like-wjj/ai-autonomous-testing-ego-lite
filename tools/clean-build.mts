@@ -1,8 +1,9 @@
+import { TOOL_NAME } from '../src/contracts/layout.mjs';
 /** Remove only compiler/staging output, including modules whose sources were deleted. */
 import fs from 'node:fs/promises';
 import path from 'node:path';
 const root=await fs.realpath(process.cwd()),pkg=JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8')) as {name:string};
-if(pkg.name!=='ai-autonomous-testing-ego-lite')throw Error('Run in the confirmed source workspace.');
+if(pkg.name!==TOOL_NAME)throw Error('Run in the confirmed source workspace.');
 const build=path.join(root,'.build');
 try{if((await fs.lstat(build)).isSymbolicLink())throw Error('Refusing a linked build directory.');}catch(error){if(!(error instanceof Error&&'code'in error&&error.code==='ENOENT'))throw error;}
 for(const name of ['node','browser','runtime']){

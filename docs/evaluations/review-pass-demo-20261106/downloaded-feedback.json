@@ -1,0 +1,13 @@
+{
+  "demo": true,
+  "document": "用例评审交互示例",
+  "caseVersion": 1,
+  "overallComment": "请统一补充权限变化后，当前资源关联如何处理的预期。",
+  "comments": [
+    {
+      "pointId": "DEMO-TP-000002",
+      "title": "切换项目后保留当前输入",
+      "text": "请补充切换项目后，已选择资源如何处理的明确预期。"
+    }
+  ]
+}

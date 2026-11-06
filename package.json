@@ -1,8 +1,8 @@
 {
-  "name": "ai-autonomous-testing-ego-lite",
-  "version": "0.1.9",
+  "name": "ai-testing-ego-lite",
+  "version": "0.2.1",
   "egoLiteTest": {
-    "toolRevision": "project-knowledge-3",
+    "toolRevision": "attachments-review-2",
     "formatVersions": {
       "cases": 9,
       "manifest": 9,

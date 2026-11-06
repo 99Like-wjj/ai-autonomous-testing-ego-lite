@@ -1,3 +1,4 @@
+import { TOOL_NAME } from '../src/contracts/layout.mjs';
 import { SOURCE_ROOT as confirmedSourceRoot } from '../src/scripts/toolchain.mjs';
 import { errorInfo, inside } from '../src/core/common.mjs';
 import { textValue } from '../src/core/validation.mjs';
@@ -85,7 +86,7 @@ async function prepare() {
     await start({ projectDir: path.join(root, 'project'), casesFile, outputDir: path.join(root, 'record-run'), runSchemaVersion: 3 });
     await save('source-before.json', await hashes(source));
     const home = textValue(process.env.USERPROFILE, 'USERPROFILE');
-    const protectedPaths = [path.join(home, '.agents', 'skills', 'ego-lite-test'), path.join(home, '.agents', 'skills', 'ai-autonomous-testing-ego-lite'), path.join(home, '.agents', 'skills', 'ego-browser'), path.join(home, '.codex', 'skills', 'ego-lite-test'), path.join(home, '.codex', 'skills', 'ai-autonomous-testing-ego-lite'), path.join(home, '.codex', 'config.toml')];
+    const protectedPaths = [path.join(home, '.agents', 'skills', 'ego-lite-test'), path.join(home, '.agents', 'skills', TOOL_NAME), path.join(home, '.agents', 'skills', 'ai-autonomous-testing-ego-lite'), path.join(home, '.agents', 'skills', 'ego-browser'), path.join(home, '.codex', 'skills', 'ego-lite-test'), path.join(home, '.codex', 'skills', TOOL_NAME), path.join(home, '.codex', 'skills', 'ai-autonomous-testing-ego-lite'), path.join(home, '.codex', 'config.toml')];
     const installed: Record<string, TreeHashes> = {};
     for (const p of protectedPaths)
         installed[p] = await hashes(p);

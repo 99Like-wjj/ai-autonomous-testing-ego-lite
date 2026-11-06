@@ -1,10 +1,10 @@
 # 验证记录与覆盖边界
 
-本次云端图文与工程复核见[云端复核记录](v0.1.9-cloud-documentation-validation.md)。
+当前 0.2.1 的验证与限制见[发布验证](v0.2.1-release-validation.md)。以下旧版记录保留其原始范围，不作为本版重跑结果。
 
-## v0.1.9 当前版本与历史开发验证
+## v0.1.9 正式版本与历史开发验证
 
-当前为 `0.1.9 / project-knowledge-3`，知识格式 v3，正式版本验证见[发布验证](v0.1.9-release-validation.md)。阶段记录见[开发自测](v0.1.9-development-validation.md)的 2026-11-04 轻量 v3 小节，离线评审见[专项验证](v0.1.9-offline-review-export-validation.md)。此前 v1/v2 小节保留历史，不能当作当前格式。用户报告本地 264 项通过、2 项因权限跳过；云端复核独立记录，不将本地结果冒充云端重跑或真实业务验收。以下为此前版本的历史验证。
+该版本为 `0.1.9 / project-knowledge-3`，知识格式 v3，正式版本验证见[发布验证](v0.1.9-release-validation.md)。阶段记录见[开发自测](v0.1.9-development-validation.md)的 2026-11-04 轻量 v3 小节，离线评审见[专项验证](v0.1.9-offline-review-export-validation.md)。此前 v1/v2 小节保留历史，不能当作当前格式。用户报告本地 264 项通过、2 项因权限跳过；云端复核独立记录，不将本地结果冒充云端重跑或真实业务验收。以下为此前版本的历史验证。
 
 ## v0.1.8 正式版本云端验证（2026-11-02）
 

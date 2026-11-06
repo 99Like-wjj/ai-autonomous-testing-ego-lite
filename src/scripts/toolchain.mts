@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { TOOL_VERSION, TOOL_REVISION, FORMAT_VERSIONS, runtimeFiles, referenceNames } from '../contracts/layout.mjs';
+import { TOOL_NAME, TOOL_VERSION, TOOL_REVISION, FORMAT_VERSIONS, runtimeFiles, referenceNames } from '../contracts/layout.mjs';
 export { TOOL_VERSION, TOOL_REVISION, FORMAT_VERSIONS, runtimeFiles } from '../contracts/layout.mjs';
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
 function bad(message: string): never { throw new Error(message); }
@@ -48,8 +48,8 @@ export async function toolInfo(root = TOOL_ROOT) {
   const { entries } = await runtimeEntries(root);
   const pkg: unknown = JSON.parse((await regularBytes(path.join(root, 'package.json'))).toString('utf8'));
   const skill = (await regularBytes(path.join(root, 'SKILL.md'))).toString('utf8');
-  if (!object(pkg) || pkg.name !== 'ai-autonomous-testing-ego-lite' || pkg.version !== TOOL_VERSION || !object(pkg.egoLiteTest) || pkg.egoLiteTest.toolRevision !== TOOL_REVISION || pkg.egoLiteTest.regressionVersion !== 2 || pkg.egoLiteTest.networkFormatVersion !== 1 || pkg.egoLiteTest.knowledgeFormatVersion !== 3 || JSON.stringify(pkg.egoLiteTest.formatVersions) !== JSON.stringify(FORMAT_VERSIONS) ||
-      !skill.startsWith('---\nname: ai-autonomous-testing-ego-lite\n') || !skill.includes('version: "' + TOOL_VERSION + '"') || !skill.includes('tool-revision: "' + TOOL_REVISION + '"')) bad('Skill/tool version or revision mismatch.');
+  if (!object(pkg) || pkg.name !== TOOL_NAME || pkg.version !== TOOL_VERSION || !object(pkg.egoLiteTest) || pkg.egoLiteTest.toolRevision !== TOOL_REVISION || pkg.egoLiteTest.regressionVersion !== 2 || pkg.egoLiteTest.networkFormatVersion !== 1 || pkg.egoLiteTest.knowledgeFormatVersion !== 3 || JSON.stringify(pkg.egoLiteTest.formatVersions) !== JSON.stringify(FORMAT_VERSIONS) ||
+      !skill.startsWith('---\nname: ' + TOOL_NAME + '\n') || !skill.includes('version: "' + TOOL_VERSION + '"') || !skill.includes('tool-revision: "' + TOOL_REVISION + '"')) bad('Skill/tool version or revision mismatch.');
   const files: Record<string, FileFingerprint> = {};
   for (const entry of [...entries, { source: 'package.json', destination: 'package.json' }].sort((a, b) => a.destination.localeCompare(b.destination, 'en'))) {
     const bytes = await regularBytes(path.join(root, entry.source));
@@ -57,7 +57,7 @@ export async function toolInfo(root = TOOL_ROOT) {
   }
   const manifest: unknown = JSON.parse((await regularBytes(path.join(root, 'runtime-manifest.json'))).toString('utf8'));
   if (!object(manifest) || manifest.manifestVersion !== 1 || manifest.version !== TOOL_VERSION || manifest.toolRevision !== TOOL_REVISION || JSON.stringify(manifest.files) !== JSON.stringify(files)) bad('Installed runtime manifest mismatch; inspect changes before updating.');
-  return { name: 'ai-autonomous-testing-ego-lite', version: TOOL_VERSION, toolRevision: TOOL_REVISION, formatVersions: FORMAT_VERSIONS, networkFormatVersion: 1, regressionVersion: 2, knowledgeFormatVersion: 3,
+  return { name: TOOL_NAME, version: TOOL_VERSION, toolRevision: TOOL_REVISION, formatVersions: FORMAT_VERSIONS, networkFormatVersion: 1, regressionVersion: 2, knowledgeFormatVersion: 3,
     toolRoot: root, skillFile: path.join(root, 'SKILL.md'), installationIntegrity: 'verified', fileCount: Object.keys(files).length,
     fingerprint: digest(JSON.stringify(files)), files };
 }
