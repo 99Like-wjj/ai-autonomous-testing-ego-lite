@@ -1,7 +1,5 @@
 <p align="center"><img src="docs/images/hero.png" alt="ai-testing-ego-lite: AI autonomous Web testing with Ego Lite" width="100%"></p>
 
-> **Pre-release manual review snapshot:** This branch prepares 0.2.1. The user requested merging for review before publishing; no tag or Release has been created. Stable-release wording, download links and illustrations below preview the proposed publication, not a completed release.
-
 <h1 align="center">AI Testing with Ego Lite</h1>
 
 <p align="center"><strong>English</strong> · <a href="README.md">简体中文</a></p>
@@ -174,7 +172,7 @@ The default is **1 (serial)**. Without a user request for concurrency or an expl
 
 ## Requirements and implementation boundaries
 
-0.1.9 is the current stable version; see [release validation and limits](docs/v0.1.9-release-validation.md). The previous stable 0.1.8 [requirements](docs/v0.1.8-requirements.md), [research](docs/v0.1.8-feasibility-research.md) and [preview](docs/v0.1.8-preview.en.md) remain design history, not proof that every proposal shipped. Later releases must retain the actual verification limits.
+0.2.1 is the current stable version; see [release validation and limits](docs/v0.2.1-release-validation.md). The earlier 0.1.8 [requirements](docs/v0.1.8-requirements.md), [research](docs/v0.1.8-feasibility-research.md) and [preview](docs/v0.1.8-preview.en.md) remain design history, not proof that every proposal shipped. Later releases must retain the actual verification limits.
 
 ## Further reading
 

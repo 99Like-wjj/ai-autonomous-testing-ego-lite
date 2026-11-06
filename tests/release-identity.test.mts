@@ -37,3 +37,24 @@ test('current branding is consistent without changing autonomous-testing behavio
   assert.match(await fs.readFile(path.join(SOURCE_ROOT, 'docs/images/hero.zh-CN.svg'), 'utf8'), /AI 自主规划与执行/);
   assert.match(await fs.readFile(path.join(SOURCE_ROOT, 'docs/v0.1.7-release-validation.md'), 'utf8'), /AI 自主自动化测试 · Ego Lite/);
 });
+
+
+test('published current documentation removes review holds while preserving release and candidate history', async () => {
+  const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, name), 'utf8');
+  for (const name of ['README.md', 'README.en.md']) {
+    const text = await read(name);
+    assert.doesNotMatch(text, /发布前人工审核快照|Pre-release manual review snapshot|尚未创建 Tag|no tag or Release has been created/);
+    assert.ok(text.includes('releases/tag/v' + TOOL_VERSION), name);
+  }
+  const english = await read('README.en.md');
+  assert.ok(english.includes(TOOL_VERSION + ' is the current stable version'));
+  assert.ok(english.includes('docs/v' + TOOL_VERSION + '-release-validation.md'));
+  const changelog = await read('CHANGELOG.md');
+  assert.match(changelog, /^## 0\.2\.1 \/ attachments-review-2 .*正式版本$/m);
+  assert.match(changelog, /^## 0\.2\.1-rc\.1 .*开发候选，未发布$/m);
+  const validation = await read('docs/v0.2.1-release-validation.md');
+  assert.match(validation, /状态：已于 2026-11-06 完成人工审核并正式发布/);
+  assert.match(validation, /5bccc9c8aa0402c7d03f986793050d6617bacc4b/);
+  assert.match(validation, /1af1c951bb1ecb466718f3075a494e0cfd2c1953e3ac1f09fa4535af00ad8ed2/);
+  assert.match(validation, /当时本机安装未操作，发版仍暂停等待人工审核/);
+});

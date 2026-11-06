@@ -1,6 +1,8 @@
 # 更新记录 / Changelog
 
-## 0.2.1 / attachments-review-2 — 2026-11-06 · 发布准备，待人工审核
+## 0.2.1 / attachments-review-2 — 2026-11-06 · 正式版本
+
+- 人工审核通过后已发布 [v0.2.1](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1)，固定提交为 `5bccc9c8aa0402c7d03f986793050d6617bacc4b`。发布后的文档状态修正仅更新 main，不移动 Tag 或替换安装附件；发布准备与候选阶段记录保留各自历史范围。
 
 - 仓库、包名、Skill 标识及新安装包统一为 `ai-testing-ego-lite`，中文展示名按人工审核更新为“AI 自动化测试 · Ego Lite”。原 GitHub 仓库更名，repository ID 与历史 Tag、Release、附件不变；不提供旧名兼容别名。
 - 目标摘要/索引/单点读取、CLI 入账结构反馈和显式用量导出汇总降低重复读取；不承诺模型费用或业务效果的固定改善，不替 AI 选择业务动作或判断四态。

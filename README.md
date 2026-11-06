@@ -1,7 +1,5 @@
 <p align="center"><img src="docs/images/hero.zh-CN.png" alt="AI 自动化测试 · ai-testing-ego-lite" width="100%"></p>
 
-> **发布前人工审核快照：** 本分支为 0.2.1 发布准备，按用户要求先合并供审核，尚未创建 Tag 或发布 Release。下文正式版措辞、下载入口与图示为拟发布内容预览，审核通过前不表示已发布。
-
 <h1 align="center">AI 自动化测试 · Ego Lite</h1>
 
 <p align="center"><a href="README.en.md">English</a> · <strong>简体中文</strong><br><a href="#windows-快速开始">快速开始</a> · <a href="docs/architecture.md">架构</a> · <a href="docs/asset-formats.md">格式与命令</a> · <a href="docs/testing.md">验证状态</a></p>
