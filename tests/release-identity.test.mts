@@ -46,6 +46,9 @@ test('published current documentation removes review holds while preserving rele
     assert.doesNotMatch(text, /发布前人工审核快照|Pre-release manual review snapshot|尚未创建 Tag|no tag or Release has been created/);
     assert.ok(text.includes('releases/tag/v' + TOOL_VERSION), name);
   }
+  const chinese = await read('README.md');
+  assert.ok(chinese.includes('当前正式版本为 ' + TOOL_VERSION));
+  assert.ok(chinese.includes('docs/v' + TOOL_VERSION + '-release-validation.md'));
   const english = await read('README.en.md');
   assert.ok(english.includes(TOOL_VERSION + ' is the current stable version'));
   assert.ok(english.includes('docs/v' + TOOL_VERSION + '-release-validation.md'));

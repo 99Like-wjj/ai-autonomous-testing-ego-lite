@@ -183,7 +183,7 @@ AI workers 独立留证、封存包，协调者显式复核并导入。完整调
 
 ## 需求与实现边界
 
-0.1.9 已整理为正式版本，实际范围与限制见[发布验证](docs/v0.1.9-release-validation.md)。上一正式版 0.1.8 的原始[需求](docs/v0.1.8-requirements.md)、[调研](docs/v0.1.8-feasibility-research.md)和[前瞻](docs/v0.1.8-preview.md)保留为设计历史，不代表每项设想均已交付。后续发布仍需核对实际验证范围。
+当前正式版本为 0.2.1，实际范围与限制见[发布验证](docs/v0.2.1-release-validation.md)。较早 0.1.8 版本的原始[需求](docs/v0.1.8-requirements.md)、[调研](docs/v0.1.8-feasibility-research.md)和[前瞻](docs/v0.1.8-preview.md)保留为设计历史，不代表每项设想均已交付。后续发布仍需核对实际验证范围。
 
 ## 继续阅读
 
