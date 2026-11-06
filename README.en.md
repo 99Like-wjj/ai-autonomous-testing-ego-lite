@@ -28,7 +28,7 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ## Current version
 
-The development candidate is **0.2.1-rc.1 / execution-efficiency-1**. The new Skill/package identifier is `ai-testing-ego-lite`; invoke `$ai-testing-ego-lite`. It is not released. The actual GitHub URL and user installation have not been renamed; the last stable package remains [v0.1.9](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9).
+The development candidate is **0.2.1-rc.1 / attachments-review-2**. The new Skill/package identifier is `ai-testing-ego-lite`; invoke `$ai-testing-ego-lite`. It is not released, and the GitHub URL still uses the old name. Verify the complete installation identity before use. The last stable package remains [v0.1.9](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9). See the [attachment and review validation](docs/evaluations/attachment-review-20261106/validation.md) for scope and results.
 
 Use the complete compiled package described in [installation guidance](INSTALL.zh-CN.md), not the source ZIP. Future installation replaces the old discovered Skill without an alias; historical data stays intact. See [0.2.1 design](docs/v0.2.1-design.md) and [development validation](docs/v0.2.1-development-validation.md).
 
@@ -119,7 +119,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.2.1-rc.1 --expect-revision execution-efficiency-1
+node $Tool tool-info --expect-version 0.2.1-rc.1 --expect-revision attachments-review-2
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))

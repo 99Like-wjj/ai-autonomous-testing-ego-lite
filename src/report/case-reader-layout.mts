@@ -77,6 +77,13 @@ h3{font-size:14px}
 .badges{display:flex;gap:6px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;padding:2px 8px;background:var(--surface);border:1px solid var(--line);border-radius:20px;font-size:10px;white-space:nowrap}
 .badge.warn{border-style:dashed}
+.badge.review-approved{color:var(--verified-fg);background:var(--verified-bg);border-color:var(--verified-fg);font-weight:650}
+.point-nav .review-approved{display:table;margin-top:6px}
+.review-pass-button{color:var(--verified-fg);background:var(--verified-bg);border-color:var(--verified-fg)}
+.review-pass-summary{padding:12px;border:1px solid var(--verified-fg);border-radius:8px;background:var(--verified-bg);color:var(--verified-fg);font-size:12px}
+.review-pass-summary button{margin-top:10px}
+.review-confirm-text{max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;margin-top:12px}
+.pager-position{font-size:10px;color:var(--muted);align-self:center}
 .target-number{font:11px/1.6 Consolas,monospace;color:var(--muted)}
 .expected{font-size:14px;line-height:1.95;margin-top:13px;padding:13px 16px;background:var(--surface);border-radius:8px;border-left:3px solid var(--accent)}
 .expected-label{display:block;font-size:10px;color:var(--accent);font-weight:700;letter-spacing:.8px;margin-bottom:3px}

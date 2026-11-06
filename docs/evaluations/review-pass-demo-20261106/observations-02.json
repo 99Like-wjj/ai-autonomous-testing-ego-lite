@@ -1,0 +1,20 @@
+{
+  "continued": {
+    "status": "待评审",
+    "editorVisible": true,
+    "globalValue": "请统一补充权限变化后，当前资源关联如何处理的预期。"
+  },
+  "caseSwitchPreservedOpinion": true,
+  "confirmVisible": true,
+  "cancelPreservedOpinion": true,
+  "cleared": {
+    "opinion": "",
+    "globalValue": "请统一补充权限变化后，当前资源关联如何处理的预期。"
+  },
+  "restored": {
+    "editorHidden": true,
+    "summaryVisible": true,
+    "globalValue": "请统一补充权限变化后，当前资源关联如何处理的预期。",
+    "status": "✓ 评审通过"
+  }
+}

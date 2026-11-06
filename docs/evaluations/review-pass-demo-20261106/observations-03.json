@@ -1,0 +1,23 @@
+{
+  "empty": {
+    "data": {
+      "demo": true,
+      "document": "用例评审交互示例",
+      "caseVersion": 1,
+      "comments": []
+    },
+    "downloadDisabled": true,
+    "copyDisabled": true
+  },
+  "globalOnly": {
+    "data": {
+      "demo": true,
+      "document": "用例评审交互示例",
+      "caseVersion": 1,
+      "overallComment": "仅有总体意见时，也应可以导出。",
+      "comments": []
+    },
+    "downloadDisabled": false
+  },
+  "resetToInitialSamples": true
+}

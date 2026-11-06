@@ -2,7 +2,7 @@
 export const TOOL_NAME = 'ai-testing-ego-lite';
 export const SKILL_SOURCE = 'skills/' + TOOL_NAME;
 export const TOOL_VERSION = '0.2.1-rc.1';
-export const TOOL_REVISION = 'execution-efficiency-1';
+export const TOOL_REVISION = 'attachments-review-2';
 export const FORMAT_VERSIONS = { cases: 9, manifest: 9, results: 9, evidence: 9, report: 9, execution: 9, configuration: 9, workerPacket: 9, executionRead: 9 } as const;
 export const runtimeFiles = [
   'core/result-views.mjs',
@@ -150,6 +150,9 @@ export const runtimeFiles = [
   'examples/project.example/usage.md',
   'observation/evidence-export.mjs',
   'report/assets.mjs',
+  'report/test-files.mjs',
+  'report/file-archive.mjs',
+  'contracts/attachment-path.mjs',
   'report/shell.mjs',
   'report/themes.mjs',
   'schemas/network-evidence-export.schema.json',

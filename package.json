@@ -2,7 +2,7 @@
   "name": "ai-testing-ego-lite",
   "version": "0.2.1-rc.1",
   "egoLiteTest": {
-    "toolRevision": "execution-efficiency-1",
+    "toolRevision": "attachments-review-2",
     "formatVersions": {
       "cases": 9,
       "manifest": 9,

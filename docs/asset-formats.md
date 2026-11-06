@@ -67,6 +67,18 @@ v9在用例、RecordPayload及report-context中增加可选aiContext，uses项�
 
 新增字段和展示需配套当前工具修订；旧工具可能拒绝新增字段。已有文件不自动改写，旧HTML可独立阅读，精确校验旧展示应使用原工具修订。补充或换语言时另存新文件。
 
+## 测试附件与交付清单 v2
+
+主契约保持v9，证据metadata增加可选`testFile: {name, origin, note?}`；名称限文件名而非路径，来源枚举为`generated/user_provided/system_download/ai_output/other`。原始字节、大小、hash、媒体声明沿用证据登记；同字节不同名称保留各自描述。
+
+实际动作增加可选`fileUses`，每项要么`{role, evidenceId}`，要么`{role, name, unavailableReason}`；角色为`upload_input/download_output/ai_input/ai_output`。原件引用必须登记testFile，并属于同一case、观察及实际动作；worker封包、复核和导入映射同一关系。消息`attachmentSourceIds`继续引用原件来源。缺少原件不是虚构一次成功下载的理由。
+
+HtmlPayload增加可选testFiles投影，不新增独立附件库或业务判断。deliveryVersion更新为2，交付清单纳入该投影及静态ZIP的hash/字节数；原件相对路径采用“内容hash与名称hash目录/操作系统可用原名”，普通中文名和扩展名保留。超长或非法文件名仅净化物理名称，原始名称仍在元数据/清单中。ZIP只打包显式、未排除、完整且已核验的测试原件及test-files.json，重复用途不重复字节，文件名冲突由指纹路径消歧。未知、未交付、失败、排除和未关联分别显示。
+
+本地file链接可能忽略download属性并直接打开文本，因此HTML中的测试文件下载不直接导航原件。每份不超过4 MiB、去重后累计不超过16 MiB的完整测试原件，将原始字节作为可选testFileDownloads加入HTML，点击时生成application/octet-stream Blob再下载，保留完整字节和实际名称；主动内容不作为页面运行。超出预算的原件通过已有静态合集下载，卡片明确写“从合集下载原件”，避免无限扩大HTML及浏览器内存。该有界下载副本不进入report.json、原始账本或ZIP清单，不影响业务状态。
+
+这些是可选v9字段，不自动生成用例阶段附件、不扫描运行目录猜测附件，也不批量回填历史。已有v9记录未提供这些信息时仍保留原证据视图，不能推测原始文件名/用途。旧交付清单v1的精确校验应使用原工具修订；历史HTML可独立阅读，不删除、覆盖或原位迁移。补充材料时生成新交付目录。
+
 ## 项目知识格式 v3
 
 知识独立使用knowledgeFormatVersion 3，读取结果为knowledgeReadVersion 3，不改变测试主契约v9。knowledge.json只标识项目；project.json与accounts.json都是{"items":[]}，每条仅id/title必填，summary/tags/description/properties可选。自定义属性原样保留，不绑定环境、角色或组织档案。

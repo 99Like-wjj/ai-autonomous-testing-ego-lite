@@ -28,7 +28,7 @@
 
 ## 当前版本
 
-当前开发候选为 **0.2.1-rc.1 / execution-efficiency-1**，新Skill标识`ai-testing-ego-lite`，显式调用`$ai-testing-ego-lite`。开发版本尚未发布；GitHub仓库实际地址和用户安装暂未改名。最近正式包仍是 [v0.1.9](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9)。
+当前开发候选为 **0.2.1-rc.1 / attachments-review-2**，新Skill标识`ai-testing-ego-lite`，显式调用`$ai-testing-ego-lite`。开发版本尚未发布，GitHub仓库地址仍保留旧名；使用前核对完整安装内容的身份。最近正式包仍是 [v0.1.9](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9)。本次附件与评审改动及验证范围见[验证记录](docs/evaluations/attachment-review-20261106/validation.md)。
 
 完整编译包与安装说明见[安装指南](INSTALL.zh-CN.md)，不把源码ZIP当作安装包。下次采用完整新名称安装并删除旧入口，不保留旧名别名；历史数据保持原样。实现设计见[0.2.1设计](docs/v0.2.1-design.md)，当前验证范围见[开发自测](docs/v0.2.1-development-validation.md)。
 
@@ -119,7 +119,7 @@
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.2.1-rc.1 --expect-revision execution-efficiency-1
+node $Tool tool-info --expect-version 0.2.1-rc.1 --expect-revision attachments-review-2
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：

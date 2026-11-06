@@ -78,6 +78,23 @@ export interface HtmlPayload {
   assets: Record<string, ReportAsset>; delivery: ReportDelivery;
   conversations?: Record<string, ConversationView>;
   conversationFiles?:Record<string,{sha256:string;bytes:number;attachmentPath:string}>;
+  testFiles?: TestFilesView;
+  testFileDownloads?: Record<string, string>;
+}
+export interface TestFileUseView {
+  caseId: string; goalId?: string; pointId?: string; observationId?: string; actionId?: string;
+  role?: NonNullable<import('./generated/results.mjs').ActionFact['fileUses']>[number]['role'];
+  conversationId?: string; messageId?: string;
+}
+export interface TestFileView {
+  id: string; evidenceId?: string; name: string; origin?: NonNullable<EvidenceMetadata['testFile']>['origin'];
+  sha256?: string; bytes?: number; mediaType?: string; attachmentPath?: string;
+  status: 'retained' | 'not_delivered' | 'incomplete' | 'excluded' | 'failed' | 'unavailable';
+  note: string; uses: TestFileUseView[];
+}
+export interface TestFilesView {
+  items: TestFileView[]; complete: boolean;
+  archive?: { path: string; sha256: string; bytes: number; fileCount: number };
 }
 export type EvidenceReceipt = Pick<EvidenceOperation, 'operationId' | 'revision' | 'caseId' | 'evidenceId' | 'path' | 'sha256' | 'bytes'> & { collectedAt: string; replayed: boolean };
 export type ResultReceipt = Pick<ResultEntry, 'operationId' | 'revision' | 'caseId' | 'mode'> & { replayed: boolean };

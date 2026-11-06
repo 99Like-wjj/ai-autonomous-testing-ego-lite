@@ -33,7 +33,7 @@ export function progressFor(cases: readonly CheckedCase[]) {
   return { caseCount: cases.length, goalCount: cases.reduce((sum, c) => sum + c.goals.length, 0), counts, assessmentComplete: counts.unassessed === 0,
     recordedEntries: cases.reduce((sum, c) => sum + c.entries.length, 0) };
 }
-function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, prior: { contexts?: readonly ExecutionContext[]; findings?: readonly Finding[]; entries?: readonly ResultEntry[] } = {}): void {
+function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId' | 'metadata'>>, prior: { contexts?: readonly ExecutionContext[]; findings?: readonly Finding[]; entries?: readonly ResultEntry[] } = {}): void {
   parsePayload(payload);
   const refs = new Set(requiredRefs(c)), observations = new Map<string, Observation>();
   const checkEvidence = (ids: readonly string[]) => {
@@ -58,6 +58,10 @@ function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availab
       if (action.planRefs.some(ref => !refs.has(ref))) fail('Action refers to an unknown plan reference: ' + action.id);
       if (action.evidenceIds.some(id => !o.evidenceIds.includes(id))) fail('Action evidence must be included in its observation: ' + action.id);
       for (const ref of action.conversations ?? []) if (!action.evidenceIds.includes(ref.evidenceId)) fail('Conversation evidence must belong to its actual action.');
+      for (const use of action.fileUses ?? []) if (use.evidenceId) {
+        if (!action.evidenceIds.includes(use.evidenceId)) fail('Test file evidence must belong to its actual action.');
+        if (evidenceById && !evidenceById.get(use.evidenceId)?.metadata?.testFile) fail('Test file use requires registered filename and provenance metadata.');
+      }
     }
     for (const link of o.evidenceLinks ?? []) {
       if (!o.evidenceIds.includes(link.evidenceId)) fail('Evidence link must belong to its observation.');
@@ -107,7 +111,7 @@ function validateReportFactsAgainstCase(c: Case, payload: RecordPayload, availab
 }
 
 /** Pure semantic validation shared by serial records and reviewed parallel packets. */
-export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, priorFacts: ActionFacts & {findings?: readonly Finding[];entries?: readonly ResultEntry[]} = { contexts: [], actionEvents: [] }): void {
+export function validatePayloadAgainstCase(c: Case, payload: RecordPayload, availableObservations: readonly Observation[] = [], evidenceById?: ReadonlyMap<string, Pick<EvidenceItem, 'caseId' | 'metadata'>>, priorFacts: ActionFacts & {findings?: readonly Finding[];entries?: readonly ResultEntry[]} = { contexts: [], actionEvents: [] }): void {
   parsePayload(payload);
   const refs = new Set(requiredRefs(c)), observations = new Map<string, Observation>();
   const checkEvidence = (ids: readonly string[]) => {
@@ -203,7 +207,7 @@ export function assertAssessmentScope(c:Case,payload:RecordPayload,binding:Regre
   if(!c.goals.some(g=>binding.selection.selectedPointIds.includes(g.pointId)))fail('Case is outside the frozen selection.');
   for(const a of payload.assessments){const g=c.goals.find(g=>g.id===a.goalId);if(!g||!binding.selection.selectedPointIds.includes(g.pointId))fail('Assessment is outside the frozen point selection: '+a.goalId);if(a.status==='verified'&&!binding.plans.some(p=>p.pointIds.includes(g.pointId)))fail('Deferred or unreviewed point cannot be verified.');}
 }
-export function validateResultEntries(baseline: Baseline, results: Results, evidenceById: ReadonlyMap<string, Pick<EvidenceItem, 'caseId'>>, operationIds: Set<string>, binding?:RegressionBinding): CheckedCase[] {
+export function validateResultEntries(baseline: Baseline, results: Results, evidenceById: ReadonlyMap<string, Pick<EvidenceItem, 'caseId' | 'metadata'>>, operationIds: Set<string>, binding?:RegressionBinding): CheckedCase[] {
   const factsByCase = new Map<string, ActionFacts & {findings?: Finding[];entries?: ResultEntry[]}>(), factOwners = new Map<string, string>();
   const observationsByCase = new Map<string, Observation[]>(), casesById = new Map(baseline.cases.map(c => [c.id, c]));
   let revision = 0;

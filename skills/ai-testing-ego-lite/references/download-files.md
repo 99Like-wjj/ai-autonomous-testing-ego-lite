@@ -82,6 +82,16 @@ CSV 不用 split(',')，不默认 trim。XLSX 使用 trim:false，数值保留�
 
 JSON 保留原始文本和类型；能取得可靠数值原文时一并保存，否则明确精度限制，不能靠浮点近似证明长整数 ID 或精确金额。读取完整性针对本次方式和窗口，不等于整个文件所有业务含义均已验证。
 
+## 执行中留存复测附件
+
+普通上传/下载、AI消息上传/返回文件，登记实际原件时在证据metadata补充`testFile: {name, origin, note?}`，`origin`取`generated / user_provided / system_download / ai_output / other`，`name`是当时实际文件名而不是存储路径。原件完整性按事实填`contentState`；确认完整的原件用`full`。下载文件名可从同次capture回执的`suggestedFilename`核对，不从`original.bin`猜测。不要把原件、解析输出或回执混成一个文件。
+
+实际`observation.actions[].fileUses`关联同一步的文件证据ID和用途：`upload_input / download_output / ai_input / ai_output`。同一原件可有多次用途；引用须同时在该动作和观察的`evidenceIds`中。消息继续用`attachmentSourceIds`映射同一原件。未取得或下载未知时可记录`{role, name, unavailableReason}`，不编造evidenceId、字节或成功结果。此字段只描述事实，不替AI判断下一步或业务状态。
+
+报告auto会为显式测试文件选择bundle，在步骤、对话及“测试附件”入口提供原名下载；合集`test-attachments.zip`仅含已保管且声明完整的测试原件和用途/缺口清单。预览仅支持安全图片/文本；格式异常文件保持原字节及名称，不为预览改造原件。用例设计阶段不自动生成附件。已排除、未取得或完整性未知的原件不提供假下载。
+
+离线浏览器可能直接打开file文本链接，所以HTML以已核验字节发起下载：每份≤4 MiB、去重累计≤16 MiB时可直接下载；其余明确通过合集获取，不代表原件缺失。不要为了下载或预览重新生成系统/AI产物。移动报告时保留全部原件、清单及ZIP；原名的操作系统净化规则见文件信息与清单，不改变字节。
+
 ## 读取与交付边界
 
 读取依赖已预打包，无需运行时 npm install。files inspect 从独立 Node CLI 调用，默认单文件 32 MiB、解析正文 4 MiB、表格 100000 单元格和解析 60 秒；可在授权内显式调整，它们不是业务上限。超限、部分、不支持和失败分别返回；窗口结果仅支持已读范围。停止解析不取消浏览器下载，不自动重试。

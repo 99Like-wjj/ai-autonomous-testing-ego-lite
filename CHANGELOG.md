@@ -1,13 +1,15 @@
 # 更新记录 / Changelog
 
-## 0.2.1-rc.1 / execution-efficiency-1 — 2026-11-06 · 开发候选，未发布
+## 0.2.1-rc.1 / attachments-review-2 — 2026-11-06 · 开发候选，未发布
 
-- Skill/包短标识改为`ai-testing-ego-lite`，中文名称保留“AI 自主自动化测试”。构建身份与目录引用同步；当前GitHub仓库地址、用户安装和历史Release未变更。
+- Skill/包短标识改为`ai-testing-ego-lite`，中文名称保留“AI 自主自动化测试”。构建身份与目录引用同步；本次源码开发不调整GitHub仓库地址、历史Release或现有安装目录。
 - 明确独立脚本与模型回合的区别，推荐合并已确定的本地准备、执行和取证，保留需要新观察、授权或未知副作用的判断边界。
 - progress和regression context默认有界summary，支持goals索引、单point完整预期/依赖及显式导出。历史full仅导出；新读取输出contextReadVersion 1。
 - CLI record返回recordResponseVersion 1，原receipt与提交时结构反馈分开；内部记录事务和并行收据不变。提示不改四态，重放仍绑定原revision。
 - usage summarize只读取指定非秘密导出，按唯一请求去重并分列缓存/推理子项；未知不当0，不扫描宿主目录或推测账单。
 - 继续主存储v9、知识v3、回归v2，不重写旧资产或提供旧名兼容别名。CLI输出有意变化，调用者需同步；真实模型成本及业务效果另行验证。
+- 报告增加本步/对话/全局测试附件入口、原名下载和预生成的测试附件ZIP；v9增加可选testFile、fileUses字段，交付清单改为deliveryVersion 2，缺口与业务结论分开。用例设计阶段不生成附件，不扫描或回填历史。
+- 用例评审增加通过标记、收起与继续评审；只导出修改意见和总体意见。修复上一/下一回顶、重复激活回顶、历史位置丢失、辅助操作收起正文及筛选巡览范围混用。保留正式页面原有布局、字号、间距及八主题，未采用独立Demo的全局样式。
 
 ## 0.1.9 / project-knowledge-3 — 2026-11-04 · 正式版本
 

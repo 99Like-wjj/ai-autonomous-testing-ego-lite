@@ -91,6 +91,17 @@ export type BoundedContextProjectionV1 =
       businessExecuted: false;
     };
 /**
+ * Either a retained original reference, or an explicit missing/unknown original. The runtime validates action/observation/case ownership.
+ */
+export type ActualTestFileUse = {
+  [k: string]: unknown;
+} & {
+  role: 'upload_input' | 'download_output' | 'ai_input' | 'ai_output';
+  evidenceId?: string;
+  name?: string;
+  unavailableReason?: string;
+};
+/**
  * One immutable fact event of an action attempt. The kind-specific fields below are conditional requirements, not a fixed execution route. Dispatch acceptance is separate from business result; unknown facts may be recorded without inventing evidence. IDs, source ownership, previous-event references and timestamp ordering are checked by the runtime.
  */
 export type ActionEvent = {
@@ -148,6 +159,7 @@ export type EvidenceMetadata = {
    * @minItems 1
    */
   conversationSources?: ConversationSourceBinding[];
+  testFile?: TestFileDescription;
 };
 
 export interface GoalCounts {
@@ -270,6 +282,10 @@ export interface ActionFact {
    * @minItems 1
    */
   conversations?: ConversationActionReference[];
+  /**
+   * @minItems 1
+   */
+  fileUses?: ActualTestFileUse[];
 }
 export interface ConversationActionReference {
   evidenceId: string;
@@ -354,4 +370,12 @@ export interface EvidenceItem {
 export interface ConversationSourceBinding {
   sourceId: string;
   evidenceId: string;
+}
+/**
+ * Actual retained test file name and provenance, independent of input/output use. No case-design-time file generation.
+ */
+export interface TestFileDescription {
+  name: string;
+  origin: 'generated' | 'user_provided' | 'system_download' | 'ai_output' | 'other';
+  note?: string;
 }

@@ -64,7 +64,7 @@ export function parseReviewFeedback(value: unknown, identity: FeedbackIdentity, 
     if (pointId !== null && (!known.has(pointId) || !selected.has(pointId))) throw Error('有意见的用例尚未纳入导出范围，不能静默丢弃。');
     return { pointId, text: text(c.text, '评审意见') };
   });
-  if (!allowEmpty && (!pointIds.length || !comments.length)) throw Error('请先选择范围并填写意见，或明确记录无修改意见。');
+  if (!allowEmpty && !comments.length) throw Error('请先填写意见；评审通过标记不作为修改意见导出。');
   return { schemaVersion: 9, cases, expectedReviewNumber: integer(r.expectedReviewNumber, 0, '审阅序号'), decision: r.decision as FeedbackDecision, pointIds, comments, source: source(r.source), sourceKind: 'feedback_file', delegationSource: null };
 }
 /** Extract inert JSON only: parsing an imported HTML must not load images, frames or scripts. */

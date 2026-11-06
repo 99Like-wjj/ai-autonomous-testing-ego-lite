@@ -29,6 +29,18 @@ async function fixture(t: TestContext, limit = 1) {
     return { root, run, request, reserve, payload, packet, imported };
 }
 test('default serial capacity and unsupported old requests', async (t) => { const f = await fixture(t); await f.request('inventory', { spaceIds: [] }); await f.reserve(); await assert.rejects(f.reserve('case-1'), /slot/); await assert.rejects(executeRequest({ runDir: f.run, request: { schemaVersion: 1 } }), /schemaVersion 9/); });
+test('worker import retains real test filename and remaps actual file-use references', async t => {
+    const f = await fixture(t); await f.request('inventory', { spaceIds: [] }); const a = await f.reserve(), dir = path.join(f.run, 'workers', a);
+    await fs.writeFile(path.join(dir, 'test-input.csv'), 'synthetic,input\n1,value\n');
+    const record = f.payload('test-file'), observation = record.observations[0]!;
+    observation.actions = [{ id: 'upload-file', description: 'Synthetic upload use', planRefs: observation.coveredRefs, evidenceIds: ['test-file'], fileUses: [{ role: 'upload_input', evidenceId: 'test-file' }] }];
+    const draftFile = path.join(dir, 'test-file-draft.json');
+    await fs.writeFile(draftFile, JSON.stringify({ schemaVersion: 9, packetId: 'test-file-packet', mode: 'final', record, evidence: [{ key: 'test-file', path: 'test-input.csv', kind: 'other', source: 'Synthetic fixture', description: 'Actual synthetic input', metadata: { contentState: 'full', testFile: { name: '输入原件.csv', origin: 'generated' } } }], spaceUsage: [{ spaceId: null, reason: 'Local transaction validation', evidenceKeys: [] }] }));
+    const packet = await sealPacket({ runDir: f.run, assignment: a, draftFile }); await f.imported(packet.packetFile);
+    const checked = await check(f.run), action = checked.cases[0]!.observations[0]!.actions![0]!, id = action.fileUses![0]!.evidenceId!;
+    assert.notEqual(id, 'test-file'); assert.ok(action.evidenceIds.includes(id));
+    assert.equal(checked.evidenceCatalog.items.find(e => e.id === id)!.metadata!.testFile!.name, '输入原件.csv');
+});
 test('known capacity does not rewrite configured maximum or allocate unused slots', async (t) => { const f = await fixture(t, 12); await f.request('inventory', { spaceIds: [] }); await f.request('capacity', { availableWorkers: 2 }); await f.reserve(); await f.reserve('case-1'); await assert.rejects(f.reserve('case-2'), /slot/); const s = await readExecutionView(f.run); assert.equal(s.configuration.requestedMaxParallelCases, 12); assert.equal(s.assignments.length, 2); });
 test('lowered limit drains work; lost and stop-requested retain reservations', async (t) => { const f = await fixture(t, 3); await f.request('inventory', { spaceIds: [] }); const a = await f.reserve(); await f.reserve('case-1'); await f.request('set-limit', { maxParallelCases: 1 }); assert.equal((await readExecutionView(f.run)).summary.draining, true); await f.request('reconcile', { assignmentId: a, state: 'lost', inFlight: true }); await assert.rejects(f.reserve('case-2'), /slot/); await assert.rejects(f.request('reconcile', { assignmentId: a, state: 'completed', inFlight: true }), /in.flight/); });
 test('resource and same-case conflicts remain guarded', async (t) => { const f = await fixture(t, 3); await f.request('inventory', { spaceIds: [] }); await f.reserve('case-0', ['shared']); await assert.rejects(f.reserve(), /active assignment/); await assert.rejects(f.reserve('case-1', ['shared']), /resource/); await f.reserve('case-1', ['independent']); });

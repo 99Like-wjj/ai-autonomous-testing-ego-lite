@@ -20,6 +20,7 @@ export type EvidenceMetadata = {
    * @minItems 1
    */
   conversationSources?: ConversationSourceBinding[];
+  testFile?: TestFileDescription;
 };
 
 export interface EvidenceRegistrationRequestV9 {
@@ -37,4 +38,12 @@ export interface EvidenceRegistrationRequestV9 {
 export interface ConversationSourceBinding {
   sourceId: string;
   evidenceId: string;
+}
+/**
+ * Actual retained test file name and provenance, independent of input/output use. No case-design-time file generation.
+ */
+export interface TestFileDescription {
+  name: string;
+  origin: 'generated' | 'user_provided' | 'system_download' | 'ai_output' | 'other';
+  note?: string;
 }

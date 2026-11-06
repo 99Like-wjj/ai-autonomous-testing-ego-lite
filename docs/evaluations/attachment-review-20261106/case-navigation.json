@@ -1,0 +1,83 @@
+{
+  "afterSave": {
+    "hash": "#point=SYNTHETIC-TP-000001",
+    "y": 809.5,
+    "treeY": 0,
+    "reviewY": 0,
+    "sourceOpen": true,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000001"
+  },
+  "afterScope": {
+    "hash": "#point=SYNTHETIC-TP-000001",
+    "y": 809.5,
+    "treeY": 0,
+    "reviewY": 0,
+    "sourceOpen": true,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000001"
+  },
+  "afterExport": {
+    "hash": "#point=SYNTHETIC-TP-000001",
+    "y": 0,
+    "treeY": 0,
+    "reviewY": 0,
+    "sourceOpen": true,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000001"
+  },
+  "sameBefore": {
+    "hash": "#point=SYNTHETIC-TP-000001",
+    "y": 440,
+    "treeY": 80,
+    "reviewY": 0,
+    "sourceOpen": true,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000001"
+  },
+  "sameAfter": {
+    "hash": "#point=SYNTHETIC-TP-000001",
+    "y": 440,
+    "treeY": 80,
+    "reviewY": 0,
+    "sourceOpen": true,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000001"
+  },
+  "next": {
+    "hash": "#point=SYNTHETIC-TP-000002",
+    "y": 182.5,
+    "treeY": 80,
+    "reviewY": 0,
+    "sourceOpen": false,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000002"
+  },
+  "historyBefore": {
+    "hash": "#point=SYNTHETIC-TP-000002",
+    "y": 610,
+    "treeY": 55,
+    "reviewY": 0,
+    "sourceOpen": false,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000002"
+  },
+  "back": {
+    "hash": "#point=SYNTHETIC-TP-000001",
+    "y": 440,
+    "treeY": 80,
+    "reviewY": 0,
+    "sourceOpen": true,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000001"
+  },
+  "forward": {
+    "hash": "#point=SYNTHETIC-TP-000002",
+    "y": 610,
+    "treeY": 55,
+    "reviewY": 0,
+    "sourceOpen": false,
+    "global": "统一补充异常条件和必要数据说明。",
+    "point": "SYNTHETIC-TP-000002"
+  }
+}

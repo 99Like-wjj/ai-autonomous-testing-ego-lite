@@ -96,3 +96,5 @@ report 对冻结记录、引用及留存证据 hash/字节数核验后生成三�
 证据用途的 evidenceLinks.actionId 只引用同一 observation.actions 中的片段 ID；动作尝试事件通过 observation.actionEventIds 关联，不混淆两个不同用途的标识。
 
 另外生成 `report-delivery.json` 机器交付清单供核验使用，不替代三种阅读产物；完整交付应保留该清单。
+
+测试原件登记与动作/消息关联见[下载与文件指南](download-files.md#执行中留存复测附件)。新交付清单为deliveryVersion 2；报告“测试附件”可按文件名、场景和输入/输出筛选，并返回实际步骤。移动交付物须保留`attachments/`、清单及生成的`test-attachments.zip`；相对路径用于整包移动，不是自动发布的互联网地址。合集清单保留原名、hash、用途与缺口，ZIP内路径可能为适配文件系统而净化；不改原件字节。复测附件完整性独立于业务四态，verify-report同时核对单文件与合集指纹。新工具不改写旧HTML；既有报告需要追加材料时另存新交付。
