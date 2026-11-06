@@ -24,6 +24,12 @@
 
 ## 从旧版更新
 
+### 0.2.1 名称替换
+
+仓库、包名和新 Skill 目录已统一为 `ai-testing-ego-lite`；下载附件为 `ai-testing-ego-lite-0.2.1.zip`，版本为 `0.2.1`，revision 为 `attachments-review-2`。旧 `ai-autonomous-testing-ego-lite` 名称不提供调用兼容入口。中文展示名仍为“AI 自主自动化测试 · Ego Lite”。
+
+先校验并试运行完整新包，再在获得本机安装/清理授权后将已核实的旧 Skill 退出扫描范围，保护用户修改和真实资产；新会话确认实际加载 `$ai-testing-ego-lite`。发布动作本身不会操作已安装目录，也不会删除历史报告或旧 Release 附件。新 CLI 摘要/record 响应与 deliveryVersion 2 需要调用方同步，不能把新输出直接当作旧结构处理。
+
 目前没有内置自动更新器。GitHub 发版、源码目录 `git pull`、`npm run build` 或构建独立安装目录，都不会自动更新客户端已经安装的 Skill。
 
 1. 先核验新包，在独立目录解压并完成上面的版本和完整性检查，暂不覆盖旧安装。

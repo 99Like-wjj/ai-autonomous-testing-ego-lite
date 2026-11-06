@@ -1,6 +1,6 @@
 {
   "name": "ai-testing-ego-lite",
-  "version": "0.2.1-rc.1",
+  "version": "0.2.1",
   "egoLiteTest": {
     "toolRevision": "attachments-review-2",
     "formatVersions": {

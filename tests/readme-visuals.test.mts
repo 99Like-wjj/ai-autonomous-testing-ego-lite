@@ -48,9 +48,9 @@ test('README timeline contains four versions and labels the current release cons
  test('current illustrations explain report and regression boundaries in both languages', async () => {
   for (const suffix of ['', '.zh-CN']) {
     const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, `docs/images/${name}${suffix}.svg`), 'utf8');
-    assert.match(await read('hero'), /0\.2\.1-rc\.1/);
-    assert.match(await read('hero'), /NOT RELEASED|未发布/);
-    assert.doesNotMatch(await read('hero'), /STABLE RELEASE|正式版本/);
+    assert.match(await read('hero'), /ai-testing-ego-lite.*0\.2\.1/);
+    assert.doesNotMatch(await read('hero'), /NOT RELEASED|未发布|-rc\./);
+    assert.match(await read('hero'), /STABLE RELEASE|正式版本/);
     assert.match(await read('workflow'), /whole scenarios|整条场景/);
     assert.match(await read('workflow'), /not automatically replayed|不自动重放/);
     assert.match(await read('result-specimen'), /NOT A REAL REPORT SCREENSHOT|非真实报告截图/);
@@ -65,7 +65,7 @@ test('feedback follows all project sections and precedes the final license in bo
     const headings = [...content.matchAll(/^## (.+)$/gm)].map(match => match[1]);
     assert.deepEqual(headings.slice(-2), [contact, license]);
     assert.ok(content.includes('docs/images/wechat-contact-qr.png'));
-    assert.ok(content.includes('https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/issues'));
+    assert.ok(content.includes('https://github.com/99Like-wjj/ai-testing-ego-lite/issues'));
   }
 });
 
@@ -174,5 +174,17 @@ test('promotional diagrams avoid coupling labels to the knowledge schema version
   for (const name of (await fs.readdir(images)).filter(name => name.endsWith('.svg'))) {
     const svg = await fs.readFile(path.join(images, name), 'utf8');
     assert.doesNotMatch(svg, /knowledge(?: format)?\s*v3|知识(?:格式)?\s*v3/i, name);
+  }
+});
+
+
+test('stable release READMEs use the renamed repository and Skill entrypoints', async () => {
+  for (const file of ['README.md', 'README.en.md']) {
+    const page = await fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
+    assert.ok(page.includes('https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1'));
+    assert.ok(page.includes('$ai-testing-ego-lite'));
+    assert.ok(page.includes('/ai-testing-ego-lite'));
+    assert.doesNotMatch(page, /ai-autonomous-testing-ego-lite|0\.2\.1-rc\.1/);
+    assert.ok(page.includes('deliveryVersion 2'));
   }
 });

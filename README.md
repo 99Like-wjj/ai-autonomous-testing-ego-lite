@@ -1,4 +1,6 @@
-<p align="center"><img src="docs/images/hero.zh-CN.png" alt="基于 Ego Lite 的 AI 自主测试 Skill" width="100%"></p>
+<p align="center"><img src="docs/images/hero.zh-CN.png" alt="AI 自主自动化测试 · ai-testing-ego-lite" width="100%"></p>
+
+> **发布前人工审核快照：** 本分支为 0.2.1 发布准备，按用户要求先合并供审核，尚未创建 Tag 或发布 Release。下文正式版措辞、下载入口与图示为拟发布内容预览，审核通过前不表示已发布。
 
 <h1 align="center">AI 自主自动化测试 · Ego Lite</h1>
 
@@ -28,13 +30,13 @@
 
 ## 当前版本
 
-当前开发候选为 **0.2.1-rc.1 / attachments-review-2**，新Skill标识`ai-testing-ego-lite`，显式调用`$ai-testing-ego-lite`。开发版本尚未发布，GitHub仓库地址仍保留旧名；使用前核对完整安装内容的身份。最近正式包仍是 [v0.1.9](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9)。本次附件与评审改动及验证范围见[验证记录](docs/evaluations/attachment-review-20261106/validation.md)。
+当前正式版本为 **[0.2.1](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1) / attachments-review-2**。仓库、安装包与 Skill 标识统一为 `ai-testing-ego-lite`，显式调用 `$ai-testing-ego-lite`；中文展示名保留“AI 自主自动化测试”。使用前核对完整安装内容的身份。本次附件与评审改动及验证范围见[验证记录](docs/evaluations/attachment-review-20261106/validation.md)。
 
-完整编译包与安装说明见[安装指南](INSTALL.zh-CN.md)，不把源码ZIP当作安装包。下次采用完整新名称安装并删除旧入口，不保留旧名别名；历史数据保持原样。实现设计见[0.2.1设计](docs/v0.2.1-design.md)，当前验证范围见[开发自测](docs/v0.2.1-development-validation.md)。
+完整编译包与安装说明见[安装指南](INSTALL.zh-CN.md)，不把源码ZIP当作安装包。升级时完整安装新名称 Skill，验证后删除旧入口，不保留旧名别名；历史数据保持原样。实现设计见[0.2.1设计](docs/v0.2.1-design.md)，当前验证范围见[开发自测](docs/v0.2.1-development-validation.md)。
 
 ## 版本演变
 
-![0.2.1为开发候选，后接0.1.9、0.1.8、0.1.7正式版；能力示意并非实际证据。](docs/images/readme-version-history.zh-CN.png)
+![0.2.1正式版及前三个历史版本0.1.9、0.1.8、0.1.7；能力示意并非实际证据。](docs/images/readme-version-history.zh-CN.png)
 
 图中保留最新版本与前三个历史版本；更早版本和原验证记录保留在[完整版本演变](docs/version-history.md)。
 
@@ -44,9 +46,11 @@
 - 按目标读取：progress/context默认摘要、goals索引、point完整必要语义，长内容明确导出，不覆盖原件。
 - 入账即反馈：record提交收据与结构缺项分别返回，提示失败不改写已成功提交，重放仍使用原revision。
 - 可选用量统计：只读显式导出、去重请求、区分缓存和推理子项；缺失保留未知，不自动计费。
+- 测试附件保留已登记原件、用途与关联，支持单文件下载及静态 ZIP 合集；安全预览不执行主动内容，缺失与排除状态明确展示。
+- 用例评审支持筛选巡览、历史前进/后退阅读位置恢复、通过/继续评审及意见导出；UI 标记不代替正式确认或执行授权。
 - 统一新Skill身份与构建路径；用例审阅、知识读取、完整对话、证据报告、回归复用和并发约束继续适用。
 
-存储契约仍为v9，知识为v3，回归为v2。新CLI读取和record输出使用独立版本，详情见[格式与命令](docs/asset-formats.md)及[工具箱](skills/ai-testing-ego-lite/references/local-toolbox.md)。已有v0.1.9包与旧报告不自动替换。
+存储契约仍为v9，知识为v3，回归为v2；交付清单升级为deliveryVersion 2。新CLI读取和record输出使用独立版本，详情见[格式与命令](docs/asset-formats.md)及[工具箱](skills/ai-testing-ego-lite/references/local-toolbox.md)。已有v0.1.9包与旧报告不自动替换。
 
 报告继续跟随用户语言，分别记录用例生成与执行阶段的模型和思考等级来源；未知不补造，原始证据不翻译。
 
@@ -66,7 +70,7 @@
 
 ### 真实用例与测试报告（脱敏节选）
 
-以下截图来自用户提供的实际用例资料和测试报告，保留原始导出格式；不是重绘的模拟结果。用例审阅原件带有“方案 B／设计样稿”标签，仅用于展示这份资料的审阅格式，不是当前 0.2.1-rc.1 界面的重新验收截图。
+以下截图来自用户提供的实际用例资料和测试报告，保留原始导出格式；不是重绘的模拟结果。用例审阅原件带有“方案 B／设计样稿”标签，仅用于展示这份资料的审阅格式，不是当前 0.2.1 界面的重新验收截图。
 
 从原整轮 **35 个场景、117 个目标**中精选 **2 个场景、7 个目标**：3 个已验证、1 个发现违反、1 个无法判断、2 个未测试。节选保留原结论，未重新执行测试；统计只代表这些展示样本，不代表整体效果或通过率。
 
@@ -107,9 +111,9 @@
 
 ## Windows 快速开始
 
-本节源码示例针对 0.2.1-rc.1，使用本仓库构建的 .build/runtime；不会自动替换用户安装。安装与升级请先阅读[安装说明](INSTALL.zh-CN.md)，并核对版本、revision 和实际加载目录。
+本节源码示例针对 0.2.1，使用本仓库构建的 .build/runtime；不会自动替换用户安装。安装与升级请先阅读[安装说明](INSTALL.zh-CN.md)，并核对版本、revision 和实际加载目录。
 
-完整安装包、SHA-256 校验值与发布说明见 [v0.1.9 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
+完整安装包、SHA-256 校验值与发布说明见 [v0.2.1 Release](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1)。GitHub 自动生成的 Source code 压缩包不是完整安装包。
 
 先按 [Ego 官方 Windows 快速开始](https://lite.ego.app/document/en/docs/windows/quick-start)准备 Ego 与官方 ego-browser Skill。本仓库不安装或替代官方浏览器。仅设计用例无需浏览器连接。
 
@@ -119,7 +123,7 @@
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.2.1-rc.1 --expect-revision attachments-review-2
+node $Tool tool-info --expect-version 0.2.1 --expect-revision attachments-review-2
 ```
 
 独立安装包则使用实际加载 SKILL.md 根目录下 scripts/ego.mjs。核对安装完整性，不混用旧工具根。真实资产保存在源码仓库外：
@@ -196,7 +200,7 @@ AI workers 独立留证、封存包，协调者显式复核并导入。完整调
 
 ## 问题反馈与联系
 
-欢迎通过 [GitHub Issues](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/issues) 或以下联系方式反馈问题、提出建议。请附上版本号、复现步骤和脱敏后的报错或截图，不要提交密码、令牌、密钥或公司内部资料。
+欢迎通过 [GitHub Issues](https://github.com/99Like-wjj/ai-testing-ego-lite/issues) 或以下联系方式反馈问题、提出建议。请附上版本号、复现步骤和脱敏后的报错或截图，不要提交密码、令牌、密钥或公司内部资料。
 
 - 作者：[99Like-wjj](https://github.com/99Like-wjj)
 - 邮箱：[wjj990517@gmail.com](mailto:wjj990517@gmail.com)

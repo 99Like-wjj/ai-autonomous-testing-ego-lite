@@ -1,6 +1,6 @@
-# 数据契约（v9 / 0.2.1-rc.1）
+# 数据契约（v9 / 0.2.1）
 
-0.2.1-rc.1为未发布开发候选，Skill/包名ai-testing-ego-lite，存储仍v9。progress/context使用contextReadVersion 1；CLI record以recordResponseVersion 1封装原收据及结构反馈；显式usage汇总独立于业务结果。设计与开发自测保留在源码仓库，不进入运行包。
+0.2.1 正式版本，Skill/包名ai-testing-ego-lite，存储仍v9。progress/context使用contextReadVersion 1；CLI record以recordResponseVersion 1封装原收据及结构反馈；显式usage汇总独立于业务结果。设计与开发自测保留在源码仓库，不进入运行包。
 
 
 当前开发版主契约 v9、regressionVersion 2、networkVersion 1。源码 Schema 是外部结构定义，运行时同时验证引用、内容指纹与事务语义；类型从 Schema 生成，不直接改生成文件。工程通过不是业务验收。

@@ -1,4 +1,6 @@
-<p align="center"><img src="docs/images/hero.png" alt="AI autonomous Web testing with Ego Lite" width="100%"></p>
+<p align="center"><img src="docs/images/hero.png" alt="ai-testing-ego-lite: AI autonomous Web testing with Ego Lite" width="100%"></p>
+
+> **Pre-release manual review snapshot:** This branch prepares 0.2.1. The user requested merging for review before publishing; no tag or Release has been created. Stable-release wording, download links and illustrations below preview the proposed publication, not a completed release.
 
 <h1 align="center">AI Autonomous Testing with Ego Lite</h1>
 
@@ -28,13 +30,13 @@ As models improve, we aim to let AI use these capabilities more effectively. Act
 
 ## Current version
 
-The development candidate is **0.2.1-rc.1 / attachments-review-2**. The new Skill/package identifier is `ai-testing-ego-lite`; invoke `$ai-testing-ego-lite`. It is not released, and the GitHub URL still uses the old name. Verify the complete installation identity before use. The last stable package remains [v0.1.9](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9). See the [attachment and review validation](docs/evaluations/attachment-review-20261106/validation.md) for scope and results.
+The stable release is **[0.2.1](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1) / attachments-review-2**. The repository, installation package and Skill use `ai-testing-ego-lite`; invoke `$ai-testing-ego-lite`. The Chinese display name remains “AI 自主自动化测试”. Verify the complete installation identity before use. See the [attachment and review validation](docs/evaluations/attachment-review-20261106/validation.md) for scope and results.
 
-Use the complete compiled package described in [installation guidance](INSTALL.zh-CN.md), not the source ZIP. Future installation replaces the old discovered Skill without an alias; historical data stays intact. See [0.2.1 design](docs/v0.2.1-design.md) and [development validation](docs/v0.2.1-development-validation.md).
+Use the complete compiled package described in [installation guidance](INSTALL.zh-CN.md), not the source ZIP. Install the complete renamed Skill, verify it, then remove the old discovered entry without retaining an alias; historical data stays intact. See [0.2.1 design](docs/v0.2.1-design.md) and [development validation](docs/v0.2.1-development-validation.md).
 
 ## Version evolution
 
-![Development candidate 0.2.1 followed by stable 0.1.9, 0.1.8 and 0.1.7; illustration only.](docs/images/readme-version-history.png)
+![Stable 0.2.1 followed by the three historical releases 0.1.9, 0.1.8 and 0.1.7; illustration only.](docs/images/readme-version-history.png)
 
 The README shows the latest version and three earlier versions. [Full version history](docs/version-history.en.md) retains older versions and validation records.
 
@@ -44,9 +46,11 @@ The README shows the latest version and three earlier versions. [Full version hi
 - Read bounded summaries, goal indices and one point's complete required semantics; export long originals explicitly.
 - Separate CLI record receipts from revision-pinned structural feedback. Missing feedback does not reverse a successful commit.
 - Summarize explicit usage exports, deduplicate requests, retain unknown metrics and avoid counting cache/reasoning twice.
+- Preserve registered test-file originals, purposes and associations, with individual downloads and a static ZIP collection. Safe previews do not execute active content; missing and excluded files remain explicit.
+- Review navigation follows filters and restores reading positions on history navigation, with approved/continue-review states and feedback export. UI marks do not replace formal confirmation or execution authorization.
 - Unify the new Skill identity/build paths. Review, knowledge, complete conversations, evidence reports, regression and concurrency boundaries remain available.
 
-Stored contracts remain v9, knowledge v3 and regression v2. New context/record CLI outputs have independent versions; see [formats](docs/asset-formats.en.md) and [toolbox](skills/ai-testing-ego-lite/references/local-toolbox.en.md). No automatic replacement of old packages or historical reports.
+Stored contracts remain v9, knowledge v3 and regression v2; delivery manifests advance to deliveryVersion 2. New context/record CLI outputs have independent versions; see [formats](docs/asset-formats.en.md) and [toolbox](skills/ai-testing-ego-lite/references/local-toolbox.en.md). No automatic replacement of old packages or historical reports.
 
 Reports retain the user language and sourced model/reasoning effort for generation and execution; unknown stays unknown and original evidence stays unchanged.
 
@@ -66,7 +70,7 @@ Network observation implements the v3 design through network start/status/query/
 
 ### Real case material and test report (redacted excerpts)
 
-These screenshots come from user-provided case material and an actual test report, preserving their original export layouts rather than redrawing simulated results. The case-review source is labeled “方案 B / 设计样稿” (Plan B / design prototype); it demonstrates that document’s review layout, not a new validation capture of the current 0.2.1-rc.1 interface. Screenshots retain the source language.
+These screenshots come from user-provided case material and an actual test report, preserving their original export layouts rather than redrawing simulated results. The case-review source is labeled “方案 B / 设计样稿” (Plan B / design prototype); it demonstrates that document’s review layout, not a new validation capture of the current 0.2.1 interface. Screenshots retain the source language.
 
 The excerpts select **2 scenarios and 7 goals** from an original run of **35 scenarios and 117 goals**: 3 verified, 1 violation, 1 inconclusive and 2 not tested. Original verdicts are preserved; the tests have not been rerun for this showcase. These counts describe only the displayed subset, not overall effectiveness or a full-run pass rate.
 
@@ -107,9 +111,9 @@ Identities, URLs, paths and related identifiers are redacted. Original full-reso
 
 ## Quick start on Windows
 
-This source example targets 0.2.1-rc.1 in .build/runtime without replacing the user installation. Follow the [installation and upgrade guide (Chinese)](INSTALL.zh-CN.md), verifying the version, revision and actual loaded directory.
+This source example targets 0.2.1 in .build/runtime without replacing the user installation. Follow the [installation and upgrade guide (Chinese)](INSTALL.zh-CN.md), verifying the version, revision and actual loaded directory.
 
-Download the full installation package, SHA-256 checksums and release notes from [v0.1.9 Release](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/releases/tag/v0.1.9). GitHub-generated Source code archives are not full installation packages.
+Download the full installation package, SHA-256 checksums and release notes from [v0.2.1 Release](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1). GitHub-generated Source code archives are not full installation packages.
 
 Prepare Ego and the official ego-browser Skill using the [official guide](https://lite.ego.app/document/en/docs/windows/quick-start). This project does not install or replace Ego. Case design alone requires no browser connection.
 
@@ -119,7 +123,7 @@ From the confirmed source root:
 npm ci
 npm run build
 $Tool = Join-Path (Get-Location).Path '.build/runtime/scripts/ego.mjs'
-node $Tool tool-info --expect-version 0.2.1-rc.1 --expect-revision attachments-review-2
+node $Tool tool-info --expect-version 0.2.1 --expect-revision attachments-review-2
 $LocalRoot = Join-Path $env:LOCALAPPDATA 'EgoLiteTest'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $Project = Join-Path $LocalRoot ('project-' + [guid]::NewGuid().ToString('N'))
@@ -164,7 +168,7 @@ Spaces do not guarantee separate accounts or backend data. File updates are not 
 
 ![Independent workers capture evidence; the coordinator reviews and imports their packets.](docs/images/parallel.svg)
 
-Repair commit 8e6e2d9 is integrated while retaining goal assessment under the current v9 contract and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-testing-ego-lite; Claude Code uses /ai-autonomous-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
+Repair commit 8e6e2d9 is integrated while retaining goal assessment under the current v9 contract and the API-monitoring design. Hosts own real workers, context, permissions, waiting and cleanup; this package adds no fixed host dispatcher. Read [host conditions and handoff (Chinese)](skills/ai-testing-ego-lite/references/host-compatibility.md). Codex uses $ai-testing-ego-lite; Claude Code uses /ai-testing-ego-lite. Complete live host workflows still need separate acceptance. See the [integration record](docs/v0.1.6-cross-host-integration.md).
 
 The default is **1 (serial)**. Without a user request for concurrency or an explicit setting, execute cases one at a time. Set `start --max-parallel-cases N` or project execution-config.json to opt in; N is a positive safe integer with no fixed 2/4/8 product ceiling. The AI chooses tool calls, batches and worker use within that limit; it need not fill all slots. Host limits are recorded only when explicitly available, otherwise unknown. No automatic host probing or global configuration changes occur. Workers seal local packets; the coordinator reviews and imports them. See the [parallel guide](skills/ai-testing-ego-lite/references/parallel-testing.md). npm test builds and tests emitted JS; npm run check:public checks publishable source assets.
 
@@ -185,7 +189,7 @@ The default is **1 (serial)**. Without a user request for concurrency or an expl
 
 ## Feedback and contact
 
-Report bugs or suggest improvements through [GitHub Issues](https://github.com/99Like-wjj/ai-autonomous-testing-ego-lite/issues) or the contacts below. Include the version, reproduction steps, and redacted errors or screenshots. Do not submit passwords, tokens, keys, or confidential company information.
+Report bugs or suggest improvements through [GitHub Issues](https://github.com/99Like-wjj/ai-testing-ego-lite/issues) or the contacts below. Include the version, reproduction steps, and redacted errors or screenshots. Do not submit passwords, tokens, keys, or confidential company information.
 
 - Author: [99Like-wjj](https://github.com/99Like-wjj)
 - Email: [wjj990517@gmail.com](mailto:wjj990517@gmail.com)

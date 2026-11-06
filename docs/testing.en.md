@@ -1,10 +1,10 @@
 # Validation record and coverage limits
 
-See the [cloud documentation and engineering review (Chinese)](v0.1.9-cloud-documentation-validation.md).
+See [0.2.1 release validation](v0.2.1-release-validation.md) for current checks and limits. Earlier records below retain their original scope and are not rerun results for this release.
 
-## Current v0.1.9 release and historical development validation
+## v0.1.9 release and historical development validation
 
-Current source is `0.1.9 / project-knowledge-3`, knowledge format v3. See [stable release validation](v0.1.9-release-validation.md). See the 2026-11-04 lightweight v3 section in [development validation](v0.1.9-development-validation.md) and [offline review export validation](v0.1.9-offline-review-export-validation.md). Earlier v1/v2 sections are historical, not the current format. The user reports 264 local passes and two permission-related skips; cloud checks are recorded separately and do not convert local results into a cloud rerun or business acceptance. Earlier-version records follow.
+That release is `0.1.9 / project-knowledge-3`, knowledge format v3. See [stable release validation](v0.1.9-release-validation.md). See the 2026-11-04 lightweight v3 section in [development validation](v0.1.9-development-validation.md) and [offline review export validation](v0.1.9-offline-review-export-validation.md). Earlier v1/v2 sections are historical, not the current format. The user reports 264 local passes and two permission-related skips; cloud checks are recorded separately and do not convert local results into a cloud rerun or business acceptance. Earlier-version records follow.
 
 ## v0.1.8 cloud release validation (2026-11-02)
 

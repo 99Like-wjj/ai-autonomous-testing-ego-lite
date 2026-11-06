@@ -1,4 +1,4 @@
-# Local toolbox — 0.2.1-rc.1
+# Local toolbox — 0.2.1
 
 Independent script files do not require independent model requests. When facts already determine the actions, save a new UTF-8 file, check success, run it and return the final observation in one sequential host invocation. Stop at failures or new decisions; keep identity, authorization and unknown-effect boundaries. Retain full text in files via captureDomText, then expand necessary content by reference.
 
@@ -8,7 +8,7 @@ CLI record returns recordResponseVersion 1 with the unchanged receipt and revisi
 
 Before `report --run-dir ABS --output-dir ABS --delivery auto`, explicitly create a new empty output directory: report requires an existing directory and never overwrites existing target files. Auto uses a bundle for required originals, conversations or historical attachments; keep the attachments directory with the HTML. A successful file receipt does not prove browser opening or business acceptance.
 
-Verify tool-info: 0.2.1-rc.1 / attachments-review-2, contracts v9, regressionVersion 2, networkVersion 1. Source development uses .build/runtime; parsers are bundled without runtime npm installation.
+Verify tool-info: 0.2.1 / attachments-review-2, contracts v9, regressionVersion 2, networkVersion 1. Source development uses .build/runtime; parsers are bundled without runtime npm installation.
 
 cases save publishes whole immutable case versions and allocates point IDs within that transaction. cases render/verify generate same-source offline HTML/Markdown without runs. cases review retains actual review provenance; offline approved flags are not human authentication.
 

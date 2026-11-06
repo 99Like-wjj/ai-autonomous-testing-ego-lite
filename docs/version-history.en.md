@@ -4,11 +4,11 @@
 
 The AI interprets goals and judges business outcomes, Ego operates the browser, and local tools retain evidence and deliver reports.
 
-![Newest first: 0.1.9 stable, followed by historical 0.1.8 through 0.1.2; capability illustration only.](images/version-history.png)
+![Newest first: 0.2.1 stable, followed by historical 0.1.9 through 0.1.2; capability illustration only.](images/version-history.png)
 
-## v0.2.1 · Development candidate, not released
+## v0.2.1 · Efficiency, test attachments, review navigation and rename (Stable release)
 
-0.2.1-rc.1 adds scoped reads, commit feedback, explicit usage summaries and the ai-testing-ego-lite identity. Stored contracts remain v9. See [development validation](v0.2.1-development-validation.md).
+0.2.1 adds scoped reads, commit feedback, explicit usage summaries, test attachment downloads and review-navigation fixes. Repository, package and Skill use ai-testing-ego-lite. Stored contracts remain v9; deliveryVersion is 2. Get the full renamed package from [v0.2.1 Release](https://github.com/99Like-wjj/ai-testing-ego-lite/releases/tag/v0.2.1) and see [release validation](v0.2.1-release-validation.md). Publication does not update user installations or rewrite historical assets.
 
 ## v0.1.9 · Project knowledge, testing experience and offline review export (Stable release)
 

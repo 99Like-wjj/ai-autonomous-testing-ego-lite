@@ -9,7 +9,7 @@ test('release identity agrees across package, lockfile, Skill and current guides
   const read = (name: string) => fs.readFile(path.join(SOURCE_ROOT, name), 'utf8');
   const pkg = JSON.parse(await read('package.json'));
   const lock = JSON.parse(await read('package-lock.json'));
-  assert.equal(TOOL_VERSION, '0.2.1-rc.1');
+  assert.equal(TOOL_VERSION, '0.2.1');
   assert.equal(pkg.name, 'ai-testing-ego-lite');
   assert.equal(pkg.version, TOOL_VERSION);
   assert.equal(lock.version, TOOL_VERSION);
