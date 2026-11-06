@@ -2,7 +2,7 @@
 
 [English](version-history.en.md) · [本地验收步骤](v0.1.5-local-acceptance.md)
 
-基于 Ego Lite 的 AI 自主测试 Skill：AI 理解目标、选择方法并判断业务，Ego 操作浏览器，本地工具保存证据和交付报告。
+基于 Ego Lite 的 AI Testing Skill：AI 理解目标、选择方法并判断业务，Ego 操作浏览器，本地工具保存证据和交付报告。
 
 ![最新在前：0.2.1 正式版，其后为 0.1.9 至 0.1.2 历史版本；仅为能力示意。](images/version-history.zh-CN.png)
 

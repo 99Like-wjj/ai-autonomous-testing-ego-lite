@@ -2,7 +2,7 @@
 
 ## 0.2.1 / attachments-review-2 — 2026-11-06 · 发布准备，待人工审核
 
-- 仓库、包名、Skill 标识及新安装包统一为 `ai-testing-ego-lite`，中文展示名保留“AI 自主自动化测试 · Ego Lite”。原 GitHub 仓库更名，repository ID 与历史 Tag、Release、附件不变；不提供旧名兼容别名。
+- 仓库、包名、Skill 标识及新安装包统一为 `ai-testing-ego-lite`，中文展示名按人工审核更新为“AI 自动化测试 · Ego Lite”。原 GitHub 仓库更名，repository ID 与历史 Tag、Release、附件不变；不提供旧名兼容别名。
 - 目标摘要/索引/单点读取、CLI 入账结构反馈和显式用量导出汇总降低重复读取；不承诺模型费用或业务效果的固定改善，不替 AI 选择业务动作或判断四态。
 - 测试附件可从步骤、对话及全局入口按原名下载，支持预生成附件 ZIP；用例评审增加通过标记、收起与继续评审，并修复导航/位置恢复。
 - 主存储 v9、知识 v3、回归 v2、网络 v1 保持；新增 contextReadVersion 1、recordResponseVersion 1、usageVersion/usageSummaryVersion 1，交付清单为 deliveryVersion 2。CLI 消费者需同步，历史资产不重写或迁移。

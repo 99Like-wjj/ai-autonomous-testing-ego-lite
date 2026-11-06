@@ -92,8 +92,8 @@ export async function generateImages(outputDir: string) {
     p.push(text(50, 924, t('Knowledge sources for the AI context above', '知识来源说明：为上方 AI 输入提供项目上下文'), 22, 'cyan', 700));
     p.push(...knowledgeFlow(963, zh, 1400));
     await save(outputDir, ('design-philosophy' + suffix), p, png);
-    p = start(t("AI Autonomous Testing · Ego Lite", "AI 自主自动化测试 · Ego Lite"), 540);
-    p.push(...[text(54, 64, t("AI AUTONOMOUS TESTING / EGO LITE", "AI 自主自动化测试 / EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test. Review. Reuse.", "从首次测试，"), 48, "text", 700), text(54, 198, t("Let AI choose the method.", "到有依据的回归。"), 48, "text", 700), text(56, 246, t("New features and regression. Fixed goals, adaptive AI execution.", "AI 自主规划与执行，保留规则、事实和每轮证据"), 20, "muted")]);
+    p = start(t("AI Testing · Ego Lite", "AI 自动化测试 · Ego Lite"), 540);
+    p.push(...[text(54, 64, t("AI TESTING / EGO LITE", "AI 自动化测试 / EGO LITE"), 19, "cyan", 700), text(54, 136, t("Test. Review. Reuse.", "从首次测试，"), 48, "text", 700), text(54, 198, t("Let AI choose the method.", "到有依据的回归。"), 48, "text", 700), text(56, 246, t("New features and regression. Fixed goals, adaptive AI execution.", "AI 自主规划与执行，保留规则、事实和每轮证据"), 20, "muted")]);
     p.push(...[rect(56, 294, 1088, 150), text(82, 332, t("01  PREPARE", "01  准备测试依据"), 16, "cyan", 700), text(82, 370, t("Goals + acceptance", "目标与验收条件"), 23), text(82, 403, t("Requirements + optional knowledge", "需求、用例与可选项目知识"), 17, "muted"), text(455, 332, t("02  EXPLORE", "02  AI 自主执行"), 16, "violet", 700), text(455, 370, t("Plan → explore → test", "规划 → 探索 → 测试"), 23), text(455, 403, t("Current AI session + Ego", "当前 AI 会话 + Ego"), 17, "muted"), text(835, 332, t("03  REVIEW + REUSE", "03  审阅与复用"), 16, "cyan", 700), text(835, 370, t("Evidence + regression", "证据与回归资料"), 23), text(835, 403, t("New run, fresh evidence", "独立新运行，重新核验"), 17, "muted"), line(355, 370, 420, 370), line(735, 370, 800, 370), text(56, 498, t("ai-testing-ego-lite  /  0.2.1  /  STABLE RELEASE", "ai-testing-ego-lite  /  0.2.1  /  正式版本"), 16, "muted")]);
     await save(outputDir, ("hero" + suffix), p, png);
     p = start(t("Who owns what?", "谁负责什么？"), 870);
