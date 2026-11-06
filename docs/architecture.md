@@ -11,11 +11,11 @@
 
 ```mermaid
 flowchart LR
-  M[project-knowledge-maintainer] -->|create / update| K[Independent knowledge v3]
-  K -->|inspect / query / read| T[Ego knowledge tools]
-  T -->|context with provenance| A[AI plans and tests]
-  G[Generic testing experience] --> A
-  R[Current requirements and authorization] --> A
+  M[project-knowledge-maintainer] -->|创建 / 更新| K[独立项目知识 v3]
+  K -->|检查 / 检索 / 读取<br/>inspect / query / read| T[Ego 知识工具]
+  T -->|带来源信息的上下文| A[AI 规划与执行测试]
+  G[通用测试经验] --> A
+  R[当前需求与授权] --> A
 ```
 
 AI 理解需求、设计目标、探索页面、选择方法并判断业务四态；Ego 提供浏览器原语。固定代码负责准确的文件事务、引用、证据保管、确定性读取和同源呈现，不调用模型或替 AI 选择业务路径。默认并发 1，上限不是必须跑满。
