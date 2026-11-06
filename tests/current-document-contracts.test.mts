@@ -51,3 +51,21 @@ test('case-authoring documentation contains cases accepted by the real runtime v
     assert.ok(normalized.cases.every(c => c.goals.every(goal => goal.title.length > 0)));
   }
 });
+
+
+test('Chinese knowledge diagram localizes labels while preserving the English graph and Chinese entry link', async () => {
+  const read = (file: string) => fs.readFile(path.join(SOURCE_ROOT, file), 'utf8');
+  const chinese = await read('docs/architecture.md');
+  const english = await read('docs/architecture.en.md');
+  const diagram = (text: string) => text.match(/```mermaid\n([\s\S]*?)```/)?.[1] ?? '';
+  const zh = diagram(chinese), en = diagram(english);
+  assert.ok(zh && en);
+  const graph = (text: string) => text.replace(/\[[^\]]*\]/g, '[]').replace(/\|[^|]*\|/g, '|label|');
+  assert.equal(graph(zh), graph(en), 'Localization must preserve nodes, edges and direction.');
+  for (const label of ['创建 / 更新', '独立项目知识 v3', '检查 / 检索 / 读取', 'Ego 知识工具', '带来源信息的上下文', 'AI 规划与执行测试', '通用测试经验', '当前需求与授权']) assert.ok(zh.includes(label), label);
+  for (const identifier of ['project-knowledge-maintainer', 'inspect / query / read', 'Ego', 'v3']) assert.ok(zh.includes(identifier), identifier);
+  assert.doesNotMatch(zh, /create \/ update|Independent knowledge|Generic testing experience|Current requirements and authorization/);
+  assert.match(en, /create \/ update/);
+  assert.match(en, /Generic testing experience/);
+  assert.match(await read('docs/architecture.zh-CN.md'), /\[完整文档\]\(architecture\.md\)/);
+});
